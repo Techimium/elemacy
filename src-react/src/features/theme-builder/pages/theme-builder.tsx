@@ -11,11 +11,14 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { DotIcon, LayoutTemplateIcon } from "lucide-react";
+import { LayoutTemplateIcon } from "lucide-react";
 import TemplateCard from "../components/template-card";
+import { useState } from "react";
 
 function ThemeBuilder() {
-  const templates = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  const templates: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   return (
     <>
       <Topbar />
@@ -26,7 +29,10 @@ function ThemeBuilder() {
             {/* Title (replaced h1 with div) */}
             <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight">
               <span>Theme Builder</span>
-              <ModuleSwitch />
+              <ModuleSwitch
+                checked={isEnabled}
+                onCheckedChange={(isChecked) => setIsEnabled(isChecked)}
+              />
             </div>
             {/* Subtitle (replaced p with div) */}
             <div className="text-gray-500 mt-1">
@@ -43,32 +49,38 @@ function ThemeBuilder() {
           </Button>
         </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ${
+            !isEnabled ? "blur-xs" : ""
+          }`}
+        >
           {templates.map((template) => (
             <TemplateCard key={template} />
           ))}
         </div>
 
-        <Card>
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia className="w-16 h-16" variant="icon">
-                <LayoutTemplateIcon />
-              </EmptyMedia>
-              <EmptyTitle>No Templates Yet</EmptyTitle>
-              <EmptyDescription>
-                You haven't created any templates yet. Get started by creating
-                your first template.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <div className="flex gap-2">
-                <Button>Create Template</Button>
-                <Button variant="outline">Import Template</Button>
-              </div>
-            </EmptyContent>
-          </Empty>
-        </Card>
+        {templates.length === 0 && (
+          <Card>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia className="w-16 h-16" variant="icon">
+                  <LayoutTemplateIcon />
+                </EmptyMedia>
+                <EmptyTitle>No Templates Yet</EmptyTitle>
+                <EmptyDescription>
+                  You haven't created any templates yet. Get started by creating
+                  your first template.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex gap-2">
+                  <Button>Create Template</Button>
+                  <Button variant="outline">Import Template</Button>
+                </div>
+              </EmptyContent>
+            </Empty>
+          </Card>
+        )}
       </Container>
     </>
   );
