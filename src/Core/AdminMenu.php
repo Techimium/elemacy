@@ -18,6 +18,25 @@ class AdminMenu
             'elemacy',
             [$this, 'render']
         );
+
+        
+        add_submenu_page(
+            'elemacy',
+            'Overview',
+            'Overview',
+            'manage_options',
+            'elemacy#',
+            [$this, 'render']
+        );
+        
+        add_submenu_page(
+            'elemacy',
+            'Theme Builder',
+            'Theme Builder',
+            'manage_options',
+            'elemacy#theme-builder',
+            [$this, 'render']
+        );
     }
 
     public function render()
