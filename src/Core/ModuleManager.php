@@ -3,6 +3,7 @@
 namespace Elemacy\Core;
 
 use WP_Error;
+use Elemacy\Core\Constants\OptionKeys;
 
 class ModuleManager {
 	private array $modules = [];
@@ -27,7 +28,7 @@ class ModuleManager {
 	}
 
 	public function is_active( string $module_name ): bool {
-		return in_array( $module_name, $this->active_modules, true );
+		return isset( $this->active_modules[ $module_name ] );
 	}
 
 	public function enable_module( string $module_name ) {
@@ -40,10 +41,10 @@ class ModuleManager {
 			return $dependencies_met;
 		}
 
-		$active_modules = get_option( 'elemacy_active_modules', [] );
+		$active_modules = get_option( OptionKeys::ACTIVE_MODULES, [] );
 		if ( ! in_array( $module_name, $active_modules, true ) ) {
 			$active_modules[] = $module_name;
-			update_option( 'elemacy_active_modules', $active_modules );
+			update_option( OptionKeys::ACTIVE_MODULES, $active_modules );
 		}
 
 		$this->load_active_modules();
@@ -63,9 +64,9 @@ class ModuleManager {
 			);
 		}
 
-		$active_modules = get_option( 'elemacy_active_modules', [] );
+		$active_modules = get_option( OptionKeys::ACTIVE_MODULES, [] );
 		$active_modules = array_diff( $active_modules, array( $module_name ) );
-		update_option( 'elemacy_active_modules', $active_modules );
+		update_option( OptionKeys::ACTIVE_MODULES, $active_modules );
 
 		$this->load_active_modules();
 
@@ -78,7 +79,7 @@ class ModuleManager {
 	}
 
 	private function load_active_modules(): void {
-		$active_module_names = get_option( 'elemacy_active_modules', [] );
+		$active_module_names = get_option( OptionKeys::ACTIVE_MODULES, [] );
 		$this->active_modules = [];
 
 		foreach ( $active_module_names as $module_name ) {

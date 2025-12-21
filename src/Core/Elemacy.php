@@ -14,6 +14,14 @@ class Elemacy
 		add_action( 'plugins_loaded', [$this, 'init'] );
     }
 
+	public static function get_instance(): self {
+		if (self::$instance === null) {
+			self::$instance = new static();
+		}
+
+		return self::$instance;
+	}
+
 	public function init() {
 		$this->check_requirements();
         $this->init_core_components();
@@ -97,10 +105,6 @@ class Elemacy
 
 	public static function boot()
     {
-        if (self::$instance === null) {
-            self::$instance = new static();
-        }
-
-        return self::$instance;
+        return self::get_instance();
     }
 }
