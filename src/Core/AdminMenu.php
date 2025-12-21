@@ -37,6 +37,8 @@ class AdminMenu
             'elemacy#theme-builder',
             [$this, 'render']
         );
+
+        remove_submenu_page( 'elemacy'  , 'elemacy');
     }
 
     public function render()

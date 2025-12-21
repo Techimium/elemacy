@@ -18,10 +18,10 @@
 use Elemacy\Core\Elemacy;
 
 if ( ! defined('ABSPATH') ) {
-    exit; // Exit if accessed directly.
+    exit;
 }
 
-define('ELEMACY_ENV', 'dev'); //dev or production
+define('ELEMACY_ENV', 'dev');
 define('ELEMACY_VERSION', '1.0.0');
 define('ELEMACY_FILE', __FILE__);
 define('ELEMACY_PLUGIN_BASE', plugin_basename(ELEMACY_FILE));
