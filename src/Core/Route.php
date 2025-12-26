@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+use ReflectionMethod;
+
 defined( 'ABSPATH' ) || exit;
 
 use WP_Error;
@@ -443,19 +445,19 @@ class Route
 
         if (in_array($abstract, $resolving, true)) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Circular dependency detected for class "%s".', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Circular dependency detected for class %s.', 'elemacy'), esc_html($abstract)));
         }
 
         if (!class_exists($abstract)) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class "%s" does not exist.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s does not exist.', 'elemacy'), esc_html($abstract)));
         }
 
         $reflector = new \ReflectionClass($abstract);
 
         if ($reflector->isAbstract()) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class "%s" is abstract and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s is abstract and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
         }
 
         $constructor = $reflector->getConstructor();
@@ -466,7 +468,7 @@ class Route
 
         if (!$constructor->isPublic()) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class "%s" has a non-public constructor and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s has a non-public constructor and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
         }
 
         $dependencies = [];
@@ -477,12 +479,12 @@ class Route
 
             if (!$type) {
                 /* translators: %s: Parameter name */
-                throw new Exception(sprintf(esc_html__('Parameter "%s" is missing a type hint in the constructor. Please add a class type hint.', 'elemacy'), esc_html($parameter->getName())));
+                throw new Exception(sprintf(esc_html__('Parameter %s is missing a type hint in the constructor. Please add a class type hint.', 'elemacy'), esc_html($parameter->getName())));
             }
 
             if ($type->isBuiltin()) {
                 /* translators: %s: Parameter name */
-                throw new Exception(sprintf(esc_html__('Parameter "%s" must be a class type, not a built-in type. Please specify a valid class dependency.', 'elemacy'), esc_html($parameter->getName())));
+                throw new Exception(sprintf(esc_html__('Parameter %s must be a class type, not a built-in type. Please specify a valid class dependency.', 'elemacy'), esc_html($parameter->getName())));
             }
 
             $dependencies[] = $this->is_cached($type->getName())
@@ -496,6 +498,45 @@ class Route
         return $instance;
     }
 
+    protected function resolve_dependencies($controller, $method, $rest_request)
+    {
+        $reflector = new ReflectionMethod($controller, $method);
+        $parameters = $reflector->getParameters();
+
+        if(count($parameters) === 0) {
+            return [];
+        }
+
+        $request_class = array_shift($parameters)->getType()->getName() ?? Request::class;
+
+        $dependencies = [];
+
+        if(is_subclass_of($request_class, Request::class) || $request_class === Request::class) {
+            $request = $request_class::from_wp_rest_request($rest_request);
+            $request->clean();
+            $dependencies[] = $request;
+        }
+
+        foreach ($parameters as $parameter) {
+            $type = $parameter->getType();
+
+            if (!is_null($type) && $type->isBuiltin()) {
+                /* translators: %s: Parameter name */
+                throw new Exception(sprintf(esc_html__('Parameter %s must not be a built-in type.', 'elemacy'), esc_html($parameter->getName())));
+            }
+
+            if (!$type) {
+                $dependencies[] = $rest_request->get_param($parameter->getName()) ?? null;
+            } else {
+                $dependencies[] = $this->is_cached($type->getName())
+                    ? $this->get_cached($type->getName())
+                    : $this->make($type->getName());
+            }
+        }
+
+        return $dependencies;
+    }
+
     /**
      * Resolve the route handler.
      *
@@ -507,34 +548,34 @@ class Route
     protected function resolve_route()
     {
         return function ($rest_request) {
-            $request = Request::from_wp_rest_request($rest_request);
-
+            
             if (!is_array($this->action)) {
                 /* translators: %s: Route endpoint */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Invalid method registered for the route %s', 'elemacy'), esc_html($this->endpoint)));
             }
-
+            
             if (count($this->action) !== 2) {
                 /* translators: %s: Route endpoint */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Invalid controller syntax for the route %s', 'elemacy'), esc_html($this->endpoint)));
             }
-
+            
             list($controller, $method) = $this->action;
-
+            
             if (!class_exists($controller)) {
                 /* translators: %s: Controller class */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
             }
-
+            
             $controller_instance = $this->make($controller);
-
+            
             if (!method_exists($controller_instance, $method)) {
                 /* translators: 1: Method name, 2: Controller class */
                 throw new InvalidRoutActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
             }
-
+            
             try {
-                return $controller_instance->$method($request);
+                $dependencies = $this->resolve_dependencies($controller_instance, $method, $rest_request);
+                return $controller_instance->$method(...$dependencies);
             } catch (Exception $exception) {
                 return ApiExceptionHandler::get_response($exception);
             }

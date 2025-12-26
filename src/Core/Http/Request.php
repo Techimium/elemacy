@@ -2,6 +2,9 @@
 
 namespace Elemacy\Core\Http;
 
+use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Validation\Validator;
+
 defined( 'ABSPATH' ) || exit;
 
 use Elemacy\Core\Contracts\Request as BaseRequest;
@@ -92,6 +95,80 @@ class Request implements BaseRequest
         $instance->headers = $request->get_headers();
 
         return $instance;
+    }
+
+    /**
+     * Get the validation rules for the request.
+     *
+     * @since 1.0.0
+     *
+     * @return array
+     */
+    protected function rules()
+    {
+        return [];
+    }
+
+    /**
+     * Get the sanitization filters for the request.
+     *
+     * @since 1.0.0
+     *
+     * @return array
+     */
+    protected function filters()
+    {
+        return [];
+    }
+
+    /**
+     * Clean the request data.
+     *
+     * @since 1.0.0
+     *
+     * @return array
+     */
+    public function clean()
+    {
+        $validated = $this->validate($this->all(), $this->rules())->validated();
+        $sanitized = $this->sanitize($validated, $this->filters())->get_sanitized_data();
+
+        return $sanitized;
+    }
+
+    /**
+     * Run the validation on the request data.
+     *
+     * @since 1.0.0
+     *
+     * @param array $rules The validation rules.
+     * @throws ValidationException
+     *
+     * @return Validator
+     */
+    protected function validate(array $data, array $rules)
+    {
+        $validator = Validator::make(
+            $data,
+            $rules
+        );
+
+        $validator->validate();
+
+        return $validator;
+    }
+
+    /**
+     * Run the sanitization on the data.
+     *
+     * @since 1.0.0
+     *
+     * @param array $filters The filters to apply.
+     * @return Sanitizer
+     */
+    protected function sanitize(array $data, array $filters)
+    {
+        return Sanitizer::make($data, $filters);
     }
 
     /**
