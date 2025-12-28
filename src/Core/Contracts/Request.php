@@ -2,7 +2,7 @@
 
 namespace Elemacy\Core\Contracts;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 /**
  * Contract for interacting with an HTTP request in a normalized way.
@@ -48,6 +48,15 @@ interface Request
      * @return array
      */
     public function all();
+
+    /**
+     * Get all request input attributes with proper validation and sanitization.
+     *
+     * @since 1.0.0
+     *
+     * @return array
+     */
+    public function clean();
 
     /**
      * Get request data excluding specified attributes.

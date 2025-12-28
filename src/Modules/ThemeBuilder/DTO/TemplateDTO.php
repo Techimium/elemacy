@@ -1,0 +1,15 @@
+<?php
+
+namespace Elemacy\Modules\ThemeBuilder\DTO;
+
+use Elemacy\Core\DTO\DTO;
+
+class TemplateDTO extends DTO
+{
+    public $id;
+    public $title;
+    public $type;
+    public $status;
+    public $author;
+    public $date;
+}

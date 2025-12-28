@@ -3,6 +3,7 @@
 namespace Elemacy\Modules\ThemeBuilder;
 
 use Elemacy\Core\Module;
+use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
 
 class ThemeBuilder extends Module {
     public function get_name(): string {
@@ -22,7 +23,7 @@ class ThemeBuilder extends Module {
     }
 
     public function init(): void {
-        //
+        TemplatePostType::register();
     }
 
     public function register_routes() {

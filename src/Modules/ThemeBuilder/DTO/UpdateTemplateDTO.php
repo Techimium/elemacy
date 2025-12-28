@@ -1,0 +1,28 @@
+<?php
+
+namespace Elemacy\Modules\ThemeBuilder\DTO;
+
+use Elemacy\Core\DTO\DTO;
+
+class UpdateTemplateDTO extends DTO
+{
+    /**
+     * @var int
+     */
+    public $id;
+
+    /**
+     * @var string
+     */
+    public $title;
+
+    /**
+     * @var string
+     */
+    public $type;
+
+    /**
+     * @var string
+     */
+    public $status;
+}

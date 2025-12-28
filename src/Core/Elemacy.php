@@ -2,8 +2,6 @@
 
 namespace Elemacy\Core;
 
-use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
-
 class Elemacy
 {
     private static $instance = null;
@@ -11,6 +9,7 @@ class Elemacy
 
     private function __construct()
     {
+		add_action('init', [$this, 'load_textdomain']);
 		add_action( 'plugins_loaded', [$this, 'init'] );
     }
 
@@ -29,6 +28,10 @@ class Elemacy
 		$this->init_modules();
 		$this->init_routes();
 		$this->register_routes();
+	}
+
+	public function load_textdomain() {
+		load_plugin_textdomain( 'elemacy', false, dirname( ELEMACY_PLUGIN_BASE ) . '/languages' );
 	}
 
     public function init_core_components()
