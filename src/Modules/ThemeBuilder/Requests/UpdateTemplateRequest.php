@@ -5,11 +5,12 @@ namespace Elemacy\Modules\ThemeBuilder\Requests;
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Sanitizer;
 
-class CreateTemplateRequest extends Request
+class UpdateTemplateRequest extends Request
 {
     public function rules()
     {
         return [
+            'id' => 'required|integer',
             'title' => 'required|string',
             'type' => 'required|string',
             'status' => 'nullable|string',
@@ -19,6 +20,7 @@ class CreateTemplateRequest extends Request
     public function filters()
     {
         return [
+            'id' => Sanitizer::INT,
             'title' => Sanitizer::TEXT,
             'type' => Sanitizer::TEXT,
             'status' => Sanitizer::TEXT,

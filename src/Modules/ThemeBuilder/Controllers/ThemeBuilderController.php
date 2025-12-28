@@ -8,6 +8,7 @@ use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\Requests\CreateTemplateRequest;
+use Elemacy\Modules\ThemeBuilder\Requests\UpdateTemplateRequest;
 use Elemacy\Modules\ThemeBuilder\Resources\TemplateListResource;
 use Elemacy\Modules\ThemeBuilder\Resources\TemplateResource;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
@@ -61,11 +62,11 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'message' => 'Template created successfully',
-            'data' => TemplateResource::make($this->service->get($result))
+            'data' => TemplateResource::make($result)
         ], Response::CREATED);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTemplateRequest $request, $id)
     {
         $dto = UpdateTemplateDTO::from_request($request);
         $result = $this->service->update((int) $id, $dto);
@@ -79,7 +80,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'message' => 'Template updated successfully',
-            'data' => TemplateResource::make($this->service->get((int) $id))
+            'data' => TemplateResource::make($result)
         ]);
     }
 

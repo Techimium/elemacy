@@ -83,7 +83,7 @@ class TemplateService
      * Create a new template.
      *
      * @param CreateTemplateDTO $dto
-     * @return int|\WP_Error
+     * @return TemplateDTO|\WP_Error
      */
     public function create(CreateTemplateDTO $dto)
     {
@@ -104,7 +104,7 @@ class TemplateService
             update_post_meta($post_id, '_elemacy_template_type', sanitize_text_field($dto->type));
         }
 
-        return $post_id;
+        return $this->create_dto(get_post($post_id));
     }
 
     /**
@@ -112,7 +112,7 @@ class TemplateService
      *
      * @param int $id
      * @param UpdateTemplateDTO $dto
-     * @return int|\WP_Error
+     * @return TemplateDTO|\WP_Error
      */
     public function update(int $id, UpdateTemplateDTO $dto)
     {
@@ -127,15 +127,11 @@ class TemplateService
         ];
 
         if (isset($dto->title)) {
-            $post_data['post_title'] = sanitize_text_field($dto->title);
-        }
-
-        if (isset($dto->content)) {
-            $post_data['post_content'] = wp_kses_post($dto->content);
+            $post_data['post_title'] = $dto->title;
         }
 
         if (isset($dto->status)) {
-            $post_data['post_status'] = sanitize_text_field($dto->status);
+            $post_data['post_status'] = $dto->status;
         }
 
         $result = wp_update_post($post_data, true);
@@ -145,10 +141,10 @@ class TemplateService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($id, '_elemacy_template_type', sanitize_text_field($dto->type));
+            update_post_meta($id, '_elemacy_template_type', $dto->type);
         }
 
-        return $result;
+        return $this->create_dto(get_post($id));
     }
 
     /**

@@ -1,0 +1,37 @@
+import { z } from 'zod';
+
+const TemplateFilterSchema = z.object({
+    search: z.string().optional(),
+    type: z.enum(['header', 'footer', 'single', 'archive']).optional(),
+    status: z.enum(['publish', 'draft', 'trash']).optional()
+});
+
+const TemplateSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    type: z.enum(['header', 'footer', 'single', 'archive']),
+    status: z.enum(['publish', 'draft', 'trash']),
+    author: z.number(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional(),
+});
+
+const CreateTemplateSchema = z.object({
+    title: z.string(),
+    type: z.enum(['header', 'footer', 'single', 'archive']),
+    status: z.enum(['publish', 'draft', 'trash'])
+});
+
+const UpdateTemplateSchema = CreateTemplateSchema;
+
+type TemplateFilter = z.infer<typeof TemplateFilterSchema>;
+type Template = z.infer<typeof TemplateSchema>;
+type CreateTemplate = z.infer<typeof CreateTemplateSchema>;
+type UpdateTemplate = z.infer<typeof UpdateTemplateSchema>;
+
+export {
+    TemplateFilterSchema, type TemplateFilter,
+    TemplateSchema, type Template,
+    CreateTemplateSchema, type CreateTemplate,
+    UpdateTemplateSchema, type UpdateTemplate,
+};

@@ -8,7 +8,7 @@ class AdminScripts
 {
     public function __construct()
     {
-        if(!Utils::is_plugin_page()) {
+        if (!Utils::is_plugin_page()) {
             return;
         }
 
@@ -18,14 +18,23 @@ class AdminScripts
 
     public function enqueue()
     {
-        if(ELEMACY_ENV === 'dev') {
+        $handle = 'elemacy-core';
+        if (ELEMACY_ENV === 'dev') {
             $this->enqueue_dev_scripts();
+            $handle = 'elemacy-admin-app';
         } else {
             $this->enqueue_production_scripts();
         }
+
+        wp_localize_script($handle, 'elemacy', [
+            'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
+            'nonce' => wp_create_nonce('wp_rest'),
+            'adminUrl' => admin_url(),
+        ]);
     }
 
-    public function enqueue_production_scripts(){
+    public function enqueue_production_scripts()
+    {
         wp_register_script('elemacy-core', ELEMACY_PATH . '/assets/admin/scripts/admin.js', [], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-core');
     }
@@ -59,13 +68,13 @@ class AdminScripts
             window.__vite_plugin_react_preamble_installed__ = true;
         JS;
 
-        wp_add_inline_script( 'elemacy-admin-app', $preamble, 'before' );
+        wp_add_inline_script('elemacy-admin-app', $preamble, 'before');
     }
 
     public function update_script_type($tag, $handle, $src)
     {
-        if (in_array( $handle, [ 'elemacy-vite-client', 'elemacy-admin-app' ], true) ) {
-            $tag = str_replace( '<script', '<script type="module"', $tag );
+        if (in_array($handle, ['elemacy-vite-client', 'elemacy-admin-app'], true)) {
+            $tag = str_replace('<script', '<script type="module"', $tag);
         }
 
         return $tag;
