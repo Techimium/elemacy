@@ -14,23 +14,31 @@ import { Card } from "@/components/ui/card";
 import { LayoutTemplateIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditTemplateModal } from "./edit-template-modal";
+import { DeleteTemplateDialog } from "./delete-template-dialog";
 import Spinner from "@/components/spinner";
 
 
 function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+    const [deletingTemplate, setDeletingTemplate] = useState<Template | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
 
     const { data: templates, isLoading } = useTemplates();
-    const { mutateAsync: deleteTemplate } = useDeleteTemplateMutation();
+    const { mutateAsync: deleteTemplate, isPending: isDeleting } = useDeleteTemplateMutation();
 
     const handleEdit = (template: Template) => {
         setEditingTemplate(template);
         setIsEditOpen(true);
     };
 
-    const handleDelete = async (template: Template) => {
-        deleteTemplate(template.id);
+    const handleDelete = (template: Template) => {
+        setDeletingTemplate(template);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingTemplate) return;
+        await deleteTemplate(deletingTemplate.id);
+        setDeletingTemplate(null);
     };
 
     if (isLoading) {
@@ -82,6 +90,14 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                 template={editingTemplate}
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
+            />
+
+            <DeleteTemplateDialog
+                open={!!deletingTemplate}
+                onOpenChange={(open) => !open && setDeletingTemplate(null)}
+                onConfirm={confirmDelete}
+                templateName={deletingTemplate?.title}
+                isDeleting={isDeleting}
             />
         </>
     );
