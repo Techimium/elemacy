@@ -74,6 +74,27 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                         </FormItem>
                     )}
                 />
+                <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select a template status" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="publish">Published</SelectItem>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <Button type="submit" disabled={isLoading} className="w-full">
                     {isLoading ? "Saving..." : submitLabel}
                 </Button>

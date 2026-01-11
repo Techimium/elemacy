@@ -24,7 +24,7 @@ class TemplateService
     {
         $query_args = [
             'post_type' => TemplatePostType::POST_TYPE,
-            'post_status' => 'publish',
+            'post_status' => 'any',
             'posts_per_page' => -1,
             'orderby' => 'date',
             'order' => 'DESC',
