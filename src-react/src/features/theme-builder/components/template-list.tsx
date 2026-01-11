@@ -1,0 +1,90 @@
+import { useState } from "react";
+import type { Template } from "../schemas/template";
+import { useDeleteTemplateMutation, useTemplates } from "../services/template";
+import TemplateCard from "./template-card";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import { Card } from "@/components/ui/card";
+import { LayoutTemplateIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { EditTemplateModal } from "./edit-template-modal";
+import Spinner from "@/components/spinner";
+
+
+function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
+    const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+
+    const { data: templates, isLoading } = useTemplates();
+    const { mutateAsync: deleteTemplate } = useDeleteTemplateMutation();
+
+    const handleEdit = (template: Template) => {
+        setEditingTemplate(template);
+        setIsEditOpen(true);
+    };
+
+    const handleDelete = async (template: Template) => {
+        deleteTemplate(template.id);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Spinner />
+            </div>
+        );
+    }
+    return (
+        <>
+            {templates && templates.length > 0 ? (
+                <div
+                    className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4`}
+                >
+                    {templates.map((template) => (
+                        <TemplateCard
+                            key={template.id}
+                            template={template}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <Card>
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyMedia className="w-16 h-16" variant="icon">
+                                <LayoutTemplateIcon />
+                            </EmptyMedia>
+                            <EmptyTitle>No Templates Yet</EmptyTitle>
+                            <EmptyDescription>
+                                You haven't created any templates yet. Get started by creating
+                                your first template.
+                            </EmptyDescription>
+                        </EmptyHeader>
+                        <EmptyContent>
+                            <div className="flex gap-2">
+                                <Button onClick={() => setIsOpen(true)}>Create Template</Button>
+                                <Button variant="outline">Import Template</Button>
+                            </div>
+                        </EmptyContent>
+                    </Empty>
+                </Card>
+            )}
+
+            <EditTemplateModal
+                template={editingTemplate}
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+            />
+        </>
+    );
+}
+
+export default TemplateList;

@@ -4,7 +4,7 @@ namespace Elemacy\Core;
 
 use ReflectionMethod;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use WP_Error;
 use Closure;
@@ -503,7 +503,7 @@ class Route
         $reflector = new ReflectionMethod($controller, $method);
         $parameters = $reflector->getParameters();
 
-        if(count($parameters) === 0) {
+        if (count($parameters) === 0) {
             return [];
         }
 
@@ -511,7 +511,7 @@ class Route
 
         $dependencies = [];
 
-        if(is_subclass_of($request_class, Request::class) || $request_class === Request::class) {
+        if (is_subclass_of($request_class, Request::class) || $request_class === Request::class) {
             $request = $request_class::from_wp_rest_request($rest_request);
             $request->clean();
             $dependencies[] = $request;
@@ -548,31 +548,31 @@ class Route
     protected function resolve_route()
     {
         return function ($rest_request) {
-            
+
             if (!is_array($this->action)) {
                 /* translators: %s: Route endpoint */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Invalid method registered for the route %s', 'elemacy'), esc_html($this->endpoint)));
             }
-            
+
             if (count($this->action) !== 2) {
                 /* translators: %s: Route endpoint */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Invalid controller syntax for the route %s', 'elemacy'), esc_html($this->endpoint)));
             }
-            
+
             list($controller, $method) = $this->action;
-            
+
             if (!class_exists($controller)) {
                 /* translators: %s: Controller class */
                 throw new InvalidRoutActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
             }
-            
+
             $controller_instance = $this->make($controller);
-            
+
             if (!method_exists($controller_instance, $method)) {
                 /* translators: 1: Method name, 2: Controller class */
                 throw new InvalidRoutActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
             }
-            
+
             try {
                 $dependencies = $this->resolve_dependencies($controller_instance, $method, $rest_request);
                 return $controller_instance->$method(...$dependencies);
