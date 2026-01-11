@@ -59,6 +59,7 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                             key={template.id}
                             template={template}
                             onEdit={handleEdit}
+                            onEditWithElementor={() => window.open(template.edit_with_elementor, '_blank')}
                             onDelete={handleDelete}
                         />
                     ))}

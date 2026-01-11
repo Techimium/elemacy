@@ -12,6 +12,7 @@ const TemplateSchema = z.object({
     type: z.enum(['header', 'footer', 'single', 'archive']),
     status: z.enum(['publish', 'draft', 'trash']),
     author: z.number(),
+    edit_with_elementor: z.string(),
     created_at: z.string().optional(),
     updated_at: z.string().optional(),
 });

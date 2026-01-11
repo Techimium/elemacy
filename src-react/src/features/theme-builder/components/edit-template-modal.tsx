@@ -6,11 +6,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { TemplateForm } from "./template-form"
-import { type UpdateTemplate } from "../schemas/template"
+import { type Template, type UpdateTemplate } from "../schemas/template"
 import { useUpdateTemplateMutation } from "../services/template"
+import { Button } from "@/components/ui/button"
+
 
 interface EditTemplateModalProps {
-    template: UpdateTemplate & { id: number } | null
+    template: Template
     open: boolean
     onOpenChange: (open: boolean) => void
     onSuccess?: (template: UpdateTemplate) => void
@@ -48,6 +50,12 @@ export function EditTemplateModal({ template, open, onOpenChange, onSuccess }: E
                     isLoading={isPending}
                     submitLabel="Update Template"
                 />
+                <Button
+                    onClick={() => window.open(template.edit_with_elementor, '_blank')}
+                    className="w-full bg-[#93003F] hover:bg-[#7a0034] text-white"
+                >
+                    Edit with Elementor
+                </Button>
             </DialogContent>
         </Dialog>
     )
