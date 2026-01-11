@@ -1,4 +1,4 @@
-import type { ThemeTemplate } from "../types";
+import type { Template } from "@/features/theme-builder/schemas/template";
 
 const getHeaders = () => {
     return {
@@ -7,7 +7,7 @@ const getHeaders = () => {
     };
 };
 
-export const fetchTemplates = async (): Promise<ThemeTemplate[]> => {
+export const fetchTemplates = async (): Promise<Template[]> => {
     const response = await fetch(window.elemacy.api_base + 'theme-builder/templates', {
         headers: {
             'X-WP-Nonce': window.elemacy.nonce,
@@ -20,7 +20,7 @@ export const fetchTemplates = async (): Promise<ThemeTemplate[]> => {
     return data.data; // Assuming the API returns the array directly or we might need data.data
 };
 
-export const createTemplate = async (template: Omit<ThemeTemplate, 'id' | 'author'>): Promise<ThemeTemplate> => {
+export const createTemplate = async (template: Omit<Template, 'id' | 'author'>): Promise<Template> => {
     const response = await fetch(window.elemacy.api_base + 'theme-builder/templates', {
         method: 'POST',
         headers: getHeaders(),
@@ -32,7 +32,7 @@ export const createTemplate = async (template: Omit<ThemeTemplate, 'id' | 'autho
     return response.json();
 };
 
-export const updateTemplate = async (id: number, template: Partial<ThemeTemplate>): Promise<ThemeTemplate> => {
+export const updateTemplate = async (id: number, template: Partial<Template>): Promise<Template> => {
     const response = await fetch(window.elemacy.api_base + `theme-builder/templates/${id}`, {
         method: 'PUT',
         headers: getHeaders(),

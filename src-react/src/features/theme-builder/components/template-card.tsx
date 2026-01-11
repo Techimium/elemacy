@@ -8,12 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EllipsisIcon } from "lucide-react";
-import type { ThemeTemplate } from "@/features/theme-builder/types";
+import type { Template } from "@/features/theme-builder/schemas/template";
 
 interface TemplateCardProps {
-  template: ThemeTemplate;
-  onEdit: (template: ThemeTemplate) => void;
-  onDelete: (template: ThemeTemplate) => void;
+  template: Template;
+  onEdit: (template: Template) => void;
+  onDelete: (template: Template) => void;
 }
 
 function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
