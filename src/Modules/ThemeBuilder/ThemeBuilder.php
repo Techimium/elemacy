@@ -4,6 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder;
 
 use Elemacy\Core\Module;
 use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
+use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 class ThemeBuilder extends Module
 {
@@ -14,12 +15,12 @@ class ThemeBuilder extends Module
 
     public function get_title(): string
     {
-        return 'Theme Builder';
+        return __('Theme Builder', 'elemacy');
     }
 
     public function get_description(): string
     {
-        return 'Manage your site structure templates for a full theme experience.';
+        return __('Manage your site structure templates for a full theme experience.', 'elemacy');
     }
 
     public function get_dependencies(): array
@@ -30,6 +31,7 @@ class ThemeBuilder extends Module
     public function init(): void
     {
         TemplatePostType::register();
+        ThemeBuilderManager::instance()->register_hooks();
     }
 
     public function register_routes()

@@ -80,6 +80,40 @@ class TemplateService
     }
 
     /**
+     * Get a template by type.
+     *
+     * @param string $type
+     * @return TemplateDTO[]
+     */
+    public function get_by_type($type)
+    {
+        $args = [
+            'post_type' => TemplatePostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'meta_key' => '_elemacy_template_type',
+            'meta_value' => $type,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'fields' => 'ids',
+        ];
+
+        $query = new WP_Query($args);
+
+        $templates = [];
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $templates[] = $this->create_dto(get_post());
+            }
+            wp_reset_postdata();
+        }
+
+        return $templates;
+    }
+
+    /**
      * Create a new template.
      *
      * @param CreateTemplateDTO $dto

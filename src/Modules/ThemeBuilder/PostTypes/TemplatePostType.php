@@ -12,7 +12,6 @@ class TemplatePostType
     public static function register()
     {
         self::register_post_type();
-        self::register_template_redirect();
     }
 
     protected static function register_post_type()
@@ -52,17 +51,6 @@ class TemplatePostType
             ];
 
             register_post_type(self::POST_TYPE, $args);
-        });
-    }
-
-    public static function register_template_redirect()
-    {
-        add_filter('template_include', function ($template) {
-            if (is_singular(static::POST_TYPE)) {
-                return ELEMENTOR_PATH . '/modules/page-templates/templates/canvas.php';
-            }
-
-            return $template;
         });
     }
 }
