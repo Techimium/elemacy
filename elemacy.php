@@ -17,7 +17,7 @@
 
 use Elemacy\Core\Elemacy;
 
-if ( ! defined('ABSPATH') ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -26,6 +26,7 @@ define('ELEMACY_VERSION', '1.0.0');
 define('ELEMACY_FILE', __FILE__);
 define('ELEMACY_PLUGIN_BASE', plugin_basename(ELEMACY_FILE));
 define('ELEMACY_PATH', plugin_dir_path(ELEMACY_FILE));
+define('ELEMACY_URL', plugin_dir_url(ELEMACY_FILE));
 
 require_once __DIR__ . '/vendor/autoload.php';
 

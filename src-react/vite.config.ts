@@ -17,4 +17,18 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: '../assets/admin',
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        admin: path.resolve(__dirname, 'index.html'),
+      },
+      output: {
+        entryFileNames: 'scripts/[name].js',
+        chunkFileNames: 'scripts/[name].js',
+        assetFileNames: 'styles/[name].[ext]',
+      }
+    }
+  }
 })

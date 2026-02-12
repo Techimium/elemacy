@@ -35,7 +35,10 @@ class AdminScripts
 
     public function enqueue_production_scripts()
     {
-        wp_register_script('elemacy-core', ELEMACY_PATH . '/assets/admin/scripts/admin.js', [], ELEMACY_VERSION, true);
+        wp_register_style('elemacy-core', ELEMACY_URL . 'assets/admin/styles/admin.css', [], ELEMACY_VERSION);
+        wp_enqueue_style('elemacy-core');
+
+        wp_register_script('elemacy-core', ELEMACY_URL . 'assets/admin/scripts/admin.js', [], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-core');
     }
 
@@ -53,7 +56,7 @@ class AdminScripts
         // Your app entry (e.g. main.jsx)
         wp_enqueue_script(
             'elemacy-admin-app',
-            'http://localhost:5173/src/main.jsx',
+            'http://localhost:5173/src/main.tsx',
             ['elemacy-vite-client'],
             null,
             true
