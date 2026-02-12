@@ -138,6 +138,10 @@ class TemplateService
             update_post_meta($post_id, '_elemacy_template_type', sanitize_text_field($dto->type));
         }
 
+        if (in_array($dto->type, ['header', 'footer'], true)) {
+            update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
+        }
+
         return $this->create_dto(get_post($post_id));
     }
 
@@ -176,6 +180,12 @@ class TemplateService
 
         if (isset($dto->type)) {
             update_post_meta($id, '_elemacy_template_type', $dto->type);
+        }
+
+        if (in_array($dto->type, ['header', 'footer'], true)) {
+            update_post_meta($id, '_wp_page_template', 'elementor_canvas');
+        } else {
+            delete_post_meta($id, '_wp_page_template');
         }
 
         return $this->create_dto(get_post($id));

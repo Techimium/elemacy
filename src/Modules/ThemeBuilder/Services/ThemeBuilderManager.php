@@ -2,7 +2,6 @@
 
 namespace Elemacy\Modules\ThemeBuilder\Services;
 
-use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
 use Elementor\Plugin;
 
 class ThemeBuilderManager
@@ -41,15 +40,14 @@ class ThemeBuilderManager
      */
     public function override_template($template)
     {
-        if (is_singular(TemplatePostType::POST_TYPE) && Plugin::$instance->editor->is_edit_mode()) {
-            // todo implement for header/footer
-            return ELEMENTOR_PATH . '/modules/page-templates/templates/canvas.php';
+        if (Plugin::instance()->preview->is_preview_mode() || Plugin::instance()->editor->is_edit_mode()) {
+            return $template;
         }
 
         $location_template = $this->get_location_template_id();
 
         if ($location_template) {
-            return ELEMACY_PATH . 'src/Modules/ThemeBuilder/views/theme-builder-wrapper.php';
+            return ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-builder-wrapper.php';
         }
 
         return $template;
