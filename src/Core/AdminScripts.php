@@ -3,6 +3,7 @@
 namespace Elemacy\Core;
 
 use Elemacy\Support\Utils;
+use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 class AdminScripts
 {
@@ -30,6 +31,7 @@ class AdminScripts
             'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
+            'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
         ]);
     }
 

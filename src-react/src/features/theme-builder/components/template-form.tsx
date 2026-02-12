@@ -16,8 +16,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import type { CreateTemplate, UpdateTemplate } from "../schemas/template"
-import { TEMPLATE_TYPES } from "../constants/templates"
+import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
+import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
 
 interface TemplateFormProps {
     defaultValues?: CreateTemplate
