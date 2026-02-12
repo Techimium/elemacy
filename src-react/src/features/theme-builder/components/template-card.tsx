@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisIcon } from "lucide-react";
 import type { Template } from "@/features/theme-builder/schemas/template";
+import { TEMPLATE_TYPES } from "../constants/templates";
 
 interface TemplateCardProps {
   template: Template;
@@ -42,7 +43,7 @@ function TemplateCard({ template, onEdit, onDelete, onEditWithElementor }: Templ
           {template.type ? template.type.charAt(0) : 'T'}
         </div>
         <div className="text-xs text-gray-500">
-          {template.updated_at ? `Modified ${template.updated_at}` : 'Not modified'}
+          {TEMPLATE_TYPES.find((t) => t.value === template.type)?.label || 'Unknown'}
         </div>
       </div>
     </Card>
