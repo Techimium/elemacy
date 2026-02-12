@@ -1,15 +1,16 @@
 import { z } from 'zod';
+import { TEMPLATE_VALUES } from '@/features/theme-builder/constants/templates';
 
 const TemplateFilterSchema = z.object({
     search: z.string().optional(),
-    type: z.enum(['header', 'footer', 'single', 'archive']).optional(),
+    type: z.enum(TEMPLATE_VALUES).optional(),
     status: z.enum(['publish', 'draft', 'trash']).optional()
 });
 
 const TemplateSchema = z.object({
     id: z.number(),
     title: z.string(),
-    type: z.enum(['header', 'footer', 'single', 'archive']),
+    type: z.enum(TEMPLATE_VALUES),
     status: z.enum(['publish', 'draft', 'trash']),
     author: z.number(),
     edit_with_elementor: z.string(),
@@ -19,7 +20,7 @@ const TemplateSchema = z.object({
 
 const CreateTemplateSchema = z.object({
     title: z.string(),
-    type: z.enum(['header', 'footer', 'single', 'archive']),
+    type: z.enum(TEMPLATE_VALUES),
     status: z.enum(['publish', 'draft', 'trash'])
 });
 

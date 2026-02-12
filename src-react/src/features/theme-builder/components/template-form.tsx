@@ -17,6 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import type { CreateTemplate, UpdateTemplate } from "../schemas/template"
+import { TEMPLATE_TYPES } from "../constants/templates"
 
 interface TemplateFormProps {
     defaultValues?: CreateTemplate
@@ -63,11 +64,11 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="header">Header</SelectItem>
-                                    <SelectItem value="footer">Footer</SelectItem>
-                                    <SelectItem value="single">Single Post</SelectItem>
-                                    <SelectItem value="archive">Archive</SelectItem>
-                                    <SelectItem value="404">404 Page</SelectItem>
+                                    {TEMPLATE_TYPES.map((type) => (
+                                        <SelectItem key={type.value} value={type.value}>
+                                            {type.label}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <FormMessage />

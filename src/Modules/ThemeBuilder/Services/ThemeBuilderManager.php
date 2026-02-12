@@ -62,9 +62,20 @@ class ThemeBuilderManager
     {
         if (is_singular()) {
             return $this->find_template_id('single');
-        } elseif (is_archive() || is_home() || is_search() || is_404()) {
+        }
+
+        if (is_archive()) {
             return $this->find_template_id('archive');
         }
+
+        if (is_search()) {
+            return $this->find_template_id('search');
+        }
+
+        if (is_404()) {
+            return $this->find_template_id('404');
+        }
+
         //todo implement for custom post types and more
 
         return null;
