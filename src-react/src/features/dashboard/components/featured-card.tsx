@@ -1,4 +1,15 @@
-const FeatureCard = ({ icon: Icon, title, description, onClick, gradient = false }) => {
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
+
+interface FeatureCardProps {
+    icon: ComponentType<LucideProps>;
+    title: string;
+    description: string;
+    onClick?: () => void;
+    gradient?: boolean;
+}
+
+const FeatureCard = ({ icon: Icon, title, description, onClick, gradient = false }: FeatureCardProps) => {
     const gradientClasses = gradient
         ? "bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-xl shadow-indigo-500/50"
         : "bg-white text-gray-800 shadow-md border border-gray-100";

@@ -1,16 +1,16 @@
 "use client"
 
-import { useEffect, useId, useState } from "react"
+import { useId } from "react"
 
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 
 interface ModuleSwitchProps {
-    checked?: boolean
-    onCheckedChange?: (value: boolean) => void
+  checked?: boolean
+  onCheckedChange?: (value: boolean) => void
 }
 
-export default function ModuleSwitch({checked, onCheckedChange}: ModuleSwitchProps) {
+export default function ModuleSwitch({ checked, onCheckedChange }: ModuleSwitchProps) {
   const id = useId()
 
   return (

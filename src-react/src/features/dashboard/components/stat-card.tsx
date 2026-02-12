@@ -1,9 +1,21 @@
 import {
     ChevronUp,
-    ChevronDown
+    ChevronDown,
+    type LucideProps
 } from 'lucide-react';
+import type { ComponentType } from 'react';
 
-const StatCard = ({ icon: Icon, label, value, trend }) => {
+interface StatCardProps {
+    icon: ComponentType<LucideProps>;
+    label: string;
+    value: string;
+    trend: {
+        value: string;
+        isPositive: boolean;
+    };
+}
+
+const StatCard = ({ icon: Icon, label, value, trend }: StatCardProps) => {
     const TrendIcon = trend.isPositive ? ChevronUp : ChevronDown;
     const trendColor = trend.isPositive ? 'text-green-500' : 'text-red-500';
 

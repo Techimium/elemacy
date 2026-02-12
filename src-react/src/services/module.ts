@@ -32,13 +32,13 @@ export const useToggleModuleMutation = () => {
             return { previousValue, name };
         },
 
-        onError: (err, variables, context) => {
+        onError: (_err, variables, context) => {
             if (context) {
                 queryClient.setQueryData(['modules', context.name], { ...context.previousValue, is_active: variables.isEnabled });
             }
         },
 
-        onSettled: (data, error, variables) => {
+        onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: ['modules', variables.name] });
         },
     });

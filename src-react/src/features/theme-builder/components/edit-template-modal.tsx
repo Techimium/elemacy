@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 
 
 interface EditTemplateModalProps {
-    template: Template
+    template: Template | null
     open: boolean
     onOpenChange: (open: boolean) => void
     onSuccess?: (template: UpdateTemplate) => void
