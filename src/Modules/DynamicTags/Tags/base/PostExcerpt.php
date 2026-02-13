@@ -4,7 +4,6 @@ namespace Elemacy\Modules\DynamicTags\Tags\Base;
 use Elementor\Controls_Manager;
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Modules\DynamicTags\Module;
-use Repeaterly\Includes\Utils;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -103,8 +102,14 @@ class PostExcerpt extends Tag
 
 		$max_length = (int) $settings['max_length'];
 		$excerpt = $this->get_post_excerpt($settings, $post);
-		$excerpt = Utils::trim_words($excerpt, $max_length);
+		$excerpt = $this->trim_words($excerpt, $max_length);
 
 		echo wp_kses_post($excerpt);
+	}
+
+	protected function trim_words($text, $max_length)
+	{
+		$words = explode(' ', $text);
+		return implode(' ', array_slice($words, 0, $max_length));
 	}
 }

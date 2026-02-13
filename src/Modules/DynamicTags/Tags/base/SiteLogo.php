@@ -3,7 +3,6 @@ namespace Elemacy\Modules\DynamicTags\Tags\Base;
 
 use Elementor\Core\DynamicTags\Data_Tag;
 use Elementor\Modules\DynamicTags\Module;
-use Repeaterly;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -38,7 +37,7 @@ class SiteLogo extends Data_Tag
 		if ($custom_logo_id) {
 			$url = wp_get_attachment_image_src($custom_logo_id, 'full')[0];
 		} else {
-			$url = Repeaterly::plugin_url() . '/assets/images/logo-placeholder.png';
+			$url = ELEMACY_URL . '/assets/images/logo-placeholder.png';
 		}
 
 		return [
