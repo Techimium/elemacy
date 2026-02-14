@@ -1,0 +1,334 @@
+/**
+ * Elemacy Nav Menu - Frontend Styles
+ *
+ * Modern, minimal, and fully responsive navigation styling.
+ * All selectors are scoped with the `.elemacy-nav` prefix to avoid conflicts.
+ */
+
+.elemacy-nav {
+    --elemacy-nav-transition: 200ms ease;
+    --elemacy-nav-toggle-size: 1.25rem;
+
+    width: 100%;
+}
+
+.elemacy-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.elemacy-nav__menu {
+    width: 100%;
+}
+
+.elemacy-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.elemacy-nav__item {
+    position: relative;
+}
+
+.elemacy-nav__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1.4;
+    transition:
+        color var(--elemacy-nav-transition),
+        background-color var(--elemacy-nav-transition),
+        border-color var(--elemacy-nav-transition),
+        transform var(--elemacy-nav-transition);
+}
+
+.elemacy-nav__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.elemacy-nav__link.elemacy-is-active {
+    font-weight: 600;
+}
+
+/* Submenus (multi-level navigation) */
+.elemacy-nav__submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+
+    position: absolute;
+    left: 0;
+    top: 100%;
+    min-width: 220px;
+    z-index: 1000;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition:
+        opacity var(--elemacy-nav-transition),
+        transform var(--elemacy-nav-transition),
+        visibility var(--elemacy-nav-transition);
+
+    background-color: inherit;
+}
+
+.elemacy-nav__submenu .elemacy-nav__item {
+    width: 100%;
+}
+
+.elemacy-nav__submenu .elemacy-nav__link {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+/* Open state for submenu (hover / JS toggle) */
+.elemacy-nav__item:hover > .elemacy-nav__submenu,
+.elemacy-nav__item.elemacy-nav__item--submenu-open > .elemacy-nav__submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Nested submenus fly out to the right on desktop */
+.elemacy-nav__submenu .elemacy-nav__submenu {
+    top: 0;
+    left: 100%;
+}
+
+/* Layout modifiers */
+.elemacy-nav--layout-vertical .elemacy-nav__list,
+.elemacy-nav--layout-stacked .elemacy-nav__list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.elemacy-nav--layout-stacked .elemacy-nav__menu {
+    width: 100%;
+}
+
+.elemacy-nav--layout-stacked .elemacy-nav__link {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+/* Toggle (hamburger) */
+.elemacy-nav__toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.elemacy-nav__toggle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.elemacy-nav__toggle-icon {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.elemacy-nav__toggle-line {
+    width: var(--elemacy-nav-toggle-size);
+    height: 2px;
+    border-radius: 999px;
+    background-color: currentColor;
+    transition:
+        transform var(--elemacy-nav-transition),
+        opacity var(--elemacy-nav-transition);
+}
+
+.elemacy-nav__toggle-label {
+    font-size: 0.875rem;
+}
+
+/* Submenu toggle button (for mobile / touch) */
+.elemacy-nav__submenu-toggle {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    margin-left: 0.25rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.elemacy-nav__submenu-toggle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.elemacy-nav__submenu-toggle-icon {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform var(--elemacy-nav-transition);
+}
+
+.elemacy-nav__item--submenu-open > .elemacy-nav__link + .elemacy-nav__submenu-toggle .elemacy-nav__submenu-toggle-icon {
+    transform: rotate(225deg);
+}
+
+/* Toggle open state */
+.elemacy-nav__toggle[aria-expanded="true"] .elemacy-nav__toggle-line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.elemacy-nav__toggle[aria-expanded="true"] .elemacy-nav__toggle-line:nth-child(2) {
+    opacity: 0;
+}
+
+.elemacy-nav__toggle[aria-expanded="true"] .elemacy-nav__toggle-line:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Breakpoints: dropdown is absolute below toggle (Elementor Pro style) */
+
+/* Mobile: toggle + absolute dropdown */
+@media (max-width: 767px) {
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__inner,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__inner {
+        position: relative;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__toggle,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__toggle {
+        display: inline-flex;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        margin-top: 0.25rem;
+        max-height: min(80vh, 400px);
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: opacity var(--elemacy-nav-transition), transform var(--elemacy-nav-transition), visibility var(--elemacy-nav-transition);
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu.is-open,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__list,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__list {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__link,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__link {
+        justify-content: flex-start;
+    }
+
+    .elemacy-nav .elemacy-nav__submenu {
+        position: static;
+        transform: none;
+        max-height: 0;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .elemacy-nav .elemacy-nav__item--submenu-open > .elemacy-nav__submenu {
+        max-height: 100vh;
+        padding: 0.25rem 0 0.5rem;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__submenu-toggle,
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__submenu-toggle {
+        display: inline-flex;
+    }
+}
+
+/* Tablet only */
+@media (max-width: 1024px) {
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__inner {
+        position: relative;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__toggle {
+        display: inline-flex;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        margin-top: 0.25rem;
+        max-height: min(80vh, 400px);
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: opacity var(--elemacy-nav-transition), transform var(--elemacy-nav-transition), visibility var(--elemacy-nav-transition);
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__list {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__submenu-toggle {
+        display: inline-flex;
+    }
+}
+
+/* No-breakpoint: always show menu, no toggle, desktop-style submenus only */
+.elemacy-nav.elemacy-nav--breakpoint-none .elemacy-nav__toggle {
+    display: none !important;
+}
+
+.elemacy-nav.elemacy-nav--breakpoint-none .elemacy-nav__submenu {
+    max-height: none;
+    overflow: visible;
+}
+
+.elemacy-nav.elemacy-nav--breakpoint-none .elemacy-nav__submenu-toggle {
+    display: none !important;
+}
+

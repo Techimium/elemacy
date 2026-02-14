@@ -38,8 +38,9 @@ class Elemacy
     {
         new AdminMenu();
         new AdminScripts();
+        new FrontendAssets();
 
-		$this->module_manager = new ModuleManager();
+        $this->module_manager = new ModuleManager();
     }
 
 	private function load_modules() {
