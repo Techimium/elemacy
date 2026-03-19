@@ -571,33 +571,57 @@ class NavMenu extends BaseWidget
         $this->start_controls_tab('tab_submenu_normal', ['label' => esc_html__('Normal', 'elemacy')]);
         $this->add_control(
             'submenu_color',
-            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links => 'color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links => 'color: {{VALUE}}']
+            ]
         );
         $this->add_control(
             'submenu_bg',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links => 'background-color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links => 'background-color: {{VALUE}}']
+            ]
         );
         $this->end_controls_tab();
 
         $this->start_controls_tab('tab_submenu_hover', ['label' => esc_html__('Hover', 'elemacy')]);
         $this->add_control(
             'submenu_color_hover',
-            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_hover => 'color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links_hover => 'color: {{VALUE}}']
+            ]
         );
         $this->add_control(
             'submenu_bg_hover',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_hover => 'background-color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links_hover => 'background-color: {{VALUE}}']
+            ]
         );
         $this->end_controls_tab();
 
         $this->start_controls_tab('tab_submenu_active', ['label' => esc_html__('Active', 'elemacy')]);
         $this->add_control(
             'submenu_color_active',
-            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_active => 'color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links_active => 'color: {{VALUE}}']
+            ]
         );
         $this->add_control(
             'submenu_bg_active',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_active => 'background-color: {{VALUE}}']]
+            [
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_links_active => 'background-color: {{VALUE}}']
+            ]
         );
         $this->end_controls_tab();
         $this->end_controls_tabs();
