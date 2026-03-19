@@ -2,10 +2,12 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
+use Elemacy\Modules\Widgets\Walkers\NavMenuWalker;
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
+use Elementor\Icons_Manager;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -82,7 +84,7 @@ class NavMenu extends BaseWidget
         $this->register_menu_style_controls();
         $this->register_submenu_style_controls();
         $this->register_toggle_style_controls();
-        $this->register_dropdown_style_controls();
+        $this->register_toggle_close_style_controls();
     }
 
     /**
@@ -94,17 +96,7 @@ class NavMenu extends BaseWidget
             'section_layout',
             [
                 'label' => esc_html__('Layout', 'elemacy'),
-                'tab'   => Controls_Manager::TAB_CONTENT,
-            ]
-        );
-
-        $this->add_control(
-            'menu_label',
-            [
-                'label'       => esc_html__('Menu Label (for accessibility)', 'elemacy'),
-                'type'        => Controls_Manager::TEXT,
-                'placeholder' => esc_html__('Main navigation', 'elemacy'),
-                'default'     => esc_html__('Main navigation', 'elemacy'),
+                'tab' => Controls_Manager::TAB_CONTENT,
             ]
         );
 
@@ -114,12 +106,12 @@ class NavMenu extends BaseWidget
             $this->add_control(
                 'menu',
                 [
-                    'label'        => esc_html__('Menu', 'elemacy'),
-                    'type'         => Controls_Manager::SELECT,
-                    'options'      => $menus,
-                    'default'      => array_keys($menus)[0],
+                    'label' => esc_html__('Menu', 'elemacy'),
+                    'type' => Controls_Manager::SELECT,
+                    'options' => $menus,
+                    'default' => array_keys($menus)[0],
                     'save_default' => true,
-                    'description'  => sprintf(
+                    'description' => sprintf(
                         /* translators: 1: Link opening tag, 2: Link closing tag. */
                         esc_html__('Go to the %1$sMenus screen%2$s to manage your menus.', 'elemacy'),
                         sprintf('<a href="%s" target="_blank">', esc_url(admin_url('nav-menus.php'))),
@@ -131,16 +123,16 @@ class NavMenu extends BaseWidget
             $this->add_control(
                 'menu',
                 [
-                    'type'        => Controls_Manager::ALERT,
-                    'alert_type'  => 'info',
-                    'heading'     => esc_html__('No menus found', 'elemacy'),
-                    'content'     => sprintf(
+                    'type' => Controls_Manager::ALERT,
+                    'alert_type' => 'info',
+                    'heading' => esc_html__('No menus found', 'elemacy'),
+                    'content' => sprintf(
                         /* translators: 1: Link opening tag, 2: Link closing tag. */
                         esc_html__('Go to the %1$sMenus screen%2$s to create one.', 'elemacy'),
                         sprintf('<a href="%s" target="_blank">', esc_url(admin_url('nav-menus.php?action=edit&menu=0'))),
                         '</a>'
                     ),
-                    'separator'   => 'after',
+                    'separator' => 'after',
                 ]
             );
         }
@@ -148,13 +140,13 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'layout',
             [
-                'label'   => esc_html__('Layout', 'elemacy'),
-                'type'    => Controls_Manager::SELECT,
+                'label' => esc_html__('Layout', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
                 'default' => 'horizontal',
                 'options' => [
                     'horizontal' => esc_html__('Horizontal', 'elemacy'),
-                    'vertical'   => esc_html__('Vertical', 'elemacy'),
-                    'stacked'    => esc_html__('Stacked (Full Width)', 'elemacy'),
+                    'vertical' => esc_html__('Vertical', 'elemacy'),
+                    'stacked' => esc_html__('Stacked (Full Width)', 'elemacy'),
                 ],
             ]
         );
@@ -162,27 +154,27 @@ class NavMenu extends BaseWidget
         $this->add_responsive_control(
             'alignment',
             [
-                'label'     => esc_html__('Alignment', 'elemacy'),
-                'type'      => Controls_Manager::CHOOSE,
-                'options'   => [
+                'label' => esc_html__('Alignment', 'elemacy'),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
                     'flex-start' => [
                         'title' => esc_html__('Start', 'elemacy'),
-                        'icon'  => 'eicon-align-start-h',
+                        'icon' => 'eicon-align-start-h',
                     ],
-                    'center'     => [
+                    'center' => [
                         'title' => esc_html__('Center', 'elemacy'),
-                        'icon'  => 'eicon-align-center-h',
+                        'icon' => 'eicon-align-center-h',
                     ],
-                    'flex-end'   => [
+                    'flex-end' => [
                         'title' => esc_html__('End', 'elemacy'),
-                        'icon'  => 'eicon-align-end-h',
+                        'icon' => 'eicon-align-end-h',
                     ],
                     'space-between' => [
                         'title' => esc_html__('Justify', 'elemacy'),
-                        'icon'  => 'eicon-align-stretch-h',
+                        'icon' => 'eicon-align-stretch-h',
                     ],
                 ],
-                'default'   => 'flex-start',
+                'default' => 'flex-start',
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__list' => 'justify-content: {{VALUE}};',
                 ],
@@ -192,11 +184,11 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'mobile_breakpoint',
             [
-                'label'   => esc_html__('Mobile Breakpoint', 'elemacy'),
-                'type'    => Controls_Manager::SELECT,
+                'label' => esc_html__('Mobile Breakpoint', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
                 'default' => 'tablet',
                 'options' => [
-                    'none'   => esc_html__('None (always expanded)', 'elemacy'),
+                    'none' => esc_html__('None (always expanded)', 'elemacy'),
                     'mobile' => esc_html__('Mobile', 'elemacy'),
                     'tablet' => esc_html__('Tablet & below', 'elemacy'),
                 ],
@@ -206,23 +198,91 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'show_toggle',
             [
-                'label'        => esc_html__('Show Toggle on Mobile', 'elemacy'),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__('Yes', 'elemacy'),
-                'label_off'    => esc_html__('No', 'elemacy'),
+                'label' => esc_html__('Show Toggle on Mobile', 'elemacy'),
+                'type' => Controls_Manager::SWITCHER,
+                'label_on' => esc_html__('Yes', 'elemacy'),
+                'label_off' => esc_html__('No', 'elemacy'),
                 'return_value' => 'yes',
-                'default'      => 'yes',
+                'default' => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'show_toggle_label',
+            [
+                'label' => esc_html__('Show Toggle Label', 'elemacy'),
+                'type' => Controls_Manager::SWITCHER,
+                'label_on' => esc_html__('Yes', 'elemacy'),
+                'label_off' => esc_html__('No', 'elemacy'),
+                'return_value' => 'yes',
+                'default' => 'no',
+                'condition' => [
+                    'show_toggle' => 'yes',
+                ],
             ]
         );
 
         $this->add_control(
             'toggle_label',
             [
-                'label'     => esc_html__('Toggle Label', 'elemacy'),
-                'type'      => Controls_Manager::TEXT,
-                'default'   => esc_html__('Menu', 'elemacy'),
+                'label' => esc_html__('Toggle Label', 'elemacy'),
+                'type' => Controls_Manager::TEXT,
+                'default' => 'Menu',
+                'condition' => [
+                    'show_toggle_label' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'toggle_alignment',
+            [
+                'label' => esc_html__('Toggle Alignment', 'elemacy'),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
+                    'start' => [
+                        'title' => esc_html__('Start', 'elemacy'),
+                        'icon' => 'eicon-align-start-h',
+                    ],
+                    'center' => [
+                        'title' => esc_html__('Center', 'elemacy'),
+                        'icon' => 'eicon-align-center-h',
+                    ],
+                    'end' => [
+                        'title' => esc_html__('End', 'elemacy'),
+                        'icon' => 'eicon-align-end-h',
+                    ],
+                ],
+                'default' => 'end',
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__inner' => 'justify-content: {{VALUE}};',
+                ],
                 'condition' => [
                     'show_toggle' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'toggle_open_icon',
+            [
+                'label' => esc_html__('Toggle Icon', 'elemacy'),
+                'type' => Controls_Manager::ICONS,
+                'default' => [
+                    'value' => 'eicon-menu-bar',
+                    'library' => 'eicon',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'toggle_close_icon',
+            [
+                'label' => esc_html__('Close Icon', 'elemacy'),
+                'type' => Controls_Manager::ICONS,
+                'default' => [
+                    'value' => 'eicon-close',
+                    'library' => 'eicon',
                 ],
             ]
         );
@@ -239,14 +299,14 @@ class NavMenu extends BaseWidget
             'section_style_menu',
             [
                 'label' => esc_html__('Menu', 'elemacy'),
-                'tab'   => Controls_Manager::TAB_STYLE,
+                'tab' => Controls_Manager::TAB_STYLE,
             ]
         );
 
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
-                'name'     => 'menu_typography',
+                'name' => 'menu_typography',
                 'selector' => '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link',
             ]
         );
@@ -263,11 +323,10 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_color',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link' => 'color: {{VALUE}}',
-                    '{{WRAPPER}} .elemacy-nav__submenu-toggle' => 'color: {{VALUE}}',
                 ],
             ]
         );
@@ -275,8 +334,8 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_background',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link' => 'background-color: {{VALUE}}',
                 ],
@@ -295,13 +354,11 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_color_hover',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link:hover,
-                     {{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link:focus,
-                     {{WRAPPER}} .elemacy-nav__submenu-toggle:hover,
-                     {{WRAPPER}} .elemacy-nav__submenu-toggle:focus' => 'color: {{VALUE}}',
+                     {{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link:focus' => 'color: {{VALUE}}',
                 ],
             ]
         );
@@ -309,8 +366,8 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_background_hover',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link:hover,
                      {{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link:focus' => 'background-color: {{VALUE}}',
@@ -330,8 +387,8 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_color_active',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Text Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link.elemacy-is-active' => 'color: {{VALUE}}',
                 ],
@@ -341,8 +398,8 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'menu_background_active',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link.elemacy-is-active' => 'background-color: {{VALUE}}',
                 ],
@@ -356,14 +413,18 @@ class NavMenu extends BaseWidget
         $this->add_responsive_control(
             'menu_item_gap',
             [
-                'label'     => esc_html__('Item Gap', 'elemacy'),
-                'type'      => Controls_Manager::SLIDER,
-                'size_units'=> ['px', 'em', 'rem', 'custom'],
-                'range'     => [
+                'label' => esc_html__('Item Gap', 'elemacy'),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px', 'em', 'rem', 'custom'],
+                'range' => [
                     'px' => [
                         'min' => 0,
                         'max' => 60,
                     ],
+                ],
+                'default' => [
+                    'size' => 20,
+                    'unit' => 'px',
                 ],
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__list' => 'gap: {{SIZE}}{{UNIT}};',
@@ -374,10 +435,10 @@ class NavMenu extends BaseWidget
         $this->add_responsive_control(
             'menu_item_padding',
             [
-                'label'      => esc_html__('Item Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Item Padding', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [
+                'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
@@ -386,7 +447,7 @@ class NavMenu extends BaseWidget
         $this->add_group_control(
             Group_Control_Border::get_type(),
             [
-                'name'     => 'menu_item_border',
+                'name' => 'menu_item_border',
                 'selector' => '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link',
             ]
         );
@@ -394,10 +455,10 @@ class NavMenu extends BaseWidget
         $this->add_responsive_control(
             'menu_item_border_radius',
             [
-                'label'      => esc_html__('Item Border Radius', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Item Border Radius', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em', 'rem', 'custom'],
-                'selectors'  => [
+                'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__menu a.elemacy-nav__link' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
@@ -407,26 +468,94 @@ class NavMenu extends BaseWidget
     }
 
     /**
-     * Submenu (hover dropdown) style – nested items on desktop.
+     * Dropdown style controls.
      */
     protected function register_submenu_style_controls(): void
     {
-        $sub_selector = '{{WRAPPER}} .elemacy-nav__submenu';
-        $sub_links = '{{WRAPPER}} .elemacy-nav__submenu .elemacy-nav__link';
+        $sub_selector = '{{WRAPPER}} .elemacy-nav:not(.is-open) .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu';
+        $sub_links = '{{WRAPPER}} .elemacy-nav:not(.is-open) .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu .elemacy-nav__link';
+        $sub_links_hover = '{{WRAPPER}} .elemacy-nav:not(.is-open) .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu .elemacy-nav__link:hover';
+        $sub_links_active = '{{WRAPPER}} .elemacy-nav:not(.is-open) .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu .elemacy-nav__link.elemacy-is-active';
 
         $this->start_controls_section(
             'section_style_submenu',
             [
-                'label' => esc_html__('Submenu (hover)', 'elemacy'),
-                'tab'   => Controls_Manager::TAB_STYLE,
+                'label' => esc_html__('Dropdown', 'elemacy'),
+                'tab' => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'panel_min_width',
+            [
+                'label' => esc_html__('Panel Minimum Width', 'elemacy'),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px', 'em', 'rem', 'custom'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 1000,
+                    ],
+                ],
+                'default' => [
+                    'size' => 200,
+                    'unit' => 'px',
+                ],
+                'selectors' => [$sub_selector => 'min-width: {{SIZE}}{{UNIT}}'],
+            ]
+        );
+
+        $this->add_control(
+            'panel_background_color',
+            [
+                'label' => esc_html__('Panel Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [$sub_selector => 'background-color: {{VALUE}}'],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'submenu_padding',
+            [
+                'label' => esc_html__('Panel Padding', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', 'rem', 'custom'],
+                'selectors' => [$sub_selector => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Border::get_type(),
+            [
+                'name' => 'submenu_border',
+                'selector' => $sub_selector
+            ]
+        );
+
+        $this->add_responsive_control(
+            'submenu_border_radius',
+            [
+                'label' => esc_html__('Border Radius', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em', 'rem', 'custom'],
+                'selectors' => [$sub_selector => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'submenu_box_shadow',
+                'selector' => $sub_selector
             ]
         );
 
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
-                'name'     => 'submenu_typography',
+                'name' => 'submenu_typography',
                 'selector' => $sub_links,
+                'separator' => 'before',
             ]
         );
 
@@ -438,69 +567,44 @@ class NavMenu extends BaseWidget
         );
         $this->add_control(
             'submenu_bg',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_selector => 'background-color: {{VALUE}}']]
+            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links => 'background-color: {{VALUE}}']]
         );
         $this->end_controls_tab();
 
         $this->start_controls_tab('tab_submenu_hover', ['label' => esc_html__('Hover', 'elemacy')]);
         $this->add_control(
             'submenu_color_hover',
-            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links . ':hover, ' . $sub_links . ':focus' => 'color: {{VALUE}}']]
+            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_hover => 'color: {{VALUE}}']]
         );
         $this->add_control(
             'submenu_bg_hover',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links . ':hover, ' . $sub_links . ':focus' => 'background-color: {{VALUE}}']]
+            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_hover => 'background-color: {{VALUE}}']]
         );
         $this->end_controls_tab();
 
         $this->start_controls_tab('tab_submenu_active', ['label' => esc_html__('Active', 'elemacy')]);
         $this->add_control(
             'submenu_color_active',
-            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links . '.elemacy-is-active' => 'color: {{VALUE}}']]
+            ['label' => esc_html__('Text Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_active => 'color: {{VALUE}}']]
         );
         $this->add_control(
             'submenu_bg_active',
-            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links . '.elemacy-is-active' => 'background-color: {{VALUE}}']]
+            ['label' => esc_html__('Background Color', 'elemacy'), 'type' => Controls_Manager::COLOR, 'selectors' => [$sub_links_active => 'background-color: {{VALUE}}']]
         );
         $this->end_controls_tab();
         $this->end_controls_tabs();
 
-        $this->add_responsive_control(
-            'submenu_padding',
-            [
-                'label'      => esc_html__('Panel Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [$sub_selector => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
-                'separator'  => 'before',
-            ]
-        );
+
         $this->add_responsive_control(
             'submenu_item_padding',
             [
-                'label'      => esc_html__('Item Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Item Padding', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [$sub_links => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+                'selectors' => [$sub_links => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
             ]
         );
-        $this->add_group_control(
-            Group_Control_Border::get_type(),
-            ['name' => 'submenu_border', 'selector' => $sub_selector]
-        );
-        $this->add_responsive_control(
-            'submenu_border_radius',
-            [
-                'label'      => esc_html__('Border Radius', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => ['px', '%', 'em', 'rem', 'custom'],
-                'selectors'  => [$sub_selector => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
-            ]
-        );
-        $this->add_group_control(
-            Group_Control_Box_Shadow::get_type(),
-            ['name' => 'submenu_box_shadow', 'selector' => $sub_selector]
-        );
+
         $this->end_controls_section();
     }
 
@@ -512,8 +616,8 @@ class NavMenu extends BaseWidget
         $this->start_controls_section(
             'section_style_toggle',
             [
-                'label'     => esc_html__('Toggle Button', 'elemacy'),
-                'tab'       => Controls_Manager::TAB_STYLE,
+                'label' => esc_html__('Toggle Button', 'elemacy'),
+                'tab' => Controls_Manager::TAB_STYLE,
                 'condition' => [
                     'show_toggle' => 'yes',
                 ],
@@ -532,10 +636,10 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'toggle_color',
             [
-                'label'     => esc_html__('Icon Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-nav__toggle-line' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .elemacy-nav__toggle-icon' => 'color: {{VALUE}}',
                     '{{WRAPPER}} .elemacy-nav__toggle-label' => 'color: {{VALUE}}',
                 ],
             ]
@@ -544,10 +648,21 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'toggle_background',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__toggle' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'toggle_border_color',
+            [
+                'label' => esc_html__('Border Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle' => 'border-color: {{VALUE}}',
                 ],
             ]
         );
@@ -564,10 +679,10 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'toggle_color_hover',
             [
-                'label'     => esc_html__('Icon Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Icon Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-nav__toggle:hover .elemacy-nav__toggle-line' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .elemacy-nav__toggle:hover .elemacy-nav__toggle-icon' => 'color: {{VALUE}}',
                     '{{WRAPPER}} .elemacy-nav__toggle:hover .elemacy-nav__toggle-label' => 'color: {{VALUE}}',
                 ],
             ]
@@ -576,10 +691,21 @@ class NavMenu extends BaseWidget
         $this->add_control(
             'toggle_background_hover',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__toggle:hover' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'toggle_border_color_hover',
+            [
+                'label' => esc_html__('Border Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle:hover' => 'border-color: {{VALUE}}',
                 ],
             ]
         );
@@ -591,50 +717,44 @@ class NavMenu extends BaseWidget
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
-                'name'     => 'toggle_label_typography',
-                'selector' => '{{WRAPPER}} .elemacy-nav__toggle-label',
+                'name' => 'toggle_label_typography',
+                'selector' => '{{WRAPPER}} .elemacy-nav__toggle',
             ]
         );
 
         $this->add_responsive_control(
             'toggle_padding',
             [
-                'label'      => esc_html__('Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Padding', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [
+                'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__toggle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
-                'separator'  => 'before',
+                'separator' => 'before',
             ]
         );
 
         $this->add_responsive_control(
             'toggle_border_radius',
             [
-                'label'      => esc_html__('Border Radius', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Border Radius', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em', 'rem', 'custom'],
-                'selectors'  => [
+                'selectors' => [
                     '{{WRAPPER}} .elemacy-nav__toggle' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
 
         $this->add_responsive_control(
-            'toggle_icon_size',
+            'toggle_border_width',
             [
-                'label'     => esc_html__('Icon Size', 'elemacy'),
-                'type'      => Controls_Manager::SLIDER,
-                'size_units'=> ['px', 'em', 'rem', 'custom'],
-                'range'     => [
-                    'px' => [
-                        'min' => 10,
-                        'max' => 40,
-                    ],
-                ],
+                'label' => esc_html__('Border Width', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em', 'rem', 'custom'],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-nav' => '--elemacy-nav-toggle-size: {{SIZE}}{{UNIT}}',
+                    '{{WRAPPER}} .elemacy-nav__toggle' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -643,151 +763,196 @@ class NavMenu extends BaseWidget
     }
 
     /**
-     * Dropdown panel style (menu shown below toggle on mobile/tablet).
+     * Mobile toggle close button style controls.
      */
-    protected function register_dropdown_style_controls(): void
+    protected function register_toggle_close_style_controls(): void
     {
-        /* Target dropdown panel (menu below toggle). WRAPPER is Elementor widget root; .elemacy-nav is our inner wrapper. */
-        $dropdown_selector = '{{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu';
-        $dropdown_links = '{{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__link, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__link';
-        $dropdown_links_hover = '{{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__link:hover, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__link:focus, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__link:hover, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__link:focus';
-        $dropdown_links_active = '{{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__link.elemacy-is-active, {{WRAPPER}} .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__link.elemacy-is-active';
-
         $this->start_controls_section(
-            'section_style_dropdown',
+            'section_style_toggle_close',
             [
-                'label'     => esc_html__('Dropdown', 'elemacy'),
-                'tab'       => Controls_Manager::TAB_STYLE,
+                'label' => esc_html__('Toggle Close Button', 'elemacy'),
+                'tab' => Controls_Manager::TAB_STYLE,
                 'condition' => [
                     'show_toggle' => 'yes',
                 ],
             ]
         );
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'dropdown_typography',
-                'selector' => $dropdown_links,
-            ]
-        );
-
-        $this->start_controls_tabs('tabs_dropdown');
+        $this->start_controls_tabs('tabs_toggle_close_colors');
 
         $this->start_controls_tab(
-            'tab_dropdown_normal',
-            ['label' => esc_html__('Normal', 'elemacy')]
-        );
-        $this->add_control(
-            'dropdown_color',
+            'tab_toggle_close_normal',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_links => 'color: {{VALUE}}'],
+                'label' => esc_html__('Normal', 'elemacy'),
             ]
         );
+
         $this->add_control(
-            'dropdown_bg',
+            'toggle_close_color',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_selector => 'background-color: {{VALUE}}'],
+                'label' => esc_html__('Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close-icon' => 'color: {{VALUE}}',
+                ],
             ]
         );
+
+        $this->add_control(
+            'toggle_close_background',
+            [
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'background-color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'toggle_close_border_color',
+            [
+                'label' => esc_html__('Border Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'border-color: {{VALUE}}',
+                ],
+            ]
+        );
+
         $this->end_controls_tab();
 
         $this->start_controls_tab(
-            'tab_dropdown_hover',
-            ['label' => esc_html__('Hover', 'elemacy')]
-        );
-        $this->add_control(
-            'dropdown_color_hover',
+            'tab_toggle_close_hover',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_links_hover => 'color: {{VALUE}}'],
+                'label' => esc_html__('Hover', 'elemacy'),
             ]
         );
-        $this->add_control(
-            'dropdown_bg_hover',
-            [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_links_hover => 'background-color: {{VALUE}}'],
-            ]
-        );
-        $this->end_controls_tab();
 
-        $this->start_controls_tab(
-            'tab_dropdown_active',
-            ['label' => esc_html__('Active', 'elemacy')]
-        );
         $this->add_control(
-            'dropdown_color_active',
+            'toggle_close_color_hover',
             [
-                'label'     => esc_html__('Text Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_links_active => 'color: {{VALUE}}'],
+                'label' => esc_html__('Icon Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close:hover .elemacy-nav__toggle-close-icon' => 'color: {{VALUE}}'
+                ],
             ]
         );
+
         $this->add_control(
-            'dropdown_bg_active',
+            'toggle_close_background_hover',
             [
-                'label'     => esc_html__('Background Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [$dropdown_links_active => 'background-color: {{VALUE}}'],
+                'label' => esc_html__('Background Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close:hover' => 'background-color: {{VALUE}}',
+                ],
             ]
         );
+
+        $this->add_control(
+            'toggle_close_border_color_hover',
+            [
+                'label' => esc_html__('Border Color', 'elemacy'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close:hover' => 'border-color: {{VALUE}}',
+                ],
+            ]
+        );
+
         $this->end_controls_tab();
 
         $this->end_controls_tabs();
 
-        $this->add_responsive_control(
-            'dropdown_padding',
-            [
-                'label'      => esc_html__('Panel Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [
-                    $dropdown_selector => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-                'separator'  => 'before',
-            ]
-        );
-        $this->add_responsive_control(
-            'dropdown_item_padding',
-            [
-                'label'      => esc_html__('Item Padding', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => ['px', 'em', 'rem', 'custom'],
-                'selectors'  => [
-                    $dropdown_links => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-            ]
-        );
         $this->add_group_control(
-            Group_Control_Border::get_type(),
+            Group_Control_Typography::get_type(),
             [
-                'name'     => 'dropdown_border',
-                'selector' => $dropdown_selector,
+                'name' => 'toggle_close_typography',
+                'selector' => '{{WRAPPER}} .elemacy-nav__toggle-close',
             ]
         );
+
         $this->add_responsive_control(
-            'dropdown_border_radius',
+            'toggle_close_padding',
             [
-                'label'      => esc_html__('Border Radius', 'elemacy'),
-                'type'       => Controls_Manager::DIMENSIONS,
+                'label' => esc_html__('Padding', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', 'rem', 'custom'],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'toggle_close_border_radius',
+            [
+                'label' => esc_html__('Border Radius', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em', 'rem', 'custom'],
-                'selectors'  => [
-                    $dropdown_selector => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
-        $this->add_group_control(
-            Group_Control_Box_Shadow::get_type(),
+
+        $this->add_responsive_control(
+            'toggle_close_border_width',
             [
-                'name'     => 'dropdown_box_shadow',
-                'selector' => $dropdown_selector,
+                'label' => esc_html__('Border Width', 'elemacy'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em', 'rem', 'custom'],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'toggle_close_top',
+            [
+                'label' => esc_html__('Top', 'elemacy'),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px', '%', 'custom'],
+                'range' => [
+                    'px' => [
+                        'min' => -500,
+                        'max' => 500,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 10,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'top: {{SIZE}}{{UNIT}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'toggle_close_right',
+            [
+                'label' => esc_html__('Right', 'elemacy'),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px', '%', 'custom'],
+                'range' => [
+                    'px' => [
+                        'min' => -500,
+                        'max' => 500,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 10,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-nav__toggle-close' => 'right: {{SIZE}}{{UNIT}};',
+                ],
             ]
         );
 
@@ -814,26 +979,15 @@ class NavMenu extends BaseWidget
         $menu_id_attr = 'elemacy-nav-menu-' . $this->get_id();
 
         $args = [
-            'echo'        => false,
-            'menu'        => $settings['menu'],
-            'menu_class'  => 'elemacy-nav__list',
-            'container'   => '',
+            'echo' => false,
+            'menu' => $settings['menu'],
+            'menu_class' => 'elemacy-nav__list',
+            'container' => '',
             'fallback_cb' => '__return_empty_string',
+            'walker' => new NavMenuWalker(),
         ];
 
-        // Add custom filters to adjust classes.
-        add_filter('nav_menu_link_attributes', [$this, 'filter_link_attributes'], 10, 4);
-        add_filter('nav_menu_css_class', [$this, 'filter_menu_item_classes'], 10, 4);
-        add_filter('nav_menu_submenu_css_class', [$this, 'filter_submenu_classes'], 10, 3);
-        add_filter('nav_menu_item_id', '__return_empty_string');
-
         $menu_html = wp_nav_menu($args);
-
-        // Remove custom filters to avoid side effects.
-        remove_filter('nav_menu_link_attributes', [$this, 'filter_link_attributes'], 10);
-        remove_filter('nav_menu_css_class', [$this, 'filter_menu_item_classes'], 10);
-        remove_filter('nav_menu_submenu_css_class', [$this, 'filter_submenu_classes'], 10);
-        remove_filter('nav_menu_item_id', '__return_empty_string');
 
         if (empty($menu_html)) {
             return;
@@ -849,10 +1003,6 @@ class NavMenu extends BaseWidget
 
         $this->add_render_attribute('wrapper', 'class', $wrapper_classes);
 
-        if (!empty($settings['menu_label'])) {
-            $this->add_render_attribute('nav', 'aria-label', esc_attr($settings['menu_label']));
-        }
-
         $this->add_render_attribute('nav', 'class', 'elemacy-nav__menu');
         $this->add_render_attribute('nav', 'id', $menu_id_attr);
 
@@ -860,18 +1010,32 @@ class NavMenu extends BaseWidget
         ?>
         <div <?php $this->print_render_attribute_string('wrapper'); ?>>
             <div class="elemacy-nav__inner">
-                <?php if ($show_toggle) : ?>
-                    <button class="elemacy-nav__toggle" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr($menu_id_attr); ?>">
+                <?php if ($show_toggle): ?>
+                    <button class="elemacy-nav__toggle" type="button" aria-expanded="false"
+                        aria-controls="<?php echo esc_attr($menu_id_attr); ?>">
                         <span class="elemacy-nav__toggle-icon" aria-hidden="true">
-                            <span class="elemacy-nav__toggle-line"></span>
-                            <span class="elemacy-nav__toggle-line"></span>
-                            <span class="elemacy-nav__toggle-line"></span>
+                            <?php
+                            Icons_Manager::render_icon($settings['toggle_open_icon'], [
+                                'aria-hidden' => 'true',
+                            ]);
+                            ?>
                         </span>
-                        <?php if (!empty($settings['toggle_label'])) : ?>
+                        <?php if (isset($settings['show_toggle_label']) && 'yes' === $settings['show_toggle_label'] && !empty($settings['toggle_label'])): ?>
                             <span class="elemacy-nav__toggle-label">
                                 <?php echo esc_html($settings['toggle_label']); ?>
                             </span>
                         <?php endif; ?>
+                    </button>
+
+                    <button class="elemacy-nav__toggle-close" type="button" aria-expanded="false"
+                        aria-controls="<?php echo esc_attr($menu_id_attr); ?>">
+                        <span class="elemacy-nav__toggle-close-icon" aria-hidden="true">
+                            <?php
+                            Icons_Manager::render_icon($settings['toggle_close_icon'], [
+                                'aria-hidden' => 'true',
+                            ]);
+                            ?>
+                        </span>
                     </button>
                 <?php endif; ?>
 
@@ -884,72 +1048,6 @@ class NavMenu extends BaseWidget
             </div>
         </div>
         <?php
-    }
-
-    /**
-     * Add clean, predictable classes to menu links.
-     *
-     * @param array  $atts
-     * @param \WP_Post $item
-     * @param array  $args
-     * @param int    $depth
-     *
-     * @return array
-     */
-    public function filter_link_attributes($atts, $item, $args, $depth)
-    {
-        $classes = 'elemacy-nav__link';
-
-        if (in_array('current-menu-item', (array) $item->classes, true)) {
-            $classes .= ' elemacy-is-active';
-        }
-
-        if (empty($atts['class'])) {
-            $atts['class'] = $classes;
-        } else {
-            $atts['class'] .= ' ' . $classes;
-        }
-
-        return $atts;
-    }
-
-    /**
-     * Add BEM-style classes to menu list items.
-     *
-     * @param array   $classes
-     * @param \WP_Post $item
-     * @param array   $args
-     * @param int     $depth
-     *
-     * @return array
-     */
-    public function filter_menu_item_classes($classes, $item, $args, $depth)
-    {
-        $classes[] = 'elemacy-nav__item';
-
-        if (!empty($depth)) {
-            $classes[] = 'elemacy-nav__item--depth-' . (int) $depth;
-        }
-
-        if (in_array('menu-item-has-children', (array) $classes, true)) {
-            $classes[] = 'elemacy-nav__item--has-children';
-        }
-
-        return $classes;
-    }
-
-    /**
-     * Add BEM class to submenu ul for styling (hover dropdown).
-     *
-     * @param array   $classes
-     * @param \stdClass $args
-     * @param int     $depth
-     * @return array
-     */
-    public function filter_submenu_classes($classes, $args, $depth)
-    {
-        $classes[] = 'elemacy-nav__submenu';
-        return $classes;
     }
 }
 
