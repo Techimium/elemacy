@@ -98,6 +98,17 @@
     left: 100%;
 }
 
+/* Submenu overflow protection */
+.elemacy-nav__submenu.elemacy-is-drop-left {
+    left: auto;
+    right: 0;
+}
+
+.elemacy-nav__submenu .elemacy-nav__submenu.elemacy-is-drop-left {
+    left: auto;
+    right: 100%;
+}
+
 /* Layout modifiers */
 .elemacy-nav--layout-vertical .elemacy-nav__list,
 .elemacy-nav--layout-stacked .elemacy-nav__list {

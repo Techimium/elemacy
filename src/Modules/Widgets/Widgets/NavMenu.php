@@ -511,6 +511,7 @@ class NavMenu extends BaseWidget
                 'label' => esc_html__('Panel Background Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [$sub_selector => 'background-color: {{VALUE}}'],
+                'default' => '#222222',
             ]
         );
 
@@ -521,6 +522,13 @@ class NavMenu extends BaseWidget
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', 'rem', 'custom'],
                 'selectors' => [$sub_selector => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+                'default' => [
+                    'top' => 10,
+                    'right' => 10,
+                    'bottom' => 10,
+                    'left' => 10,
+                    'unit' => 'px',
+                ],
             ]
         );
 

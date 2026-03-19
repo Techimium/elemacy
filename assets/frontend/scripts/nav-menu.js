@@ -27,6 +27,23 @@
                 $toggle.attr('aria-expanded', 'false');
             }
         });
+
+        // Submenu collision detection to prevent overflow
+        const $menuItems = $scope.find('.elemacy-nav__item');
+        $menuItems.on('mouseenter', function () {
+            const $submenu = $(this).children('.elemacy-nav__submenu');
+            if ($submenu.length) {
+                // Reset class to measure natural position
+                $submenu.removeClass('elemacy-is-drop-left');
+                const rect = $submenu[0].getBoundingClientRect();
+                const windowWidth = $(window).width() || document.documentElement.clientWidth;
+
+                // Add class if it overflows the right edge
+                if (rect.right > windowWidth) {
+                    $submenu.addClass('elemacy-is-drop-left');
+                }
+            }
+        });
     };
 
     $(window).on('elementor/frontend/init', function () {
