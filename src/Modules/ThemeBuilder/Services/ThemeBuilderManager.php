@@ -9,8 +9,8 @@ class ThemeBuilderManager
     /**
      * @var ThemeBuilderManager
      */
-    private static $instance = null;
-    private static $template_registry = [];
+    protected static $instance = null;
+    protected static $template_registry = [];
 
     public static function instance()
     {
@@ -302,6 +302,10 @@ class ThemeBuilderManager
             [
                 'value' => 'search',
                 'label' => 'Search Results',
+            ],
+            [
+                'value' => 'loop',
+                'label' => 'Loop',
             ],
         ];
 

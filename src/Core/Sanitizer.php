@@ -2,7 +2,7 @@
 
 namespace Elemacy\Core;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use InvalidArgumentException;
 
@@ -246,7 +246,7 @@ class Sanitizer
         $segment = array_shift($key_segments);
         if ($segment === '*') {
             if (!is_array($current_data)) {
-                $this->set_sanitized_data($traversed_path_stack, static::apply_rule($current_data, static::ARRAY, $this->data));
+                $this->set_sanitized_data($traversed_path_stack, static::apply_rule($current_data, static::ARRAY , $this->data));
                 return;
             }
 
@@ -412,7 +412,7 @@ class Sanitizer
      * @param mixed $value
      * @return bool
      */
-    private static function is_valid_json($value)
+    protected static function is_valid_json($value)
     {
         if (!is_string($value)) {
             return false;

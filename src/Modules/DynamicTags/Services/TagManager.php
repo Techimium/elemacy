@@ -24,7 +24,7 @@ use Elemacy\Modules\DynamicTags\Tags\Base\SiteUrl;
 class TagManager
 {
 
-    private static $instance;
+    protected static $instance;
 
     public function __construct()
     {

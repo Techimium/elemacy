@@ -35,6 +35,21 @@ class FrontendAssets
             ELEMACY_VERSION,
             true
         );
+
+        wp_register_style(
+            'elemacy-loop-builder',
+            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/loop-builder.css'),
+            [],
+            ELEMACY_VERSION
+        );
+
+        wp_register_script(
+            'elemacy-loop-builder',
+            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-builder.js'),
+            ['jquery'],
+            ELEMACY_VERSION,
+            true
+        );
     }
 }
 

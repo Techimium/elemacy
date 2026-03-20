@@ -4,10 +4,10 @@ namespace Elemacy\Core;
 
 class Elemacy
 {
-	private static $instance = null;
-	private ModuleManager $module_manager;
+	protected static $instance = null;
+	protected ModuleManager $module_manager;
 
-	private function __construct()
+	protected function __construct()
 	{
 		add_action('init', [$this, 'load_textdomain']);
 		add_action('plugins_loaded', [$this, 'init']);
@@ -45,7 +45,7 @@ class Elemacy
 		$this->module_manager = new ModuleManager();
 	}
 
-	private function load_modules()
+	protected function load_modules()
 	{
 		$modules = require_once ELEMACY_PATH . 'src/Config/modules.php';
 		foreach ($modules as $module_class) {
@@ -61,18 +61,18 @@ class Elemacy
 		}
 	}
 
-	private function init_modules()
+	protected function init_modules()
 	{
 		$this->module_manager->init_modules();
 	}
 
-	private function init_routes()
+	protected function init_routes()
 	{
 		Route::set_namespace('elemacy');
 		require_once ELEMACY_PATH . 'src/Config/api.php';
 	}
 
-	private function register_routes()
+	protected function register_routes()
 	{
 		add_action('rest_api_init', function () {
 			foreach (Route::get_routes() as $route) {

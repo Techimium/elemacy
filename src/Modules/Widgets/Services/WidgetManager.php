@@ -2,7 +2,6 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
-use Elemacy\Modules\Widgets\Widgets\HelloWorld;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 
 class WidgetManager
@@ -26,8 +25,8 @@ class WidgetManager
 
     public function register_widgets($widgets_manager)
     {
-        $widgets_manager->register(new HelloWorld());
         $widgets_manager->register(new NavMenu());
+        $widgets_manager->register(new \Elemacy\Modules\Widgets\Widgets\LoopBuilder());
     }
 
     public function register_categories($elements_manager)
