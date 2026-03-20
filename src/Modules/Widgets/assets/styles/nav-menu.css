@@ -1,0 +1,301 @@
+/**
+ * Elemacy Nav Menu - Frontend Styles
+ *
+ * Modern, minimal, and fully responsive navigation styling.
+ * All selectors are scoped with the `.elemacy-nav` prefix to avoid conflicts.
+ */
+
+.elemacy-nav {
+    --elemacy-nav-toggle-size: 1.25rem;
+
+    width: 100%;
+}
+
+.elemacy-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.elemacy-nav__menu {
+    width: 100%;
+}
+
+.elemacy-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.elemacy-nav__item {
+    position: relative;
+}
+
+.elemacy-nav__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+.elemacy-nav__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.elemacy-nav__link.elemacy-is-active {
+    font-weight: 600;
+}
+
+/* Submenus (multi-level navigation) */
+.elemacy-nav__submenu {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+
+    position: absolute;
+    left: 0;
+    top: 100%;
+    min-width: 200px;
+    z-index: 1000;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+
+    background-color: inherit;
+}
+
+.elemacy-nav:not(.is-open) .elemacy-nav__submenu {
+    transform: translateY(8px);
+}
+
+.elemacy-nav__submenu .elemacy-nav__link {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+/* Open state for submenu (hover / JS toggle) */
+.elemacy-nav__item:hover>.elemacy-nav__submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Nested submenus fly out to the right on desktop */
+.elemacy-nav__submenu .elemacy-nav__submenu {
+    top: 0;
+    left: 100%;
+}
+
+/* Submenu overflow protection */
+.elemacy-nav__submenu.elemacy-is-drop-left {
+    left: auto;
+    right: 0;
+}
+
+.elemacy-nav__submenu .elemacy-nav__submenu.elemacy-is-drop-left {
+    left: auto;
+    right: 100%;
+}
+
+/* Layout modifiers */
+.elemacy-nav--layout-vertical .elemacy-nav__list,
+.elemacy-nav--layout-stacked .elemacy-nav__list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.elemacy-nav--layout-stacked .elemacy-nav__menu {
+    width: 100%;
+}
+
+.elemacy-nav--layout-stacked .elemacy-nav__link {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+/* Toggle (hamburger) */
+.elemacy-nav__toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.elemacy-nav__toggle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.elemacy-nav__toggle-icon {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.elemacy-nav__toggle-label {
+    font-size: 0.875rem;
+}
+
+/* Toggle close icon */
+.elemacy-nav__toggle-close {
+    display: none;
+}
+
+/* Breakpoints: dropdown is absolute below toggle (Elementor Pro style) */
+
+/* Tablet only */
+@media (max-width: 1024px) {
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__toggle {
+        display: inline-flex;
+    }
+
+    .elemacy-nav.is-open.elemacy-nav--breakpoint-tablet .elemacy-nav__toggle-close {
+        display: inline-flex;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 99;
+    }
+
+    .elemacy-nav.is-open.elemacy-nav--breakpoint-tablet .elemacy-nav__menu {
+        opacity: 1;
+        visibility: visible;
+        z-index: 9;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: unset;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__list {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu {
+        position: relative;
+        top: 0;
+        left: 0;
+        visibility: visible;
+        opacity: 1;
+        padding: 0;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        transition: unset;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item.elemacy-nav__item--has-children {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item .elemacy-nav__link {
+        justify-content: center;
+        font-size: 1.8em;
+        transition: unset;
+    }
+}
+
+/* Mobile only */
+@media (max-width: 767px) {
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__toggle {
+        display: inline-flex;
+    }
+
+    .elemacy-nav.is-open.elemacy-nav--breakpoint-mobile .elemacy-nav__toggle-close {
+        display: inline-flex;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 99;
+    }
+
+    .elemacy-nav.is-open.elemacy-nav--breakpoint-mobile .elemacy-nav__menu {
+        opacity: 1;
+        visibility: visible;
+        z-index: 9;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: unset;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__list {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item .elemacy-nav__submenu {
+        position: relative;
+        top: 0;
+        left: 0;
+        visibility: visible;
+        opacity: 1;
+        padding: 0;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        transition: unset;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item.elemacy-nav__item--has-children {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__list .elemacy-nav__item .elemacy-nav__link {
+        justify-content: center;
+        font-size: 1.8em;
+        transition: unset;
+    }
+}
