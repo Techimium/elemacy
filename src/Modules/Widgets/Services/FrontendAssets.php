@@ -1,6 +1,8 @@
 <?php
 
-namespace Elemacy\Core;
+namespace Elemacy\Modules\Widgets\Services;
+
+use Elemacy\Support\Utils;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -19,19 +21,17 @@ class FrontendAssets
      */
     public function register_assets(): void
     {
-        // Nav menu styles.
         wp_register_style(
             'elemacy-nav-menu',
-            ELEMACY_URL . 'assets/frontend/styles/nav-menu.css',
+            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/nav-menu.css'),
             [],
             ELEMACY_VERSION
         );
 
-        // Nav menu script (only behavior for Elemacy nav widgets; no globals).
         wp_register_script(
             'elemacy-nav-menu',
-            ELEMACY_URL . 'assets/frontend/scripts/nav-menu.js',
-            [ 'jquery' ],
+            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/nav-menu.js'),
+            ['jquery'],
             ELEMACY_VERSION,
             true
         );

@@ -3,6 +3,7 @@
 namespace Elemacy\Modules\Widgets;
 
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
 
 class Widgets extends Module
@@ -34,6 +35,7 @@ class Widgets extends Module
 
     public function init(): void
     {
+        new FrontendAssets();
         WidgetManager::instance();
     }
 }
