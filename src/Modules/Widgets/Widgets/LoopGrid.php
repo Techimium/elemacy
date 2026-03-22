@@ -289,6 +289,20 @@ class LoopGrid extends BaseWidget
             ]
         );
 
+        $this->add_control(
+            'pagination_ajax',
+            [
+                'label' => esc_html__('AJAX Pagination', 'elemacy'),
+                'type' => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default' => 'no',
+                'description' => esc_html__('Fetch the next page without reloading the entire page.', 'elemacy'),
+                'condition' => [
+                    'pagination_type!' => '',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -582,15 +596,46 @@ class LoopGrid extends BaseWidget
 
         global $post;
 
-        echo '<div class="elemacy-loop-builder-grid">';
+        $wrapper_classes = 'elemacy-loop-builder-grid';
+        $wrapper_attrs = '';
+
+        if (!empty($settings['pagination_ajax']) && $settings['pagination_ajax'] === 'yes') {
+            $wrapper_classes .= ' elemacy-ajax-pagination';
+
+            $ajax_settings = [
+                'post_type' => $settings['post_type'],
+                'posts_per_page' => $settings['posts_per_page'],
+                'orderby' => $settings['orderby'],
+                'order' => $settings['order'],
+                'offset' => $settings['offset'],
+                'exclude_current_post' => $settings['exclude_current_post'],
+                'template_id' => $settings['template_id'],
+                'pagination_type' => $settings['pagination_type'],
+                'current_post_id' => get_the_ID(),
+                'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
+            ];
+
+            if ($settings['post_type'] === 'current_query') {
+                global $wp_query;
+                $ajax_settings['current_query_vars'] = $wp_query->query_vars;
+            }
+
+            $settings_json = wp_json_encode($ajax_settings);
+
+            $wrapper_attrs = sprintf(
+                ' data-elemacy-loop-settings="%s"',
+                esc_attr($settings_json)
+            );
+        }
+
+        echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '<div class="elemacy-loop-grid">';
 
         while ($query->have_posts()) {
             $query->the_post();
 
             echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']);
+            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo '</div>';
         }
 
@@ -601,15 +646,17 @@ class LoopGrid extends BaseWidget
 
         // Pagination
         if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
-            $this->render_pagination($settings, $query);
+            self::render_pagination_html($settings, $query);
         }
 
         echo '</div>'; // End elemacy-loop-builder-grid
     }
 
-    protected function render_pagination($settings, $query)
+    public static function render_pagination_html($settings, $query, $current_page = null)
     {
-        $current_page = max(1, get_query_var('paged'), get_query_var('page'));
+        if ($current_page === null) {
+            $current_page = max(1, get_query_var('paged'), get_query_var('page'));
+        }
         $show_all = false;
         $prev_next = false;
         $prev_text = esc_html__('« Previous', 'elemacy');
@@ -638,6 +685,10 @@ class LoopGrid extends BaseWidget
             'show_all' => $show_all,
             'type' => 'plain',
         ];
+
+        if (!empty($settings['paginate_base'])) {
+            $paginate_args['base'] = $settings['paginate_base'];
+        }
 
         if (!$show_numbers && $prev_next) {
             $paginate_args['prev_next'] = true;

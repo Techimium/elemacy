@@ -421,7 +421,7 @@ class LoopCarousel extends BaseWidget
                 ],
             ]
         );
-        
+
         $this->add_control(
             'arrows_border_radius',
             [
@@ -433,7 +433,7 @@ class LoopCarousel extends BaseWidget
                 ],
             ]
         );
-        
+
         $this->add_control(
             'arrows_padding',
             [
@@ -562,8 +562,7 @@ class LoopCarousel extends BaseWidget
 
             echo '<div class="swiper-slide">';
             echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']);
+            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo '</div>';
             echo '</div>';
         }

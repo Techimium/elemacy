@@ -66,6 +66,7 @@ class ModuleManager
 			return new WP_Error(
 				'has_dependents',
 				sprintf(
+					/* translators: %s: List of dependent modules */
 					__('Cannot disable module. The following modules depend on it: %s', 'elemacy'),
 					implode(', ', $dependents)
 				)
@@ -138,6 +139,7 @@ class ModuleManager
 			if (!isset($this->modules[$dependency])) {
 				return new WP_Error(
 					'dependency_not_found',
+					/* translators: %s: Module name */
 					sprintf(__('Required dependency "%s" not found.', 'elemacy'), $dependency)
 				);
 			}
@@ -145,6 +147,7 @@ class ModuleManager
 			if (!$this->is_active($dependency)) {
 				return new WP_Error(
 					'dependency_not_active',
+					/* translators: %s: Module name */
 					sprintf(__('Required dependency "%s" is not active.', 'elemacy'), $dependency)
 				);
 			}

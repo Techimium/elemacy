@@ -6,6 +6,8 @@ use Elemacy\Core\Module;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
 
+use Elemacy\Modules\Widgets\Services\AjaxHandler;
+
 class Widgets extends Module
 {
     public function get_name(): string
@@ -37,5 +39,6 @@ class Widgets extends Module
     {
         new FrontendAssets();
         WidgetManager::instance();
+        require_once __DIR__ . '/Config/ajax.php';
     }
 }

@@ -29,7 +29,8 @@ class Elemacy
 		$this->load_modules();
 		$this->init_modules();
 		$this->init_routes();
-		$this->register_routes();
+		$this->register_rest_routes();
+		$this->register_ajax_routes();
 	}
 
 	public function load_textdomain()
@@ -41,6 +42,7 @@ class Elemacy
 	{
 		new AdminMenu();
 		new AdminScripts();
+		new FrontendScripts();
 
 		$this->module_manager = new ModuleManager();
 	}
@@ -72,12 +74,19 @@ class Elemacy
 		require_once ELEMACY_PATH . 'src/Config/api.php';
 	}
 
-	protected function register_routes()
+	protected function register_rest_routes()
 	{
 		add_action('rest_api_init', function () {
 			foreach (Route::get_routes() as $route) {
 				$route->register();
 			}
+		});
+	}
+
+	protected function register_ajax_routes()
+	{
+		add_action('init', function () {
+			AjaxRouter::register();
 		});
 	}
 

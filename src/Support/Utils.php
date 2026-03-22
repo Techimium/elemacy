@@ -37,4 +37,15 @@ class Utils
     {
         return ELEMACY_PATH . $path;
     }
+
+    /**
+     * Get the prefix for the plugin.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function with_prefix($name)
+    {
+        return 'elemacy_' . $name;
+    }
 }

@@ -5,7 +5,7 @@ namespace Elemacy\Core\Http;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Validation\Validator;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use Elemacy\Core\Contracts\Request as BaseRequest;
 use Elemacy\Core\Sanitizer;
@@ -295,12 +295,12 @@ class Request implements BaseRequest
      *
      * @param string $key The key to retrieve.
      * @param string $type Optional type to cast the result to: int, float, bool, string, array with proper sanitization.
-     * @param mixed $default Default value if the key doesn't exist.
+     * @param mixed $default_value Default value if the key doesn't exist.
      * @return mixed|null
      */
-    public function get(string $key, string $type, $default = null)
+    public function get(string $key, string $type, $default_value = null)
     {
-        $value = isset($this->attributes[$key]) ? $this->attributes[$key] : $default;
+        $value = isset($this->attributes[$key]) ? $this->attributes[$key] : $default_value;
 
         $value = Sanitizer::apply_rule($value, $type);
 
@@ -313,12 +313,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_string(string $key, $default = null)
+    public function get_string(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TEXT, $default);
+        return $this->get($key, Sanitizer::TEXT, $default_value);
     }
 
     /**
@@ -327,12 +327,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string
      */
-    public function get_date(string $key, $default = null)
+    public function get_date(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::DATE, $default);
+        return $this->get($key, Sanitizer::DATE, $default_value);
     }
 
     /**
@@ -341,12 +341,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string
      */
-    public function get_datetime(string $key, $default = null)
+    public function get_datetime(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::DATETIME, $default);
+        return $this->get($key, Sanitizer::DATETIME, $default_value);
     }
 
     /**
@@ -355,12 +355,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_text(string $key, $default = null)
+    public function get_text(string $key, $default_value = null)
     {
-        return $this->get_string($key, $default);
+        return $this->get_string($key, $default_value);
     }
 
     /**
@@ -369,12 +369,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_html(string $key, $default = null)
+    public function get_html(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TEXTAREA, $default);
+        return $this->get($key, Sanitizer::TEXTAREA, $default_value);
     }
 
     /**
@@ -383,12 +383,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_email(string $key, $default = null)
+    public function get_email(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::EMAIL, $default);
+        return $this->get($key, Sanitizer::EMAIL, $default_value);
     }
 
     /**
@@ -397,12 +397,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_url(string $key, $default = null)
+    public function get_url(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::URL, $default);
+        return $this->get($key, Sanitizer::URL, $default_value);
     }
 
     /**
@@ -411,12 +411,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_key(string $key, $default = null)
+    public function get_key(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::KEY, $default);
+        return $this->get($key, Sanitizer::KEY, $default_value);
     }
 
     /**
@@ -425,12 +425,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_title(string $key, $default = null)
+    public function get_title(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TITLE, $default);
+        return $this->get($key, Sanitizer::TITLE, $default_value);
     }
 
     /**
@@ -439,12 +439,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_file_name(string $key, $default = null)
+    public function get_file_name(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TITLE, $default);
+        return $this->get($key, Sanitizer::TITLE, $default_value);
     }
 
     /**
@@ -453,12 +453,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_mime_type(string $key, $default = null)
+    public function get_mime_type(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::MIME_TYPE, $default);
+        return $this->get($key, Sanitizer::MIME_TYPE, $default_value);
     }
 
     /**
@@ -467,12 +467,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param int|null $default Default value if the key doesn't exist.
+     * @param int|null $default_value Default value if the key doesn't exist.
      * @return int|null
      */
-    public function get_int(string $key, $default = null)
+    public function get_int(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::INT, $default);
+        return $this->get($key, Sanitizer::INT, $default_value);
     }
 
     /**
@@ -481,12 +481,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param bool $default Default value if the key doesn't exist.
+     * @param bool $default_value Default value if the key doesn't exist.
      * @return bool
      */
-    public function get_bool(string $key, bool $default = false)
+    public function get_bool(string $key, bool $default_value = false)
     {
-        return $this->get($key, Sanitizer::BOOL, $default);
+        return $this->get($key, Sanitizer::BOOL, $default_value);
     }
 
     /**
@@ -495,12 +495,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float|null $default Default value if the key doesn't exist.
+     * @param float|null $default_value Default value if the key doesn't exist.
      * @return float|null
      */
-    public function get_float(string $key, $default = null)
+    public function get_float(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::FLOAT, $default);
+        return $this->get($key, Sanitizer::FLOAT, $default_value);
     }
 
     /**
@@ -509,12 +509,12 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float $default Default value if the key doesn't exist.
+     * @param float $default_value Default value if the key doesn't exist.
      * @return float
      */
-    public function get_money(string $key, $default = 0)
+    public function get_money(string $key, $default_value = 0)
     {
-        return $this->get($key, Sanitizer::MONEY, $default);
+        return $this->get($key, Sanitizer::MONEY, $default_value);
     }
 
 
@@ -524,11 +524,11 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param array|null $default Default value if the key doesn't exist.
+     * @param array|null $default_value Default value if the key doesn't exist.
      * @return array|null
      */
-    public function get_array(string $key, $default = null)
+    public function get_array(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::ARRAY, $default);
+        return $this->get($key, Sanitizer::ARRAY , $default_value);
     }
 }
