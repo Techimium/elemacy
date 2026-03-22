@@ -37,16 +37,31 @@ class FrontendAssets
         );
 
         wp_register_style(
-            'elemacy-loop-builder',
+            'elemacy-loop-grid',
             Utils::get_plugin_url('src/Modules/Widgets/assets/styles/loop-builder.css'),
             [],
             ELEMACY_VERSION
         );
 
         wp_register_script(
-            'elemacy-loop-builder',
+            'elemacy-loop-grid',
             Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-builder.js'),
             ['jquery'],
+            ELEMACY_VERSION,
+            true
+        );
+
+        wp_register_style(
+            'elemacy-loop-carousel',
+            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/loop-carousel.css'),
+            [],
+            ELEMACY_VERSION
+        );
+
+        wp_register_script(
+            'elemacy-loop-carousel',
+            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-carousel.js'),
+            ['jquery', 'swiper'],
             ELEMACY_VERSION,
             true
         );

@@ -12,11 +12,11 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-class LoopBuilder extends BaseWidget
+class LoopGrid extends BaseWidget
 {
     public function get_name()
     {
-        return 'elemacy-loop-builder';
+        return 'elemacy-loop-grid';
     }
 
     public function get_title()
@@ -26,7 +26,7 @@ class LoopBuilder extends BaseWidget
 
     public function get_icon()
     {
-        return 'eicon-lottie';
+        return 'eicon-loop-builder';
     }
 
     public function get_keywords()
@@ -36,12 +36,12 @@ class LoopBuilder extends BaseWidget
 
     public function get_style_depends()
     {
-        return ['elemacy-loop-builder'];
+        return ['elemacy-loop-grid'];
     }
 
     public function get_script_depends()
     {
-        return ['elemacy-loop-builder'];
+        return ['elemacy-loop-grid'];
     }
 
     protected function register_controls()
@@ -582,7 +582,7 @@ class LoopBuilder extends BaseWidget
 
         global $post;
 
-        echo '<div class="elemacy-loop-builder">';
+        echo '<div class="elemacy-loop-builder-grid">';
         echo '<div class="elemacy-loop-grid">';
 
         while ($query->have_posts()) {
@@ -604,7 +604,7 @@ class LoopBuilder extends BaseWidget
             $this->render_pagination($settings, $query);
         }
 
-        echo '</div>'; // End elemacy-loop-builder
+        echo '</div>'; // End elemacy-loop-builder-grid
     }
 
     protected function render_pagination($settings, $query)

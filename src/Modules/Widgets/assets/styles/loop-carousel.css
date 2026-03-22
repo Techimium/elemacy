@@ -1,0 +1,107 @@
+/**
+ * Elemacy Loop Carousel Styles
+ */
+
+.elemacy-loop-carousel {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    list-style: none;
+    padding: 0;
+    z-index: 1;
+}
+
+.elemacy-loop-carousel .swiper-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    transition-property: transform;
+    box-sizing: content-box;
+    align-items: stretch;
+}
+
+.elemacy-loop-carousel .swiper-slide {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition-property: transform;
+}
+
+/* Custom Navigation */
+.elemacy-loop-carousel-container {
+    position: relative;
+}
+
+.elemacy-swiper-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.elemacy-swiper-button:hover {
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.elemacy-swiper-button-prev {
+    left: 10px;
+}
+
+.elemacy-swiper-button-next {
+    right: 10px;
+}
+
+.elemacy-swiper-button.swiper-button-disabled {
+    opacity: 0.35;
+    cursor: auto;
+    pointer-events: none;
+}
+
+/* Hide default swiper nav icons if using custom */
+.elemacy-swiper-button::after {
+    display: none;
+}
+
+/* Pagination */
+.elemacy-loop-carousel .swiper-pagination {
+    position: absolute;
+    text-align: center;
+    transition: 0.3s opacity;
+    transform: translate3d(0, 0, 0);
+    z-index: 10;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+}
+
+.elemacy-loop-carousel .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #000;
+    opacity: 0.2;
+    margin: 0 4px;
+    cursor: pointer;
+}
+
+.elemacy-loop-carousel .swiper-pagination-bullet-active {
+    opacity: 1;
+    background: #007cba;
+}
