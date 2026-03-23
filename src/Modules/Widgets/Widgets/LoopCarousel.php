@@ -479,6 +479,49 @@ class LoopCarousel extends BaseWidget
             ]
         );
 
+        $this->add_responsive_control(
+            'pagination_alignment',
+            [
+                'label' => esc_html__('Alignment', 'elemacy'),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => esc_html__('Left', 'elemacy'),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => esc_html__('Center', 'elemacy'),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => esc_html__('Right', 'elemacy'),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'default' => 'center',
+                'selectors' => [
+                    '{{WRAPPER}} .swiper-pagination' => 'text-align: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_offset',
+            [
+                'label' => esc_html__('Offset', 'elemacy'),
+                'type' => Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 200,
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-loop-carousel-container .elemacy-loop-carousel' => 'padding-bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->add_control(
             'pagination_color',
             [
