@@ -45,7 +45,7 @@ class FrontendAssets
 
         wp_register_script(
             'elemacy-loop-grid',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-builder.js'),
+            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-grid.js'),
             ['jquery', 'elemacy-frontend'],
             ELEMACY_VERSION,
             true

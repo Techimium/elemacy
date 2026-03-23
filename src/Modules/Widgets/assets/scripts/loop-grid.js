@@ -2,10 +2,10 @@
     'use strict';
 
     /**
-     * Loop Builder Frontend Script
+     * Loop Grid Frontend Script
      * Handles the AJAX pagination logic for the loop grid widget.
      */
-    var WidgetLoopBuilderHandler = function ($scope, $) {
+    var WidgetLoopGridHandler = function ($scope, $) {
         var $targetContainer = $scope.find('.elemacy-ajax-pagination');
 
         // If AJAX pagination is not enabled for this widget, do nothing
@@ -111,6 +111,6 @@
     };
 
     $(window).on('elementor/frontend/init', function () {
-        elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-grid.default', WidgetLoopBuilderHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-grid.default', WidgetLoopGridHandler);
     });
 })(jQuery);
