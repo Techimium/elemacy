@@ -4,10 +4,10 @@ namespace Elemacy\Core;
 
 class Elemacy
 {
-	private static $instance = null;
-	private ModuleManager $module_manager;
+	protected static $instance = null;
+	protected ModuleManager $module_manager;
 
-	private function __construct()
+	protected function __construct()
 	{
 		add_action('init', [$this, 'load_textdomain']);
 		add_action('plugins_loaded', [$this, 'init']);
@@ -15,11 +15,11 @@ class Elemacy
 
 	public static function get_instance(): self
 	{
-		if (self::$instance === null) {
-			self::$instance = new static();
+		if (static::$instance === null) {
+			static::$instance = new static();
 		}
 
-		return self::$instance;
+		return static::$instance;
 	}
 
 	public function init()
@@ -29,7 +29,8 @@ class Elemacy
 		$this->load_modules();
 		$this->init_modules();
 		$this->init_routes();
-		$this->register_routes();
+		$this->register_rest_routes();
+		$this->register_ajax_routes();
 	}
 
 	public function load_textdomain()
@@ -41,11 +42,12 @@ class Elemacy
 	{
 		new AdminMenu();
 		new AdminScripts();
+		new FrontendScripts();
 
 		$this->module_manager = new ModuleManager();
 	}
 
-	private function load_modules()
+	protected function load_modules()
 	{
 		$modules = require_once ELEMACY_PATH . 'src/Config/modules.php';
 		foreach ($modules as $module_class) {
@@ -61,23 +63,30 @@ class Elemacy
 		}
 	}
 
-	private function init_modules()
+	protected function init_modules()
 	{
 		$this->module_manager->init_modules();
 	}
 
-	private function init_routes()
+	protected function init_routes()
 	{
 		Route::set_namespace('elemacy');
 		require_once ELEMACY_PATH . 'src/Config/api.php';
 	}
 
-	private function register_routes()
+	protected function register_rest_routes()
 	{
 		add_action('rest_api_init', function () {
 			foreach (Route::get_routes() as $route) {
 				$route->register();
 			}
+		});
+	}
+
+	protected function register_ajax_routes()
+	{
+		add_action('init', function () {
+			AjaxRouter::register();
 		});
 	}
 
@@ -121,6 +130,6 @@ class Elemacy
 
 	public static function boot()
 	{
-		return self::get_instance();
+		return static::get_instance();
 	}
 }

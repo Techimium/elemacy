@@ -2,7 +2,7 @@
 
 namespace Elemacy\Core\Http;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 /**
  * Site Response Class
@@ -14,6 +14,21 @@ defined( 'ABSPATH' ) || exit;
  */
 class SiteResponse
 {
+    protected static $instance;
+
+    /**
+     * Get the singleton instance of the SiteResponse class.
+     *
+     * @return SiteResponse
+     */
+    public static function instance()
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
     /**
      * Send a JSON success response
      *

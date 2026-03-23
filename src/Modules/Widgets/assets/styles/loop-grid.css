@@ -1,0 +1,14 @@
+/* Loop Grid */
+.elemacy-loop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.elemacy-loop-item {
+    display: block;
+    width: 100%;
+}

@@ -9,16 +9,16 @@ class ThemeBuilderManager
     /**
      * @var ThemeBuilderManager
      */
-    private static $instance = null;
-    private static $template_registry = [];
+    protected static $instance = null;
+    protected static $template_registry = [];
 
     public static function instance()
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new self();
+        if (is_null(static::$instance)) {
+            static::$instance = new self();
         }
 
-        return self::$instance;
+        return static::$instance;
     }
 
     /**
@@ -146,13 +146,13 @@ class ThemeBuilderManager
      */
     protected function find_template_id($type)
     {
-        if (isset(self::$template_registry[$type])) {
-            return self::$template_registry[$type]->id ?? null;
+        if (isset(static::$template_registry[$type])) {
+            return static::$template_registry[$type]->id ?? null;
         }
 
-        self::$template_registry[$type] = $this->find_template($type);
+        static::$template_registry[$type] = $this->find_template($type);
 
-        return self::$template_registry[$type]->id ?? null;
+        return static::$template_registry[$type]->id ?? null;
     }
 
     protected function find_template($type)
@@ -302,6 +302,10 @@ class ThemeBuilderManager
             [
                 'value' => 'search',
                 'label' => 'Search Results',
+            ],
+            [
+                'value' => 'loop',
+                'label' => 'Loop',
             ],
         ];
 

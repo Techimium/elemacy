@@ -109,7 +109,7 @@ class PostCustomField extends Tag
 		echo wp_kses_post($value);
 	}
 
-	private function get_custom_keys_array()
+	protected function get_custom_keys_array()
 	{
 		$custom_keys = get_post_custom_keys();
 		$options = [

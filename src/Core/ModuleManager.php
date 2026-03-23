@@ -7,9 +7,9 @@ use Elemacy\Core\Constants\OptionKeys;
 
 class ModuleManager
 {
-	private array $modules = [];
-	private array $active_modules = [];
-	private array $initialized_modules = [];
+	protected array $modules = [];
+	protected array $active_modules = [];
+	protected array $initialized_modules = [];
 
 	public function register(Module $module): void
 	{
@@ -66,6 +66,7 @@ class ModuleManager
 			return new WP_Error(
 				'has_dependents',
 				sprintf(
+					/* translators: %s: List of dependent modules */
 					__('Cannot disable module. The following modules depend on it: %s', 'elemacy'),
 					implode(', ', $dependents)
 				)
@@ -87,7 +88,7 @@ class ModuleManager
 		$this->initialize_modules();
 	}
 
-	private function load_active_modules(): void
+	protected function load_active_modules(): void
 	{
 		$active_module_names = get_option(OptionKeys::ACTIVE_MODULES, []);
 		$this->active_modules = [];
@@ -101,7 +102,7 @@ class ModuleManager
 		$this->active_modules = array_merge($this->active_modules, $this->get_default_modules());
 	}
 
-	private function get_default_modules(): array
+	protected function get_default_modules(): array
 	{
 		$default_modules = [];
 
@@ -114,7 +115,7 @@ class ModuleManager
 		return $default_modules;
 	}
 
-	private function initialize_modules(): void
+	protected function initialize_modules(): void
 	{
 		$sorted_modules = $this->sort_by_dependencies($this->active_modules);
 
@@ -129,7 +130,7 @@ class ModuleManager
 		}
 	}
 
-	private function check_dependencies(string $module_name)
+	protected function check_dependencies(string $module_name)
 	{
 		$module = $this->modules[$module_name];
 		$dependencies = $module->get_dependencies();
@@ -138,6 +139,7 @@ class ModuleManager
 			if (!isset($this->modules[$dependency])) {
 				return new WP_Error(
 					'dependency_not_found',
+					/* translators: %s: Module name */
 					sprintf(__('Required dependency "%s" not found.', 'elemacy'), $dependency)
 				);
 			}
@@ -145,6 +147,7 @@ class ModuleManager
 			if (!$this->is_active($dependency)) {
 				return new WP_Error(
 					'dependency_not_active',
+					/* translators: %s: Module name */
 					sprintf(__('Required dependency "%s" is not active.', 'elemacy'), $dependency)
 				);
 			}
@@ -153,7 +156,7 @@ class ModuleManager
 		return true;
 	}
 
-	private function get_dependent_modules(string $module_name): array
+	protected function get_dependent_modules(string $module_name): array
 	{
 		$dependents = [];
 
@@ -166,7 +169,7 @@ class ModuleManager
 		return $dependents;
 	}
 
-	private function sort_by_dependencies(array $modules): array
+	protected function sort_by_dependencies(array $modules): array
 	{
 		$sorted = [];
 		$visited = [];
@@ -178,7 +181,7 @@ class ModuleManager
 		return $sorted;
 	}
 
-	private function visit_module(Module $module, array $all_modules, array &$visited, array &$sorted): void
+	protected function visit_module(Module $module, array $all_modules, array &$visited, array &$sorted): void
 	{
 		$module_name = $module->get_name();
 

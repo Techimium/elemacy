@@ -2,7 +2,7 @@
 
 namespace Elemacy\Core\Http;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use Elemacy\Core\Contracts\Request;
 use Elemacy\Core\Sanitizer;
@@ -14,7 +14,7 @@ class SiteRequest implements Request
 
     public function __get(string $name)
     {
-        return $this->attributes[$name] ?? $_FILES[$name] ?? $_GET[$name] ?? $_POST[$name] ?? null;
+        return $this->input($name);
     }
 
     public function __set(string $name, $value)
@@ -46,12 +46,13 @@ class SiteRequest implements Request
 
     public function all()
     {
-        return array_merge($_FILES, $_GET, $_POST, $this->attributes);
+        return $this->attributes;
     }
 
-    public function has(string $key)
+    public function clean()
     {
-        return isset($this->attributes[$key]) || isset($_FILES[$key]) || isset($_GET[$key]) || isset($_POST[$key]);
+        //@todo: decide whether to use this for site request or not
+        return $this->all();
     }
 
     public function except(array $attributes)
@@ -61,21 +62,36 @@ class SiteRequest implements Request
 
     public function only(string $key)
     {
-        return $this->attributes[$key] ?? $_FILES[$key] ?? $_GET[$key] ?? $_POST[$key] ?? null;
+        return $this->input($key);
     }
 
-    public function input(string $key)
+    public function input(string $key, $type = 'text', $default_value = null)
     {
-        return $this->only($key);
-    }
-
-    public function get(string $key,string $type, $default = null)
-    {
-        $value = $this->only($key) ?? $default;
-
-        if ($type) {
-            $value = Sanitizer::apply_rule($value, $type);
+        if (isset($this->attributes[$key])) {
+            return Sanitizer::apply_rule($this->attributes[$key], $type);
         }
+
+        $raw_value = $_POST[$key] ?? $_GET[$key] ?? null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+        if (null === $raw_value) {
+            return $default_value;
+        }
+
+        $unslashed = wp_unslash($raw_value);
+
+        return Sanitizer::apply_rule($unslashed, $type);
+    }
+
+    public function has(string $key)
+    {
+        return $this->input($key) !== null;
+    }
+
+    public function get(string $key, string $type, $default_value = null)
+    {
+        $value = $this->only($key) ?? $default_value;
+
+        $value = Sanitizer::apply_rule($value, $type);
 
         return $value;
     }
@@ -86,12 +102,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_string(string $key, $default = null)
+    public function get_string(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TEXT, $default);
+        return $this->get($key, Sanitizer::TEXT, $default_value);
     }
 
     /**
@@ -100,12 +116,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string
      */
-    public function get_date(string $key, $default = null)
+    public function get_date(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::DATE, $default);
+        return $this->get($key, Sanitizer::DATE, $default_value);
     }
 
     /**
@@ -114,12 +130,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string
      */
-    public function get_datetime(string $key, $default = null)
+    public function get_datetime(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::DATETIME, $default);
+        return $this->get($key, Sanitizer::DATETIME, $default_value);
     }
 
     /**
@@ -128,12 +144,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_text(string $key, $default = null)
+    public function get_text(string $key, $default_value = null)
     {
-        return $this->get_string($key, $default);
+        return $this->get_string($key, $default_value);
     }
 
     /**
@@ -142,12 +158,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key     The key to retrieve.
-     * @param string|null  $default Default value if the key doesn't exist.
+     * @param string|null  $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_html(string $key, $default = null)
+    public function get_html(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TEXTAREA, $default);
+        return $this->get($key, Sanitizer::TEXTAREA, $default_value);
     }
 
     /**
@@ -156,12 +172,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_email(string $key, $default = null)
+    public function get_email(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::EMAIL, $default);
+        return $this->get($key, Sanitizer::EMAIL, $default_value);
     }
 
     /**
@@ -170,12 +186,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_url(string $key, $default = null)
+    public function get_url(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::URL, $default);
+        return $this->get($key, Sanitizer::URL, $default_value);
     }
 
     /**
@@ -184,12 +200,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_key(string $key, $default = null)
+    public function get_key(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::KEY, $default);
+        return $this->get($key, Sanitizer::KEY, $default_value);
     }
 
     /**
@@ -198,12 +214,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_title(string $key, $default = null)
+    public function get_title(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TITLE, $default);
+        return $this->get($key, Sanitizer::TITLE, $default_value);
     }
 
     /**
@@ -212,12 +228,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_file_name(string $key, $default = null)
+    public function get_file_name(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::TITLE, $default);
+        return $this->get($key, Sanitizer::TITLE, $default_value);
     }
 
     /**
@@ -226,12 +242,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param string|null $default Default value if the key doesn't exist.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
-    public function get_mime_type(string $key, $default = null)
+    public function get_mime_type(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::MIME_TYPE, $default);
+        return $this->get($key, Sanitizer::MIME_TYPE, $default_value);
     }
 
     /**
@@ -240,12 +256,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param int|null $default Default value if the key doesn't exist.
+     * @param int|null $default_value Default value if the key doesn't exist.
      * @return int|null
      */
-    public function get_int(string $key, $default = null)
+    public function get_int(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::INT, $default);
+        return $this->get($key, Sanitizer::INT, $default_value);
     }
 
     /**
@@ -254,12 +270,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param bool $default Default value if the key doesn't exist.
+     * @param bool $default_value Default value if the key doesn't exist.
      * @return bool
      */
-    public function get_bool(string $key, bool $default = false)
+    public function get_bool(string $key, bool $default_value = false)
     {
-        return $this->get($key, Sanitizer::BOOL, $default);
+        return $this->get($key, Sanitizer::BOOL, $default_value);
     }
 
     /**
@@ -268,12 +284,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float|null $default Default value if the key doesn't exist.
+     * @param float|null $default_value Default value if the key doesn't exist.
      * @return float|null
      */
-    public function get_float(string $key, $default = null)
+    public function get_float(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::FLOAT, $default);
+        return $this->get($key, Sanitizer::FLOAT, $default_value);
     }
 
     /**
@@ -282,12 +298,12 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float $default Default value if the key doesn't exist.
+     * @param float $default_value Default value if the key doesn't exist.
      * @return float
      */
-    public function get_money(string $key, $default = 0)
+    public function get_money(string $key, $default_value = 0)
     {
-        return $this->get($key, Sanitizer::MONEY, $default);
+        return $this->get($key, Sanitizer::MONEY, $default_value);
     }
 
     /**
@@ -296,11 +312,11 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param array|null $default Default value if the key doesn't exist.
+     * @param array|null $default_value Default value if the key doesn't exist.
      * @return array|null
      */
-    public function get_array(string $key, $default = null)
+    public function get_array(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::ARRAY, $default);
+        return $this->get($key, Sanitizer::ARRAY , $default_value);
     }
 }
