@@ -1,0 +1,156 @@
+<?php
+
+namespace Elemacy\Modules\Widgets\Controllers;
+
+use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Http\SiteRequest as Request;
+use Elemacy\Core\Http\SiteResponse;
+use Elementor\Plugin;
+
+class AjaxFormController
+{
+    public function index(Request $request)
+    {
+        $widget_id = $request->get_string('widget_id');
+        $post_id = $request->get_int('post_id');
+        $form_data = $request->get_array('form_field');
+        $honeypot = $request->get_string('elemacy_honeypot');
+
+        // Simple Honeypot check
+        if (!empty($honeypot)) {
+            SiteResponse::instance()->success([
+                'message' => esc_html__('Form submitted successfully!', 'elemacy'),
+            ]);
+        }
+
+        if (empty($widget_id) || empty($post_id)) {
+            throw new ValidationException(esc_html__('Missing required parameters.', 'elemacy'));
+        }
+
+        // Get Elementor document
+        $document = Plugin::$instance->documents->get($post_id);
+
+        if (!$document) {
+            throw new ValidationException(esc_html__('Invalid post ID.', 'elemacy'));
+        }
+
+        // Find widget data
+        $element_data = $this->find_element($document->get_elements_data(), $widget_id);
+
+        if (!$element_data) {
+            throw new ValidationException(esc_html__('Widget not found.', 'elemacy'));
+        }
+
+        // Create widget instance to get settings with defaults
+        $widget = Plugin::$instance->elements_manager->create_element_instance($element_data);
+
+        if (!$widget) {
+            throw new ValidationException(esc_html__('Invalid widget.', 'elemacy'));
+        }
+
+        $settings = $widget->get_settings();
+
+        // Process actions
+        $actions = $settings['submit_actions'] ?? [];
+
+        if (in_array('email', $actions, true)) {
+            $email_sent = $this->send_email($settings, $form_data);
+
+            if (!$email_sent) {
+                SiteResponse::instance()->error([
+                    'message' => esc_html__('Failed to send email. Please try again.', 'elemacy'),
+                ]);
+            }
+        }
+
+        SiteResponse::instance()->success([
+            'message' => esc_html__('Form submitted successfully!', 'elemacy'),
+        ]);
+    }
+
+    protected function find_element($elements, $widget_id)
+    {
+        foreach ($elements as $element) {
+            if (isset($element['id']) && $element['id'] === $widget_id) {
+                return $element;
+            }
+
+            if (!empty($element['elements'])) {
+                $found = $this->find_element($element['elements'], $widget_id);
+                if ($found) {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function send_email($settings, $form_data)
+    {
+        $to = !empty($settings['email_to']) ? $settings['email_to'] : get_option('admin_email');
+        $subject = !empty($settings['email_subject']) ? $settings['email_subject'] : esc_html__('New Form Submission', 'elemacy');
+        $content = !empty($settings['email_content']) ? $settings['email_content'] : '[all-fields]';
+        $from_name = !empty($settings['email_from_name']) ? $settings['email_from_name'] : get_bloginfo('name');
+        $from_email = !empty($settings['email_from']) ? $settings['email_from'] : get_option('admin_email');
+        $reply_to = '';
+
+        // Handle [all-fields] and specific field shortcodes
+        if (strpos($content, '[all-fields]') !== false) {
+            $all_fields_text = '';
+            foreach ($settings['form_fields'] as $index => $field) {
+                $val = isset($form_data[$index]) ? $form_data[$index] : '';
+                if (is_array($val)) {
+                    $val = implode(', ', $val);
+                }
+                $all_fields_text .= '<strong>' . esc_html($field['label']) . ':</strong> ' . esc_html($val) . '<br>';
+            }
+            $content = str_replace('[all-fields]', $all_fields_text, $content);
+        }
+
+        // Handle specific field shortcodes
+        foreach ($settings['form_fields'] as $index => $field) {
+            $val = isset($form_data[$index]) ? $form_data[$index] : '';
+            if (is_array($val)) {
+                $val = implode(', ', $val);
+            }
+            
+            $field_val = esc_html($val);
+            
+            // Replace by Index [field_0]
+            $content = str_replace('[field_' . $index . ']', $field_val, $content);
+            
+            // Replace by Custom ID [name]
+            if (!empty($field['custom_id'])) {
+                $content = str_replace('[' . $field['custom_id'] . ']', $field_val, $content);
+            }
+        }
+
+        // Also handle Reply-To if it's a field ID or email
+        if (!empty($settings['email_reply_to'])) {
+            // If reply_to is an index of form_fields
+            foreach ($settings['form_fields'] as $index => $field) {
+                if ($field['label'] === $settings['email_reply_to'] || 
+                    (string) $index === (string) $settings['email_reply_to'] || 
+                    (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])) {
+                    $reply_to = isset($form_data[$index]) ? $form_data[$index] : '';
+                    break;
+                }
+            }
+            if (empty($reply_to) && is_email($settings['email_reply_to'])) {
+                $reply_to = $settings['email_reply_to'];
+            }
+        }
+
+        $headers = [
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $from_name . ' <' . $from_email . '>',
+        ];
+
+        if (!empty($reply_to) && is_email($reply_to)) {
+            $headers[] = 'Reply-To: ' . $reply_to;
+        }
+
+        return wp_mail($to, $subject, $content, $headers);
+    }
+}

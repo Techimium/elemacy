@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Widgets\Services;
 use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
+use Elemacy\Modules\Widgets\Widgets\Form;
 
 class WidgetManager
 {
@@ -30,6 +31,7 @@ class WidgetManager
         $widgets_manager->register(new NavMenu());
         $widgets_manager->register(new LoopGrid());
         $widgets_manager->register(new LoopCarousel());
+        $widgets_manager->register(new Form());
     }
 
     public function register_categories($elements_manager)
