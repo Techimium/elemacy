@@ -23,7 +23,7 @@ class FrontendAssets
     {
         wp_enqueue_script(
             'elemacy-custom-css-editor',
-            Utils::get_plugin_url('src/Modules/Controls/assets/scripts/editor.js'),
+            Utils::get_plugin_url('src/Modules/Controls/assets/scripts/custom-css.js'),
             ['jquery', 'elementor-editor'],
             ELEMACY_VERSION,
             true
