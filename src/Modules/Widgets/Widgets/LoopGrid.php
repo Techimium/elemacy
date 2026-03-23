@@ -646,7 +646,7 @@ class LoopGrid extends BaseWidget
 
         // Pagination
         if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
-            self::render_pagination_html($settings, $query);
+            static::render_pagination_html($settings, $query);
         }
 
         echo '</div>'; // End elemacy-loop-builder-grid

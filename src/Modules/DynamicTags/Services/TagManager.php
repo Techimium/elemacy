@@ -33,11 +33,11 @@ class TagManager
 
     public static function init()
     {
-        if (!self::$instance) {
-            self::$instance = new static();
+        if (!static::$instance) {
+            static::$instance = new static();
         }
 
-        return self::$instance;
+        return static::$instance;
     }
 
     public function register_tags($tags_manager)

@@ -26,10 +26,10 @@ class Acf
                         break;
 
                     case 'oembed':
-                        $value = self::get_queried_object_meta($key, $post_id);
+                        $value = static::get_queried_object_meta($key, $post_id);
                         break;
                     case 'google_map':
-                        $meta = self::get_queried_object_meta($key);
+                        $meta = static::get_queried_object_meta($key);
                         $value = isset($meta['address']) ? $meta['address'] : '';
                         break;
                     case 'true_false':

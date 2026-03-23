@@ -15,11 +15,11 @@ class Elemacy
 
 	public static function get_instance(): self
 	{
-		if (self::$instance === null) {
-			self::$instance = new static();
+		if (static::$instance === null) {
+			static::$instance = new static();
 		}
 
-		return self::$instance;
+		return static::$instance;
 	}
 
 	public function init()
@@ -130,6 +130,6 @@ class Elemacy
 
 	public static function boot()
 	{
-		return self::get_instance();
+		return static::get_instance();
 	}
 }

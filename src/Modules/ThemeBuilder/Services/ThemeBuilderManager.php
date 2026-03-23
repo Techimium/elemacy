@@ -14,11 +14,11 @@ class ThemeBuilderManager
 
     public static function instance()
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new self();
+        if (is_null(static::$instance)) {
+            static::$instance = new self();
         }
 
-        return self::$instance;
+        return static::$instance;
     }
 
     /**
@@ -146,13 +146,13 @@ class ThemeBuilderManager
      */
     protected function find_template_id($type)
     {
-        if (isset(self::$template_registry[$type])) {
-            return self::$template_registry[$type]->id ?? null;
+        if (isset(static::$template_registry[$type])) {
+            return static::$template_registry[$type]->id ?? null;
         }
 
-        self::$template_registry[$type] = $this->find_template($type);
+        static::$template_registry[$type] = $this->find_template($type);
 
-        return self::$template_registry[$type]->id ?? null;
+        return static::$template_registry[$type]->id ?? null;
     }
 
     protected function find_template($type)

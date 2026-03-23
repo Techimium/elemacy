@@ -11,7 +11,7 @@ class TemplatePostType
 
     public static function register()
     {
-        self::register_post_type();
+        static::register_post_type();
     }
 
     protected static function register_post_type()
@@ -50,7 +50,7 @@ class TemplatePostType
                 'show_in_rest' => true,
             ];
 
-            register_post_type(self::POST_TYPE, $args);
+            register_post_type(static::POST_TYPE, $args);
         });
     }
 }

@@ -17,11 +17,11 @@ class ThemeBuilderBridge
 
     public static function get_instance()
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new static();
+        if (is_null(static::$instance)) {
+            static::$instance = new static();
         }
 
-        return self::$instance;
+        return static::$instance;
     }
 
     public function get_templates($type = 'loop')
