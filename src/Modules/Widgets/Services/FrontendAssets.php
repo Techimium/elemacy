@@ -21,49 +21,34 @@ class FrontendAssets
      */
     public function register_assets(): void
     {
-        wp_register_style(
-            'elemacy-nav-menu',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/nav-menu.css'),
-            [],
-            ELEMACY_VERSION
-        );
+        $this->register_style('nav-menu');
+        $this->register_script('nav-menu');
 
+        $this->register_style('loop-grid');
+        $this->register_script('loop-grid');
+
+        $this->register_style('loop-carousel');
+        $this->register_script('loop-carousel');
+    }
+
+    protected function register_script($file_name)
+    {
         wp_register_script(
-            'elemacy-nav-menu',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/nav-menu.js'),
-            ['jquery'],
-            ELEMACY_VERSION,
-            true
-        );
-
-        wp_register_style(
-            'elemacy-loop-grid',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/loop-builder.css'),
-            [],
-            ELEMACY_VERSION
-        );
-
-        wp_register_script(
-            'elemacy-loop-grid',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-grid.js'),
+            'elemacy-' . $file_name,
+            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/' . $file_name . '.js'),
             ['jquery', 'elemacy-frontend'],
             ELEMACY_VERSION,
             true
         );
+    }
 
+    protected function register_style($file_name)
+    {
         wp_register_style(
-            'elemacy-loop-carousel',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/loop-carousel.css'),
-            [],
+            'elemacy-' . $file_name,
+            Utils::get_plugin_url('src/Modules/Widgets/assets/styles/' . $file_name . '.css'),
+            ['elemacy-core'],
             ELEMACY_VERSION
-        );
-
-        wp_register_script(
-            'elemacy-loop-carousel',
-            Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/loop-carousel.js'),
-            ['jquery', 'swiper'],
-            ELEMACY_VERSION,
-            true
         );
     }
 }
