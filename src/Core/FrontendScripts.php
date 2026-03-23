@@ -11,6 +11,12 @@ class FrontendScripts
 
     public function enqueue()
     {
+        $this->enqueue_scritps();
+        $this->enqueue_styles();
+    }
+
+    protected function enqueue_scritps()
+    {
         wp_register_script('elemacy-frontend', ELEMACY_URL . 'assets/frontend/js/core.js', [], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-frontend');
 
@@ -18,5 +24,11 @@ class FrontendScripts
             'ajax_url' => esc_url_raw(admin_url('admin-ajax.php')),
             'nonce' => wp_create_nonce('elemacy_ajax_nonce'),
         ]);
+    }
+
+    protected function enqueue_styles()
+    {
+        wp_register_style('elemacy-core', ELEMACY_URL . 'assets/frontend/css/core.css', [], ELEMACY_VERSION);
+        wp_enqueue_style('elemacy-core');
     }
 }
