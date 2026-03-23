@@ -23,7 +23,7 @@ class NotInRule extends BaseRule
             $not_in = explode(',', $not_in);
         }
 
-        return !in_array($this->value, $not_in);
+        return !in_array($this->value, $not_in, true);
     }
 
     /**
@@ -33,6 +33,11 @@ class NotInRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must not contain a value from: %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: values */
+            __('The %1$s field must not contain a value from: %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 }

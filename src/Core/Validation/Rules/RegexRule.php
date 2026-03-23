@@ -26,6 +26,11 @@ class RegexRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must match the regex: %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: regex pattern */
+            __('The %1$s field must match the regex: %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 }

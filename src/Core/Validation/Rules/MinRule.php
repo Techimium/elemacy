@@ -35,12 +35,27 @@ class MinRule extends BaseRule
     public function get_error_message()
     {
         if ($this->is_string_value()) {
-            return sprintf(__('The %s field must be greater than or equal to %s characters.', 'droip'), $this->key, $this->rule_value);
+            return sprintf(
+                /* translators: 1: field name, 2: character limit */
+                __('The %1$s field must be greater than or equal to %2$s characters.', 'elemacy'),
+                $this->key,
+                $this->rule_value
+            );
         } elseif ($this->is_array_value()) {
-            return sprintf(__('The %s field must be greater than or equal to %s items.', 'droip'), $this->key, $this->rule_value);
+            return sprintf(
+                /* translators: 1: field name, 2: item limit */
+                __('The %1$s field must be greater than or equal to %2$s items.', 'elemacy'),
+                $this->key,
+                $this->rule_value
+            );
         }
 
-        return sprintf(__('The %s field must be greater than or equal %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: value limit */
+            __('The %1$s field must be greater than or equal to %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 
     protected function is_string_value()

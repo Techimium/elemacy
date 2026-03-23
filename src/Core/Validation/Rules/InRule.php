@@ -23,7 +23,7 @@ class InRule extends BaseRule
             $in = explode(',', $in);
         }
 
-        return in_array($this->value, $in);
+        return in_array($this->value, $in, true);
     }
 
     /**
@@ -33,6 +33,11 @@ class InRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must contain a value from: %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: allowed values */
+            __('The %1$s field must contain a value from: %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 }

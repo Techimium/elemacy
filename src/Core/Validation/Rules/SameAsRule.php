@@ -28,6 +28,11 @@ class SameAsRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be same as %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: other field name */
+            __('The %1$s field must be same as %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 }

@@ -3,6 +3,7 @@
 namespace Elemacy\Core;
 
 use ReflectionMethod;
+use ReflectionNamedType;
 
 defined('ABSPATH') || exit;
 
@@ -11,7 +12,6 @@ use Closure;
 use Exception;
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Exceptions\AuthorizationException;
-use Elemacy\Core\Exceptions\InvalidMiddlewareException;
 use Elemacy\Core\Exceptions\InvalidRoutActionException;
 use Elemacy\Core\Http\Response;
 
@@ -30,7 +30,7 @@ class Route
      * @since 1.0.0
      * @var string
      */
-    protected static $namespace = '';
+    protected static $namespace_name = '';
 
     /**
      * Array of registered routes.
@@ -104,9 +104,9 @@ class Route
      * @param string $namespace The namespace for REST API routes.
      * @return void
      */
-    public static function set_namespace(string $namespace)
+    public static function set_namespace(string $namespace_name)
     {
-        static::$namespace = $namespace;
+        static::$namespace_name = $namespace_name;
     }
 
     /**
@@ -344,7 +344,7 @@ class Route
      */
     public function register()
     {
-        register_rest_route(static::$namespace, $this->get_formatted_endpoint(), [
+        register_rest_route(static::$namespace_name, $this->get_formatted_endpoint(), [
             'methods' => strtoupper($this->method),
             'callback' => $this->resolve_route(),
             'permission_callback' => [$this, 'check_permission']
@@ -393,9 +393,9 @@ class Route
      * @param object $instance The instance of the class
      * @return void
      */
-    protected function cache(string $abstract, $instance)
+    protected function cache(string $abstract_name, $instance)
     {
-        static::$instances[$abstract] = $instance;
+        static::$instances[$abstract_name] = $instance;
     }
 
     /**
@@ -406,9 +406,9 @@ class Route
      * @param string $abstract The class name to check
      * @return bool
      */
-    protected function is_cached(string $abstract)
+    protected function is_cached(string $abstract_name)
     {
-        return isset(static::$instances[$abstract]);
+        return isset(static::$instances[$abstract_name]);
     }
 
     /**
@@ -419,9 +419,9 @@ class Route
      * @param string $abstract The class name to get
      * @return object
      */
-    protected function get_cached(string $abstract)
+    protected function get_cached(string $abstract_name)
     {
-        return static::$instances[$abstract];
+        return static::$instances[$abstract_name];
     }
 
     /**
@@ -437,49 +437,49 @@ class Route
      * @example
      * $instance = $this->make(MyClass::class);
      */
-    protected function make(string $abstract, array $resolving = [])
+    protected function make(string $abstract_name, array $resolving = [])
     {
-        if ($this->is_cached($abstract)) {
-            return $this->get_cached($abstract);
+        if ($this->is_cached($abstract_name)) {
+            return $this->get_cached($abstract_name);
         }
 
-        if (in_array($abstract, $resolving, true)) {
+        if (in_array($abstract_name, $resolving, true)) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Circular dependency detected for class %s.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Circular dependency detected for class %s.', 'elemacy'), esc_html($abstract_name)));
         }
 
-        if (!class_exists($abstract)) {
+        if (!class_exists($abstract_name)) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s does not exist.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s does not exist.', 'elemacy'), esc_html($abstract_name)));
         }
 
-        $reflector = new \ReflectionClass($abstract);
+        $reflector = new \ReflectionClass($abstract_name);
 
         if ($reflector->isAbstract()) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s is abstract and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s is abstract and cannot be instantiated.', 'elemacy'), esc_html($abstract_name)));
         }
 
         $constructor = $reflector->getConstructor();
 
         if (!$constructor) {
-            return new $abstract();
+            return new $abstract_name();
         }
 
         if (!$constructor->isPublic()) {
             /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s has a non-public constructor and cannot be instantiated.', 'elemacy'), esc_html($abstract)));
+            throw new Exception(sprintf(esc_html__('Class %s has a non-public constructor and cannot be instantiated.', 'elemacy'), esc_html($abstract_name)));
         }
 
         $dependencies = [];
-        $resolving[] = $abstract;
+        $resolving[] = $abstract_name;
 
         foreach ($constructor->getParameters() as $parameter) {
             $type = $parameter->getType();
 
-            if (!$type) {
+            if (!$type instanceof ReflectionNamedType) {
                 /* translators: %s: Parameter name */
-                throw new Exception(sprintf(esc_html__('Parameter %s is missing a type hint in the constructor. Please add a class type hint.', 'elemacy'), esc_html($parameter->getName())));
+                throw new Exception(sprintf(esc_html__('Parameter %s must have a single class type hint. Union or intersection types are not supported.', 'elemacy'), esc_html($parameter->getName())));
             }
 
             if ($type->isBuiltin()) {
@@ -493,7 +493,7 @@ class Route
         }
 
         $instance = $reflector->newInstanceArgs($dependencies);
-        $this->cache($abstract, $instance);
+        $this->cache($abstract_name, $instance);
 
         return $instance;
     }
@@ -507,7 +507,8 @@ class Route
             return [];
         }
 
-        $request_class = array_shift($parameters)->getType()->getName() ?? Request::class;
+        $type = array_shift($parameters)->getType();
+        $request_class = ($type instanceof ReflectionNamedType) ? $type->getName() : Request::class;
 
         $dependencies = [];
 

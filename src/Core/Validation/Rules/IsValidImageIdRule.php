@@ -28,6 +28,10 @@ class IsValidImageIdRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be a valid media image', 'droip'), $this->key);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s must be a valid image ID.', 'elemacy'),
+            $this->key
+        );
     }
 }

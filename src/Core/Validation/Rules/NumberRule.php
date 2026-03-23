@@ -33,6 +33,10 @@ class NumberRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be of type number.', 'droip'), $this->key);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s must be a number.', 'elemacy'),
+            $this->key
+        );
     }
 }

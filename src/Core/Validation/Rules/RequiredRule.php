@@ -30,7 +30,11 @@ class RequiredRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field is required.', 'droip'), $this->key);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s field is required.', 'elemacy'),
+            $this->key
+        );
     }
 
     protected function ignore_rule_check()

@@ -211,7 +211,11 @@ class Validator
 
             if (!is_array($current_data)) {
                 $traversed_key = implode('.', $traversed_path_stack);
-                $this->errors[$traversed_key][] = sprintf(__('Expected an array at "%s"'), $traversed_key);
+                $this->errors[$traversed_key][] = sprintf(
+                    /* translators: %s: field key */
+                    __('Expected an array at "%s"', 'elemacy'),
+                    $traversed_key
+                );
 
                 return;
             }
@@ -259,10 +263,11 @@ class Validator
 
                 if ($response !== true && !is_string($response)) {
                     throw new InvalidValidationRuleException(
-                        sprintf(
-                            __('The closure must return a boolean true for valid or string as error message, "%s" given', 'droip'),
+                        esc_html(sprintf(
+                            /* translators: %s: response type */
+                            __('The closure must return a boolean true for valid or string as error message, "%s" given', 'elemacy'),
                             is_null($response) ? 'null' : (string) $response
-                        )
+                        ))
                     );
                 }
 
@@ -299,7 +304,7 @@ class Validator
 
         if ($is_valid && !$is_field_missing) {
             $key_segments = explode('.', $traversed_key);
-            $this->set_validated_data($key_segments, $value, $is_field_missing);
+            $this->set_validated_data($key_segments, $value);
         }
     }
 
@@ -372,7 +377,11 @@ class Validator
             return new $rule_name($key, $value, $rule_value, $this->data, $all_applied_rules);
         }
 
-        throw new InvalidValidationRuleException(sprintf(__('The validation rule %s does not exist or is invalid', 'droip'), $rule_name));
+        throw new InvalidValidationRuleException(esc_html(sprintf(
+            /* translators: %s: rule name */
+            __('The validation rule %s does not exist or is invalid', 'elemacy'),
+            $rule_name
+        )));
     }
 
     /**

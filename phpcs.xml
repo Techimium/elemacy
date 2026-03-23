@@ -7,7 +7,6 @@
         Silences external standards.
     </description>
 
-```
 <!-- Scan only PHP files -->
 <file>.</file>
 <arg name="extensions" value="php"/>
@@ -65,6 +64,5 @@
 
 <!-- CLI args -->
 <arg name="colors"/>
-```
 
 </ruleset>

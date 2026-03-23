@@ -2,7 +2,7 @@
 
 namespace Elemacy\Core\Validation\Rules;
 
-use Elemacy\Supports\Str;
+use Elemacy\Support\Str;
 
 /**
  * Rule to ensure the value is after the given date.
@@ -45,6 +45,11 @@ class LessThanRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be greater than %s.', 'droip'), $this->key, $this->rule_value);
+        return sprintf(
+            /* translators: 1: field name, 2: target value */
+            __('The %1$s field must be less than %2$s.', 'elemacy'),
+            $this->key,
+            $this->rule_value
+        );
     }
 }

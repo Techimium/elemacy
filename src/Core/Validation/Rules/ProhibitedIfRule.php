@@ -10,6 +10,13 @@ namespace Elemacy\Core\Validation\Rules;
 class ProhibitedIfRule extends BaseRule
 {
     /**
+     * The target field name.
+     *
+     * @var string
+     */
+    protected $target_field;
+
+    /**
      * Determine if the value is present.
      *
      * @return bool
@@ -17,18 +24,18 @@ class ProhibitedIfRule extends BaseRule
     public function validate_rule()
     {
         $field_and_value = explode(',', $this->rule_value, 2);
-        $field = $field_and_value[0];
-        $value = $field_and_value[1];
+        $this->target_field = $field_and_value[0];
+        $target_value = $field_and_value[1];
 
-        if ($value === 'false' || $value === 'FALSE') {
-            $value = false;
-        } elseif ($value === 'true' || $value === 'TRUE') {
-            $value = true;
-        } elseif ($value === 'null' || $value === 'NULL') {
-            $value = null;
+        if ($target_value === 'false' || $target_value === 'FALSE') {
+            $target_value = false;
+        } elseif ($target_value === 'true' || $target_value === 'TRUE') {
+            $target_value = true;
+        } elseif ($target_value === 'null' || $target_value === 'NULL') {
+            $target_value = null;
         }
 
-        if (array_key_exists($field, $this->data) && $this->data[$field] == $value) {
+        if (array_key_exists($this->target_field, $this->data) && $this->data[$this->target_field] === $target_value) {
             return is_null($this->value) || $this->value === '';
         }
 
@@ -42,7 +49,13 @@ class ProhibitedIfRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field is prohibited.', 'droip'), $this->key);
+        return sprintf(
+            /* translators: 1: field name, 2: other field name, 3: other field value */
+            __('The %1$s field is prohibited when %2$s is %3$s.', 'elemacy'),
+            $this->key,
+            $this->target_field,
+            $this->rule_value
+        );
     }
 
     protected function ignore_rule_check()

@@ -60,6 +60,10 @@ class EmailUniqueRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The email address %s is already in use.', 'droip'), $this->value);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s is already taken.', 'elemacy'),
+            $this->key
+        );
     }
 }

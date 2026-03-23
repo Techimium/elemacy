@@ -30,6 +30,10 @@ class UserExists extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('User with id %s does not exist.', 'droip'), $this->value);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s does not exist.', 'elemacy'),
+            $this->key
+        );
     }
 }

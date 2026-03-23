@@ -151,6 +151,10 @@ abstract class BaseRule implements Rule
      */
     public function get_error_message()
     {
-        return sprintf(__('The value provided for %s is invalid.', 'droip'), $this->key);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s field is invalid.', 'elemacy'),
+            $this->key
+        );
     }
 }

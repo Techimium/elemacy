@@ -36,10 +36,10 @@ abstract class Module
 		return false;
 	}
 
-	protected function get_option(string $key, $default = null)
+	protected function get_option(string $key, $default_value = null)
 	{
 		$option_key = 'elemacy_' . $this->get_name() . '_' . $key;
-		return get_option($option_key, $default);
+		return get_option($option_key, $default_value);
 	}
 
 	protected function update_option(string $key, $value): bool

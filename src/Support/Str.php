@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Supports;
+namespace Elemacy\Support;
 
 use Elemacy\Core\Sanitizer;
 /**

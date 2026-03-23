@@ -740,7 +740,7 @@ class Form extends BaseWidget
             ]
         );
 
-         $this->add_group_control(
+        $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
                 'name' => 'message_typography',

@@ -33,6 +33,10 @@ class StringRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be of type string.', 'droip'), $this->key);
+        return sprintf(
+            /* translators: %s: field name */
+            __('The %s must be a string.', 'elemacy'),
+            $this->key
+        );
     }
 }

@@ -30,6 +30,11 @@ class DateTimeRule extends BaseRule
      */
     public function get_error_message()
     {
-        return sprintf(__('The %s field must be a valid date time in the format %s.', 'droip'), $this->key, DateTimeFormats::DB_DATETIME);
+        return sprintf(
+            /* translators: 1: field name, 2: date format */
+            __('The %1$s field must be a valid date time in the format %2$s.', 'elemacy'),
+            $this->key,
+            DateTimeFormats::DB_DATETIME
+        );
     }
 }
