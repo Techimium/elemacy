@@ -29,6 +29,9 @@ class FrontendAssets
 
         $this->register_style('loop-carousel');
         $this->register_script('loop-carousel');
+
+        $this->register_style('form');
+        $this->register_script('form');
     }
 
     protected function register_script($file_name)
