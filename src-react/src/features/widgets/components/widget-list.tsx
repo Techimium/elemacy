@@ -1,6 +1,7 @@
 import { useWidgetsQuery, useToggleWidgetMutation } from "@/features/widgets/services/widget";
-import { WidgetCard } from "./widget-card";
+import { WidgetCard } from "@/features/widgets/components/widget-card";
 import Spinner from "@/components/spinner";
+import NoData from "@/components/no-data";
 
 export function WidgetList() {
     const { data: widgets, isLoading } = useWidgetsQuery();
@@ -15,11 +16,7 @@ export function WidgetList() {
     }
 
     if (!widgets || widgets.length === 0) {
-        return (
-            <div className="py-12 text-center text-gray-500 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
-                No widgets found.
-            </div>
-        );
+        return <NoData title="No widgets found!" description="No widgets found!" />
     }
 
     return (

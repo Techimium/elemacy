@@ -22,7 +22,7 @@ export function WidgetCard({ widget, onToggle }: WidgetCardProps) {
                 </CardTitle>
                 <Switch
                     defaultChecked={widget.is_enabled}
-                    onCheckedChange={(checked) => onToggle(!checked, widget.name)}
+                    onCheckedChange={(checked) => onToggle(checked, widget.name)}
                     className="data-[state=checked]:bg-indigo-600"
                 />
             </CardHeader>
