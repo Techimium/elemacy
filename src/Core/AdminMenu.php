@@ -6,7 +6,7 @@ class AdminMenu
 {
     public function __construct()
     {
-        add_action( 'admin_menu', [$this, 'register']);
+        add_action('admin_menu', [$this, 'register']);
     }
 
     public function register()
@@ -19,7 +19,7 @@ class AdminMenu
             [$this, 'render']
         );
 
-        
+
         add_submenu_page(
             'elemacy',
             'Overview',
@@ -28,7 +28,7 @@ class AdminMenu
             'elemacy#',
             [$this, 'render']
         );
-        
+
         add_submenu_page(
             'elemacy',
             'Theme Builder',
@@ -38,7 +38,16 @@ class AdminMenu
             [$this, 'render']
         );
 
-        remove_submenu_page( 'elemacy'  , 'elemacy');
+        add_submenu_page(
+            'elemacy',
+            'Widgets',
+            'Widgets',
+            'manage_options',
+            'elemacy#widgets',
+            [$this, 'render']
+        );
+
+        remove_submenu_page('elemacy', 'elemacy');
     }
 
     public function render()

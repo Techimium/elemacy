@@ -28,11 +28,6 @@ class Widgets extends Module
         return [];
     }
 
-    public function is_always_active(): bool
-    {
-        return true;
-    }
-
     public function init(): void
     {
         new FrontendAssets();

@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
+use Elemacy\Support\Utils;
+
 class WidgetManager
 {
     protected static $instance = null;
@@ -25,7 +27,7 @@ class WidgetManager
     {
         $service = new WidgetService();
         $statuses = $service->get_registered_widgets_status();
-        $widgets_config = require dirname(__DIR__, 3) . '/Config/widgets.php';
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
 
         foreach ($widgets_config as $widget) {
             $name = $widget['name'];

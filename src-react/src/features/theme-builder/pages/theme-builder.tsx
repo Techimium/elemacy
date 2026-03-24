@@ -18,7 +18,7 @@ function ThemeBuilder() {
     <>
       <Topbar />
 
-      <Container className="space-y-6 mt-6">
+      <Container className="space-y-6 mt-6 px-4">
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

@@ -7,6 +7,7 @@ import {
     MessageCircle,
     Users,
     MousePointerClick,
+    LayoutGrid,
 } from 'lucide-react';
 import StatCard from '@/features/dashboard/components/stat-card';
 import FeatureCard from '@/features/dashboard/components/featured-card';
@@ -21,7 +22,7 @@ const Dashboard = () => {
     return (
         <>
             <Topbar />
-            <Container className="space-y-6 mt-6">
+            <Container className="space-y-6 mt-6 px-4">
                 {/* Hero Section */}
                 <div className="relative overflow-hidden rounded-3xl p-8 lg:p-12 bg-gradient-to-br from-indigo-800 to-purple-900 shadow-2xl shadow-indigo-900/40 text-white">
                     <div className="relative z-10 max-w-2xl">
@@ -111,6 +112,12 @@ const Dashboard = () => {
                             title="Theme Builder"
                             description="Design custom headers, footers, and templates"
                             onClick={() => navigate('/theme-builder')}
+                        />
+                        <FeatureCard
+                            icon={LayoutGrid}
+                            title="Widgets"
+                            description="Manage and toggle all your essential widgets"
+                            onClick={() => navigate('/widgets')}
                         />
                         <FeatureCard
                             icon={Zap}

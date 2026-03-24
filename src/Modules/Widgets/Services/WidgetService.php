@@ -15,7 +15,7 @@ class WidgetService
      */
     public function get_all_widgets()
     {
-        $widgets_config = require dirname(__DIR__, 3) . '/Config/widgets.php';
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
         $statuses = $this->get_widget_statuses();
 
         $widgets = [];
@@ -53,7 +53,7 @@ class WidgetService
      */
     public function get_registered_widgets_status()
     {
-        $widgets_config = require dirname(__DIR__, 3) . '/Config/widgets.php';
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
         $statuses = $this->get_widget_statuses();
 
         $result = [];
@@ -76,7 +76,7 @@ class WidgetService
      */
     public function toggle_widget(string $name, string $action)
     {
-        $widgets_config = require dirname(__DIR__, 3) . '/Config/widgets.php';
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
         $widget_exists = false;
 
         foreach ($widgets_config as $widget) {
