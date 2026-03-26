@@ -19,6 +19,11 @@ class ThemeBuilder extends Module
         return __('Theme Builder', 'elemacy');
     }
 
+    public function get_icon(): string
+    {
+        return 'layers';
+    }
+
     public function get_description(): string
     {
         return __('Manage your site structure templates for a full theme experience.', 'elemacy');

@@ -2,6 +2,18 @@ import { apiClient } from "@/lib/api";
 import type { Module } from "@/schemas/module";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+const fetchModules = async (): Promise<Module[]> => {
+    const response = await apiClient.get(`modules`);
+    return response.data?.data ?? [];
+};
+
+export const useModulesQuery = () => {
+    return useQuery({
+        queryKey: ['modules'],
+        queryFn: () => fetchModules(),
+    });
+};
+
 const fetchModule = async ({ name }: { name: string }): Promise<Module> => {
     const response = await apiClient.get(`modules/${name}`);
     return response.data?.data ?? {};
@@ -38,8 +50,8 @@ export const useToggleModuleMutation = () => {
             }
         },
 
-        onSettled: (_data, _error, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['modules', variables.name] });
+        onSettled: (_data, _error) => {
+            queryClient.invalidateQueries({ queryKey: ['modules'] });
         },
     });
 };

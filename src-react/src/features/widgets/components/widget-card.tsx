@@ -10,8 +10,8 @@ interface WidgetCardProps {
 
 export function WidgetCard({ widget, onToggle }: WidgetCardProps) {
     return (
-        <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-gray-100">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <Card className="gap-2 group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-gray-100">
+            <CardHeader className="flex flex-row items-center">
                 <CardTitle className="text-sm font-semibold text-gray-800">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-indigo-50 rounded-xl group-hover:bg-indigo-100 transition-colors">
@@ -27,9 +27,9 @@ export function WidgetCard({ widget, onToggle }: WidgetCardProps) {
                 />
             </CardHeader>
             <CardContent>
-                <p className="text-xs text-gray-500 mt-2">
+                <div className="text-xs text-gray-500 mt-2">
                     {widget.is_enabled ? "Enabled" : "Disabled"} - Toggle to {widget.is_enabled ? "hide" : "show"} this widget in Elementor.
-                </p>
+                </div>
             </CardContent>
         </Card>
     );

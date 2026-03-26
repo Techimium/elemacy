@@ -47,6 +47,15 @@ class AdminMenu
             [$this, 'render']
         );
 
+        add_submenu_page(
+            'elemacy',
+            'Modules',
+            'Modules',
+            'manage_options',
+            'elemacy#modules',
+            [$this, 'render']
+        );
+
         remove_submenu_page('elemacy', 'elemacy');
     }
 

@@ -19,9 +19,14 @@ class Widgets extends Module
         return __('Widgets', 'elemacy');
     }
 
+    public function get_icon(): string
+    {
+        return 'component';
+    }
+
     public function get_description(): string
     {
-        return __('Custom Elementor widgets for Elemacy.', 'elemacy');
+        return __('Custom Elementor widgets to enhance your website.', 'elemacy');
     }
 
     public function get_dependencies(): array
