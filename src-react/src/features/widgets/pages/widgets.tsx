@@ -2,14 +2,13 @@ import Container from "@/components/container";
 import { Card } from "@/components/ui/card";
 import Topbar from "@/components/layout/topbar";
 import ModuleSwitch from "@/components/module-switch";
-import { useModuleQuery, useToggleModuleMutation } from "@/services/module";
+import { useModuleQuery } from "@/services/module";
 import InactiveModule from "@/components/inactive-module";
 import Spinner from "@/components/spinner";
-import { WidgetList } from "../components/widget-list";
+import { WidgetList } from "@/features/widgets/components/widget-list";
 
 function Widgets() {
     const { data: module, isLoading: isLoadingModule } = useModuleQuery({ name: 'widgets' });
-    const { mutateAsync: toggleModule } = useToggleModuleMutation();
 
     return (
         <>
@@ -27,8 +26,8 @@ function Widgets() {
                                 <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">
                                     <span>{module?.title || "Widgets"}</span>
                                     <ModuleSwitch
-                                        checked={module?.is_active}
-                                        onCheckedChange={() => toggleModule({ isEnabled: !!module?.is_active, name: 'widgets' })}
+                                        isEnabled={module?.is_active}
+                                        name="widgets"
                                     />
                                 </div>
                                 <div className="text-gray-500 mt-2 max-w-2xl">
