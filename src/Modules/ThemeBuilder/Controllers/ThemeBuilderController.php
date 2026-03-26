@@ -29,7 +29,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'data' => TemplateListResource::collection($templates),
-            'message' => 'Templates retrieved successfully'
+            'message' => __('Templates retrieved successfully', 'elemacy')
         ]);
     }
 
@@ -45,7 +45,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'data' => TemplateResource::make($template),
-            'message' => 'Template retrieved successfully'
+            'message' => __('Template retrieved successfully', 'elemacy')
         ]);
     }
 
@@ -61,7 +61,7 @@ class ThemeBuilderController
         }
 
         return Response::create()->json([
-            'message' => 'Template created successfully',
+            'message' => __('Template created successfully', 'elemacy'),
             'data' => TemplateResource::make($result)
         ], Response::CREATED);
     }
@@ -79,7 +79,7 @@ class ThemeBuilderController
         }
 
         return Response::create()->json([
-            'message' => 'Template updated successfully',
+            'message' => __('Template updated successfully', 'elemacy'),
             'data' => TemplateResource::make($result)
         ]);
     }
@@ -96,7 +96,7 @@ class ThemeBuilderController
         }
 
         return Response::create()->json([
-            'message' => 'Template deleted successfully'
+            'message' => __('Template deleted successfully', 'elemacy')
         ]);
     }
 }

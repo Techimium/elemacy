@@ -2,10 +2,7 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
-use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
-use Elemacy\Modules\Widgets\Widgets\LoopGrid;
-use Elemacy\Modules\Widgets\Widgets\NavMenu;
-use Elemacy\Modules\Widgets\Widgets\Form;
+use Elemacy\Support\Utils;
 
 class WidgetManager
 {
@@ -28,10 +25,18 @@ class WidgetManager
 
     public function register_widgets($widgets_manager)
     {
-        $widgets_manager->register(new NavMenu());
-        $widgets_manager->register(new LoopGrid());
-        $widgets_manager->register(new LoopCarousel());
-        $widgets_manager->register(new Form());
+        $service = new WidgetService();
+        $statuses = $service->get_registered_widgets_status();
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+
+        foreach ($widgets_config as $widget) {
+            $name = $widget['name'];
+
+            if (!empty($statuses[$name])) {
+                $class = $widget['class'];
+                $widgets_manager->register(new $class());
+            }
+        }
     }
 
     public function register_categories($elements_manager)

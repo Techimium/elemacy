@@ -15,7 +15,7 @@ export const useModuleQuery = ({ name }: { name: string }) => {
 };
 
 const toggleModule = async ({ isEnabled, name }: { isEnabled: boolean; name: string }): Promise<void> => {
-    const action = isEnabled ? 'disable' : 'enable';
+    const action = isEnabled ? 'enable' : 'disable';
     const response = await apiClient.put(`modules/${name}`, { action });
     return response.data?.data;
 };
