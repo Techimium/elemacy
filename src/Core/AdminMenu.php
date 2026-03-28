@@ -2,65 +2,59 @@
 
 namespace Elemacy\Core;
 
+use Elemacy\Core\DTO\MenuDTO;
+use Elemacy\Core\DTO\SubMenuDTO;
+
 class AdminMenu
 {
-    public function __construct()
+    protected static $menus = [];
+    protected static $submenus = [];
+
+    public static function add_menu(MenuDTO $menu_dto)
     {
-        add_action('admin_menu', [$this, 'register']);
+        static::$menus[] = $menu_dto;
     }
 
-    public function register()
+    public static function add_submenu(SubMenuDTO $submenu_dto)
     {
-        add_menu_page(
-            'Elemacy',
-            'Elemacy',
-            'manage_options',
-            'elemacy',
-            [$this, 'render']
-        );
-
-
-        add_submenu_page(
-            'elemacy',
-            'Overview',
-            'Overview',
-            'manage_options',
-            'elemacy#',
-            [$this, 'render']
-        );
-
-        add_submenu_page(
-            'elemacy',
-            'Theme Builder',
-            'Theme Builder',
-            'manage_options',
-            'elemacy#theme-builder',
-            [$this, 'render']
-        );
-
-        add_submenu_page(
-            'elemacy',
-            'Widgets',
-            'Widgets',
-            'manage_options',
-            'elemacy#widgets',
-            [$this, 'render']
-        );
-
-        add_submenu_page(
-            'elemacy',
-            'Modules',
-            'Modules',
-            'manage_options',
-            'elemacy#modules',
-            [$this, 'render']
-        );
-
-        remove_submenu_page('elemacy', 'elemacy');
+        static::$submenus[] = $submenu_dto;
     }
 
-    public function render()
+    public static function register()
     {
-        echo '<div id="elemacy_root"></div>';
+        foreach (static::$menus as $menu) {
+            add_menu_page(
+                $menu->page_title,
+                $menu->menu_title,
+                $menu->capabilty,
+                $menu->menu_slug,
+                $menu->callback ? $menu->callback : static::render(),
+                $menu->icon_url,
+                $menu->position
+            );
+        }
+
+        foreach (static::$submenus as $submenu) {
+            add_submenu_page(
+                $submenu->parent_slug,
+                $submenu->page_title,
+                $submenu->menu_title,
+                $submenu->capabilty,
+                $submenu->parent_slug . '#' . $submenu->menu_slug,
+                $submenu->callback ? $submenu->callback : static::render(),
+                $submenu->position
+            );
+        }
+
+        foreach (static::$menus as $menu) {
+            remove_submenu_page($menu->menu_slug, $menu->menu_slug);
+        }
+    }
+
+    protected static function render()
+    {
+        return function () {
+            echo '<div id="elemacy_root"></div>';
+        };
     }
 }

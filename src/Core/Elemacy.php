@@ -2,6 +2,9 @@
 
 namespace Elemacy\Core;
 
+use Elemacy\Core\DTO\MenuDTO;
+use Elemacy\Core\DTO\SubMenuDTO;
+
 class Elemacy
 {
 	protected static $instance = null;
@@ -27,10 +30,12 @@ class Elemacy
 		$this->check_requirements();
 		$this->init_core_components();
 		$this->load_modules();
+		$this->init_admin_menus();
 		$this->init_modules();
 		$this->init_routes();
 		$this->register_rest_routes();
 		$this->register_ajax_routes();
+		$this->register_admin_menus();
 	}
 
 	public function load_textdomain()
@@ -74,6 +79,27 @@ class Elemacy
 		require_once ELEMACY_PATH . 'src/Config/api.php';
 	}
 
+	protected function init_admin_menus()
+	{
+		$plugin_menu_dto = new MenuDTO();
+		$plugin_menu_dto->page_title = 'Elemacy';
+		$plugin_menu_dto->menu_title = 'Elemacy';
+		$plugin_menu_dto->menu_slug = 'elemacy';
+		AdminMenu::add_menu($plugin_menu_dto);
+
+		$overview_menu_dto = new SubMenuDTO();
+		$overview_menu_dto->page_title = 'Overview';
+		$overview_menu_dto->menu_title = 'Overview';
+		$overview_menu_dto->menu_slug = '';
+		AdminMenu::add_submenu($overview_menu_dto);
+
+		$modules_menu_dto = new SubMenuDTO();
+		$modules_menu_dto->page_title = 'Modules';
+		$modules_menu_dto->menu_title = 'Modules';
+		$modules_menu_dto->menu_slug = 'modules';
+		AdminMenu::add_submenu($modules_menu_dto);
+	}
+
 	protected function register_rest_routes()
 	{
 		add_action('rest_api_init', function () {
@@ -87,6 +113,13 @@ class Elemacy
 	{
 		add_action('init', function () {
 			AjaxRouter::register();
+		});
+	}
+
+	protected function register_admin_menus()
+	{
+		add_action('admin_menu', function () {
+			AdminMenu::register();
 		});
 	}
 

@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\ThemeBuilder;
 
+use Elemacy\Core\AdminMenu;
+use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Module;
 use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -36,6 +38,7 @@ class ThemeBuilder extends Module
 
     public function init(): void
     {
+        $this->register_admin_menu();
         TemplatePostType::register();
         ThemeBuilderManager::instance()->register_hooks();
     }
@@ -43,5 +46,14 @@ class ThemeBuilder extends Module
     public function register_routes()
     {
         require_once Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/api.php');
+    }
+
+    public function register_admin_menu()
+    {
+        $submenu_dto = new SubMenuDTO();
+        $submenu_dto->page_title = 'Theme Builder';
+        $submenu_dto->menu_title = 'Theme Builder';
+        $submenu_dto->menu_slug = 'theme-builder';
+        AdminMenu::add_submenu($submenu_dto);
     }
 }
