@@ -17,9 +17,14 @@ class DynamicTags extends Module
         return __('Dynamic Tags', 'elemacy');
     }
 
+    public function get_icon(): string
+    {
+        return 'plug';
+    }
+
     public function get_description(): string
     {
-        return __('Manage dynamic tags.', 'elemacy');
+        return __('Additional dynamic tags for Elementor.', 'elemacy');
     }
 
     public function get_dependencies(): array
@@ -27,7 +32,7 @@ class DynamicTags extends Module
         return [];
     }
 
-    public function is_always_active(): bool
+    public function is_headless(): bool
     {
         return true;
     }

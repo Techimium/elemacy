@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets;
 
+use Elemacy\Core\AdminMenu;
+use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Module;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
@@ -19,9 +21,14 @@ class Widgets extends Module
         return __('Widgets', 'elemacy');
     }
 
+    public function get_icon(): string
+    {
+        return 'component';
+    }
+
     public function get_description(): string
     {
-        return __('Custom Elementor widgets for Elemacy.', 'elemacy');
+        return __('Custom Elementor widgets to enhance your website.', 'elemacy');
     }
 
     public function get_dependencies(): array
@@ -31,6 +38,7 @@ class Widgets extends Module
 
     public function init(): void
     {
+        $this->register_admin_menu();
         new FrontendAssets();
         WidgetManager::instance();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
@@ -39,5 +47,14 @@ class Widgets extends Module
     public function register_routes()
     {
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/api.php');
+    }
+
+    public function register_admin_menu()
+    {
+        $submenu_dto = new SubMenuDTO();
+        $submenu_dto->page_title = __('Widgets', 'elemacy');
+        $submenu_dto->menu_title = __('Widgets', 'elemacy');
+        $submenu_dto->menu_slug = 'widgets';
+        AdminMenu::add_submenu($submenu_dto);
     }
 }

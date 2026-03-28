@@ -8,6 +8,8 @@ abstract class Module
 
 	abstract public function get_title(): string;
 
+	abstract public function get_icon(): string;
+
 	abstract public function get_description(): string;
 
 	public function get_dependencies(): array
@@ -32,6 +34,11 @@ abstract class Module
 	}
 
 	public function is_always_active(): bool
+	{
+		return false;
+	}
+
+	public function is_headless(): bool
 	{
 		return false;
 	}

@@ -18,9 +18,11 @@ class ModuleController
             $data[] = [
                 'name' => $module->get_name(),
                 'title' => $module->get_title(),
+                'icon' => $module->get_icon(),
                 'description' => $module->get_description(),
                 'dependencies' => $module->get_dependencies(),
-                'is_active' => $module_manager->is_active($module->get_name())
+                'is_active' => $module_manager->is_active($module->get_name()),
+                'is_headless' => $module->is_headless()
             ];
         }
 

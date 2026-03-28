@@ -18,9 +18,14 @@ class Controls extends Module
         return __('Controls', 'elemacy');
     }
 
+    public function get_icon(): string
+    {
+        return 'file-cog';
+    }
+
     public function get_description(): string
     {
-        return __('Custom controls for Elemacy.', 'elemacy');
+        return __('Additional controls for Elementor.', 'elemacy');
     }
 
     public function get_dependencies(): array
@@ -28,7 +33,7 @@ class Controls extends Module
         return [];
     }
 
-    public function is_always_active(): bool
+    public function is_headless(): bool
     {
         return true;
     }

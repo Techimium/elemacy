@@ -1,6 +1,7 @@
+import { Link } from "react-router";
 import { Card } from "./ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "./ui/empty";
-import { LayoutTemplateIcon } from "lucide-react";
+import { PowerOff } from "lucide-react";
 
 function InactiveModule() {
     return (
@@ -8,12 +9,12 @@ function InactiveModule() {
             <Empty>
                 <EmptyHeader>
                     <EmptyMedia className="w-16 h-16" variant="icon" >
-                        <LayoutTemplateIcon />
+                        <PowerOff />
                     </EmptyMedia>
                     <EmptyTitle> Module is inactive </EmptyTitle>
                     <EmptyDescription>
                         Module is inactive. Get started by enabling
-                        the module.
+                        the module from the <Link to="/modules" className="font-bold">Modules page</Link>.
                     </EmptyDescription>
                 </EmptyHeader>
             </Empty>

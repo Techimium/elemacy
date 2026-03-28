@@ -1,7 +1,7 @@
 import Container from "@/components/container";
 import { Card } from "@/components/ui/card";
 import Topbar from "@/components/layout/topbar";
-import ModuleSwitch from "@/components/module-switch";
+
 import { CreateTemplateModal } from "../components/create-template-modal";
 import { useModuleQuery } from "@/services/module";
 import TemplateList from "../components/template-list";
@@ -29,10 +29,6 @@ function ThemeBuilder() {
               <div>
                 <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight">
                   <span>{module?.title}</span>
-                  <ModuleSwitch
-                    isEnabled={module?.is_active}
-                    name="theme-builder"
-                  />
                 </div>
                 <div className="text-gray-500 mt-1">
                   {module?.description}

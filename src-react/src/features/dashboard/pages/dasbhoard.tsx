@@ -68,7 +68,7 @@ const Dashboard = () => {
                         </p>
                     </div>
                     <div className="aspect-video bg-gray-50 flex items-center justify-center p-8">
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/ozwmlFencJI?si=nSwznxC8iXLxIKD0" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QU9MhjB3cWs?si=nSwznxC8iXLxIKD0" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
                     </div>
                 </div>
 
