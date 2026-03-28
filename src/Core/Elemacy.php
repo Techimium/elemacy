@@ -81,23 +81,25 @@ class Elemacy
 
 	protected function init_admin_menus()
 	{
-		$plugin_menu_dto = new MenuDTO();
-		$plugin_menu_dto->page_title = __('Elemacy', 'elemacy');
-		$plugin_menu_dto->menu_title = __('Elemacy', 'elemacy');
-		$plugin_menu_dto->menu_slug = 'elemacy';
-		AdminMenu::add_menu($plugin_menu_dto);
+		add_action('init', function () {
+			$plugin_menu_dto = new MenuDTO();
+			$plugin_menu_dto->page_title = __('Elemacy', 'elemacy');
+			$plugin_menu_dto->menu_title = __('Elemacy', 'elemacy');
+			$plugin_menu_dto->menu_slug = 'elemacy';
+			AdminMenu::add_menu($plugin_menu_dto);
 
-		$overview_menu_dto = new SubMenuDTO();
-		$overview_menu_dto->page_title = __('Overview', 'elemacy');
-		$overview_menu_dto->menu_title = __('Overview', 'elemacy');
-		$overview_menu_dto->menu_slug = '';
-		AdminMenu::add_submenu($overview_menu_dto);
+			$overview_menu_dto = new SubMenuDTO();
+			$overview_menu_dto->page_title = __('Overview', 'elemacy');
+			$overview_menu_dto->menu_title = __('Overview', 'elemacy');
+			$overview_menu_dto->menu_slug = '';
+			AdminMenu::add_submenu($overview_menu_dto);
 
-		$modules_menu_dto = new SubMenuDTO();
-		$modules_menu_dto->page_title = __('Modules', 'elemacy');
-		$modules_menu_dto->menu_title = __('Modules', 'elemacy');
-		$modules_menu_dto->menu_slug = 'modules';
-		AdminMenu::add_submenu($modules_menu_dto);
+			$modules_menu_dto = new SubMenuDTO();
+			$modules_menu_dto->page_title = __('Modules', 'elemacy');
+			$modules_menu_dto->menu_title = __('Modules', 'elemacy');
+			$modules_menu_dto->menu_slug = 'modules';
+			AdminMenu::add_submenu($modules_menu_dto);
+		});
 	}
 
 	protected function register_rest_routes()
@@ -130,35 +132,7 @@ class Elemacy
 
 	public function check_requirements(): void
 	{
-		if (!did_action('elementor/loaded')) {
-			add_action('admin_notices', [$this, 'elementor_missing_notice']);
-		}
-
-		if (version_compare(PHP_VERSION, '7.4', '<')) {
-			add_action('admin_notices', [$this, 'php_version_notice']);
-		}
-	}
-
-	public function elementor_missing_notice(): void
-	{
-		$message = sprintf(
-			/* translators: %s: Elementor */
-			__('Elemacy requires %s to be installed and activated.', 'elemacy'),
-			'<strong>' . __('Elementor', 'elemacy') . '</strong>'
-		);
-
-		printf('<div class="notice notice-error"><p>%s</p></div>', wp_kses_post($message));
-	}
-
-	public function php_version_notice(): void
-	{
-		$message = sprintf(
-			/* translators: %s: PHP version */
-			__('Elemacy requires PHP version %s or greater.', 'elemacy'),
-			'<strong>7.4</strong>'
-		);
-
-		printf('<div class="notice notice-error"><p>%s</p></div>', wp_kses_post($message));
+		CompatibilityChecker::instance()->check();
 	}
 
 	public static function boot()

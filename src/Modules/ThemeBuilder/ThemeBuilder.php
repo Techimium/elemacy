@@ -50,10 +50,12 @@ class ThemeBuilder extends Module
 
     public function register_admin_menu()
     {
-        $submenu_dto = new SubMenuDTO();
-        $submenu_dto->page_title = __('Theme Builder', 'elemacy');
-        $submenu_dto->menu_title = __('Theme Builder', 'elemacy');
-        $submenu_dto->menu_slug = 'theme-builder';
-        AdminMenu::add_submenu($submenu_dto);
+        add_action('init', function () {
+            $submenu_dto = new SubMenuDTO();
+            $submenu_dto->page_title = __('Theme Builder', 'elemacy');
+            $submenu_dto->menu_title = __('Theme Builder', 'elemacy');
+            $submenu_dto->menu_slug = 'theme-builder';
+            AdminMenu::add_submenu($submenu_dto);
+        });
     }
 }
