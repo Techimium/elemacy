@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import { useWidgetsQuery, useToggleWidgetMutation } from "@/features/widgets/services/widget";
 import { WidgetCard } from "@/features/widgets/components/widget-card";
 import Spinner from "@/components/spinner";
@@ -16,7 +17,7 @@ export function WidgetList() {
     }
 
     if (!widgets || widgets.length === 0) {
-        return <NoData title="No widgets found!" description="No widgets found!" />
+        return <NoData title={__("No widgets found!", "elemacy")} description={__("No widgets found!", "elemacy")} />
     }
 
     return (

@@ -1,3 +1,4 @@
+import { __, sprintf } from "@wordpress/i18n";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import DynamicIcon from "@/components/dynamic-icon";
@@ -28,7 +29,11 @@ export function WidgetCard({ widget, onToggle }: WidgetCardProps) {
             </CardHeader>
             <CardContent>
                 <div className="text-xs text-gray-500 mt-2">
-                    {widget.is_enabled ? "Enabled" : "Disabled"} - Toggle to {widget.is_enabled ? "hide" : "show"} this widget in Elementor.
+                    {widget.is_enabled ? __("Enabled", "elemacy") : __("Disabled", "elemacy")} - {sprintf(
+                        /* translators: %s: hide/show */
+                        __("Toggle to %s this widget in Elementor.", "elemacy"),
+                        widget.is_enabled ? __("hide", "elemacy") : __("show", "elemacy")
+                    )}
                 </div>
             </CardContent>
         </Card>

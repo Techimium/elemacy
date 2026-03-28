@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +27,8 @@ interface TemplateFormProps {
     submitLabel?: string
 }
 
-export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel = "Create Template" }: TemplateFormProps) {
+export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }: TemplateFormProps) {
+    const displaySubmitLabel = submitLabel || __('Create Template', 'elemacy');
     const form = useForm<CreateTemplate>({
         defaultValues: defaultValues || {
             title: "",
@@ -43,9 +45,9 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                     name="title"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Title</FormLabel>
+                            <FormLabel>{__('Title', 'elemacy')}</FormLabel>
                             <FormControl>
-                                <Input placeholder="My New Template" {...field} />
+                                <Input placeholder={__('My New Template', 'elemacy')} {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -56,11 +58,11 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                     name="type"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Type</FormLabel>
+                            <FormLabel>{__('Type', 'elemacy')}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a template type" />
+                                        <SelectValue placeholder={__('Select a template type', 'elemacy')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -80,16 +82,16 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                     name="status"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Status</FormLabel>
+                            <FormLabel>{__('Status', 'elemacy')}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a template status" />
+                                        <SelectValue placeholder={__('Select a template status', 'elemacy')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="publish">Published</SelectItem>
-                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="publish">{__('Published', 'elemacy')}</SelectItem>
+                                    <SelectItem value="draft">{__('Draft', 'elemacy')}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -97,7 +99,7 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel =
                     )}
                 />
                 <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? "Saving..." : submitLabel}
+                    {isLoading ? __('Saving...', 'elemacy') : displaySubmitLabel}
                 </Button>
             </form>
         </Form>

@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n"
 import {
     Dialog,
     DialogContent,
@@ -37,22 +38,22 @@ export function EditTemplateModal({ template, open, onOpenChange, onSuccess }: E
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <div className="text-lg font-semibold">Edit Template</div>
+                    <div className="text-lg font-semibold">{__('Edit Template', 'elemacy')}</div>
                     <div className="text-sm text-muted-foreground">
-                        Update the details for this template.
+                        {__('Update the details for this template.', 'elemacy')}
                     </div>
                 </DialogHeader>
                 <TemplateForm
                     defaultValues={template}
                     onSubmit={onSubmit}
                     isLoading={isPending}
-                    submitLabel="Update Template"
+                    submitLabel={__('Update Template', 'elemacy')}
                 />
                 <Button
                     onClick={() => window.open(template.edit_with_elementor, '_blank')}
                     className="w-full bg-[#93003F] hover:bg-[#7a0034] text-white"
                 >
-                    Edit with Elementor
+                    {__('Edit with Elementor', 'elemacy')}
                 </Button>
             </DialogContent>
         </Dialog>

@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import { useState } from "react";
 import type { Template } from "../schemas/template";
 import { useDeleteTemplateMutation, useTemplates } from "../services/template";
@@ -71,16 +72,15 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                             <EmptyMedia className="w-16 h-16" variant="icon">
                                 <LayoutTemplateIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No Templates Yet</EmptyTitle>
+                            <EmptyTitle>{__('No Templates Yet', 'elemacy')}</EmptyTitle>
                             <EmptyDescription>
-                                You haven't created any templates yet. Get started by creating
-                                your first template.
+                                {__("You haven't created any templates yet. Get started by creating your first template.", 'elemacy')}
                             </EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <div className="flex gap-2">
-                                <Button onClick={() => setIsOpen(true)}>Create Template</Button>
-                                <Button variant="outline">Import Template</Button>
+                                <Button onClick={() => setIsOpen(true)}>{__('Create Template', 'elemacy')}</Button>
+                                <Button variant="outline">{__('Import Template', 'elemacy')}</Button>
                             </div>
                         </EmptyContent>
                     </Empty>

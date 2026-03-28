@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import Container from "@/components/container";
 import Topbar from "@/components/layout/topbar";
 import { useModulesQuery } from "@/services/module";
@@ -21,10 +22,10 @@ export default function Modules() {
                         <Card className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-6 border-b border-gray-100 shadow-sm">
                             <div>
                                 <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">
-                                    <span>{"Modules"}</span>
+                                    <span>{__("Modules", "elemacy")}</span>
                                 </div>
                                 <div className="text-gray-500 mt-2 max-w-2xl">
-                                    {"Manage all the modules provided by Elemacy for your Elementor editor."}
+                                    {__("Manage all the modules provided by Elemacy for your Elementor editor.", "elemacy")}
                                 </div>
                             </div>
                         </Card>

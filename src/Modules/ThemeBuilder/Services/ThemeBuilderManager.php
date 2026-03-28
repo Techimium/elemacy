@@ -277,35 +277,35 @@ class ThemeBuilderManager
         $types = [
             [
                 'value' => 'header',
-                'label' => 'Header',
+                'label' => __('Header', 'elemacy'),
             ],
             [
                 'value' => 'footer',
-                'label' => 'Footer',
+                'label' => __('Footer', 'elemacy'),
             ],
             [
                 'value' => 'single',
-                'label' => 'Single',
+                'label' => __('Single', 'elemacy'),
             ],
             [
                 'value' => 'archive',
-                'label' => 'Archive',
+                'label' => __('Archive', 'elemacy'),
             ],
             [
                 'value' => 'archive_post',
-                'label' => 'Post Archive',
+                'label' => __('Post Archive', 'elemacy'),
             ],
             [
                 'value' => '404',
-                'label' => '404 Page',
+                'label' => __('404 Page', 'elemacy'),
             ],
             [
                 'value' => 'search',
-                'label' => 'Search Results',
+                'label' => __('Search Results', 'elemacy'),
             ],
             [
                 'value' => 'loop',
-                'label' => 'Loop',
+                'label' => __('Loop', 'elemacy'),
             ],
         ];
 
@@ -327,13 +327,15 @@ class ThemeBuilderManager
 
             $types[] = [
                 'value' => "single_{$post_type->name}",
-                'label' => "Single {$singular_name}"
+                /* translators: %s: Post type singular name */
+                'label' => sprintf(__('Single %s', 'elemacy'), $singular_name)
             ];
 
             if ($post_type->has_archive) {
                 $types[] = [
                     'value' => "archive_{$post_type->name}",
-                    'label' => "{$singular_name} Archive"
+                    /* translators: %s: Post type singular name */
+                    'label' => sprintf(__('%s Archive', 'elemacy'), $singular_name)
                 ];
             }
         }
