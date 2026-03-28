@@ -82,20 +82,20 @@ class Elemacy
 	protected function init_admin_menus()
 	{
 		$plugin_menu_dto = new MenuDTO();
-		$plugin_menu_dto->page_title = 'Elemacy';
-		$plugin_menu_dto->menu_title = 'Elemacy';
+		$plugin_menu_dto->page_title = __('Elemacy', 'elemacy');
+		$plugin_menu_dto->menu_title = __('Elemacy', 'elemacy');
 		$plugin_menu_dto->menu_slug = 'elemacy';
 		AdminMenu::add_menu($plugin_menu_dto);
 
 		$overview_menu_dto = new SubMenuDTO();
-		$overview_menu_dto->page_title = 'Overview';
-		$overview_menu_dto->menu_title = 'Overview';
+		$overview_menu_dto->page_title = __('Overview', 'elemacy');
+		$overview_menu_dto->menu_title = __('Overview', 'elemacy');
 		$overview_menu_dto->menu_slug = '';
 		AdminMenu::add_submenu($overview_menu_dto);
 
 		$modules_menu_dto = new SubMenuDTO();
-		$modules_menu_dto->page_title = 'Modules';
-		$modules_menu_dto->menu_title = 'Modules';
+		$modules_menu_dto->page_title = __('Modules', 'elemacy');
+		$modules_menu_dto->menu_title = __('Modules', 'elemacy');
 		$modules_menu_dto->menu_slug = 'modules';
 		AdminMenu::add_submenu($modules_menu_dto);
 	}

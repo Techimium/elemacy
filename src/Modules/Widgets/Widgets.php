@@ -52,8 +52,8 @@ class Widgets extends Module
     public function register_admin_menu()
     {
         $submenu_dto = new SubMenuDTO();
-        $submenu_dto->page_title = 'Widgets';
-        $submenu_dto->menu_title = 'Widgets';
+        $submenu_dto->page_title = __('Widgets', 'elemacy');
+        $submenu_dto->menu_title = __('Widgets', 'elemacy');
         $submenu_dto->menu_slug = 'widgets';
         AdminMenu::add_submenu($submenu_dto);
     }
