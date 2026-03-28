@@ -40,8 +40,9 @@ class AdminScripts
         wp_register_style('elemacy-core', ELEMACY_URL . 'assets/admin/styles/admin.css', [], ELEMACY_VERSION);
         wp_enqueue_style('elemacy-core');
 
-        wp_register_script('elemacy-core', ELEMACY_URL . 'assets/admin/scripts/admin.js', [], ELEMACY_VERSION, true);
+        wp_register_script('elemacy-core', ELEMACY_URL . 'assets/admin/scripts/admin.js', ['wp-i18n'], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-core');
+        wp_set_script_translations('elemacy-core', 'elemacy', ELEMACY_PATH . 'languages');
     }
 
     public function enqueue_dev_scripts()
@@ -55,14 +56,15 @@ class AdminScripts
             true
         );
 
-        // Your app entry (e.g. main.jsx)
+        // App entry (e.g. main.jsx)
         wp_enqueue_script(
             'elemacy-admin-app',
             'http://localhost:5173/src/main.tsx',
-            ['elemacy-vite-client'],
+            ['elemacy-vite-client', 'wp-i18n'],
             null,
             true
         );
+        wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
 
         // React Refresh preamble as inline module
         $preamble = <<<JS

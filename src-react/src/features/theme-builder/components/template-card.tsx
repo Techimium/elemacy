@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -30,12 +31,12 @@ function TemplateCard({ template, onEdit, onDelete, onEditWithElementor }: Templ
           <DropdownMenu>
             <DropdownMenuTrigger><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{__('Actions', 'elemacy')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onEdit(template)}>Edit</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEditWithElementor(template)}>Edit with Elementor</DropdownMenuItem>
-              <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-500" onClick={() => onDelete(template)}>Delete</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(template)}>{__('Edit', 'elemacy')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEditWithElementor(template)}>{__('Edit with Elementor', 'elemacy')}</DropdownMenuItem>
+              <DropdownMenuItem>{__('Duplicate', 'elemacy')}</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-500" onClick={() => onDelete(template)}>{__('Delete', 'elemacy')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -43,7 +44,7 @@ function TemplateCard({ template, onEdit, onDelete, onEditWithElementor }: Templ
           {template.type ? template.type.charAt(0) : 'T'}
         </div>
         <div className="text-xs text-gray-500">
-          {TEMPLATE_TYPES.find((t) => t.value === template.type)?.label || 'Unknown'}
+          {TEMPLATE_TYPES.find((t) => t.value === template.type)?.label || __('Unknown', 'elemacy')}
         </div>
       </div>
     </Card>

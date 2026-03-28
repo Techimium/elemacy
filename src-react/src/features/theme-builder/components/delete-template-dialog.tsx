@@ -1,3 +1,4 @@
+import { __, sprintf } from "@wordpress/i18n"
 import {
     Dialog,
     DialogContent,
@@ -28,11 +29,14 @@ export function DeleteTemplateDialog({
                 <DialogHeader>
                     <div className="flex items-center gap-2 text-destructive">
                         <AlertTriangle className="h-6 w-6" />
-                        <div className="text-lg font-semibold">Delete Template</div>
+                        <div className="text-lg font-semibold">{__('Delete Template', 'elemacy')}</div>
                     </div>
                     <div className="text-sm text-muted-foreground pt-2">
-                        Are you sure you want to delete <span className="font-semibold text-foreground">{templateName}</span>?
-                        This action cannot be undone.
+                        {sprintf(
+                            /* translators: %s: Template name */
+                            __('Are you sure you want to delete %s? This action cannot be undone.', 'elemacy'),
+                            templateName || ''
+                        )}
                     </div>
                 </DialogHeader>
                 <DialogFooter className="gap-2 sm:gap-0">
@@ -41,14 +45,14 @@ export function DeleteTemplateDialog({
                         onClick={() => onOpenChange(false)}
                         disabled={isDeleting}
                     >
-                        Cancel
+                        {__('Cancel', 'elemacy')}
                     </Button>
                     <Button
                         variant="destructive"
                         onClick={onConfirm}
                         disabled={isDeleting}
                     >
-                        {isDeleting ? "Deleting..." : "Delete Template"}
+                        {isDeleting ? __('Deleting...', 'elemacy') : __('Delete Template', 'elemacy')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

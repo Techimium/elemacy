@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import ModuleSwitch from "@/components/module-switch";
 import { type Module } from "@/schemas/module";
@@ -25,15 +26,15 @@ export function ModuleCard({ module }: ModuleCardProps) {
                         {module.title}
                     </div>
                     <div className="text-sm text-gray-500 max-w-sm">
-                        {module.description || "Manage settings and features for this pro module."}
+                        {module.description || __("Manage settings and features for this pro module.", "elemacy")}
                     </div>
                 </CardContent>
             </div>
             <CardFooter className="flex items-center justify-between">
-                <Button disabled={module.is_headless} variant="outline" onClick={() => navigate(`/${module.name}`)} className="cursor-pointer">Manage</Button>
+                <Button disabled={module.is_headless} variant="outline" onClick={() => navigate(`/${module.name}`)} className="cursor-pointer">{__('Manage', 'elemacy')}</Button>
                 <div className="flex items-center justify-between sm:justify-end border-t border-gray-100 pt-4 sm:pt-0 sm:border-t-0 w-full sm:w-auto mt-2 sm:mt-0">
                     <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-4">
-                        Status
+                        {__('Status', 'elemacy')}
                     </div>
                     <ModuleSwitch isEnabled={module.is_active} name={module.name} />
                 </div>

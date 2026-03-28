@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n"
 import {
     Dialog,
     DialogContent,
@@ -35,14 +36,14 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
                 onClick={() => setIsCreateOpen(true)}
                 disabled={isDisabled}
             >
-                Create New Template
+                {__('Create New Template', 'elemacy')}
             </Button>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <div className="text-lg font-semibold">Create New Template</div>
+                        <div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div>
                         <div className="text-sm text-muted-foreground">
-                            Enter the details for your new theme template.
+                            {__('Enter the details for your new theme template.', 'elemacy')}
                         </div>
                     </DialogHeader>
                     <TemplateForm onSubmit={onSubmit} isLoading={isPending} />

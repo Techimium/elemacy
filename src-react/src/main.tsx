@@ -16,5 +16,5 @@ createRoot(document.getElementById('elemacy_root')!).render(
         <Toaster />
       </QueryClientProvider>
     </HashRouter>
-  </StrictMode>,
+  </StrictMode>
 )

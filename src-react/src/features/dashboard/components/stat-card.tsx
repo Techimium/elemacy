@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import {
     ChevronUp,
     ChevronDown,
@@ -29,7 +30,7 @@ const StatCard = ({ icon: Icon, label, value, trend }: StatCardProps) => {
             <div className="flex items-center text-sm">
                 <TrendIcon className={`h-4 w-4 mr-1 ${trendColor}`} />
                 <span className={`${trendColor} font-semibold`}>{trend.value}</span>
-                <span className="text-gray-500 ml-1">vs last month</span>
+                <span className="text-gray-500 ml-1">{__('vs last month', 'elemacy')}</span>
             </div>
         </div>
     );

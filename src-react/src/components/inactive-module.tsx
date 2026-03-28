@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import { Link } from "react-router";
 import { Card } from "./ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "./ui/empty";
@@ -11,10 +12,11 @@ function InactiveModule() {
                     <EmptyMedia className="w-16 h-16" variant="icon" >
                         <PowerOff />
                     </EmptyMedia>
-                    <EmptyTitle> Module is inactive </EmptyTitle>
+                    <EmptyTitle> {__('Module is inactive', 'elemacy')} </EmptyTitle>
                     <EmptyDescription>
-                        Module is inactive. Get started by enabling
-                        the module from the <Link to="/modules" className="font-bold">Modules page</Link>.
+                        {__('Module is inactive. Get started by enabling the module from the ', 'elemacy')}
+                        <Link to="/modules" className="font-bold">{__('Modules page', 'elemacy')}</Link>
+                        {'.'}
                     </EmptyDescription>
                 </EmptyHeader>
             </Empty>

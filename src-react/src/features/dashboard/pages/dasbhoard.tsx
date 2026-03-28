@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import {
     Sparkles,
     Layers,
@@ -27,10 +28,10 @@ const Dashboard = () => {
                 <div className="relative overflow-hidden rounded-3xl p-8 lg:p-12 bg-gradient-to-br from-indigo-800 to-purple-900 shadow-2xl shadow-indigo-900/40 text-white">
                     <div className="relative z-10 max-w-2xl">
                         <div className="text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight">
-                            Welcome to Elemacy
+                            {__('Welcome to Elemacy', 'elemacy')}
                         </div>
                         <p className="text-lg opacity-85 mb-6">
-                            Supercharge your Elementor experience with pro-level features. Build stunning websites faster with our powerful addon tools.
+                            {__('Supercharge your Elementor experience with pro-level features. Build stunning websites faster with our powerful addon tools.', 'elemacy')}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Button
@@ -40,7 +41,7 @@ const Dashboard = () => {
                                 className="w-full sm:w-auto"
                             >
                                 <Sparkles className="mr-2 h-5 w-5" />
-                                Create Your First Popup
+                                {__('Create Your First Popup', 'elemacy')}
                             </Button>
                             <Button
                                 size="lg"
@@ -49,7 +50,7 @@ const Dashboard = () => {
                                 className="bg-white/10 border-white/30 hover:bg-white/20 text-white w-full sm:w-auto"
                             >
                                 <Youtube className="mr-2 h-5 w-5" />
-                                Watch Tutorial
+                                {__('Watch Tutorial', 'elemacy')}
                             </Button>
                         </div>
                     </div>
@@ -62,35 +63,35 @@ const Dashboard = () => {
                 {/* Video Embed Example */}
                 <div className="rounded-3xl overflow-hidden shadow-xl border border-gray-200 bg-white">
                     <div className="p-6 border-b border-gray-100">
-                        <div className="text-xl font-bold text-gray-900">Getting Started with Elemacy</div>
+                        <div className="text-xl font-bold text-gray-900">{__('Getting Started with Elemacy', 'elemacy')}</div>
                         <p className="text-sm text-gray-500 mt-1">
-                            Watch this quick introduction to learn the basics
+                            {__('Watch this quick introduction to learn the basics', 'elemacy')}
                         </p>
                     </div>
                     <div className="aspect-video bg-gray-50 flex items-center justify-center p-8">
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QU9MhjB3cWs?si=nSwznxC8iXLxIKD0" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QU9MhjB3cWs?si=nSwznxC8iXLxIKD0" title={__('YouTube video player', 'elemacy')} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
                     </div>
                 </div>
 
                 {/* Stats */}
                 <div>
-                    <div className="text-2xl font-bold mb-6 text-gray-900">Performance Metrics</div>
+                    <div className="text-2xl font-bold mb-6 text-gray-900">{__('Performance Metrics', 'elemacy')}</div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatCard
                             icon={MousePointerClick}
-                            label="Active Popups"
+                            label={__('Active Popups', 'elemacy')}
                             value="12"
                             trend={{ value: "23%", isPositive: true }}
                         />
                         <StatCard
                             icon={Layers}
-                            label="Theme Templates"
+                            label={__('Theme Templates', 'elemacy')}
                             value="8"
                             trend={{ value: "12%", isPositive: true }}
                         />
                         <StatCard
                             icon={Users}
-                            label="Total Views"
+                            label={__('Total Views', 'elemacy')}
                             value="45.2K"
                             trend={{ value: "8%", isPositive: true }}
                         />
@@ -99,30 +100,30 @@ const Dashboard = () => {
 
                 {/* Features Grid */}
                 <div>
-                    <div className="text-2xl font-bold mb-6 text-gray-900">Core Features</div>
+                    <div className="text-2xl font-bold mb-6 text-gray-900">{__('Core Features', 'elemacy')}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <FeatureCard
                             icon={Sparkles}
-                            title="Advanced Popups"
-                            description="Create beautiful popups with advanced targeting and triggers"
+                            title={__('Advanced Popups', 'elemacy')}
+                            description={__('Create beautiful popups with advanced targeting and triggers', 'elemacy')}
                             onClick={() => navigate('/popups')}
                         />
                         <FeatureCard
                             icon={Layers}
-                            title="Theme Builder"
-                            description="Design custom headers, footers, and templates"
+                            title={__('Theme Builder', 'elemacy')}
+                            description={__('Design custom headers, footers, and templates', 'elemacy')}
                             onClick={() => navigate('/theme-builder')}
                         />
                         <FeatureCard
                             icon={LayoutGrid}
-                            title="Widgets"
-                            description="Manage and toggle all your essential widgets"
+                            title={__('Widgets', 'elemacy')}
+                            description={__('Manage and toggle all your essential widgets', 'elemacy')}
                             onClick={() => navigate('/widgets')}
                         />
                         <FeatureCard
                             icon={Zap}
-                            title="Pro Modules"
-                            description="Access premium widgets and advanced functionality"
+                            title={__('Pro Modules', 'elemacy')}
+                            description={__('Access premium widgets and advanced functionality', 'elemacy')}
                             gradient
                             onClick={() => navigate('/modules')}
                         />
@@ -131,24 +132,24 @@ const Dashboard = () => {
 
                 {/* Resources */}
                 <div>
-                    <div className="text-2xl font-bold mb-6 text-gray-900">Resources & Support</div>
+                    <div className="text-2xl font-bold mb-6 text-gray-900">{__('Resources & Support', 'elemacy')}</div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FeatureCard
                             icon={BookOpen}
-                            title="Documentation"
-                            description="Comprehensive guides and API references"
+                            title={__('Documentation', 'elemacy')}
+                            description={__('Comprehensive guides and API references', 'elemacy')}
                             onClick={() => window.open('https://docs.elemacy.com', '_blank')}
                         />
                         <FeatureCard
                             icon={Youtube}
-                            title="Video Tutorials"
-                            description="Step-by-step video guides and tips"
+                            title={__('Video Tutorials', 'elemacy')}
+                            description={__('Step-by-step video guides and tips', 'elemacy')}
                             onClick={() => window.open('https://youtube.com/elemacy', '_blank')}
                         />
                         <FeatureCard
                             icon={MessageCircle}
-                            title="Community Support"
-                            description="Join our community and get help"
+                            title={__('Community Support', 'elemacy')}
+                            description={__('Join our community and get help', 'elemacy')}
                             onClick={() => window.open('https://community.elemacy.com', '_blank')}
                         />
                     </div>
@@ -158,4 +159,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Dashboard;

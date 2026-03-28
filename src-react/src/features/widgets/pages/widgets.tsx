@@ -1,3 +1,4 @@
+import { __ } from "@wordpress/i18n";
 import Container from "@/components/container";
 import { Card } from "@/components/ui/card";
 import Topbar from "@/components/layout/topbar";
@@ -24,10 +25,10 @@ function Widgets() {
                         <Card className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-6 border-b border-gray-100 shadow-sm">
                             <div>
                                 <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">
-                                    <span>{module?.title || "Widgets"}</span>
+                                    <span>{module?.title || __("Widgets", "elemacy")}</span>
                                 </div>
                                 <div className="text-gray-500 mt-2 max-w-2xl">
-                                    {module?.description || "Manage native and pro widgets provided by Elemacy for your Elementor editor."}
+                                    {module?.description || __("Manage native and pro widgets provided by Elemacy for your Elementor editor.", "elemacy")}
                                 </div>
                             </div>
                         </Card>
