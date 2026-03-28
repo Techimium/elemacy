@@ -1,10 +1,8 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
@@ -30,12 +28,12 @@ export function DeleteTemplateDialog({
                 <DialogHeader>
                     <div className="flex items-center gap-2 text-destructive">
                         <AlertTriangle className="h-6 w-6" />
-                        <DialogTitle>Delete Template</DialogTitle>
+                        <div className="text-lg font-semibold">Delete Template</div>
                     </div>
-                    <DialogDescription className="pt-2">
+                    <div className="text-sm text-muted-foreground pt-2">
                         Are you sure you want to delete <span className="font-semibold text-foreground">{templateName}</span>?
                         This action cannot be undone.
-                    </DialogDescription>
+                    </div>
                 </DialogHeader>
                 <DialogFooter className="gap-2 sm:gap-0">
                     <Button

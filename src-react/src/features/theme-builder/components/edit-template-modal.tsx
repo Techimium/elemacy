@@ -1,9 +1,7 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog"
 import { TemplateForm } from "./template-form"
 import { type Template, type UpdateTemplate } from "../schemas/template"
@@ -39,10 +37,10 @@ export function EditTemplateModal({ template, open, onOpenChange, onSuccess }: E
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Template</DialogTitle>
-                    <DialogDescription>
+                    <div className="text-lg font-semibold">Edit Template</div>
+                    <div className="text-sm text-muted-foreground">
                         Update the details for this template.
-                    </DialogDescription>
+                    </div>
                 </DialogHeader>
                 <TemplateForm
                     defaultValues={template}

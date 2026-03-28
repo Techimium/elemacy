@@ -1,9 +1,7 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog"
 import { TemplateForm } from "./template-form"
 import { type CreateTemplate, type Template } from "@/features/theme-builder/schemas/template"
@@ -42,10 +40,10 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Create New Template</DialogTitle>
-                        <DialogDescription>
+                        <div className="text-lg font-semibold">Create New Template</div>
+                        <div className="text-sm text-muted-foreground">
                             Enter the details for your new theme template.
-                        </DialogDescription>
+                        </div>
                     </DialogHeader>
                     <TemplateForm onSubmit={onSubmit} isLoading={isPending} />
                 </DialogContent>
