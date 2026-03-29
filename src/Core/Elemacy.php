@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Core;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
@@ -12,7 +15,6 @@ class Elemacy
 
 	protected function __construct()
 	{
-		add_action('init', [$this, 'load_textdomain']);
 		add_action('plugins_loaded', [$this, 'init']);
 	}
 
@@ -36,11 +38,6 @@ class Elemacy
 		$this->register_rest_routes();
 		$this->register_ajax_routes();
 		$this->register_admin_menus();
-	}
-
-	public function load_textdomain()
-	{
-		load_plugin_textdomain('elemacy', false, dirname(ELEMACY_PLUGIN_BASE) . '/languages');
 	}
 
 	public function init_core_components()

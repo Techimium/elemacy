@@ -5,8 +5,8 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly.
 }
 
-$manager = ThemeBuilderManager::instance();
-$manager->render_template($manager->get_footer_id()); ?>
+$elemacy_manager = ThemeBuilderManager::instance();
+$elemacy_manager->render_template($elemacy_manager->get_footer_id()); ?>
 
 <?php wp_footer(); ?>
 

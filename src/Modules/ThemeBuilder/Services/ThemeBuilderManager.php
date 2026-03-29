@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Modules\ThemeBuilder\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elementor\Plugin;
 

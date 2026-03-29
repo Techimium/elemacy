@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Modules\Widgets;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;

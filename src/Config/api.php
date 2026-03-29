@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\Route;
 use Elemacy\Core\Controllers\ModuleController;

@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Modules\DynamicTags\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Modules\DynamicTags\Tags\Acf\AcfColor;
 use Elemacy\Modules\DynamicTags\Tags\Acf\AcfDateTime;

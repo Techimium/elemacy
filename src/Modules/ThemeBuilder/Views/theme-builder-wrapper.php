@@ -11,13 +11,13 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-$manager = ThemeBuilderManager::instance();
-$content_id = $manager->get_location_template_id();
+$elemacy_manager = ThemeBuilderManager::instance();
+$elemacy_content_id = $elemacy_manager->get_location_template_id();
 
 get_header();
 
 
-$manager->render_template($content_id);
+$elemacy_manager->render_template($elemacy_content_id);
 
 
 get_footer();

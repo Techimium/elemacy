@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\Route;
 use Elemacy\Modules\ThemeBuilder\Controllers\ThemeBuilderController;

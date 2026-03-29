@@ -130,7 +130,7 @@ class Validator
     public function validate()
     {
         if ($this->is_failed()) {
-            throw ValidationException::with_errors($this->errors);
+            throw ValidationException::with_errors(array_map('esc_html', $this->errors));
         }
 
         return true;

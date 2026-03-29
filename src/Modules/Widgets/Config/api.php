@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\Middlewares\API\AdminMiddleware;
 use Elemacy\Core\Route;

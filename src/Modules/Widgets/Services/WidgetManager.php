@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Modules\Widgets\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Support\Utils;
 

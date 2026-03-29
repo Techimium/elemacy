@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Core\AjaxRouter;
 use Elemacy\Modules\Widgets\Controllers\AjaxPaginationController;

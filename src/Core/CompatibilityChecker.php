@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Core;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class CompatibilityChecker
 {

@@ -1,6 +1,9 @@
 <?php
-
 namespace Elemacy\Core;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Elemacy\Support\Utils;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -67,13 +70,13 @@ class AdminScripts
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
 
         // React Refresh preamble as inline module
-        $preamble = <<<JS
+        $preamble = '
             import RefreshRuntime from "http://localhost:5173/@react-refresh";
             RefreshRuntime.injectIntoGlobalHook(window);
-            window.\$RefreshReg\$ = () => {};
-            window.\$RefreshSig\$ = () => (type) => type;
+            window.$RefreshReg$ = () => {};
+            window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
-        JS;
+        ';
 
         wp_add_inline_script('elemacy-admin-app', $preamble, 'before');
     }

@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly.
 }
 
-$manager = ThemeBuilderManager::instance();
+$elemacy_manager = ThemeBuilderManager::instance();
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -31,5 +31,5 @@ $manager = ThemeBuilderManager::instance();
 <body <?php body_class(); ?>>
 	<?php
 	wp_body_open();
-	$manager->render_template($manager->get_header_id());
+	$elemacy_manager->render_template($elemacy_manager->get_header_id());
 	?>
