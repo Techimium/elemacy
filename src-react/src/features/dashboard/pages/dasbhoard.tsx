@@ -1,16 +1,12 @@
 import { __ } from "@wordpress/i18n";
 import {
-    Sparkles,
     Layers,
     Zap,
     BookOpen,
     Youtube,
     MessageCircle,
-    Users,
-    MousePointerClick,
     LayoutGrid,
 } from 'lucide-react';
-import StatCard from '@/features/dashboard/components/stat-card';
 import FeatureCard from '@/features/dashboard/components/featured-card';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -37,17 +33,17 @@ const Dashboard = () => {
                             <Button
                                 size="lg"
                                 variant="secondary"
-                                onClick={() => navigate('/popups')}
-                                className="w-full sm:w-auto"
+                                onClick={() => navigate('/modules')}
+                                className="w-full sm:w-auto cursor-pointer"
                             >
-                                <Sparkles className="mr-2 h-5 w-5" />
-                                {__('Create Your First Popup', 'elemacy')}
+                                <Zap className="mr-2 h-5 w-5" />
+                                {__('Manage Modules', 'elemacy')}
                             </Button>
                             <Button
                                 size="lg"
                                 variant="outline"
                                 onClick={() => console.log('Watch Tutorial clicked')}
-                                className="bg-white/10 border-white/30 hover:bg-white/20 text-white w-full sm:w-auto"
+                                className="bg-white/10 border-white/30 hover:bg-white/20 text-white w-full sm:w-auto cursor-pointer"
                             >
                                 <Youtube className="mr-2 h-5 w-5" />
                                 {__('Watch Tutorial', 'elemacy')}
@@ -64,37 +60,15 @@ const Dashboard = () => {
                 <div className="rounded-3xl overflow-hidden shadow-xl border border-gray-200 bg-white">
                     <div className="p-6 border-b border-gray-100">
                         <div className="text-xl font-bold text-gray-900">{__('Getting Started with Elemacy', 'elemacy')}</div>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <div className="text-sm text-gray-500 mt-1">
                             {__('Watch this quick introduction to learn the basics', 'elemacy')}
-                        </p>
+                        </div>
                     </div>
                     <div className="aspect-video bg-gray-50 flex items-center justify-center p-8">
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QU9MhjB3cWs?si=nSwznxC8iXLxIKD0" title={__('YouTube video player', 'elemacy')} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div>
-                    <div className="text-2xl font-bold mb-6 text-gray-900">{__('Performance Metrics', 'elemacy')}</div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <StatCard
-                            icon={MousePointerClick}
-                            label={__('Active Popups', 'elemacy')}
-                            value="12"
-                            trend={{ value: "23%", isPositive: true }}
-                        />
-                        <StatCard
-                            icon={Layers}
-                            label={__('Theme Templates', 'elemacy')}
-                            value="8"
-                            trend={{ value: "12%", isPositive: true }}
-                        />
-                        <StatCard
-                            icon={Users}
-                            label={__('Total Views', 'elemacy')}
-                            value="45.2K"
-                            trend={{ value: "8%", isPositive: true }}
-                        />
+                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                            <div className="text-gray-500/50 text-xl">Video Coming Soon</div>
+                        </div>
+                        {/* <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QU9MhjB3cWs?si=nSwznxC8iXLxIKD0" title={__('YouTube video player', 'elemacy')} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe> */}
                     </div>
                 </div>
 
@@ -102,12 +76,6 @@ const Dashboard = () => {
                 <div>
                     <div className="text-2xl font-bold mb-6 text-gray-900">{__('Core Features', 'elemacy')}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <FeatureCard
-                            icon={Sparkles}
-                            title={__('Advanced Popups', 'elemacy')}
-                            description={__('Create beautiful popups with advanced targeting and triggers', 'elemacy')}
-                            onClick={() => navigate('/popups')}
-                        />
                         <FeatureCard
                             icon={Layers}
                             title={__('Theme Builder', 'elemacy')}
@@ -138,19 +106,19 @@ const Dashboard = () => {
                             icon={BookOpen}
                             title={__('Documentation', 'elemacy')}
                             description={__('Comprehensive guides and API references', 'elemacy')}
-                            onClick={() => window.open('https://docs.elemacy.com', '_blank')}
+                            onClick={() => window.open('https://elemacy.com', '_blank')}
                         />
                         <FeatureCard
                             icon={Youtube}
                             title={__('Video Tutorials', 'elemacy')}
                             description={__('Step-by-step video guides and tips', 'elemacy')}
-                            onClick={() => window.open('https://youtube.com/elemacy', '_blank')}
+                            onClick={() => window.open('https://www.youtube.com/@Techimium', '_blank')}
                         />
                         <FeatureCard
                             icon={MessageCircle}
                             title={__('Community Support', 'elemacy')}
                             description={__('Join our community and get help', 'elemacy')}
-                            onClick={() => window.open('https://community.elemacy.com', '_blank')}
+                            onClick={() => window.open('https://www.facebook.com/techimium/', '_blank')}
                         />
                     </div>
                 </div>
@@ -159,4 +127,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Dashboard;

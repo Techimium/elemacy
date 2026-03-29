@@ -1,16 +1,20 @@
 import { __ } from "@wordpress/i18n"
 import { Button } from "@/components/ui/button"
 import Container from "@/components/container"
+import Logo from '@/assets/images/logo.png'
+import { Link } from "react-router"
 
 function Topbar() {
   return (
     <div className="bg-white px-6 py-2 border-b">
       <Container>
         <div className="flex justify-between items-center">
-          <div>
-            <img src="http://localhost:5173/src/assets/images/logo.png" alt={__('Elemacy Logo', 'elemacy')} className="h-12" />
-          </div>
-          <Button variant="outline">{__('Docs', 'elemacy')}</Button>
+          <Link to="/">
+            <img src={Logo} alt={__('Elemacy Logo', 'elemacy')} className="h-12" />
+          </Link>
+          <Button className="cursor-pointer" variant="outline" onClick={() => window.open('https://elemacy.com', '_blank')}>
+            {__('Docs', 'elemacy')}
+          </Button>
         </div>
       </Container>
     </div>

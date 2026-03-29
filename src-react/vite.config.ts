@@ -5,7 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   server: {
+    origin: 'http://localhost:5173',
     cors: true,
     hmr: {
       host: 'localhost'

@@ -22,10 +22,10 @@ class AdminScripts
 
     public function enqueue()
     {
-        $handle = 'elemacy-core';
+        $handle = 'elemacy-admin-app';
+
         if (ELEMACY_ENV === 'dev') {
             $this->enqueue_dev_scripts();
-            $handle = 'elemacy-admin-app';
         } else {
             $this->enqueue_production_scripts();
         }
@@ -40,12 +40,12 @@ class AdminScripts
 
     public function enqueue_production_scripts()
     {
-        wp_register_style('elemacy-core', ELEMACY_URL . 'assets/admin/styles/admin.css', [], ELEMACY_VERSION);
-        wp_enqueue_style('elemacy-core');
+        wp_register_style('elemacy-admin-app', ELEMACY_URL . 'assets/admin/styles/admin.css', [], ELEMACY_VERSION);
+        wp_enqueue_style('elemacy-admin-app');
 
-        wp_register_script('elemacy-core', ELEMACY_URL . 'assets/admin/scripts/admin.js', ['wp-i18n'], ELEMACY_VERSION, true);
-        wp_enqueue_script('elemacy-core');
-        wp_set_script_translations('elemacy-core', 'elemacy', ELEMACY_PATH . 'languages');
+        wp_register_script('elemacy-admin-app', ELEMACY_URL . 'assets/admin/scripts/admin.js', ['wp-i18n'], ELEMACY_VERSION, true);
+        wp_enqueue_script('elemacy-admin-app');
+        wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
     }
 
     public function enqueue_dev_scripts()
