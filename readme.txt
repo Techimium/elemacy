@@ -1,4 +1,4 @@
-=== Elemacy – Free Elementor Addons: Theme Builder, Loop Builder, Form Builder & Dynamic Tags ===
+=== Elemacy – Elementor Addons: Theme Builder, Loop Builder, Form Builder & Dynamic Tags ===
 Contributors: techimium
 Tags: elementor, elementor addons, theme builder, form builder, dynamic tags
 Requires at least: 6.0
@@ -9,19 +9,19 @@ Requires Plugins: elementor
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-The only free Elementor addon you'll ever need. Theme Builder, Loop Builder, Form Builder, Dynamic Tags, Custom CSS, Nav Menu — all in one plugin.
+One Elementor addon to replace them all. Theme Builder, Loop Builder, Form Builder, Dynamic Tags, Custom CSS, Nav Menu — core features available free.
 
 == Description ==
 
-**Elemacy is the ultimate free Elementor addon** that gives you the power of a complete website-building suite — without paying for multiple premium plugins. Build custom headers, footers, single post layouts, archive pages, and dynamic content loops. Create beautiful, functional contact forms. Use dynamic tags to display real data anywhere in Elementor. All completely free.
+**Elemacy is a powerful Elementor addon** that gives you the power of a complete website-building suite — without installing a dozen separate plugins. Build custom headers, footers, single post layouts, archive pages, and dynamic content loops. Create beautiful, functional contact forms. Use dynamic tags to display real data anywhere in Elementor.
 
-Stop installing five different plugins to get five different features. Elemacy gives you everything in one lean, well-coded package.
+Stop installing five different plugins to get five different features. Elemacy brings everything together in one lean, well-coded package. Core features are available in the free version, with advanced capabilities planned for Elemacy Pro.
 
 ---
 
-### 🏆 Why Elemacy?
+### 🏆 What's Included in the Free Version?
 
-Most Elementor addon plugins lock their best features behind a "Pro" paywall. Elemacy is different:
+Elemacy gives you a genuinely powerful set of features at no cost. No credit card, no trial period — just install and build:
 
 - ✅ **Theme Builder** → Free
 - ✅ **Loop Builder (Grid & Carousel)** → Free
@@ -210,21 +210,22 @@ Elemacy comes with a built-in admin dashboard where you can enable or disable in
 
 ### 🗺️ Roadmap
 
-We're actively building Elemacy to become the most complete free Elementor addon available. Here's what's coming:
+We're actively developing Elemacy. Here's what's coming:
+
+**Free version — coming soon:**
 
 * 📥 **Form Submission Storage** – Save all form entries to your database and manage them from the WordPress admin
 * 🏷️ **More Dynamic Tags** – WooCommerce fields, user data, taxonomy terms, site settings
 * 🧩 **More Widgets** – New, powerful widgets added regularly
 * 🎛️ **Dynamic Display Conditions** – Show/hide Theme Builder templates based on post type, category, tag, page, user role, and more
 * 🔗 **External Integrations** – Connect form submissions to email marketing tools and CRMs
-
 ---
 
 ### 👥 Contributing
 
 Elemacy is open source and we welcome contributions from the WordPress and Elementor developer community.
 
-**GitHub Repository:** [GitHub Repository Link — Coming Soon]
+**GitHub Repository:** [https://github.com/Techimium/elemacy](https://github.com/Techimium/elemacy)
 
 Whether you want to submit a bug fix, add a new widget, propose a feature, or improve documentation — we'd love your help.
 
@@ -260,9 +261,9 @@ Whether you want to submit a bug fix, add a new widget, propose a feature, or im
 
 No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features.
 
-= Is Elemacy really 100% free? =
+= Is the free version really free? =
 
-Yes. Every feature described in this listing is completely free. There are no premium tiers, upsells, or feature locks. Elemacy is open source software released under the GPLv2 license.
+Yes. Every feature documented in this listing is available at no cost in the free version. No hidden limits, no trial periods. Elemacy is open source software released under the GPLv2 license.
 
 = Will Elemacy slow down my website? =
 
