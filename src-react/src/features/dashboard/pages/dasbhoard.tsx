@@ -3,9 +3,9 @@ import {
     Layers,
     Zap,
     BookOpen,
-    Youtube,
     MessageCircle,
     LayoutGrid,
+    VideoIcon,
 } from 'lucide-react';
 import FeatureCard from '@/features/dashboard/components/featured-card';
 import { useNavigate } from 'react-router';
@@ -42,10 +42,10 @@ const Dashboard = () => {
                             <Button
                                 size="lg"
                                 variant="outline"
-                                onClick={() => console.log('Watch Tutorial clicked')}
+                                onClick={() => window.open('https://www.youtube.com/@Techimium', '_blank')}
                                 className="bg-white/10 border-white/30 hover:bg-white/20 text-white w-full sm:w-auto cursor-pointer"
                             >
-                                <Youtube className="mr-2 h-5 w-5" />
+                                <VideoIcon className="mr-2 h-5 w-5" />
                                 {__('Watch Tutorial', 'elemacy')}
                             </Button>
                         </div>
@@ -109,7 +109,7 @@ const Dashboard = () => {
                             onClick={() => window.open('https://elemacy.com', '_blank')}
                         />
                         <FeatureCard
-                            icon={Youtube}
+                            icon={VideoIcon}
                             title={__('Video Tutorials', 'elemacy')}
                             description={__('Step-by-step video guides and tips', 'elemacy')}
                             onClick={() => window.open('https://www.youtube.com/@Techimium', '_blank')}
