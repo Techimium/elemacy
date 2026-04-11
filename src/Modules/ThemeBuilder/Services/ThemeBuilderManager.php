@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elementor\Plugin;
 
 class ThemeBuilderManager
@@ -30,9 +31,9 @@ class ThemeBuilderManager
     public function register_hooks()
     {
         add_filter('template_include', [$this, 'override_template'], 99);
-        add_action('get_header', [$this, 'get_header']);
-        add_action('get_footer', [$this, 'get_footer']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_template_assets']);
+
+        CompatibilityManager::instance()->register_hooks();
     }
 
     /**
@@ -195,58 +196,33 @@ class ThemeBuilderManager
     }
 
     /**
-     * Get the Header Template.
+     * Render the header template content only (no document wrapper).
      *
-     * @param string $name
      * @return void
      */
-    public function get_header($name = '')
+    public function render_header(): void
     {
-        if (!$this->get_header_id()) {
+        $id = $this->get_header_id();
+        if (!$id) {
             return;
         }
 
-        require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-support-header.php';
-
-        $templates = [];
-        $name = (string) $name;
-        if ('' !== $name) {
-            $templates[] = "header-{$name}.php";
-        }
-
-        $templates[] = 'header.php';
-
-        remove_all_actions('wp_head');
-        ob_start();
-        locate_template($templates, true);
-        ob_get_clean();
+        $this->render_template($id);
     }
 
     /**
-     * Get the Footer Template.
+     * Render the footer template content only (no document wrapper).
      *
-     * @param string $name
      * @return void
      */
-    public function get_footer($name = '')
+    public function render_footer(): void
     {
-        if (!$this->get_footer_id()) {
+        $id = $this->get_footer_id();
+        if (!$id) {
             return;
         }
 
-        require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-support-footer.php';
-
-        $templates = [];
-        $name = (string) $name;
-        if ('' !== $name) {
-            $templates[] = "footer-{$name}.php";
-        }
-
-        $templates[] = 'footer.php';
-
-        ob_start();
-        locate_template($templates, true);
-        ob_get_clean();
+        $this->render_template($id);
     }
 
     /**
