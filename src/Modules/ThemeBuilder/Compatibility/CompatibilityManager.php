@@ -61,10 +61,6 @@ class CompatibilityManager
             return;
         }
 
-        // Theme-specific injection should not also run the default get_header/get_footer overrides.
-        remove_action('get_header', [$manager, 'get_header']);
-        remove_action('get_footer', [$manager, 'get_footer']);
-
         $compat->register($manager);
     }
 

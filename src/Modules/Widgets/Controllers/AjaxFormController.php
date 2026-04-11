@@ -157,6 +157,7 @@ class AjaxFormController
             }
             if (empty($reply_to)) {
                 $reply_candidate = sanitize_email((string) $settings['email_reply_to']);
+                
                 if ($reply_candidate && is_email($reply_candidate)) {
                     $reply_to = $reply_candidate;
                 }
