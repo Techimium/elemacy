@@ -88,11 +88,29 @@ class AjaxFormController
 
     protected function send_email($settings, $form_data)
     {
-        $to = !empty($settings['email_to']) ? $settings['email_to'] : get_option('admin_email');
+        $to_raw = !empty($settings['email_to']) ? $settings['email_to'] : get_option('admin_email');
+        $to_candidates = is_array($to_raw) ? $to_raw : preg_split('/[\s,]+/', (string) $to_raw, -1, PREG_SPLIT_NO_EMPTY);
+        $to_list = [];
+        foreach ($to_candidates as $addr) {
+            $e = sanitize_email((string) $addr);
+            if ($e && is_email($e)) {
+                $to_list[] = $e;
+            }
+        }
+        $to = !empty($to_list) ? implode(',', $to_list) : sanitize_email((string) get_option('admin_email'));
+
         $subject = !empty($settings['email_subject']) ? $settings['email_subject'] : esc_html__('New Form Submission', 'elemacy');
+        $subject = sanitize_text_field(str_replace(["\r", "\n"], '', (string) $subject));
+
         $content = !empty($settings['email_content']) ? $settings['email_content'] : '[all-fields]';
         $from_name = !empty($settings['email_from_name']) ? $settings['email_from_name'] : get_bloginfo('name');
+        $from_name = sanitize_text_field(str_replace(["\r", "\n"], '', wp_strip_all_tags((string) $from_name)));
+
         $from_email = !empty($settings['email_from']) ? $settings['email_from'] : get_option('admin_email');
+        $from_email = sanitize_email((string) $from_email);
+        if (!is_email($from_email)) {
+            $from_email = sanitize_email((string) get_option('admin_email'));
+        }
         $reply_to = '';
 
         // Handle [all-fields] and specific field shortcodes
@@ -133,12 +151,16 @@ class AjaxFormController
                 if ($field['label'] === $settings['email_reply_to'] || 
                     (string) $index === (string) $settings['email_reply_to'] || 
                     (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])) {
-                    $reply_to = isset($form_data[$index]) ? $form_data[$index] : '';
+                    $reply_to = isset($form_data[$index]) ? sanitize_email((string) $form_data[$index]) : '';
                     break;
                 }
             }
-            if (empty($reply_to) && is_email($settings['email_reply_to'])) {
-                $reply_to = $settings['email_reply_to'];
+            if (empty($reply_to)) {
+                $reply_candidate = sanitize_email((string) $settings['email_reply_to']);
+                
+                if ($reply_candidate && is_email($reply_candidate)) {
+                    $reply_to = $reply_candidate;
+                }
             }
         }
 
@@ -148,7 +170,7 @@ class AjaxFormController
         ];
 
         if (!empty($reply_to) && is_email($reply_to)) {
-            $headers[] = 'Reply-To: ' . $reply_to;
+            $headers[] = 'Reply-To: ' . sanitize_email($reply_to);
         }
 
         return wp_mail($to, $subject, $content, $headers);

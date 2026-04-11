@@ -9,7 +9,7 @@
  * Author URI: https://techimium.com
  * Text Domain: elemacy
  * Domain Path: /languages
- * License: GPLv2
+ * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.0
  * Requires PHP: 7.4
