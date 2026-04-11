@@ -3,11 +3,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Core\Middlewares\API\AdminMiddleware;
 use Elemacy\Core\Route;
 use Elemacy\Modules\ThemeBuilder\Controllers\ThemeBuilderController;
 
-Route::get('/theme-builder/templates', [ThemeBuilderController::class, 'index']);
-Route::get('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'show']);
-Route::post('/theme-builder/templates', [ThemeBuilderController::class, 'store']);
-Route::put('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'update']);
-Route::delete('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'destroy']);
+Route::get('/theme-builder/templates', [ThemeBuilderController::class, 'index'])->middleware(AdminMiddleware::class);
+Route::get('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'show'])->middleware(AdminMiddleware::class);
+Route::post('/theme-builder/templates', [ThemeBuilderController::class, 'store'])->middleware(AdminMiddleware::class);
+Route::put('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'update'])->middleware(AdminMiddleware::class);
+Route::delete('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'destroy'])->middleware(AdminMiddleware::class);
