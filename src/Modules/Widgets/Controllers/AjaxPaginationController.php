@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Controllers;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;

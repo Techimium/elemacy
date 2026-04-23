@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Validation\Rules;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Constants\DateTimeFormats;
 use DateTime;
 

@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\DTO;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\DTO\DTO;
 
 class WidgetDTO extends DTO

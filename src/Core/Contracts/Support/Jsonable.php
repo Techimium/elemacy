@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Contracts\Support;
 
+defined('ABSPATH') || exit;
+
 interface Jsonable
 {
     /**

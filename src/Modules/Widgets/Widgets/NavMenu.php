@@ -1073,7 +1073,7 @@ class NavMenu extends BaseWidget
 
                 <nav <?php $this->print_render_attribute_string('nav'); ?>>
                     <?php
-                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nav_menu() with echo=false returns sanitized HTML
                     echo $menu_html;
                     ?>
                 </nav>

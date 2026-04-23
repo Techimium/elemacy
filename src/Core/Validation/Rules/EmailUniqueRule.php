@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Validation\Rules;
 
+defined('ABSPATH') || exit;
+
 /**
  * Validates that an email is unique in the WordPress users table.
  * Supports excluding current user during updates.

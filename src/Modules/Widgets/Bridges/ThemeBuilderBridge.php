@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Bridges;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
 

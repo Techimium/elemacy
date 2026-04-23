@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
 use Elemacy\Modules\DynamicTags\DynamicTags;
 use Elemacy\Modules\Widgets\Widgets;

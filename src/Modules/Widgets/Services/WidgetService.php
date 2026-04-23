@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Modules\Widgets\DTO\WidgetDTO;
 use Elemacy\Support\Utils;
 use Exception;

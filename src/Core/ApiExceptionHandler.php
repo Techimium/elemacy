@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Http\Response;
 use Elemacy\Core\Exceptions\ValidationException;
 use Exception;

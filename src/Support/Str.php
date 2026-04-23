@@ -2,6 +2,8 @@
 
 namespace Elemacy\Support;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Sanitizer;
 /**
  * A utility class for string manipulation and formatting.

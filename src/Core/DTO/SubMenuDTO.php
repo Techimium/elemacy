@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\DTO;
 
+defined('ABSPATH') || exit;
+
 class SubMenuDTO extends DTO
 {
     /**

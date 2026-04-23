@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\ThemeBuilder\Requests;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Sanitizer;
 

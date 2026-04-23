@@ -2,6 +2,8 @@
 
 namespace Elemacy\Support;
 
+defined('ABSPATH') || exit;
+
 class Utils
 {
     public static function get_plugin_version()

@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
+defined('ABSPATH') || exit;
+
 use Elementor\Widget_Base;
 
 abstract class BaseWidget extends Widget_Base

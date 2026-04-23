@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\DynamicTags;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Module;
 use Elemacy\Modules\DynamicTags\Services\TagManager;
 

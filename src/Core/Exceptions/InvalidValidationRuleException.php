@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Exceptions;
 
+defined('ABSPATH') || exit;
+
 use Exception;
 
 /**

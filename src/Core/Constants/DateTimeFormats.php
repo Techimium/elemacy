@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Constants;
 
+defined('ABSPATH') || exit;
+
 class DateTimeFormats
 {
     const DB_DATE = 'Y-m-d';

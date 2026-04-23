@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\ThemeBuilder\DTO;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\DTO\DTO;
 
 class CreateTemplateDTO extends DTO

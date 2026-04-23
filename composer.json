@@ -17,6 +17,6 @@
         }
     },
     "require-dev": {
-        "wp-coding-standards/wpcs": "3.0"
+        "wp-coding-standards/wpcs": "^3.0"
     }
 }

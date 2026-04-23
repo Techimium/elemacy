@@ -1,5 +1,5 @@
-=== Elemacy – Elementor Addons: Theme Builder, Loop Builder, Form Builder & Dynamic Tags ===
-Contributors: techimium
+=== Elemacy ===
+Contributors: techimium, mdashraful
 Tags: elementor, elementor addons, theme builder, form builder, dynamic tags
 Requires at least: 6.0
 Tested up to: 6.9

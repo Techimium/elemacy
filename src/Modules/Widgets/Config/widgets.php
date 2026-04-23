@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;

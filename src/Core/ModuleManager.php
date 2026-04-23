@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 use WP_Error;
 use Elemacy\Core\Constants\OptionKeys;
 

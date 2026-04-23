@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Contracts;
 
+defined('ABSPATH') || exit;
+
 /**
  * Contract for validation rule.
  *

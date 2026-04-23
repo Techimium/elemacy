@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 abstract class Module
 {
 	abstract public function get_name(): string;

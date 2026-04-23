@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\ThemeBuilder\Controllers;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;

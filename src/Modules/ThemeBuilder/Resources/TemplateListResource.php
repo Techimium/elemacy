@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\ThemeBuilder\Resources;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Resource;
 
 class TemplateListResource extends Resource

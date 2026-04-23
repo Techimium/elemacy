@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\DTO;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Contracts\Request;
 
 class DTO
