@@ -34,8 +34,18 @@ class PostContent extends Tag
 
 	public function render()
 	{
-		$content = !empty(get_the_content()) ? get_the_content() : $this->get_settings('fallback');
+		$content = get_the_content();
 
-		echo wp_kses_post($content);
+		if (empty($content)) {
+			$content = $this->get_settings('fallback');
+		}
+
+		$content = apply_filters('the_content', $content);
+
+		if (empty($content)) {
+			return;
+		}
+
+		echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }

@@ -631,6 +631,13 @@ class LoopGrid extends BaseWidget
         echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr(); remaining HTML structure is hardcoded
         echo '<div class="elemacy-loop-grid">';
 
+        // WP 6.9+ rejects styles whose dependencies aren't yet registered (elementor-post-{id}
+        // depends on elementor-frontend). register_styles() is normally on wp_enqueue_scripts
+        // but may not have run yet in non-Elementor host pages or AJAX contexts.
+        if (!wp_style_is('elementor-frontend', 'registered')) {
+            Plugin::instance()->frontend->register_styles();
+        }
+
         while ($query->have_posts()) {
             $query->the_post();
 

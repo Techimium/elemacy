@@ -79,7 +79,7 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                         </EmptyHeader>
                         <EmptyContent>
                             <div className="flex gap-2">
-                                <Button onClick={() => setIsOpen(true)}>{__('Create Template', 'elemacy')}</Button>
+                                <Button className="cursor-pointer" onClick={() => setIsOpen(true)}>{__('Create Template', 'elemacy')}</Button>
                             </div>
                         </EmptyContent>
                     </Empty>

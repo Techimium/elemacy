@@ -8,7 +8,8 @@ import { TemplateForm } from "./template-form"
 import { type CreateTemplate, type Template } from "@/features/theme-builder/schemas/template"
 import { useCreateTemplateMutation } from "@/features/theme-builder/services/template"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 
 interface CreateTemplateModalProps {
     onSuccess?: (template: Template) => void
@@ -19,6 +20,10 @@ interface CreateTemplateModalProps {
 export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = false }: CreateTemplateModalProps) {
     const [isCreateOpen, setIsCreateOpen] = useState(isOpen);
     const { mutateAsync: createTemplate, isPending } = useCreateTemplateMutation();
+    
+    useEffect(() => {
+        setIsCreateOpen(isOpen)
+    },  [isOpen])
 
     const onSubmit = async (template: CreateTemplate) => {
         createTemplate(template, {
@@ -32,6 +37,7 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
     return (
         <>
             <Button
+                className="cursor-pointer"
                 size="lg"
                 onClick={() => setIsCreateOpen(true)}
                 disabled={isDisabled}
@@ -41,10 +47,12 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <DialogTitle asChild><div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div></DialogTitle>
+                        <DialogDescription asChild>
+                            <div className="text-sm text-muted-foreground">
                             {__('Enter the details for your new theme template.', 'elemacy')}
                         </div>
+                        </DialogDescription>
                     </DialogHeader>
                     <TemplateForm onSubmit={onSubmit} isLoading={isPending} />
                 </DialogContent>

@@ -123,7 +123,6 @@ class TemplateService
     {
         $post_data = [
             'post_title' => isset($dto->title) ? sanitize_text_field($dto->title) : '',
-            'post_content' => isset($dto->content) ? wp_kses_post($dto->content) : '',
             'post_status' => isset($dto->status) ? sanitize_text_field($dto->status) : 'publish',
             'post_type' => TemplatePostType::POST_TYPE,
         ];
