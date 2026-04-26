@@ -21,17 +21,18 @@ abstract class Module
 
 	abstract public function init();
 
-	public function register_routes()
-	{
-	}
+	public function register_routes() {}
 
-	public function register_assets()
-	{
-	}
+	public function register_assets() {}
 
 	public function is_active(): bool
 	{
 		$active_modules = get_option('elemacy_active_modules', []);
+
+		if (empty($active_modules)) {
+			return true;
+		}
+
 		return in_array($this->get_name(), $active_modules, true);
 	}
 

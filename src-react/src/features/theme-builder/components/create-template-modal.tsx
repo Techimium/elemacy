@@ -8,28 +8,23 @@ import { TemplateForm } from "./template-form"
 import { type CreateTemplate, type Template } from "@/features/theme-builder/schemas/template"
 import { useCreateTemplateMutation } from "@/features/theme-builder/services/template"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
 
 interface CreateTemplateModalProps {
     onSuccess?: (template: Template) => void
     isOpen?: boolean
     isDisabled?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = false }: CreateTemplateModalProps) {
-    const [isCreateOpen, setIsCreateOpen] = useState(isOpen);
+export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = false, onOpenChange }: CreateTemplateModalProps) {
     const { mutateAsync: createTemplate, isPending } = useCreateTemplateMutation();
-    
-    useEffect(() => {
-        setIsCreateOpen(isOpen)
-    },  [isOpen])
 
     const onSubmit = async (template: CreateTemplate) => {
         createTemplate(template, {
             onSuccess: (data) => {
                 onSuccess?.(data);
-                setIsCreateOpen(false);
+                onOpenChange?.(false);
             }
         });
     }
@@ -39,12 +34,12 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
             <Button
                 className="cursor-pointer"
                 size="lg"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => onOpenChange?.(true)}
                 disabled={isDisabled}
             >
                 {__('Create New Template', 'elemacy')}
             </Button>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle asChild><div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div></DialogTitle>

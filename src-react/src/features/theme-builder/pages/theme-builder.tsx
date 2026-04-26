@@ -35,7 +35,7 @@ function ThemeBuilder() {
                 </div>
               </div>
 
-              <CreateTemplateModal isOpen={isCreateOpen} isDisabled={!module?.is_active} />
+              <CreateTemplateModal isOpen={isCreateOpen} isDisabled={!module?.is_active} onOpenChange={setIsCreateOpen} />
             </Card>
             {module?.is_active ? <TemplateList setIsOpen={setIsCreateOpen} /> : <InactiveModule />}
           </>
