@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Validation\Rules;
 
+defined('ABSPATH') || exit;
+
 /**
  * Validates that the given value is a valid url.
  *

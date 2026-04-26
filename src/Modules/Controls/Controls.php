@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\Controls;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Module;
 use Elemacy\Modules\Controls\Services\CustomCssManager;
 use Elemacy\Modules\Controls\Services\FrontendAssets;

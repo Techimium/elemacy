@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\DynamicTags\Services;
 
+defined('ABSPATH') || exit;
+
 class Acf
 {
     public static function get_field_value($key, $post_id = false)

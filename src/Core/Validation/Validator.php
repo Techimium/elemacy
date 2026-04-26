@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Validation;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Constants\Validation;
 use Elemacy\Core\Contracts\Rule;
 use Elemacy\Core\Exceptions\InvalidValidationRuleException;

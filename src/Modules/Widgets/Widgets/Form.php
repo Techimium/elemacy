@@ -933,8 +933,8 @@ class Form extends BaseWidget
         ]);
 
         ?>
-        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
                 <input type="hidden" name="action" value="elemacy_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
                 <input type="hidden" name="post_id" value="<?php echo esc_attr(get_the_ID()); ?>">
@@ -967,7 +967,7 @@ class Form extends BaseWidget
                         $this->add_render_attribute('input_' . $index, 'aria-required', 'true');
                     }
                     ?>
-                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
                         <?php if ($settings['labels_display'] === 'yes' && !empty($field['label'])) : ?>
                             <label class="elemacy-field-label" for="<?php echo esc_attr($field_id); ?>">
                                 <?php echo esc_html($field['label']); ?>
@@ -978,13 +978,13 @@ class Form extends BaseWidget
                         switch ($field['type']) {
                             case 'textarea':
                                 ?>
-                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> rows="5"></textarea>
+                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?> rows="5"></textarea>
                                 <?php
                                 break;
                             case 'select':
                                 $options = explode("\n", $field['options']);
                                 ?>
-                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
                                     <?php foreach ($options as $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
@@ -1015,7 +1015,7 @@ class Form extends BaseWidget
                                                 name="form_field[<?php echo esc_attr($index); ?>]<?php echo 'checkbox' === $type ? '[]' : ''; ?>" 
                                                 id="<?php echo esc_attr($sub_id); ?>" 
                                                 value="<?php echo esc_attr(trim($value)); ?>"
-                                                <?php echo $field['required'] ? 'required' : ''; ?>
+                                                <?php echo esc_attr( $field['required'] ? 'required' : '' ); ?>
                                             >
                                             <label for="<?php echo esc_attr($sub_id); ?>"><?php echo esc_html(trim($label)); ?></label>
                                         </div>
@@ -1025,7 +1025,7 @@ class Form extends BaseWidget
                                 break;
                             default:
                                 ?>
-                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
                                 <?php
                                 break;
                         }

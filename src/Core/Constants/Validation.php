@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Constants;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Validation\Rules\ArrayRule;
 use Elemacy\Core\Validation\Rules\BooleanRule;
 use Elemacy\Core\Validation\Rules\DateFormatRule;

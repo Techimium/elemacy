@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 
@@ -26,7 +28,7 @@ class AdminMenu
             add_menu_page(
                 $menu->page_title,
                 $menu->menu_title,
-                $menu->capabilty,
+                $menu->capability,
                 $menu->menu_slug,
                 $menu->callback ? $menu->callback : static::render(),
                 $menu->icon_url,
@@ -39,7 +41,7 @@ class AdminMenu
                 $submenu->parent_slug,
                 $submenu->page_title,
                 $submenu->menu_title,
-                $submenu->capabilty,
+                $submenu->capability,
                 $submenu->parent_slug . '#' . $submenu->menu_slug,
                 $submenu->callback ? $submenu->callback : static::render(),
                 $submenu->position

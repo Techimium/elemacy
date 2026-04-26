@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Contracts\Support\Arrayable;
 use Elemacy\Core\Contracts\Support\Jsonable;
 

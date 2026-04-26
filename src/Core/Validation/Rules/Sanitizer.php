@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Validation\Rules;
 
+defined('ABSPATH') || exit;
+
 /**
  * Rule to ensure the minium value.
  *

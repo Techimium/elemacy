@@ -42,22 +42,6 @@ class SiteResponse
     }
 
     /**
-     * Send a plain HTML response (for non-AJAX requests)
-     *
-     * @param string $html HTML content
-     * @param int $status_code HTTP status code
-     * @return void
-     */
-    public function send_html($html, $status_code = 200)
-    {
-        if ($status_code !== 200) {
-            http_response_code($status_code);
-        }
-        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped  -- output is already escaped. this is intentional
-        exit;
-    }
-
-    /**
      * Send a redirect response
      *
      * @param string $url Redirect URL

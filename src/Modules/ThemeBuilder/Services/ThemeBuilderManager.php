@@ -1,4 +1,5 @@
 <?php
+
 namespace Elemacy\Modules\ThemeBuilder\Services;
 
 if (!defined('ABSPATH')) {
@@ -31,7 +32,6 @@ class ThemeBuilderManager
     public function register_hooks()
     {
         add_filter('template_include', [$this, 'override_template'], 99);
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_template_assets']);
 
         CompatibilityManager::instance()->register_hooks();
     }
@@ -192,7 +192,8 @@ class ThemeBuilderManager
      */
     public function render_template($post_id)
     {
-        echo wp_kses_post($this->get_template_content($post_id));
+        // PHPCS - already escaped by Elementor.
+        echo $this->get_template_content($post_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**
@@ -223,27 +224,6 @@ class ThemeBuilderManager
         }
 
         $this->render_template($id);
-    }
-
-    /**
-     * Enqueue template assets.
-     * 
-     * @return void
-     */
-    public function enqueue_template_assets()
-    {
-        $template_ids = [
-            $this->get_header_id(),
-            $this->get_footer_id(),
-            $this->get_location_template_id(),
-        ];
-
-        foreach ($template_ids as $id) {
-            if ($id) {
-                $css_file = new \Elementor\Core\Files\CSS\Post($id);
-                $css_file->enqueue();
-            }
-        }
     }
 
     /**

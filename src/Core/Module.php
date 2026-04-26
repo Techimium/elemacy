@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core;
 
+defined('ABSPATH') || exit;
+
 abstract class Module
 {
 	abstract public function get_name(): string;
@@ -19,17 +21,14 @@ abstract class Module
 
 	abstract public function init();
 
-	public function register_routes()
-	{
-	}
+	public function register_routes() {}
 
-	public function register_assets()
-	{
-	}
+	public function register_assets() {}
 
 	public function is_active(): bool
 	{
 		$active_modules = get_option('elemacy_active_modules', []);
+
 		return in_array($this->get_name(), $active_modules, true);
 	}
 

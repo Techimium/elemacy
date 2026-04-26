@@ -2,6 +2,8 @@
 
 namespace Elemacy\Core\Controllers;
 
+defined('ABSPATH') || exit;
+
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
 use Elemacy\Core\Elemacy;
