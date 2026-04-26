@@ -29,6 +29,7 @@ class Elemacy
 
 	public function init()
 	{
+		$this->load_textdomain();
 		$this->check_requirements();
 		$this->init_core_components();
 		$this->load_modules();
@@ -38,6 +39,11 @@ class Elemacy
 		$this->register_rest_routes();
 		$this->register_ajax_routes();
 		$this->register_admin_menus();
+	}
+
+	public function load_textdomain()
+	{
+		load_plugin_textdomain('elemacy', false, dirname(ELEMACY_PLUGIN_BASE) . '/languages');
 	}
 
 	public function init_core_components()

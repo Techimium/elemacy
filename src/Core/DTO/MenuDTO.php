@@ -19,7 +19,7 @@ class MenuDTO extends DTO
     /**
      * @var string
      */
-    public $capabilty = 'manage_options';
+    public $capability = 'manage_options';
 
     /**
      * @var string

@@ -29,10 +29,6 @@ abstract class Module
 	{
 		$active_modules = get_option('elemacy_active_modules', []);
 
-		if (empty($active_modules)) {
-			return true;
-		}
-
 		return in_array($this->get_name(), $active_modules, true);
 	}
 

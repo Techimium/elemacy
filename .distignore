@@ -1,0 +1,31 @@
+# Files and directories excluded from WordPress.org SVN deployment.
+# Before packaging, run: composer install --no-dev --optimize-autoloader
+# That removes WPCS/phpcs from vendor/ leaving only the autoloader.
+
+# React build source (built output is already in assets/admin/)
+src-react/
+
+# PHP dev tooling config
+phpcs.xml
+.phpcs.xml
+composer.json
+composer.lock
+
+# JS tooling (should never be committed but listed as safety net)
+node_modules/
+package.json
+package-lock.json
+yarn.lock
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Editor / OS
+.editorconfig
+.DS_Store
+Thumbs.db
+
+# Source maps
+*.map
