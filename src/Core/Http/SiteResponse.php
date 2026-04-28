@@ -54,8 +54,6 @@ class SiteResponse
         exit;
     }
 
-
-
     /**
      * Legacy method for backward compatibility
      *
