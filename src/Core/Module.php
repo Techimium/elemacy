@@ -42,6 +42,16 @@ abstract class Module
 		return false;
 	}
 
+	public function is_pro(): bool
+	{
+		return false;
+	}
+
+	public function get_badge(): ?string
+	{
+		return null;
+	}
+
 	protected function get_option(string $key, $default_value = null)
 	{
 		$option_key = 'elemacy_' . $this->get_name() . '_' . $key;

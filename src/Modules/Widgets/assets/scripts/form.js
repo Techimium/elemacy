@@ -18,7 +18,7 @@
 
             // Add action for AJAX router if not already there
             if (!formData.has('action')) {
-                formData.append('action', 'elemacy_form_submit');
+                formData.append('action', 'elemacy_widgets_form_submit');
             }
 
             $.ajax({

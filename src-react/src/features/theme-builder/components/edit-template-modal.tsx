@@ -5,6 +5,9 @@ import { type Template, type UpdateTemplate } from "../schemas/template";
 import { useUpdateTemplateMutation } from "../services/template";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import { Slot } from "@/components/slot";
+import { Slots, type SlotPropsMap } from "@/lib/slots";
+import { ProFeaturePlaceholder } from "@/components/pro-feature-placeholder";
 
 interface EditTemplateModalProps {
   template: Template | null;
@@ -59,6 +62,16 @@ export function EditTemplateModal({
           onSubmit={onSubmit}
           isLoading={isPending}
           submitLabel={__("Update Template", "elemacy")}
+        />
+        <Slot<SlotPropsMap[typeof Slots.TEMPLATE_CONDITIONS]>
+          name={Slots.TEMPLATE_CONDITIONS}
+          slotProps={{ templateId: template.id }}
+          fallback={
+            <ProFeaturePlaceholder
+              title={__('Display Conditions', 'elemacy')}
+              description={__('Control where this template appears — target specific pages, post types, or categories.', 'elemacy')}
+            />
+          }
         />
         <Button
           onClick={() => window.open(template.edit_with_elementor, "_blank")}

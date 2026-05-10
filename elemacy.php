@@ -16,6 +16,7 @@
  */
 
 use Elemacy\Core\Elemacy;
+use Elemacy\Core\Constants\OptionKeys;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -29,5 +30,10 @@ define('ELEMACY_PATH', plugin_dir_path(ELEMACY_FILE));
 define('ELEMACY_URL', plugin_dir_url(ELEMACY_FILE));
 
 require_once __DIR__ . '/vendor/autoload.php';
+
+register_activation_hook(ELEMACY_FILE, function () {
+    // add_option won't overwrite an existing value, so re-activation preserves user settings.
+    add_option(OptionKeys::ACTIVE_MODULES, ['theme-builder', 'widgets']);
+});
 
 Elemacy::boot();

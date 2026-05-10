@@ -124,12 +124,34 @@ class ModuleManager
 		foreach ($sorted_modules as $module) {
 			$module_name = $module->get_name();
 			if (!isset($this->initialized_modules[$module_name])) {
+				if (!$this->has_active_dependencies($module)) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							'Module "%s" has unmet dependencies and will not be initialized. Ensure all required modules are active.',
+							esc_html($module_name)
+						),
+						ELEMACY_VERSION
+					);
+					continue;
+				}
 				$module->init();
 				$module->register_routes();
 				$module->register_assets();
 				$this->initialized_modules[$module_name] = true;
 			}
 		}
+	}
+
+	private function has_active_dependencies(Module $module): bool
+	{
+		foreach ($module->get_dependencies() as $dependency) {
+			if (!isset($this->active_modules[$dependency])) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	protected function check_dependencies(string $module_name)

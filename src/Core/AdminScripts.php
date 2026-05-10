@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
@@ -30,12 +31,16 @@ class AdminScripts
             $this->enqueue_production_scripts();
         }
 
-        wp_localize_script($handle, 'elemacy', [
+        $script_data = apply_filters(Hooks::ADMIN_SCRIPT_DATA, [
             'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
         ]);
+
+        wp_localize_script($handle, 'elemacy', $script_data);
+
+        do_action(Hooks::ENQUEUE_ADMIN_SCRIPTS);
     }
 
     public function enqueue_production_scripts()

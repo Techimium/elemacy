@@ -60,7 +60,7 @@
                 url: window.elemacy.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'elemacy_loop_grid_pagination',
+                    action: 'elemacy_widgets_loop_grid_pagination',
                     _wpnonce: window.elemacy.nonce,
                     paged: paged,
                     settings: settingsRaw

@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Hooks;
 
 class Elemacy
 {
@@ -39,6 +40,8 @@ class Elemacy
 		$this->register_rest_routes();
 		$this->register_ajax_routes();
 		$this->register_admin_menus();
+
+		do_action(Hooks::LOADED);
 	}
 
 	public function load_textdomain()
@@ -69,6 +72,8 @@ class Elemacy
 				$this->module_manager->register($module);
 			}
 		}
+
+		do_action(Hooks::REGISTER_MODULES, $this->module_manager);
 	}
 
 	protected function init_modules()
