@@ -6,8 +6,15 @@ use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 use Elemacy\Modules\Widgets\Widgets\Form;
+use Elemacy\Modules\Widgets\Widgets\SiteLogo;
 
 return [
+    [
+        'name'  => 'elemacy-site-logo',
+        'title' => __('Site Logo', 'elemacy'),
+        'icon'  => 'image',
+        'class' => SiteLogo::class,
+    ],
     [
         'name' => 'elemacy_nav_menu',
         'title' => __('Elemacy Nav Menu', 'elemacy'),
