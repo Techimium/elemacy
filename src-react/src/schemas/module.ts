@@ -7,7 +7,6 @@ const ModuleSchema = z.object({
     description: z.string(),
     is_active: z.boolean(),
     is_headless: z.boolean(),
-    dependencies: z.array(z.string()),
 });
 
 type Module = z.infer<typeof ModuleSchema>;

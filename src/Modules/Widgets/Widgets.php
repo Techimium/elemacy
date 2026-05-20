@@ -34,11 +34,6 @@ class Widgets extends Module
         return __('Custom Elementor widgets to enhance your website.', 'elemacy');
     }
 
-    public function get_dependencies(): array
-    {
-        return [];
-    }
-
     public function init(): void
     {
         $this->register_admin_menu();

@@ -1,10 +1,12 @@
 <?php
+
 namespace Elemacy\Core;
 
 if (!defined('ABSPATH')) {
-    exit;
+	exit;
 }
 
+use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
@@ -16,6 +18,7 @@ class Elemacy
 
 	protected function __construct()
 	{
+		$this->activation_actions();
 		add_action('plugins_loaded', [$this, 'init']);
 	}
 
@@ -26,6 +29,13 @@ class Elemacy
 		}
 
 		return static::$instance;
+	}
+
+	public function activation_actions()
+	{
+		register_activation_hook(ELEMACY_FILE, function () {
+			add_option(OptionKeys::ACTIVE_MODULES, ['theme-builder', 'widgets']);
+		});
 	}
 
 	public function init()
@@ -51,16 +61,21 @@ class Elemacy
 
 	public function init_core_components()
 	{
-		new AdminMenu();
 		new AdminScripts();
 		new FrontendScripts();
 
 		$this->module_manager = new ModuleManager();
 	}
 
+	public function get_module_manager(): ModuleManager
+	{
+		return $this->module_manager;
+	}
+
 	protected function load_modules()
 	{
 		$modules = require_once ELEMACY_PATH . 'src/Config/modules.php';
+
 		foreach ($modules as $module_class) {
 			if (!class_exists($module_class)) {
 				continue;
@@ -131,11 +146,6 @@ class Elemacy
 		add_action('admin_menu', function () {
 			AdminMenu::register();
 		});
-	}
-
-	public function get_module_manager(): ModuleManager
-	{
-		return $this->module_manager;
 	}
 
 	public function check_requirements(): void

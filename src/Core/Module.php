@@ -14,11 +14,6 @@ abstract class Module
 
 	abstract public function get_description(): string;
 
-	public function get_dependencies(): array
-	{
-		return [];
-	}
-
 	abstract public function init();
 
 	public function register_routes() {}

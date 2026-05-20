@@ -4,9 +4,11 @@ namespace Elemacy\Core\Controllers;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Elemacy;
+use Elemacy\Core\Exceptions\InvalidRoutActionException;
+use Elemacy\Core\Exceptions\ModuleNotFoundException;
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
-use Elemacy\Core\Elemacy;
 
 class ModuleController
 {
@@ -22,15 +24,14 @@ class ModuleController
                 'title' => $module->get_title(),
                 'icon' => $module->get_icon(),
                 'description' => $module->get_description(),
-                'dependencies' => $module->get_dependencies(),
                 'is_active' => $module_manager->is_active($module->get_name()),
-                'is_headless' => $module->is_headless()
+                'is_headless' => $module->is_headless(),
             ];
         }
 
         return Response::create()->json([
             'data' => $data,
-            'message' => 'Modules fetched successfully'
+            'message' => 'Modules fetched successfully',
         ]);
     }
 
@@ -40,9 +41,10 @@ class ModuleController
         $module = $module_manager->get_module($name);
 
         if (!$module) {
-            return Response::create()->json([
-                'message' => 'Module not found'
-            ], Response::NOT_FOUND);
+            throw new ModuleNotFoundException(
+                sprintf(__('Module "%s" not found.', 'elemacy'), $name),
+                Response::NOT_FOUND
+            );
         }
 
         return Response::create()->json([
@@ -50,37 +52,30 @@ class ModuleController
                 'name' => $module->get_name(),
                 'title' => $module->get_title(),
                 'description' => $module->get_description(),
-                'dependencies' => $module->get_dependencies(),
-                'is_active' => $module_manager->is_active($module->get_name())
+                'is_active' => $module_manager->is_active($module->get_name()),
             ],
-            'message' => 'Module fetched successfully'
+            'message' => 'Module fetched successfully',
         ]);
     }
 
     public function toggle(Request $request, $name)
     {
         $action = $request->get_string('action');
-
         $module_manager = Elemacy::get_instance()->get_module_manager();
 
         if ($action === 'enable') {
-            $result = $module_manager->enable_module($name);
+            $module_manager->enable_module($name);
         } elseif ($action === 'disable') {
-            $result = $module_manager->disable_module($name);
+            $module_manager->disable_module($name);
         } else {
-            return Response::create()->json([
-                'message' => 'Invalid action'
-            ], Response::BAD_REQUEST);
-        }
-
-        if (is_wp_error($result)) {
-            return Response::create()->json([
-                'message' => $result->get_error_message()
-            ], Response::UNPROCESSABLE_ENTITY);
+            throw new InvalidRoutActionException(
+                __('Invalid action.', 'elemacy'),
+                Response::BAD_REQUEST
+            );
         }
 
         return Response::create()->json([
-            'message' => 'Module toggled successfully'
+            'message' => 'Module toggled successfully',
         ]);
     }
 }
