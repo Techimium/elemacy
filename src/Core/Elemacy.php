@@ -41,6 +41,7 @@ class Elemacy
 	public function init()
 	{
 		$this->load_textdomain();
+		$this->handle_version_update();
 		$this->check_requirements();
 		$this->init_core_components();
 		$this->load_modules();
@@ -57,6 +58,21 @@ class Elemacy
 	public function load_textdomain()
 	{
 		load_plugin_textdomain('elemacy', false, dirname(ELEMACY_PLUGIN_BASE) . '/languages');
+	}
+
+	function handle_version_update()
+	{
+		$installed_version = get_option(OptionKeys::DB_VERSION, false);
+
+		if ($installed_version === ELEMACY_VERSION) {
+			return;
+		}
+
+		if (version_compare($installed_version, ELEMACY_VERSION, '<')) {
+			// @todo: implement later if needed
+		}
+
+		update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
 	}
 
 	public function init_core_components()
