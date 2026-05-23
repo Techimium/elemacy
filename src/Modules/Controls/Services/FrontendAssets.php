@@ -2,32 +2,35 @@
 
 namespace Elemacy\Modules\Controls\Services;
 
-use Elemacy\Support\Utils;
-
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 
 class FrontendAssets
 {
-    public function __construct()
+    protected ControlRegistry $registry;
+
+    public function __construct(ControlRegistry $registry)
     {
+        $this->registry = $registry;
+
         add_action('elementor/editor/after_enqueue_scripts', [$this, 'register_assets']);
     }
 
-    /**
-     * Register (not necessarily enqueue) frontend styles/scripts.
-     * Widgets can declare dependencies by handle to keep loading tight and conflict‑free.
-     */
     public function register_assets(): void
     {
-        wp_enqueue_script(
-            'elemacy-custom-css-editor',
-            Utils::get_plugin_url('src/Modules/Controls/assets/scripts/custom-css.js'),
-            ['jquery', 'elementor-editor'],
-            ELEMACY_VERSION,
-            true
-        );
+        foreach ($this->registry->all() as $control) {
+            foreach ($control->get_editor_assets() as $asset) {
+                if (empty($asset['handle']) || empty($asset['src'])) {
+                    continue;
+                }
+
+                wp_enqueue_script(
+                    $asset['handle'],
+                    $asset['src'],
+                    $asset['deps'] ?? [],
+                    $asset['version'] ?? ELEMACY_VERSION,
+                    $asset['in_footer'] ?? true
+                );
+            }
+        }
     }
 }
-
