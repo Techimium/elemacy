@@ -170,7 +170,7 @@ class ThemeBuilderManager
             $template = $templates[0];
         }
 
-        return apply_filters(Hooks::THEME_BUILDER_RESOLVE_TEMPLATE, $template, $type);
+        return apply_filters(Hooks::THEME_BUILDER_RESOLVE_TEMPLATE_FILTER, $template, $type);
     }
 
     /**
@@ -299,6 +299,6 @@ class ThemeBuilderManager
             }
         }
 
-        return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES, $types);
+        return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
     }
 }

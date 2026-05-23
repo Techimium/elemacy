@@ -38,7 +38,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
                 locate_template($templates, true, true);
 
                 if (!did_action('wp_body_open')) {
-                    do_action(Hooks::THEME_BUILDER_FALLBACK_HEADER);
+                    do_action(Hooks::THEME_BUILDER_FALLBACK_HEADER_ACTION);
                 }
             }, 1);
 
@@ -54,7 +54,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
              * This hook is not triggered automatically; theme adapters (or users)
              * can call it if needed without breaking markup.
              */
-            add_action(Hooks::THEME_BUILDER_FALLBACK_HEADER, function () use ($manager) {
+            add_action(Hooks::THEME_BUILDER_FALLBACK_HEADER_ACTION, function () use ($manager) {
                 echo '<div class="elemacy-force-stretched-header">';
                 $manager->render_header();
                 echo '</div>';

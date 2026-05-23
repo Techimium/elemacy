@@ -31,7 +31,7 @@ class AdminScripts
             $this->enqueue_production_scripts();
         }
 
-        $script_data = apply_filters(Hooks::ADMIN_SCRIPT_DATA, [
+        $script_data = apply_filters(Hooks::ADMIN_SCRIPT_DATA_FILTER, [
             'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
@@ -40,7 +40,7 @@ class AdminScripts
 
         wp_localize_script($handle, 'elemacy', $script_data);
 
-        do_action(Hooks::ENQUEUE_ADMIN_SCRIPTS);
+        do_action(Hooks::ENQUEUE_ADMIN_SCRIPTS_ACTION);
     }
 
     public function enqueue_production_scripts()

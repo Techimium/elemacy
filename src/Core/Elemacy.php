@@ -57,7 +57,7 @@ class Elemacy
 		$this->register_ajax_routes();
 		$this->register_admin_menus();
 
-		do_action(Hooks::LOADED);
+		do_action(Hooks::LOADED_ACTION);
 	}
 
 	public function load_textdomain()
@@ -109,7 +109,7 @@ class Elemacy
 			}
 		}
 
-		do_action(Hooks::REGISTER_MODULES, $this->module_manager);
+		do_action(Hooks::REGISTER_MODULES_ACTION, $this->module_manager);
 	}
 
 	protected function init_modules()
