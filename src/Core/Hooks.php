@@ -19,7 +19,4 @@ final class Hooks
     const THEME_BUILDER_TEMPLATE_TYPES   = 'elemacy/theme_builder/template_types';
     const THEME_BUILDER_FALLBACK_HEADER  = 'elemacy/theme_builder/fallback_header';
 
-    // Controls
-    const REGISTER_CONTROLS = 'elemacy/register_controls';
-
 }
