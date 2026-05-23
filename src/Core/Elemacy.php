@@ -34,7 +34,12 @@ class Elemacy
 	public function activation_actions()
 	{
 		register_activation_hook(ELEMACY_FILE, function () {
-			add_option(OptionKeys::ACTIVE_MODULES, ['theme-builder', 'widgets']);
+			add_option(OptionKeys::ACTIVE_MODULES, [
+				'theme-builder',
+				'widgets',
+				'custom_css',
+				'dynamic-tags'
+			]);
 		});
 	}
 
@@ -125,6 +130,7 @@ class Elemacy
 			$plugin_menu_dto->page_title = __('Elemacy', 'elemacy');
 			$plugin_menu_dto->menu_title = __('Elemacy', 'elemacy');
 			$plugin_menu_dto->menu_slug = 'elemacy';
+			$plugin_menu_dto->icon_url = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTM0IiBoZWlnaHQ9IjEzNCIgdmlld0JveD0iMCAwIDEzNCAxMzQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMzQgMTI5TDEzMy45OTMgMTI5LjI1N0MxMzMuODU5IDEzMS44OTkgMTMxLjY3NSAxMzQgMTI5IDEzNEg1QzIuMjM4NTggMTM0IDAgMTMxLjc2MSAwIDEyOVY4Ni44OTA2SDE1VjExOUgxMTlWNTkuNjcxOUgxMzRWMTI5Wk0xMjkuMjU3IDAuMDA2ODM1OTRDMTMxLjg5OSAwLjE0MDUzIDEzNCAyLjMyNDcyIDEzNCA1VjQ2LjY3MTlIMTE5VjE1SDE1VjczLjg5MDZIMFY1QzEuOTk3MzdlLTA2IDIuMzI0NzIgMi4xMDExMSAwLjE0MDUyOSA0Ljc0MzE2IDAuMDA2ODM1OTRMNSAwSDEyOUwxMjkuMjU3IDAuMDA2ODM1OTRaIiBmaWxsPSJ3aGl0ZSIvPgo8cmVjdCB4PSIzNCIgeT0iODcuMTkxMiIgd2lkdGg9IjY3IiBoZWlnaHQ9IjEzLjc5NDEiIGZpbGw9IndoaXRlIi8+CjxyZWN0IHg9IjM0Ljk4NTEiIHk9IjMzIiB3aWR0aD0iNjYuMDE0NyIgaGVpZ2h0PSIxMi44MDg4IiBmaWxsPSJ3aGl0ZSIvPgo8cmVjdCB4PSIzNC45ODUxIiB5PSI1OS42MDMiIHdpZHRoPSI0Ny4yOTQxIiBoZWlnaHQ9IjEzLjUxMjYiIGZpbGw9IndoaXRlIi8+CjxyZWN0IHg9IjM0IiB5PSIzMyIgd2lkdGg9IjE2Ljk5NjMiIGhlaWdodD0iNjcuOTg1MyIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==';
 			AdminMenu::add_menu($plugin_menu_dto);
 
 			$overview_menu_dto = new SubMenuDTO();

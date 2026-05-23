@@ -30,7 +30,7 @@ class WidgetManager
     {
         $service = new WidgetService();
         $statuses = $service->get_registered_widgets_status();
-        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+        $widgets_config = $service->get_available_widgets();
 
         foreach ($widgets_config as $widget) {
             $name = $widget['name'];

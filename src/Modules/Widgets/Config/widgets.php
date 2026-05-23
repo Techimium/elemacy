@@ -2,6 +2,9 @@
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Widgets\Widgets\Acf\AcfAccordion;
+use Elemacy\Modules\Widgets\Widgets\Acf\AcfGallery;
+use Elemacy\Modules\Widgets\Widgets\Acf\AcfIconList;
 use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
@@ -38,5 +41,26 @@ return [
         'title' => __('Form Builder', 'elemacy'),
         'icon' => 'rows-3',
         'class' => Form::class,
+    ],
+    [
+        'name'     => 'elemacy-acf-accordion',
+        'title'    => __('ACF Accordion', 'elemacy'),
+        'icon'     => 'rows-3',
+        'class'    => AcfAccordion::class,
+        'requires' => 'acf',
+    ],
+    [
+        'name'     => 'elemacy-acf-icon-list',
+        'title'    => __('ACF Icon List', 'elemacy'),
+        'icon'     => 'list',
+        'class'    => AcfIconList::class,
+        'requires' => 'acf',
+    ],
+    [
+        'name'     => 'elemacy-acf-gallery',
+        'title'    => __('ACF Gallery', 'elemacy'),
+        'icon'     => 'image',
+        'class'    => AcfGallery::class,
+        'requires' => 'acf',
     ],
 ];

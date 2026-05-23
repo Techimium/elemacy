@@ -15,12 +15,30 @@ if (!defined('ABSPATH')) {
 
 class NavMenu extends BaseWidget
 {
-    public function get_name(): string   { return 'elemacy_nav_menu'; }
-    public function get_title(): string  { return esc_html__('Elemacy Nav Menu', 'elemacy'); }
-    public function get_icon(): string   { return 'eicon-nav-menu'; }
-    public function get_keywords(): array { return ['nav', 'menu', 'navigation', 'elemacy']; }
-    public function get_style_depends(): array  { return ['elemacy-nav-menu']; }
-    public function get_script_depends(): array { return ['elemacy-nav-menu']; }
+    public function get_name(): string
+    {
+        return 'elemacy_nav_menu';
+    }
+    public function get_title(): string
+    {
+        return esc_html__('Nav Menu', 'elemacy');
+    }
+    public function get_icon(): string
+    {
+        return 'eicon-nav-menu';
+    }
+    public function get_keywords(): array
+    {
+        return ['nav', 'menu', 'navigation', 'elemacy'];
+    }
+    public function get_style_depends(): array
+    {
+        return ['elemacy-nav-menu'];
+    }
+    public function get_script_depends(): array
+    {
+        return ['elemacy-nav-menu'];
+    }
 
     protected function get_available_menus(): array
     {
@@ -214,7 +232,7 @@ class NavMenu extends BaseWidget
         $nav      = '{{WRAPPER}} .elemacy-nav:not(.is-open)';
         $link     = $nav . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link';
         $link_hov = $nav . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:hover, ' .
-                    $nav . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:focus';
+            $nav . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:focus';
         $link_act = $nav . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active';
         $list     = $nav . ' .elemacy-nav__list';
 
@@ -372,7 +390,7 @@ class NavMenu extends BaseWidget
         $list     = $open . ' .elemacy-nav__list';
         $link     = $open . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link';
         $link_hov = $open . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:hover, ' .
-                    $open . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:focus';
+            $open . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link:focus';
         $link_act = $open . ' .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active';
         $sub      = $open . ' .elemacy-nav__submenu';
         $sub_link = $open . ' .elemacy-nav__submenu .elemacy-nav__link';
