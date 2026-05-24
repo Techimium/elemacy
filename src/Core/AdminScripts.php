@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Core\Elemacy;
 use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -36,6 +37,7 @@ class AdminScripts
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
+            'activeModules' => array_keys(Elemacy::get_instance()->get_module_manager()->get_active_modules()),
         ]);
 
         wp_localize_script($handle, 'elemacy', $script_data);

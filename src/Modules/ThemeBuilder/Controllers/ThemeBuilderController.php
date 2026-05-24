@@ -86,6 +86,23 @@ class ThemeBuilderController
         ]);
     }
 
+    public function duplicate(Request $request, $id)
+    {
+        $result = $this->service->duplicate((int) $id);
+
+        if (is_wp_error($result)) {
+            $status = $result->get_error_code() === 'not_found' ? Response::NOT_FOUND : Response::INTERNAL_SERVER_ERROR;
+            return Response::create()->json([
+                'message' => $result->get_error_message()
+            ], $status);
+        }
+
+        return Response::create()->json([
+            'message' => __('Template duplicated successfully', 'elemacy'),
+            'data' => TemplateResource::make($result)
+        ], Response::CREATED);
+    }
+
     public function destroy(Request $request, $id)
     {
         $result = $this->service->delete((int) $id);

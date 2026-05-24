@@ -16,10 +16,11 @@ interface TemplateCardProps {
   template: Template;
   onEdit: (template: Template) => void;
   onDelete: (template: Template) => void;
+  onDuplicate: (template: Template) => void;
   onEditWithElementor: (template: Template) => void;
 }
 
-function TemplateCard({ template, onEdit, onDelete, onEditWithElementor }: TemplateCardProps) {
+function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithElementor }: TemplateCardProps) {
   return (
     <Card>
       <div className="px-6">
@@ -35,7 +36,7 @@ function TemplateCard({ template, onEdit, onDelete, onEditWithElementor }: Templ
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(template)}>{__('Edit', 'elemacy')}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEditWithElementor(template)}>{__('Edit with Elementor', 'elemacy')}</DropdownMenuItem>
-              <DropdownMenuItem>{__('Duplicate', 'elemacy')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDuplicate(template)}>{__('Duplicate', 'elemacy')}</DropdownMenuItem>
               <DropdownMenuItem className="text-red-500" onClick={() => onDelete(template)}>{__('Delete', 'elemacy')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

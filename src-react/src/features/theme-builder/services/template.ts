@@ -44,6 +44,21 @@ export const useUpdateTemplateMutation = () => {
     });
 };
 
+const duplicateTemplate = async (id: number): Promise<Template> => {
+    const response = await apiClient.post(`theme-builder/templates/${id}/duplicate`);
+    return response.data?.data;
+};
+
+export const useDuplicateTemplateMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: duplicateTemplate,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['templates'] });
+        }
+    });
+};
+
 const deleteTemplate = async (id: number): Promise<void> => {
     const response = await apiClient.delete(`theme-builder/templates/${id}`);
     return response.data?.data;

@@ -191,6 +191,52 @@ class TemplateService
     }
 
     /**
+     * Duplicate a template.
+     *
+     * @param int $id
+     * @return TemplateDTO|\WP_Error
+     */
+    public function duplicate(int $id)
+    {
+        $post = get_post($id);
+
+        if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
+            return new \WP_Error('not_found', __('Template not found.', 'elemacy'), ['status' => 404]);
+        }
+
+        /* translators: %s: original template title. */
+        $new_title = sprintf(__('%s (Copy)', 'elemacy'), $post->post_title);
+
+        $new_post_id = wp_insert_post([
+            'post_title' => $new_title,
+            'post_content' => $post->post_content,
+            'post_status' => 'draft',
+            'post_type' => TemplatePostType::POST_TYPE,
+            'post_author' => get_current_user_id(),
+        ], true);
+
+        if (is_wp_error($new_post_id)) {
+            return $new_post_id;
+        }
+
+        $meta = get_post_meta($id);
+
+        if (is_array($meta)) {
+            foreach ($meta as $meta_key => $meta_values) {
+                if (strpos($meta_key, '_edit_lock') === 0 || strpos($meta_key, '_edit_last') === 0) {
+                    continue;
+                }
+
+                foreach ($meta_values as $meta_value) {
+                    update_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
+                }
+            }
+        }
+
+        return $this->create_dto(get_post($new_post_id));
+    }
+
+    /**
      * Delete a template.
      *
      * @param int $id
