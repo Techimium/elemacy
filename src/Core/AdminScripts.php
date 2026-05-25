@@ -42,7 +42,21 @@ class AdminScripts
 
         wp_localize_script($handle, 'elemacy', $script_data);
 
+        $this->enqueue_sidebar_sync_script();
+
         do_action(Hooks::ENQUEUE_ADMIN_SCRIPTS_ACTION);
+    }
+
+    protected function enqueue_sidebar_sync_script()
+    {
+        wp_register_script(
+            'elemacy-admin-sidebar-sync',
+            ELEMACY_URL . 'assets/admin-extras/sidebar-sync.js',
+            [],
+            ELEMACY_VERSION,
+            true
+        );
+        wp_enqueue_script('elemacy-admin-sidebar-sync');
     }
 
     public function enqueue_production_scripts()
