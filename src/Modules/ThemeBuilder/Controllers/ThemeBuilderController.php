@@ -4,6 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Controllers;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Hooks;
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
@@ -53,14 +54,16 @@ class ThemeBuilderController
 
     public function store(CreateTemplateRequest $request)
     {
-        $dto = CreateTemplateDTO::from_request($request);
-        $result = $this->service->create($dto);
+        $data = $request->clean();
+        $result = $this->service->create(CreateTemplateDTO::from_array($data));
 
         if (is_wp_error($result)) {
             return Response::create()->json([
                 'message' => $result->get_error_message()
             ], Response::INTERNAL_SERVER_ERROR);
         }
+
+        do_action(Hooks::THEME_BUILDER_TEMPLATE_AFTER_CREATE_ACTION, $result, $data);
 
         return Response::create()->json([
             'message' => __('Template created successfully', 'elemacy'),
@@ -70,8 +73,8 @@ class ThemeBuilderController
 
     public function update(UpdateTemplateRequest $request, $id)
     {
-        $dto = UpdateTemplateDTO::from_request($request);
-        $result = $this->service->update((int) $id, $dto);
+        $data = $request->clean();
+        $result = $this->service->update((int) $id, UpdateTemplateDTO::from_array($data));
 
         if (is_wp_error($result)) {
             $status = $result->get_error_code() === 'not_found' ? Response::NOT_FOUND : Response::INTERNAL_SERVER_ERROR;
@@ -79,6 +82,8 @@ class ThemeBuilderController
                 'message' => $result->get_error_message()
             ], $status);
         }
+
+        do_action(Hooks::THEME_BUILDER_TEMPLATE_AFTER_UPDATE_ACTION, $result, $data);
 
         return Response::create()->json([
             'message' => __('Template updated successfully', 'elemacy'),
@@ -97,6 +102,8 @@ class ThemeBuilderController
             ], $status);
         }
 
+        do_action(Hooks::THEME_BUILDER_TEMPLATE_AFTER_DUPLICATE_ACTION, $result, (int) $id);
+
         return Response::create()->json([
             'message' => __('Template duplicated successfully', 'elemacy'),
             'data' => TemplateResource::make($result)
@@ -113,6 +120,8 @@ class ThemeBuilderController
                 'message' => $result->get_error_message()
             ], $status);
         }
+
+        do_action(Hooks::THEME_BUILDER_TEMPLATE_AFTER_DELETE_ACTION, (int) $id);
 
         return Response::create()->json([
             'message' => __('Template deleted successfully', 'elemacy')

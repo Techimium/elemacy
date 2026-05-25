@@ -1,5 +1,5 @@
 import { __ } from "@wordpress/i18n"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -17,6 +17,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Slot } from "@/components/slot"
+import { Slots, type SlotPropsMap } from "@/lib/slots"
+import { ProFeaturePlaceholder } from "@/components/pro-feature-placeholder"
 import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
 import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
 
@@ -34,6 +37,7 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
             title: "",
             type: "header",
             status: "publish",
+            extras: {},
         }
     })
 
@@ -96,6 +100,25 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
                             </Select>
                             <FormMessage />
                         </FormItem>
+                    )}
+                />
+                <Controller
+                    control={form.control}
+                    name="extras"
+                    render={({ field }) => (
+                        <Slot<SlotPropsMap[typeof Slots.TEMPLATE_EXTRAS]>
+                            name={Slots.TEMPLATE_EXTRAS}
+                            slotProps={{
+                                value: (field.value ?? {}) as Record<string, unknown>,
+                                onChange: field.onChange,
+                            }}
+                            fallback={
+                                <ProFeaturePlaceholder
+                                    title={__('More with Elemacy Pro', 'elemacy')}
+                                    description={__('Unlock additional template controls by upgrading to Elemacy Pro.', 'elemacy')}
+                                />
+                            }
+                        />
                     )}
                 />
                 <Button type="submit" disabled={isLoading} className="w-full">

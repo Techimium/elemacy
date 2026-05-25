@@ -16,12 +16,14 @@ const TemplateSchema = z.object({
     edit_with_elementor: z.string(),
     created_at: z.string().optional(),
     updated_at: z.string().optional(),
+    extras: z.record(z.string(), z.unknown()).optional(),
 });
 
 const CreateTemplateSchema = z.object({
     title: z.string(),
     type: z.enum(TEMPLATE_VALUES),
-    status: z.enum(['publish', 'draft', 'trash'])
+    status: z.enum(['publish', 'draft', 'trash']),
+    extras: z.record(z.string(), z.unknown()).optional(),
 });
 
 const UpdateTemplateSchema = CreateTemplateSchema;
