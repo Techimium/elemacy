@@ -38,7 +38,7 @@ class AdminScripts
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
-            'activeModules' => array_keys(Elemacy::get_instance()->get_module_manager()->get_active_modules()),
+            'modules' => Elemacy::get_instance()->get_module_manager()->to_array(),
         ]);
 
         wp_localize_script($handle, 'elemacy', $script_data);

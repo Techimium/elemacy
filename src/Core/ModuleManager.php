@@ -23,6 +23,27 @@ class ModuleManager
 		return $this->modules;
 	}
 
+	public function to_array(): array
+	{
+		$data = [];
+
+		foreach ($this->modules as $module) {
+			$data[] = [
+				'name'           => $module->get_name(),
+				'title'          => $module->get_title(),
+				'icon'           => $module->get_icon(),
+				'description'    => $module->get_description(),
+				'is_active'      => $this->is_active($module->get_name()),
+				'is_headless'    => $module->is_headless(),
+				'is_placeholder' => $module->is_placeholder(),
+				'badge'          => $module->get_badge(),
+				'url'            => $module->get_url(),
+			];
+		}
+
+		return $data;
+	}
+
 	public function get_module(string $name): ?Module
 	{
 		return $this->modules[$name] ?? null;

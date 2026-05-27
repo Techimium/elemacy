@@ -8,5 +8,4 @@ use Elemacy\Core\Route;
 use Elemacy\Core\Controllers\ModuleController;
 
 Route::get('/modules', [ModuleController::class, 'index'])->middleware(AdminMiddleware::class);
-Route::get('/modules/{name}', [ModuleController::class, 'show'])->middleware(AdminMiddleware::class);
 Route::put('/modules/{name}', [ModuleController::class, 'toggle'])->middleware(AdminMiddleware::class);

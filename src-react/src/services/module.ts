@@ -2,6 +2,8 @@ import { apiClient } from "@/lib/api";
 import type { Module } from "@/schemas/module";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+const MODULES_QUERY_KEY = ['modules'] as const;
+
 const fetchModules = async (): Promise<Module[]> => {
     const response = await apiClient.get(`modules`);
     return response.data?.data ?? [];
@@ -9,20 +11,20 @@ const fetchModules = async (): Promise<Module[]> => {
 
 export const useModulesQuery = () => {
     return useQuery({
-        queryKey: ['modules'],
-        queryFn: () => fetchModules(),
+        queryKey: MODULES_QUERY_KEY,
+        queryFn: fetchModules,
+        initialData: () => window.elemacy.modules,
+        staleTime: Infinity,
     });
-};
-
-const fetchModule = async ({ name }: { name: string }): Promise<Module> => {
-    const response = await apiClient.get(`modules/${name}`);
-    return response.data?.data ?? {};
 };
 
 export const useModuleQuery = ({ name }: { name: string }) => {
     return useQuery({
-        queryKey: ['modules', name],
-        queryFn: () => fetchModule({ name }),
+        queryKey: MODULES_QUERY_KEY,
+        queryFn: fetchModules,
+        initialData: () => window.elemacy.modules,
+        staleTime: Infinity,
+        select: (modules) => modules.find((module) => module.name === name),
     });
 };
 
@@ -38,20 +40,26 @@ export const useToggleModuleMutation = () => {
     return useMutation({
         mutationFn: toggleModule,
         onMutate: async ({ isEnabled, name }) => {
-            await queryClient.cancelQueries({ queryKey: ['modules', name] });
-            const previousValue = queryClient.getQueryData<Module>(['modules', name]);
-            queryClient.setQueryData(['modules', name], { ...previousValue, is_active: !isEnabled });
-            return { previousValue, name };
+            await queryClient.cancelQueries({ queryKey: MODULES_QUERY_KEY });
+            const previousModules = queryClient.getQueryData<Module[]>(MODULES_QUERY_KEY);
+
+            queryClient.setQueryData<Module[]>(MODULES_QUERY_KEY, (modules) =>
+                modules?.map((module) =>
+                    module.name === name ? { ...module, is_active: isEnabled } : module
+                )
+            );
+
+            return { previousModules };
         },
 
-        onError: (_err, variables, context) => {
-            if (context) {
-                queryClient.setQueryData(['modules', context.name], { ...context.previousValue, is_active: variables.isEnabled });
+        onError: (_err, _variables, context) => {
+            if (context?.previousModules) {
+                queryClient.setQueryData(MODULES_QUERY_KEY, context.previousModules);
             }
         },
 
-        onSettled: (_data, _error) => {
-            queryClient.invalidateQueries({ queryKey: ['modules'] });
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: MODULES_QUERY_KEY });
         },
     });
 };
