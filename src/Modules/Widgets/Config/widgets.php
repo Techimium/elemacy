@@ -9,6 +9,7 @@ use Elemacy\Modules\Widgets\Widgets\LoopCarousel;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 use Elemacy\Modules\Widgets\Widgets\Form;
+use Elemacy\Modules\Widgets\Widgets\Search;
 use Elemacy\Modules\Widgets\Widgets\SiteLogo;
 
 return [
@@ -41,6 +42,12 @@ return [
         'title' => __('Form Builder', 'elemacy'),
         'icon' => 'rows-3',
         'class' => Form::class,
+    ],
+    [
+        'name'  => 'elemacy-search',
+        'title' => __('Search', 'elemacy'),
+        'icon'  => 'search',
+        'class' => Search::class,
     ],
     [
         'name'     => 'elemacy-acf-accordion',
