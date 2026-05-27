@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elementor\Plugin;
 
@@ -166,11 +167,10 @@ class ThemeBuilderManager
         $templates = $template_service->get_by_type($type);
 
         if ($templates) {
-            // TODO: Implement proper display conditions.
             $template = $templates[0];
         }
 
-        return $template;
+        return apply_filters(Hooks::THEME_BUILDER_RESOLVE_TEMPLATE_FILTER, $template, $type);
     }
 
     /**
@@ -299,6 +299,6 @@ class ThemeBuilderManager
             }
         }
 
-        return $types;
+        return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
     }
 }

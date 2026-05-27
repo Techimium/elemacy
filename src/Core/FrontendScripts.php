@@ -14,11 +14,11 @@ class FrontendScripts
 
     public function enqueue()
     {
-        $this->enqueue_scritps();
+        $this->enqueue_scripts();
         $this->enqueue_styles();
     }
 
-    protected function enqueue_scritps()
+    protected function enqueue_scripts()
     {
         wp_register_script('elemacy-frontend', ELEMACY_URL . 'assets/frontend/js/core.js', [], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-frontend');

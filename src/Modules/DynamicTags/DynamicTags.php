@@ -29,11 +29,6 @@ class DynamicTags extends Module
         return __('Additional dynamic tags for Elementor.', 'elemacy');
     }
 
-    public function get_dependencies(): array
-    {
-        return [];
-    }
-
     public function is_headless(): bool
     {
         return true;

@@ -1,10 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
 import { HashRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from "@/components/ui/sonner"
+import '@/index.css'
+import { exposeElemacyGlobals } from '@/lib/globals'
+import App from '@/App.tsx'
+
+exposeElemacyGlobals()
 
 const queryClient = new QueryClient()
 

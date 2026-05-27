@@ -34,11 +34,6 @@ class ThemeBuilder extends Module
         return __('Manage your site structure templates for a full theme experience.', 'elemacy');
     }
 
-    public function get_dependencies(): array
-    {
-        return [];
-    }
-
     public function init(): void
     {
         $this->register_admin_menu();

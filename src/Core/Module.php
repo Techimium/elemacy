@@ -14,11 +14,6 @@ abstract class Module
 
 	abstract public function get_description(): string;
 
-	public function get_dependencies(): array
-	{
-		return [];
-	}
-
 	abstract public function init();
 
 	public function register_routes() {}
@@ -38,6 +33,21 @@ abstract class Module
 	}
 
 	public function is_headless(): bool
+	{
+		return false;
+	}
+
+	public function get_badge(): ?string
+	{
+		return null;
+	}
+
+	public function get_url(): ?string
+	{
+		return null;
+	}
+
+	public function is_placeholder(): bool
 	{
 		return false;
 	}

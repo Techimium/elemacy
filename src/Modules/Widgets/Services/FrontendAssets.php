@@ -32,6 +32,11 @@ class FrontendAssets
 
         $this->register_style('form');
         $this->register_script('form');
+
+        $this->register_style('search');
+        $this->register_script('search');
+
+        $this->register_script('acf-accordion');
     }
 
     protected function register_script($file_name)

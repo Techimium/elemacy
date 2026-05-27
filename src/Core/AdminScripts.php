@@ -1,10 +1,13 @@
 <?php
+
 namespace Elemacy\Core;
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Core\Elemacy;
+use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
@@ -30,12 +33,31 @@ class AdminScripts
             $this->enqueue_production_scripts();
         }
 
-        wp_localize_script($handle, 'elemacy', [
+        $script_data = apply_filters(Hooks::ADMIN_SCRIPT_DATA_FILTER, [
             'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
+            'activeModules' => array_keys(Elemacy::get_instance()->get_module_manager()->get_active_modules()),
         ]);
+
+        wp_localize_script($handle, 'elemacy', $script_data);
+
+        $this->enqueue_sidebar_sync_script();
+
+        do_action(Hooks::ENQUEUE_ADMIN_SCRIPTS_ACTION);
+    }
+
+    protected function enqueue_sidebar_sync_script()
+    {
+        wp_register_script(
+            'elemacy-admin-sidebar-sync',
+            ELEMACY_URL . 'assets/admin-extras/sidebar-sync.js',
+            [],
+            ELEMACY_VERSION,
+            true
+        );
+        wp_enqueue_script('elemacy-admin-sidebar-sync');
     }
 
     public function enqueue_production_scripts()

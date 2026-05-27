@@ -1,0 +1,294 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Elemacy — Search Widget
+   Three skins: classic | minimal | full_screen
+   Class namespace: .elemacy-search-form (BEM)
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* ── Base form ───────────────────────────────────────────────────────────── */
+
+.elemacy-search-form {
+    --elemacy-search-input-height: 50px;
+    --elemacy-search-radius: 3px;
+    --elemacy-search-font-size: 15px;
+    --elemacy-search-gap: 10px;
+
+    display: flex;
+    width: 100%;
+    margin: 0;
+}
+
+.elemacy-search-form__container {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.elemacy-search-form__label {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.elemacy-search-form__input {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: var(--elemacy-search-input-height);
+    padding: 0 1em;
+    margin: 0;
+    border: 1px solid #cccccc;
+    border-radius: var(--elemacy-search-radius);
+    background-color: #ffffff;
+    color: inherit;
+    font-size: var(--elemacy-search-font-size);
+    font-family: inherit;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.elemacy-search-form__input:focus {
+    border-color: #818a91;
+}
+
+.elemacy-search-form__input::-webkit-search-cancel-button,
+.elemacy-search-form__input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.elemacy-search-form__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.elemacy-search-form__icon svg {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+}
+
+/* ── Size modifiers ──────────────────────────────────────────────────────── */
+
+.elemacy-search-form--size-xs { --elemacy-search-input-height: 34px; --elemacy-search-font-size: 12px; }
+.elemacy-search-form--size-sm { --elemacy-search-input-height: 40px; --elemacy-search-font-size: 13px; }
+.elemacy-search-form--size-md { --elemacy-search-input-height: 50px; --elemacy-search-font-size: 15px; }
+.elemacy-search-form--size-lg { --elemacy-search-input-height: 60px; --elemacy-search-font-size: 17px; }
+.elemacy-search-form--size-xl { --elemacy-search-input-height: 72px; --elemacy-search-font-size: 19px; }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Skin: classic
+   Input + Submit button glued together (border-radius adjustments).
+   ────────────────────────────────────────────────────────────────────────── */
+
+.elemacy-search-form--skin-classic .elemacy-search-form__input {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+    border-inline-end: 0;
+}
+
+.elemacy-search-form__submit {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--elemacy-search-input-height);
+    margin: 0;
+    padding: 0 1.25em;
+    border: 1px solid transparent;
+    border-radius: var(--elemacy-search-radius);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    background-color: #818a91;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: var(--elemacy-search-font-size);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.elemacy-search-form__submit:hover,
+.elemacy-search-form__submit:focus {
+    background-color: #6a7378;
+    outline: none;
+}
+
+.elemacy-search-form--button-type-icon .elemacy-search-form__submit {
+    width: var(--elemacy-search-input-height);
+    padding: 0;
+}
+
+.elemacy-search-form--button-type-icon .elemacy-search-form__submit .elemacy-search-form__icon {
+    font-size: calc(var(--elemacy-search-font-size) * 1.1);
+}
+
+.elemacy-search-form__submit-text {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Skin: minimal
+   Single input with an icon absolutely positioned at the start.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.elemacy-search-form--skin-minimal .elemacy-search-form__container {
+    isolation: isolate;
+}
+
+.elemacy-search-form--skin-minimal .elemacy-search-form__input {
+    padding-inline-start: calc(var(--elemacy-search-input-height) - 10px);
+}
+
+.elemacy-search-form--skin-minimal .elemacy-search-form__icon {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 1em;
+    transform: translateY(-50%);
+    font-size: calc(var(--elemacy-search-font-size) * 1.1);
+    color: #818a91;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Skin: full_screen
+   The toggle is the only visible part; clicking it expands the container
+   into a fixed-position lightbox.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.elemacy-search-form--skin-full_screen {
+    display: inline-flex;
+    width: auto;
+}
+
+.elemacy-search-form__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0.5em;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.elemacy-search-form__toggle:focus {
+    outline: none;
+}
+
+.elemacy-search-form__toggle .elemacy-search-form__icon {
+    font-size: inherit;
+}
+
+/* Lightbox container — hidden until .is-open. */
+
+.elemacy-search-form--skin-full_screen .elemacy-search-form__container {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.elemacy-search-form--skin-full_screen.is-open .elemacy-search-form__container {
+    opacity: 1;
+    visibility: visible;
+}
+
+.elemacy-search-form--skin-full_screen .elemacy-search-form__input {
+    flex: 0 1 800px;
+    max-width: 800px;
+    height: auto;
+    padding: 0.2em 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #ffffff;
+    font-size: clamp(28px, 6vw, 64px);
+    text-align: center;
+    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.elemacy-search-form--skin-full_screen .elemacy-search-form__input:focus {
+    box-shadow: inset 0 -2px 0 #ffffff;
+}
+
+.elemacy-search-form--skin-full_screen .elemacy-search-form__input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 1;
+}
+
+.elemacy-search-form__close {
+    position: absolute;
+    inset-block-start: 20px;
+    inset-inline-end: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.elemacy-search-form__close:hover,
+.elemacy-search-form__close:focus {
+    opacity: 1;
+    outline: none;
+    transform: scale(1.1);
+}
+
+.elemacy-search-form__close svg {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+}
+
+/* Lock body scroll while the lightbox is open. */
+body.elemacy-search-form-is-open {
+    overflow: hidden;
+}
+
+/* ── Accessibility: respect reduced motion ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .elemacy-search-form__input,
+    .elemacy-search-form__submit,
+    .elemacy-search-form__toggle,
+    .elemacy-search-form__close,
+    .elemacy-search-form--skin-full_screen .elemacy-search-form__container {
+        transition: none;
+    }
+}

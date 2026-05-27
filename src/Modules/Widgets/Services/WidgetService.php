@@ -17,8 +17,8 @@ class WidgetService
      */
     public function get_all_widgets()
     {
-        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
-        $statuses = $this->get_widget_statuses();
+        $widgets_config = $this->get_available_widgets();
+        $statuses       = $this->get_widget_statuses();
 
         $widgets = [];
 
@@ -27,6 +27,34 @@ class WidgetService
         }
 
         return $widgets;
+    }
+
+    /**
+     * Return only widgets whose runtime requirements (e.g. ACF) are satisfied.
+     * Used as the single source of truth for both Elementor registration and
+     * the admin toggle list, so unavailable widgets stay hidden everywhere.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function get_available_widgets(): array
+    {
+        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+
+        return array_values(array_filter(
+            $widgets_config,
+            fn($widget) => $this->meets_requirements($widget)
+        ));
+    }
+
+    private function meets_requirements(array $widget): bool
+    {
+        $requires = $widget['requires'] ?? null;
+
+        if ($requires === 'acf') {
+            return AcfRepeaterResolver::is_acf_active();
+        }
+
+        return true;
     }
 
     /**
@@ -55,8 +83,8 @@ class WidgetService
      */
     public function get_registered_widgets_status()
     {
-        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
-        $statuses = $this->get_widget_statuses();
+        $widgets_config = $this->get_available_widgets();
+        $statuses       = $this->get_widget_statuses();
 
         $result = [];
 
@@ -78,7 +106,7 @@ class WidgetService
      */
     public function toggle_widget(string $name, string $action)
     {
-        $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+        $widgets_config = $this->get_available_widgets();
         $widget_exists = false;
 
         foreach ($widgets_config as $widget) {

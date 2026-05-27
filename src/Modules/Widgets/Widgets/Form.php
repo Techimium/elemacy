@@ -935,7 +935,7 @@ class Form extends BaseWidget
         ?>
         <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
             <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                <input type="hidden" name="action" value="elemacy_form_submit">
+                <input type="hidden" name="action" value="elemacy_widgets_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
                 <input type="hidden" name="post_id" value="<?php echo esc_attr(get_the_ID()); ?>">
                 <?php /* Honeypot field for simple spam protection */ ?>
@@ -943,7 +943,7 @@ class Form extends BaseWidget
                     <label>Do not fill this field</label>
                     <input type="text" name="elemacy_honeypot" autocomplete="off" tabindex="-1">
                 </div>
-                <?php wp_nonce_field('elemacy_form_submit', '_wpnonce'); ?>
+                <?php wp_nonce_field('elemacy_widgets_form_submit', '_wpnonce'); ?>
 
                 <?php foreach ($settings['form_fields'] as $index => $field) :
                     $field_id = 'field_' . $index;

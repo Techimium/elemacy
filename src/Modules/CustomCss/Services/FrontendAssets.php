@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Modules\Controls\Services;
+namespace Elemacy\Modules\CustomCss\Services;
 
 use Elemacy\Support\Utils;
 
@@ -23,7 +23,7 @@ class FrontendAssets
     {
         wp_enqueue_script(
             'elemacy-custom-css-editor',
-            Utils::get_plugin_url('src/Modules/Controls/assets/scripts/custom-css.js'),
+            Utils::get_plugin_url('src/Modules/CustomCss/assets/scripts/custom-css.js'),
             ['jquery', 'elementor-editor'],
             ELEMACY_VERSION,
             true

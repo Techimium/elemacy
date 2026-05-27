@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
 use Elemacy\Support\Utils;
@@ -34,15 +35,11 @@ class Widgets extends Module
         return __('Custom Elementor widgets to enhance your website.', 'elemacy');
     }
 
-    public function get_dependencies(): array
-    {
-        return [];
-    }
-
     public function init(): void
     {
         $this->register_admin_menu();
         new FrontendAssets();
+        new EditorAssets();
         WidgetManager::instance();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
     }

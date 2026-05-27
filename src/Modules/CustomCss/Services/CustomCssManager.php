@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Modules\Controls\Services;
+namespace Elemacy\Modules\CustomCss\Services;
 
 use Elementor\Controls_Manager;
 

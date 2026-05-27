@@ -1,7 +1,7 @@
 import { __ } from "@wordpress/i18n";
 import { useState } from "react";
 import type { Template } from "../schemas/template";
-import { useDeleteTemplateMutation, useTemplates } from "../services/template";
+import { useDeleteTemplateMutation, useDuplicateTemplateMutation, useTemplates } from "../services/template";
 import TemplateCard from "./template-card";
 import {
     Empty,
@@ -26,6 +26,7 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
 
     const { data: templates, isLoading } = useTemplates();
     const { mutateAsync: deleteTemplate, isPending: isDeleting } = useDeleteTemplateMutation();
+    const { mutate: duplicateTemplate } = useDuplicateTemplateMutation();
 
     const handleEdit = (template: Template) => {
         setEditingTemplate(template);
@@ -34,6 +35,10 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
 
     const handleDelete = (template: Template) => {
         setDeletingTemplate(template);
+    };
+
+    const handleDuplicate = (template: Template) => {
+        duplicateTemplate(template.id);
     };
 
     const confirmDelete = async () => {
@@ -61,6 +66,7 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                             template={template}
                             onEdit={handleEdit}
                             onEditWithElementor={() => window.open(template.edit_with_elementor, '_blank')}
+                            onDuplicate={handleDuplicate}
                             onDelete={handleDelete}
                         />
                     ))}

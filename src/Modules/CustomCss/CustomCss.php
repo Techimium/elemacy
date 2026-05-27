@@ -1,23 +1,23 @@
 <?php
 
-namespace Elemacy\Modules\Controls;
+namespace Elemacy\Modules\CustomCss;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Module;
-use Elemacy\Modules\Controls\Services\CustomCssManager;
-use Elemacy\Modules\Controls\Services\FrontendAssets;
+use Elemacy\Modules\CustomCss\Services\CustomCssManager;
+use Elemacy\Modules\CustomCss\Services\FrontendAssets;
 
-class Controls extends Module
+class CustomCss extends Module
 {
     public function get_name(): string
     {
-        return 'controls';
+        return 'custom_css';
     }
 
     public function get_title(): string
     {
-        return __('Controls', 'elemacy');
+        return __('Custom CSS', 'elemacy');
     }
 
     public function get_icon(): string
@@ -27,12 +27,7 @@ class Controls extends Module
 
     public function get_description(): string
     {
-        return __('Additional controls for Elementor.', 'elemacy');
-    }
-
-    public function get_dependencies(): array
-    {
-        return [];
+        return __('Add custom CSS controls to Elementor elements and pages.', 'elemacy');
     }
 
     public function is_headless(): bool
