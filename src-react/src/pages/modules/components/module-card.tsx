@@ -2,6 +2,7 @@ import { __ } from "@wordpress/i18n";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import ModuleSwitch from "@/components/module-switch";
 import { type Module } from "@/schemas/module";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DynamicIcon from "@/components/dynamic-icon";
 import { Lock } from "lucide-react";
@@ -23,9 +24,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                             <DynamicIcon name={module.icon} className="w-6 h-6" />
                         </div>
                         {module.badge && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-shadow-amber-400 text-xs font-semibold">
-                                {module.badge}
-                            </span>
+                            <Badge variant="default">{module.badge}</Badge>
                         )}
                     </div>
                 </CardHeader>
@@ -41,8 +40,8 @@ export function ModuleCard({ module }: ModuleCardProps) {
             <CardFooter className="flex items-center justify-between">
                 {module.is_placeholder ? (
                    <Button
-                   className="bg-amber-100 hover:bg-amber-100 text-amber-800 font-semibold cursor-pointer"
-                    variant={'secondary'}
+                    className="cursor-pointer"
+                    variant={'outline'}
                     onClick={() => window.location.href = module.url ?? "https://elemacy.com"}>
                         {__('Learn more', 'elemacy')}
                    </Button>

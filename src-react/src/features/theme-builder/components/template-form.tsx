@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Slot } from "@/components/slot"
 import { Slots, type SlotPropsMap } from "@/lib/slots"
-import { ProFeaturePlaceholder } from "@/components/pro-feature-placeholder"
+import { DisplayConditionsLocked } from "@/features/theme-builder/components/mock/display-conditions-locked"
 import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
 import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
 
@@ -112,12 +112,7 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
                                 value: (field.value ?? {}) as Record<string, unknown>,
                                 onChange: field.onChange,
                             }}
-                            fallback={
-                                <ProFeaturePlaceholder
-                                    title={__('More with Elemacy Pro', 'elemacy')}
-                                    description={__('Unlock additional template controls by upgrading to Elemacy Pro.', 'elemacy')}
-                                />
-                            }
+                            fallback={<DisplayConditionsLocked />}
                         />
                     )}
                 />
