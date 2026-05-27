@@ -37,14 +37,19 @@ abstract class Module
 		return false;
 	}
 
-	public function is_pro(): bool
-	{
-		return false;
-	}
-
 	public function get_badge(): ?string
 	{
 		return null;
+	}
+
+	public function get_url(): ?string
+	{
+		return null;
+	}
+
+	public function is_placeholder(): bool
+	{
+		return false;
 	}
 
 	protected function get_option(string $key, $default_value = null)

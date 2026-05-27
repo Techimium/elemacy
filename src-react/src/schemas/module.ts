@@ -7,6 +7,9 @@ const ModuleSchema = z.object({
     description: z.string(),
     is_active: z.boolean(),
     is_headless: z.boolean(),
+    is_placeholder: z.boolean(),
+    badge: z.string().nullable(),
+    url: z.string().nullable(),
 });
 
 type Module = z.infer<typeof ModuleSchema>;

@@ -26,6 +26,9 @@ class ModuleController
                 'description' => $module->get_description(),
                 'is_active' => $module_manager->is_active($module->get_name()),
                 'is_headless' => $module->is_headless(),
+                'is_placeholder' => $module->is_placeholder(),
+                'badge' => $module->get_badge(),
+                'url' => $module->get_url(),
             ];
         }
 
@@ -62,6 +65,14 @@ class ModuleController
     {
         $action = $request->get_string('action');
         $module_manager = Elemacy::get_instance()->get_module_manager();
+
+        $module = $module_manager->get_module($name);
+        if ($module && $module->is_placeholder()) {
+            throw new InvalidRoutActionException(
+                __('This module is not available yet.', 'elemacy'),
+                Response::FORBIDDEN
+            );
+        }
 
         if ($action === 'enable') {
             $module_manager->enable_module($name);

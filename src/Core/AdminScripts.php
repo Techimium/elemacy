@@ -1,4 +1,5 @@
 <?php
+
 namespace Elemacy\Core;
 
 if (!defined('ABSPATH')) {
