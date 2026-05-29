@@ -66,48 +66,10 @@ class ThemeBuilderManager
     public function get_location_template_id()
     {
         if (is_singular()) {
-            $post_type = get_post_type();
-
-            $cpt_template = $this->find_template_id("single_{$post_type}");
-
-            if ($cpt_template) {
-                return $cpt_template;
-            }
-
             return $this->find_template_id('single');
         }
 
         if (is_archive() || is_home()) {
-            if (function_exists('is_shop') && is_shop()) {
-                $product_archive_template = $this->find_template_id('archive_product');
-
-                if ($product_archive_template) {
-                    return $product_archive_template;
-                }
-            }
-
-            if (is_post_type_archive()) {
-                $post_type = get_post_type();
-
-                if (is_array($post_type)) {
-                    $post_type = reset($post_type);
-                }
-
-                $cpt_archive_template = $this->find_template_id("archive_{$post_type}");
-
-                if ($cpt_archive_template) {
-                    return $cpt_archive_template;
-                }
-            }
-
-            if (is_home() || (is_archive() && 'post' === get_post_type())) {
-                $post_archive_template = $this->find_template_id('archive_post');
-
-                if ($post_archive_template) {
-                    return $post_archive_template;
-                }
-            }
-
             return $this->find_template_id('archive');
         }
 
@@ -162,15 +124,7 @@ class ThemeBuilderManager
 
     protected function find_template($type)
     {
-        $template = null;
-        $template_service = new TemplateService();
-        $templates = $template_service->get_by_type($type);
-
-        if ($templates) {
-            $template = $templates[0];
-        }
-
-        return apply_filters(Hooks::THEME_BUILDER_RESOLVE_TEMPLATE_FILTER, $template, $type);
+        return TemplateConditionResolver::instance()->resolve($type);
     }
 
     /**
@@ -251,10 +205,6 @@ class ThemeBuilderManager
                 'label' => __('Archive', 'elemacy'),
             ],
             [
-                'value' => 'archive_post',
-                'label' => __('Post Archive', 'elemacy'),
-            ],
-            [
                 'value' => '404',
                 'label' => __('404 Page', 'elemacy'),
             ],
@@ -267,37 +217,6 @@ class ThemeBuilderManager
                 'label' => __('Loop', 'elemacy'),
             ],
         ];
-
-        $post_types = get_post_types(['public' => true], 'objects');
-
-        $exclude_post_types = [
-            'elementor_library',
-            'e-floating-buttons',
-            'elemacy_template',
-            'attachment'
-        ];
-
-        foreach ($post_types as $post_type) {
-            if (in_array($post_type->name, $exclude_post_types, true)) {
-                continue;
-            }
-
-            $singular_name = $post_type->labels->singular_name ?? $post_type->label;
-
-            $types[] = [
-                'value' => "single_{$post_type->name}",
-                /* translators: %s: Post type singular name */
-                'label' => sprintf(__('Single %s', 'elemacy'), $singular_name)
-            ];
-
-            if ($post_type->has_archive) {
-                $types[] = [
-                    'value' => "archive_{$post_type->name}",
-                    /* translators: %s: Post type singular name */
-                    'label' => sprintf(__('%s Archive', 'elemacy'), $singular_name)
-                ];
-            }
-        }
 
         return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
     }

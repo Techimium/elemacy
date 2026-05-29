@@ -9,6 +9,7 @@ use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Module;
 use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
+use Elemacy\Modules\ThemeBuilder\Services\ConditionManager;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Support\Utils;
 
@@ -39,6 +40,7 @@ class ThemeBuilder extends Module
         $this->register_admin_menu();
         TemplatePostType::register();
         ThemeBuilderManager::instance()->register_hooks();
+        $this->register_conditions();
     }
 
     public function register_routes()
@@ -55,5 +57,19 @@ class ThemeBuilder extends Module
             $submenu_dto->menu_slug = 'theme-builder';
             AdminMenu::add_submenu($submenu_dto);
         });
+    }
+
+    /**
+     * Register the conditions free ships, listed in Config/conditions.php.
+     * The list includes mock conditions that elemacy-pro overrides (by name) with
+     * real implementations when active.
+     */
+    protected function register_conditions(): void
+    {
+        $manager = ConditionManager::instance();
+
+        foreach (require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/conditions.php') as $class) {
+            $manager->register(new $class());
+        }
     }
 }

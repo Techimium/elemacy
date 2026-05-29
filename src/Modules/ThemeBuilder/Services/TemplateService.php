@@ -2,6 +2,9 @@
 
 namespace Elemacy\Modules\ThemeBuilder\Services;
 
+defined('ABSPATH') || exit;
+
+use Elemacy\Modules\ThemeBuilder\DTO\ConditionRuleDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
@@ -9,17 +12,10 @@ use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
 use WP_Query;
 
-defined('ABSPATH') || exit;
-
 class TemplateService
 {
+    protected const CONDITIONS_META_KEY = '_elemacy_conditions';
 
-    /**
-     * Get all templates.
-     *
-     * @param TemplateListFilterDTO $filter_dto
-     * @return array
-     */
     public function get_all(TemplateListFilterDTO $filter_dto)
     {
         $query_args = [
@@ -62,12 +58,6 @@ class TemplateService
         return $templates;
     }
 
-    /**
-     * Get a single template.
-     *
-     * @param int $id
-     * @return TemplateDTO|null
-     */
     public function get(int $id)
     {
         $post = get_post($id);
@@ -79,51 +69,11 @@ class TemplateService
         return $this->create_dto($post);
     }
 
-    /**
-     * Get a template by type.
-     *
-     * @param string $type
-     * @return TemplateDTO[]
-     */
-    public function get_by_type($type)
-    {
-        $args = [
-            'post_type' => TemplatePostType::POST_TYPE,
-            'post_status' => 'publish',
-            'posts_per_page' => 1,
-            'meta_key' => '_elemacy_template_type',
-            'meta_value' => $type,
-            'orderby' => 'date',
-            'order' => 'DESC',
-            'fields' => 'ids',
-        ];
-
-        $query = new WP_Query($args);
-
-        $templates = [];
-
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $templates[] = $this->create_dto(get_post());
-            }
-            wp_reset_postdata();
-        }
-
-        return $templates;
-    }
-
-    /**
-     * Create a new template.
-     *
-     * @param CreateTemplateDTO $dto
-     * @return TemplateDTO|\WP_Error
-     */
     public function create(CreateTemplateDTO $dto)
     {
         $post_data = [
-            'post_title' => isset($dto->title) ? sanitize_text_field($dto->title) : '',
-            'post_status' => isset($dto->status) ? sanitize_text_field($dto->status) : 'publish',
+            'post_title' => $dto->title ?? '',
+            'post_status' => $dto->status ?? 'publish',
             'post_type' => TemplatePostType::POST_TYPE,
         ];
 
@@ -134,23 +84,20 @@ class TemplateService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($post_id, '_elemacy_template_type', sanitize_text_field($dto->type));
+            update_post_meta($post_id, '_elemacy_template_type', $dto->type);
         }
 
         if (in_array($dto->type, ['header', 'footer'], true)) {
             update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
         }
 
+        if (isset($dto->conditions)) {
+            $this->save_conditions($post_id, (array) $dto->conditions);
+        }
+
         return $this->create_dto(get_post($post_id));
     }
 
-    /**
-     * Update a template.
-     *
-     * @param int $id
-     * @param UpdateTemplateDTO $dto
-     * @return TemplateDTO|\WP_Error
-     */
     public function update(int $id, UpdateTemplateDTO $dto)
     {
         $post = get_post($id);
@@ -179,23 +126,21 @@ class TemplateService
 
         if (isset($dto->type)) {
             update_post_meta($id, '_elemacy_template_type', $dto->type);
+
+            if (in_array($dto->type, ['header', 'footer'], true)) {
+                update_post_meta($id, '_wp_page_template', 'elementor_canvas');
+            } else {
+                delete_post_meta($id, '_wp_page_template');
+            }
         }
 
-        if (in_array($dto->type, ['header', 'footer'], true)) {
-            update_post_meta($id, '_wp_page_template', 'elementor_canvas');
-        } else {
-            delete_post_meta($id, '_wp_page_template');
+        if (isset($dto->conditions)) {
+            $this->save_conditions($id, (array) $dto->conditions);
         }
 
         return $this->create_dto(get_post($id));
     }
 
-    /**
-     * Duplicate a template.
-     *
-     * @param int $id
-     * @return TemplateDTO|\WP_Error
-     */
     public function duplicate(int $id)
     {
         $post = get_post($id);
@@ -236,12 +181,6 @@ class TemplateService
         return $this->create_dto(get_post($new_post_id));
     }
 
-    /**
-     * Delete a template.
-     *
-     * @param int $id
-     * @return bool|\WP_Error
-     */
     public function delete(int $id)
     {
         $post = get_post($id);
@@ -259,13 +198,28 @@ class TemplateService
         return true;
     }
 
-    /**
-     * Format post data for API response.
-     *
-     * @param \WP_Post $post
-     * @return TemplateDTO
-     */
-    protected function create_dto($post)
+    protected function get_conditions(int $template_id): array
+    {
+        $raw = get_post_meta($template_id, static::CONDITIONS_META_KEY, true);
+
+        return ConditionRuleDTO::collection(is_array($raw) ? $raw : []);
+    }
+
+    protected function save_conditions(int $template_id, array $conditions): void
+    {
+        update_post_meta($template_id, static::CONDITIONS_META_KEY, $this->normalize_conditions($conditions));
+    }
+
+    protected function normalize_conditions(array $conditions): array
+    {
+        return array_values(array_map(function ($rule): array {
+            $dto = ConditionRuleDTO::from_array(is_array($rule) ? $rule : []);
+            $dto->id = $dto->id !== '' ? $dto->id : wp_generate_uuid4();
+            return $dto->to_array();
+        }, $conditions));
+    }
+
+    protected function create_dto($post): TemplateDTO
     {
         $dto = new TemplateDTO();
         $dto->id = $post->ID;
@@ -274,6 +228,7 @@ class TemplateService
         $dto->type = get_post_meta($post->ID, '_elemacy_template_type', true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
+        $dto->conditions = $this->get_conditions($post->ID);
 
         return $dto;
     }

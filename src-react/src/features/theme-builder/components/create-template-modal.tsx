@@ -40,7 +40,7 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
                 {__('Create New Template', 'elemacy')}
             </Button>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle asChild><div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div></DialogTitle>
                         <DialogDescription asChild>

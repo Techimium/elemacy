@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TEMPLATE_VALUES } from '@/features/theme-builder/constants/templates';
+import { ConditionRuleSchema } from '@/features/theme-builder/schemas/condition';
 
 const TemplateFilterSchema = z.object({
     search: z.string().optional(),
@@ -16,14 +17,14 @@ const TemplateSchema = z.object({
     edit_with_elementor: z.string(),
     created_at: z.string().optional(),
     updated_at: z.string().optional(),
-    extras: z.record(z.string(), z.unknown()).optional(),
+    conditions: z.array(ConditionRuleSchema).optional(),
 });
 
 const CreateTemplateSchema = z.object({
     title: z.string(),
     type: z.enum(TEMPLATE_VALUES),
     status: z.enum(['publish', 'draft', 'trash']),
-    extras: z.record(z.string(), z.unknown()).optional(),
+    conditions: z.array(ConditionRuleSchema).optional(),
 });
 
 const UpdateTemplateSchema = CreateTemplateSchema;
