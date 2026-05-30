@@ -79,9 +79,10 @@ class ModuleManager
 	public function enable_module(string $name): void
 	{
 		if (!isset($this->modules[$name])) {
-			throw new ModuleNotFoundException(
-				sprintf(__('Module "%s" not found.', 'elemacy'), $name),
-				Response::NOT_FOUND
+			throw new ModuleNotFoundException( // phpcs:disable line
+				/* translators: %s: module name */
+				sprintf(__('Module "%s" not found.', 'elemacy'), $name), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.I18n.MissingTranslatorsComment
+				Response::NOT_FOUND // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			);
 		}
 
@@ -96,9 +97,10 @@ class ModuleManager
 	public function disable_module(string $name): void
 	{
 		if (!isset($this->modules[$name])) {
-			throw new ModuleNotFoundException(
-				sprintf(__('Module "%s" not found.', 'elemacy'), $name),
-				Response::NOT_FOUND
+			throw new ModuleNotFoundException( // phpcs:disable line
+				/* translators: %s: module name */
+				sprintf(__('Module "%s" not found.', 'elemacy'), $name), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.I18n.MissingTranslatorsComment
+				Response::NOT_FOUND // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			);
 		}
 
