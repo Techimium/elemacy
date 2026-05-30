@@ -10,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { AsyncCombobox } from '@/components/ui/async-combobox';
 import type { ConditionGroup, ConditionRule, ConditionType } from '@/features/theme-builder/schemas/condition';
 
 // Radix Select disallows empty string values; this sentinel represents
@@ -99,8 +100,16 @@ function TypeSelect({
                 </SelectContent>
             </Select>
 
-            {selected?.has_value && (
+            {selected?.value_type === 'select' && (
                 <SubValueSelect condition={selected} rule={rule} onChange={onChange} />
+            )}
+
+            {selected?.value_type === 'search' && (
+                <AsyncCombobox
+                    condition={selected.value}
+                    value={rule.value}
+                    onChange={(value) => onChange({ ...rule, value })}
+                />
             )}
         </>
     );

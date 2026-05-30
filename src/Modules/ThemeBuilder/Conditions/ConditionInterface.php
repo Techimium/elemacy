@@ -22,15 +22,29 @@ interface ConditionInterface
     public function check(ConditionRuleDTO $rule): bool;
 
     /**
-     * Whether this condition accepts a specific value (renders a second select in the UI).
+     * How the condition's value is picked in the UI:
+     *
+     *  - `none`   → no value input (e.g. "Entire Site").
+     *  - `select` → a dropdown populated from {@see get_sub_values()}.
+     *  - `search` → a debounced async combobox backed by the conditions/search
+     *               endpoint, configured by {@see get_search_config()}.
      */
-    public function has_value(): bool;
+    public function get_value_type(): string;
 
     /**
-     * Optional sub-values for conditions that accept a specific value (e.g. post type).
+     * Optional sub-values for conditions whose value type is `select`.
      * Returns an array of ['value' => string, 'label' => string] pairs.
      */
     public function get_sub_values(): array;
+
+    /**
+     * Search configuration for conditions whose value type is `search`.
+     *
+     * Shape: ['entity' => 'post'|'term'|'user', ...scope] — e.g.
+     * ['entity' => 'post', 'post_type' => 'page'] or
+     * ['entity' => 'term', 'taxonomy' => 'category'].
+     */
+    public function get_search_config(): array;
 
     /**
      * Template type slugs this condition applies to.

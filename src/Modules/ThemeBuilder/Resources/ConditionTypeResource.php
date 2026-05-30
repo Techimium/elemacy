@@ -16,8 +16,9 @@ class ConditionTypeResource extends Resource
         return [
             'value'      => $this->get_name(),
             'label'      => $this->get_label(),
-            'has_value'  => $this->has_value(),
+            'value_type' => $this->get_value_type(),
             'sub_values' => $this->get_sub_values(),
+            'search'     => $this->get_search_config(),
             'is_mock'    => $this->is_mock(),
         ];
     }

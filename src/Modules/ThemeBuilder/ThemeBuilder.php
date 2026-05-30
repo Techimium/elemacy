@@ -7,7 +7,9 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
+use Elemacy\Modules\ThemeBuilder\Conditions\ConditionInterface;
 use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
 use Elemacy\Modules\ThemeBuilder\Services\ConditionManager;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -63,13 +65,30 @@ class ThemeBuilder extends Module
      * Register the conditions free ships, listed in Config/conditions.php.
      * The list includes mock conditions that elemacy-pro overrides (by name) with
      * real implementations when active.
+     *
+     * Entries are class-strings or ready-made instances. Registration runs on
+     * `init` because the config's per-taxonomy factories enumerate taxonomies,
+     * which don't exist until then; nothing reads the conditions before `init`
+     * (REST + front-end resolver run later).
+     *
+     * After free's own conditions are in place, {@see Hooks::CONDITIONS_REGISTER_ACTION}
+     * fires with the manager so extensions (e.g. elemacy-pro) can register or
+     * override conditions reliably — without depending on hook priority.
      */
     protected function register_conditions(): void
     {
-        $manager = ConditionManager::instance();
+        add_action('init', function () {
+            $manager = ConditionManager::instance();
 
-        foreach (require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/conditions.php') as $class) {
-            $manager->register(new $class());
-        }
+            foreach (require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/conditions.php') as $entry) {
+                $condition = is_string($entry) ? new $entry() : $entry;
+
+                if ($condition instanceof ConditionInterface) {
+                    $manager->register($condition);
+                }
+            }
+
+            do_action(Hooks::CONDITIONS_REGISTER_ACTION, $manager);
+        }, 99);
     }
 }

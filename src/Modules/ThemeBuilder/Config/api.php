@@ -16,3 +16,4 @@ Route::post('/theme-builder/templates/{id}/duplicate', [ThemeBuilderController::
 Route::delete('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'destroy'])->middleware(AdminMiddleware::class);
 
 Route::get('/conditions/types', [ConditionController::class, 'types'])->middleware(AdminMiddleware::class);
+Route::get('/conditions/search', [ConditionController::class, 'search'])->middleware(AdminMiddleware::class);

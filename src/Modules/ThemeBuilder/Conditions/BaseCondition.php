@@ -12,12 +12,18 @@ abstract class BaseCondition implements ConditionInterface
     }
 
     /**
-     * Defaults to "has a value" when the condition exposes sub-values.
-     * Override to expose a free-form value input without predefined sub-values.
+     * Defaults to a `select` when the condition exposes sub-values, otherwise
+     * `none`. Search-backed conditions override this to return `search` and
+     * supply {@see get_search_config()}.
      */
-    public function has_value(): bool
+    public function get_value_type(): string
     {
-        return !empty($this->get_sub_values());
+        return !empty($this->get_sub_values()) ? 'select' : 'none';
+    }
+
+    public function get_search_config(): array
+    {
+        return [];
     }
 
     public function is_mock(): bool

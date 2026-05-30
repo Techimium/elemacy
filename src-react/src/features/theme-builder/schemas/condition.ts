@@ -12,11 +12,14 @@ export const ConditionSubValueSchema = z.object({
     label: z.string(),
 });
 
+export const ConditionValueType = z.enum(['none', 'select', 'search']);
+
 export const ConditionTypeSchema = z.object({
     value: z.string(),
     label: z.string(),
-    has_value: z.boolean(),
+    value_type: ConditionValueType,
     sub_values: z.array(ConditionSubValueSchema),
+    search: z.record(z.string(), z.unknown()).optional(),
     is_mock: z.boolean(),
 });
 

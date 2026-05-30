@@ -20,4 +20,8 @@ final class Hooks
 
     // Theme Builder — display conditions
     const CONDITIONS_EXCLUDED_POST_TYPES_FILTER = 'elemacy/filter/conditions/excluded_post_types';
+    const CONDITIONS_EXCLUDED_TAXONOMIES_FILTER = 'elemacy/filter/conditions/excluded_taxonomies';
+
+    // Fired after free registers its conditions (passes the ConditionManager).
+    const CONDITIONS_REGISTER_ACTION = 'elemacy/action/conditions/register';
 }
