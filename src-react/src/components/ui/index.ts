@@ -1,3 +1,4 @@
+export * from './badge';
 export * from './button';
 export * from './card';
 export * from './dialog';
@@ -9,3 +10,4 @@ export * from './label';
 export * from './select';
 export * from './sonner';
 export * from './switch';
+export * from './tabs';

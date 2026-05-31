@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\DTO\ConditionRuleDTO;
+use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;

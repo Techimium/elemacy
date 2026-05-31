@@ -10,6 +10,7 @@ use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
+use Elemacy\Conditions\ConditionsBootstrap;
 
 class Elemacy
 {
@@ -84,6 +85,8 @@ class Elemacy
 	{
 		new AdminScripts();
 		new FrontendScripts();
+
+		(new ConditionsBootstrap())->register();
 
 		$this->module_manager = new ModuleManager();
 	}
