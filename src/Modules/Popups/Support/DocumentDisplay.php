@@ -47,47 +47,47 @@ class DocumentDisplay
             }
         }
 
-        $overlay_color = isset($settings['elemacy_overlay_color']) && '' !== $settings['elemacy_overlay_color']
-            ? $settings['elemacy_overlay_color']
+        $overlay_color = isset($settings[DisplayKeys::OVERLAY_COLOR]) && '' !== $settings[DisplayKeys::OVERLAY_COLOR]
+            ? $settings[DisplayKeys::OVERLAY_COLOR]
             : $def['overlay']['color'];
 
-        $overlay_opacity = isset($settings['elemacy_overlay_opacity']['size']) && '' !== $settings['elemacy_overlay_opacity']['size']
-            ? (float) $settings['elemacy_overlay_opacity']['size']
+        $overlay_opacity = isset($settings[DisplayKeys::OVERLAY_OPACITY]['size']) && '' !== $settings[DisplayKeys::OVERLAY_OPACITY]['size']
+            ? (float) $settings[DisplayKeys::OVERLAY_OPACITY]['size']
             : $def['overlay']['opacity'];
 
         return static::$cache[$id] = [
-            'position'  => isset($settings['elemacy_position']) && '' !== $settings['elemacy_position']
-                ? $settings['elemacy_position']
+            'position'  => isset($settings[DisplayKeys::POSITION]) && '' !== $settings[DisplayKeys::POSITION]
+                ? $settings[DisplayKeys::POSITION]
                 : $def['position'],
-            'sticky'    => 'yes' === ($settings['elemacy_sticky'] ?? ''),
+            'sticky'    => 'yes' === ($settings[DisplayKeys::STICKY] ?? ''),
             'overlay'   => [
-                'enabled' => isset($settings['elemacy_overlay_enabled'])
-                    ? ('yes' === $settings['elemacy_overlay_enabled'])
+                'enabled' => isset($settings[DisplayKeys::OVERLAY_ENABLED])
+                    ? ('yes' === $settings[DisplayKeys::OVERLAY_ENABLED])
                     : $def['overlay']['enabled'],
                 'color'   => $overlay_color,
                 'opacity' => $overlay_opacity,
             ],
             'animation' => [
-                'in'  => isset($settings['elemacy_animation_in']) && '' !== $settings['elemacy_animation_in']
-                    ? $settings['elemacy_animation_in']
+                'in'  => isset($settings[DisplayKeys::ANIMATION_IN]) && '' !== $settings[DisplayKeys::ANIMATION_IN]
+                    ? $settings[DisplayKeys::ANIMATION_IN]
                     : $def['animation']['in'],
-                'out' => isset($settings['elemacy_animation_out']) && '' !== $settings['elemacy_animation_out']
-                    ? $settings['elemacy_animation_out']
+                'out' => isset($settings[DisplayKeys::ANIMATION_OUT]) && '' !== $settings[DisplayKeys::ANIMATION_OUT]
+                    ? $settings[DisplayKeys::ANIMATION_OUT]
                     : $def['animation']['out'],
             ],
             'close'     => [
-                'button'           => isset($settings['elemacy_close_button'])
-                    ? ('yes' === $settings['elemacy_close_button'])
+                'button'           => isset($settings[DisplayKeys::CLOSE_BUTTON])
+                    ? ('yes' === $settings[DisplayKeys::CLOSE_BUTTON])
                     : $def['close']['button'],
-                'auto_close_s'     => isset($settings['elemacy_auto_close'])
-                    ? (int) $settings['elemacy_auto_close']
+                'auto_close_s'     => isset($settings[DisplayKeys::AUTO_CLOSE])
+                    ? (int) $settings[DisplayKeys::AUTO_CLOSE]
                     : 0,
-                'on_overlay_click' => 'yes' === ($settings['elemacy_close_on_overlay'] ?? ''),
-                'on_esc'           => 'yes' === ($settings['elemacy_close_on_esc'] ?? ''),
+                'on_overlay_click' => 'yes' === ($settings[DisplayKeys::CLOSE_ON_OVERLAY] ?? ''),
+                'on_esc'           => 'yes' === ($settings[DisplayKeys::CLOSE_ON_ESC] ?? ''),
             ],
-            'prevent_body_scroll' => 'yes' === ($settings['elemacy_prevent_scroll'] ?? ''),
-            'z_index'             => isset($settings['elemacy_z_index']) && '' !== $settings['elemacy_z_index']
-                ? (int) $settings['elemacy_z_index']
+            'prevent_body_scroll' => 'yes' === ($settings[DisplayKeys::PREVENT_SCROLL] ?? ''),
+            'z_index'             => isset($settings[DisplayKeys::Z_INDEX]) && '' !== $settings[DisplayKeys::Z_INDEX]
+                ? (int) $settings[DisplayKeys::Z_INDEX]
                 : (int) $def['z_index'],
         ];
     }

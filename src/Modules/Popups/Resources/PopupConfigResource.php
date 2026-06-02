@@ -46,9 +46,9 @@ class PopupConfigResource extends Resource
     }
 
     /**
-     * Normalize each stored trigger into the flat engine config via its
-     * registered handler. Unregistered triggers fall back to their raw form so
-     * nothing silently disappears.
+     * Normalize each stored trigger into the flat engine config ({type, ...params})
+     * via its registered handler. Unregistered triggers fall back to the same
+     * flat shape so the engine never sees two shapes for one trigger.
      *
      * @param array $triggers
      * @return array<int, array<string, mixed>>
@@ -61,16 +61,18 @@ class PopupConfigResource extends Resource
         foreach (TriggerDTO::collection($triggers) as $dto) {
             $trigger = $manager->get($dto->type);
 
-            $out[] = $trigger ? $trigger->to_js_config($dto) : $dto->to_array();
+            $out[] = $trigger
+                ? $trigger->to_js_config($dto)
+                : array_merge(['type' => $dto->type], (array) $dto->params);
         }
 
         return $out;
     }
 
     /**
-     * Normalize each stored rule into the engine config. Server-evaluable rules
-     * are enforced server-side and therefore excluded from the client payload.
-     * Unregistered rules fall back to their raw form.
+     * Normalize each stored rule into the flat engine config ({type, ...params}).
+     * Server-evaluable rules are enforced server-side and therefore excluded from
+     * the client payload. Unregistered rules fall back to the same flat shape.
      *
      * @param array $rules
      * @return array<int, array<string, mixed>>
@@ -87,7 +89,9 @@ class PopupConfigResource extends Resource
                 continue;
             }
 
-            $out[] = $rule ? $rule->to_js_config($dto) : $dto->to_array();
+            $out[] = $rule
+                ? $rule->to_js_config($dto)
+                : array_merge(['type' => $dto->type], (array) $dto->params);
         }
 
         return $out;

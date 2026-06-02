@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\PostTypes\PopupPostType;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
+use Elemacy\Modules\Popups\Support\DisplayKeys;
 use Elementor\Controls_Manager;
 use Elementor\Core\DocumentTypes\PageBase;
 use Elementor\Group_Control_Border;
@@ -192,7 +193,7 @@ class PopupDocument extends PageBase
         // positions off its own `.elemacy-popup--pos-*` class (engine.js) and
         // the overlay uses per-element inline styles, keeping popups independent.
         $this->add_control(
-            'elemacy_position',
+            DisplayKeys::POSITION,
             [
                 'label'                => esc_html__('Position', 'elemacy'),
                 'type'                 => Controls_Manager::SELECT,
@@ -218,7 +219,7 @@ class PopupDocument extends PageBase
             // sticky it stays in view while scrolling. Bottom bars are always
             // fixed to the viewport, so sticky only applies to the top position.
             $this->add_control(
-                'elemacy_sticky',
+                DisplayKeys::STICKY,
                 [
                     'label'        => esc_html__('Sticky', 'elemacy'),
                     'type'         => Controls_Manager::SWITCHER,
@@ -228,14 +229,14 @@ class PopupDocument extends PageBase
                     'default'      => '',
                     'description'  => esc_html__('Keep the bar visible while scrolling.', 'elemacy'),
                     'condition'    => [
-                        'elemacy_position' => 'top',
+                        DisplayKeys::POSITION => 'top',
                     ],
                 ]
             );
         }
 
         $this->add_responsive_control(
-            'elemacy_width',
+            DisplayKeys::WIDTH,
             [
                 'label'      => esc_html__('Width', 'elemacy'),
                 'type'       => Controls_Manager::SLIDER,
@@ -265,7 +266,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_responsive_control(
-            'elemacy_height',
+            DisplayKeys::HEIGHT,
             [
                 'label'      => esc_html__('Height', 'elemacy'),
                 'type'       => Controls_Manager::SLIDER,
@@ -287,7 +288,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_z_index',
+            DisplayKeys::Z_INDEX,
             [
                 'label'   => esc_html__('Z-Index', 'elemacy'),
                 'type'    => Controls_Manager::NUMBER,
@@ -296,7 +297,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_overlay_enabled',
+            DisplayKeys::OVERLAY_ENABLED,
             [
                 'label'        => esc_html__('Overlay', 'elemacy'),
                 'type'         => Controls_Manager::SWITCHER,
@@ -312,13 +313,13 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_overlay_color',
+            DisplayKeys::OVERLAY_COLOR,
             [
                 'label'     => esc_html__('Overlay Color', 'elemacy'),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => $defaults['overlay']['color'],
                 'condition' => [
-                    'elemacy_overlay_enabled' => 'yes',
+                    DisplayKeys::OVERLAY_ENABLED => 'yes',
                 ],
                 'selectors' => [
                     'body' => '--elemacy-ov-color: {{VALUE}};',
@@ -327,7 +328,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_overlay_opacity',
+            DisplayKeys::OVERLAY_OPACITY,
             [
                 'label'     => esc_html__('Overlay Opacity', 'elemacy'),
                 'type'      => Controls_Manager::SLIDER,
@@ -342,7 +343,7 @@ class PopupDocument extends PageBase
                     'size' => $defaults['overlay']['opacity'],
                 ],
                 'condition' => [
-                    'elemacy_overlay_enabled' => 'yes',
+                    DisplayKeys::OVERLAY_ENABLED => 'yes',
                 ],
                 'selectors' => [
                     'body' => '--elemacy-ov-opacity: {{SIZE}};',
@@ -351,7 +352,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_animation_in',
+            DisplayKeys::ANIMATION_IN,
             [
                 'label'     => esc_html__('Animation In', 'elemacy'),
                 'type'      => Controls_Manager::SELECT,
@@ -367,7 +368,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_animation_out',
+            DisplayKeys::ANIMATION_OUT,
             [
                 'label'   => esc_html__('Animation Out', 'elemacy'),
                 'type'    => Controls_Manager::SELECT,
@@ -382,7 +383,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_close_button',
+            DisplayKeys::CLOSE_BUTTON,
             [
                 'label'        => esc_html__('Close Button', 'elemacy'),
                 'type'         => Controls_Manager::SWITCHER,
@@ -398,7 +399,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_auto_close',
+            DisplayKeys::AUTO_CLOSE,
             [
                 'label'       => esc_html__('Auto Close (seconds)', 'elemacy'),
                 'type'        => Controls_Manager::NUMBER,
@@ -409,7 +410,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_close_on_overlay',
+            DisplayKeys::CLOSE_ON_OVERLAY,
             [
                 'label'        => esc_html__('Close on Overlay Click', 'elemacy'),
                 'type'         => Controls_Manager::SWITCHER,
@@ -421,7 +422,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_close_on_esc',
+            DisplayKeys::CLOSE_ON_ESC,
             [
                 'label'        => esc_html__('Close on Esc', 'elemacy'),
                 'type'         => Controls_Manager::SWITCHER,
@@ -433,7 +434,7 @@ class PopupDocument extends PageBase
         );
 
         $this->add_control(
-            'elemacy_prevent_scroll',
+            DisplayKeys::PREVENT_SCROLL,
             [
                 'label'        => esc_html__('Prevent Body Scroll', 'elemacy'),
                 'type'         => Controls_Manager::SWITCHER,
@@ -467,7 +468,7 @@ class PopupDocument extends PageBase
                 'label'     => esc_html__('Close Button', 'elemacy'),
                 'tab'       => Controls_Manager::TAB_STYLE,
                 'condition' => [
-                    'elemacy_close_button' => 'yes',
+                    DisplayKeys::CLOSE_BUTTON => 'yes',
                 ],
             ]
         );

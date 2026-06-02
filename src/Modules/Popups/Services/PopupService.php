@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Conditions\DTO\ConditionRuleDTO;
+use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
@@ -16,12 +16,18 @@ use WP_Query;
 
 class PopupService
 {
-    protected const TYPE_META_KEY       = '_elemacy_popup_type';
-    protected const CONDITIONS_META_KEY = '_elemacy_conditions';
-    protected const TRIGGERS_META_KEY   = '_elemacy_popup_triggers';
-    protected const RULES_META_KEY      = '_elemacy_popup_rules';
-    protected const ANALYTICS_META_KEY  = '_elemacy_popup_analytics';
-    protected const AB_GROUP_META_KEY   = '_elemacy_popup_ab_group';
+    protected const TYPE_META_KEY      = '_elemacy_popup_type';
+    protected const TRIGGERS_META_KEY  = '_elemacy_popup_triggers';
+    protected const RULES_META_KEY     = '_elemacy_popup_rules';
+    protected const ANALYTICS_META_KEY = '_elemacy_popup_analytics';
+    protected const AB_GROUP_META_KEY  = '_elemacy_popup_ab_group';
+
+    protected ConditionRepository $conditions;
+
+    public function __construct()
+    {
+        $this->conditions = new ConditionRepository();
+    }
 
     /**
      * @return PopupDTO[]
@@ -108,7 +114,7 @@ class PopupService
         update_post_meta($post_id, '_elementor_edit_mode', 'builder');
 
         if (isset($dto->conditions)) {
-            $this->save_conditions($post_id, (array) $dto->conditions);
+            $this->conditions->save($post_id, (array) $dto->conditions);
         }
 
         if (isset($dto->triggers)) {
@@ -163,7 +169,7 @@ class PopupService
         }
 
         if (isset($dto->conditions)) {
-            $this->save_conditions($id, (array) $dto->conditions);
+            $this->conditions->save($id, (array) $dto->conditions);
         }
 
         if (isset($dto->triggers)) {
@@ -243,27 +249,6 @@ class PopupService
         return true;
     }
 
-    protected function get_conditions(int $popup_id): array
-    {
-        $raw = get_post_meta($popup_id, static::CONDITIONS_META_KEY, true);
-
-        return ConditionRuleDTO::collection(is_array($raw) ? $raw : []);
-    }
-
-    protected function save_conditions(int $popup_id, array $conditions): void
-    {
-        update_post_meta($popup_id, static::CONDITIONS_META_KEY, $this->normalize_conditions($conditions));
-    }
-
-    protected function normalize_conditions(array $conditions): array
-    {
-        return array_values(array_map(function ($rule): array {
-            $dto = ConditionRuleDTO::from_array(is_array($rule) ? $rule : []);
-            $dto->id = $dto->id !== '' ? $dto->id : wp_generate_uuid4();
-            return $dto->to_array();
-        }, $conditions));
-    }
-
     protected function get_triggers(int $popup_id): array
     {
         $raw = get_post_meta($popup_id, static::TRIGGERS_META_KEY, true);
@@ -313,7 +298,7 @@ class PopupService
         $dto->type = get_post_meta($post->ID, static::TYPE_META_KEY, true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
-        $dto->conditions = $this->get_conditions($post->ID);
+        $dto->conditions = $this->conditions->get($post->ID);
         $dto->triggers = $this->get_triggers($post->ID);
         $dto->rules = $this->get_rules($post->ID);
 

@@ -53,7 +53,7 @@
 		try {
 			var raw = window.localStorage.getItem(key);
 			return raw ? JSON.parse(raw) : {};
-		} catch (e) {
+		} catch (error) {
 			return {};
 		}
 	}
@@ -61,7 +61,7 @@
 	function writeStore(key, data) {
 		try {
 			window.localStorage.setItem(key, JSON.stringify(data));
-		} catch (e) {
+		} catch (error) {
 			/* storage unavailable — ignore */
 		}
 	}
@@ -69,7 +69,7 @@
 	function markSession(key) {
 		try {
 			window.sessionStorage.setItem(key, '1');
-		} catch (e) {
+		} catch (error) {
 			/* ignore */
 		}
 	}
@@ -82,13 +82,9 @@
 		markSession(config.storage_key);
 	}
 
-	/**
-	 * Whether a trigger-initiated open is currently allowed.
-	 *
-	 * NOTE: real rule semantics (max count, once-per-session, schedule) are
-	 * refined in a later milestone. For now this only delegates to any
-	 * registered rule handlers and otherwise allows the open.
-	 */
+	// Whether a trigger-initiated open is allowed: every registered rule handler
+	// must pass. Free ships frequency_cap; pro registers the rest. An unknown
+	// rule type (no handler) is skipped, so the open is allowed.
 	function canShow(config) {
 		if (config.rules && config.rules.length) {
 			for (var i = 0; i < config.rules.length; i++) {
@@ -128,7 +124,7 @@
 		}
 
 		var root = state.root;
-		var tpl = root.querySelector('template.elemacy-popup-tpl');
+		var template = root.querySelector('template.elemacy-popup-tpl');
 		var display = state.config.display || {};
 
 		// Position class.
@@ -169,14 +165,14 @@
 		// itself — the same element the document's size/style controls target, so
 		// frontend and editor stay in sync. We just tag it with a stable class.
 		var fragment;
-		if (tpl && tpl.content) {
-			fragment = document.importNode(tpl.content, true);
+		if (template && template.content) {
+			fragment = document.importNode(template.content, true);
 		} else {
 			fragment = document.createDocumentFragment();
-			var tmp = document.createElement('div');
-			tmp.innerHTML = tpl ? tpl.innerHTML : '';
-			while (tmp.firstChild) {
-				fragment.appendChild(tmp.firstChild);
+			var wrapper = document.createElement('div');
+			wrapper.innerHTML = template ? template.innerHTML : '';
+			while (wrapper.firstChild) {
+				fragment.appendChild(wrapper.firstChild);
 			}
 		}
 
@@ -296,7 +292,7 @@
 				document.dispatchEvent(
 					new CustomEvent('elemacy-popup:closed', { detail: { id: id } })
 				);
-			} catch (e) {
+			} catch (error) {
 				/* CustomEvent unsupported — ignore */
 			}
 		}
@@ -422,14 +418,14 @@
 		}
 		try {
 			return closest(el, selector);
-		} catch (e) {
+		} catch (error) {
 			return null;
 		}
 	}
 
 	function setupDelegation() {
-		document.addEventListener('click', function (e) {
-			var target = e.target;
+		document.addEventListener('click', function (event) {
+			var target = event.target;
 
 			// Explicit open buttons (button-click opens directly, no frequency).
 			var openEl =
@@ -440,7 +436,7 @@
 					openEl.getAttribute('data-popup-id') ||
 					openEl.getAttribute('data-elemacy-popup-open');
 				if (openId) {
-					e.preventDefault();
+					event.preventDefault();
 					open(parseInt(openId, 10));
 					return;
 				}
@@ -461,7 +457,7 @@
 			if (closeEl) {
 				var rootForClose = closest(closeEl, '[data-elemacy-popup-id]');
 				if (rootForClose) {
-					e.preventDefault();
+					event.preventDefault();
 					close(parseInt(rootForClose.getAttribute('data-elemacy-popup-id'), 10));
 				}
 				return;
@@ -471,19 +467,19 @@
 			if (target.hasAttribute && target.hasAttribute('data-elemacy-overlay')) {
 				var overlayRoot = closest(target, '[data-elemacy-popup-id]');
 				if (overlayRoot) {
-					var oid = parseInt(overlayRoot.getAttribute('data-elemacy-popup-id'), 10);
-					var oState = registry[oid];
-					if (oState && oState.config.display && oState.config.display.close &&
-						oState.config.display.close.on_overlay_click) {
-						close(oid);
+					var overlayId = parseInt(overlayRoot.getAttribute('data-elemacy-popup-id'), 10);
+					var overlayState = registry[overlayId];
+					if (overlayState && overlayState.config.display && overlayState.config.display.close &&
+						overlayState.config.display.close.on_overlay_click) {
+						close(overlayId);
 					}
 				}
 			}
 		});
 
 		// ESC + focus-trap tab cycling.
-		document.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape' || e.keyCode === 27) {
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' || event.keyCode === 27) {
 				Object.keys(registry).forEach(function (id) {
 					var state = registry[id];
 					if (state.isOpen && state.config.display && state.config.display.close &&
@@ -494,7 +490,7 @@
 				return;
 			}
 
-			if (e.key === 'Tab' || e.keyCode === 9) {
+			if (event.key === 'Tab' || event.keyCode === 9) {
 				var openState = null;
 				Object.keys(registry).forEach(function (id) {
 					if (registry[id].isOpen) {
@@ -510,11 +506,11 @@
 				}
 				var first = focusables[0];
 				var last = focusables[focusables.length - 1];
-				if (e.shiftKey && document.activeElement === first) {
-					e.preventDefault();
+				if (event.shiftKey && document.activeElement === first) {
+					event.preventDefault();
 					last.focus();
-				} else if (!e.shiftKey && document.activeElement === last) {
-					e.preventDefault();
+				} else if (!event.shiftKey && document.activeElement === last) {
+					event.preventDefault();
 					first.focus();
 				}
 			}

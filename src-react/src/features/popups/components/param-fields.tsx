@@ -13,6 +13,12 @@ import type { ParamDescriptor } from '@/features/popups/schemas/trigger-rule-typ
 
 type Params = Record<string, unknown>;
 
+const clamp = (value: number, min?: number, max?: number) => {
+    if (typeof min === 'number' && value < min) return min;
+    if (typeof max === 'number' && value > max) return max;
+    return value;
+};
+
 interface ParamFieldsProps {
     schema: ParamDescriptor[];
     params: Params;
@@ -22,6 +28,7 @@ interface ParamFieldsProps {
 /**
  * Renders a type's `params_schema` as form controls and writes each value into
  * `params[key]`. Shared by trigger-row and rule-row so the two stay identical.
+ * Fields stack full-width to match the rest of the popup form.
  */
 export function ParamFields({ schema, params, onChange }: ParamFieldsProps) {
     if (schema.length === 0) return null;
@@ -29,7 +36,7 @@ export function ParamFields({ schema, params, onChange }: ParamFieldsProps) {
     const setParam = (key: string, value: unknown) => onChange({ ...params, [key]: value });
 
     return (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-4">
             {schema.map((descriptor) => (
                 <ParamField
                     key={descriptor.key}
@@ -53,22 +60,29 @@ function ParamField({
 }) {
     const label = descriptor.label ?? descriptor.key;
 
+    // Inputs deliberately carry no `type` attribute: WordPress admin's forms.css
+    // styles input[type=text|number|…] (unlayered, so it outranks our utility
+    // classes) and would bleed in. A bare input escapes those selectors and keeps
+    // the component styling — the same reason the form's Title field looks right.
     switch (descriptor.type) {
         case 'number':
             return (
                 <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
+                    <Label>
                         {label}
                         {descriptor.unit ? ` (${descriptor.unit})` : ''}
                     </Label>
                     <Input
-                        type="number"
-                        min={descriptor.min}
-                        max={descriptor.max}
+                        inputMode="numeric"
                         value={typeof value === 'number' ? value : ''}
-                        onChange={(e) =>
-                            onChange(e.target.value === '' ? undefined : Number(e.target.value))
-                        }
+                        onChange={(event) => {
+                            const raw = event.target.value;
+                            if (raw === '') return onChange(undefined);
+                            const parsed = Number(raw);
+                            if (!Number.isNaN(parsed)) {
+                                onChange(clamp(parsed, descriptor.min, descriptor.max));
+                            }
+                        }}
                     />
                 </div>
             );
@@ -76,11 +90,10 @@ function ParamField({
         case 'text':
             return (
                 <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{label}</Label>
+                    <Label>{label}</Label>
                     <Input
-                        type="text"
                         value={typeof value === 'string' ? value : ''}
-                        onChange={(e) => onChange(e.target.value)}
+                        onChange={(event) => onChange(event.target.value)}
                     />
                 </div>
             );
@@ -88,7 +101,7 @@ function ParamField({
         case 'select':
             return (
                 <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{label}</Label>
+                    <Label>{label}</Label>
                     <Select
                         value={typeof value === 'string' && value !== '' ? value : undefined}
                         onValueChange={onChange}
@@ -109,8 +122,8 @@ function ParamField({
 
         case 'boolean':
             return (
-                <div className="flex items-center justify-between sm:col-span-2">
-                    <Label className="text-xs text-muted-foreground">{label}</Label>
+                <div className="flex items-center justify-between">
+                    <Label>{label}</Label>
                     <Switch checked={value === true} onCheckedChange={onChange} />
                 </div>
             );
@@ -144,13 +157,13 @@ function CheckboxGroupField({
     const toggle = (optionValue: string, checked: boolean) => {
         const next = checked
             ? [...value, optionValue]
-            : value.filter((v) => v !== optionValue);
+            : value.filter((item) => item !== optionValue);
         onChange(next);
     };
 
     return (
-        <div className="space-y-2 sm:col-span-2">
-            <Label className="text-xs text-muted-foreground">{label}</Label>
+        <div className="space-y-2">
+            <Label>{label}</Label>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {options.map((option) => (
                     <label
@@ -161,7 +174,7 @@ function CheckboxGroupField({
                             type="checkbox"
                             className="size-4 rounded border-input accent-primary"
                             checked={value.includes(option.value)}
-                            onChange={(e) => toggle(option.value, e.target.checked)}
+                            onChange={(event) => toggle(option.value, event.target.checked)}
                         />
                         {option.label}
                     </label>

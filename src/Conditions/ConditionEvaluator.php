@@ -20,11 +20,11 @@ class ConditionEvaluator
     }
 
     /**
-     * Evaluate a set of condition rules against the current request.
-     *
-     * A single exclude match vetoes the template. Include rules are OR'd. When a
-     * rule set has no include rules (excludes only), the base is "show everywhere"
-     * so excludes subtract from it — otherwise an exclude-only set could never match.
+     * Flat matching model (mirrors Elementor, no AND/grouping): includes are
+     * OR'd, any exclude match vetoes, and an exclude-only set is based on "show
+     * everywhere". Unknown types are skipped — free ships a mock per pro
+     * condition under the same name, so deactivating pro just makes its
+     * includes hide the template (safe) rather than leaving the type unresolved.
      *
      * @param ConditionRuleDTO[] $conditions
      */
