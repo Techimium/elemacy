@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Widgets\Bridges;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Elemacy;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
 
@@ -24,6 +25,11 @@ class ThemeBuilderBridge
         }
 
         return static::$instance;
+    }
+
+    public function is_available(): bool
+    {
+        return Elemacy::get_instance()->get_module_manager()->is_active('theme-builder');
     }
 
     public function get_templates($type = 'loop')

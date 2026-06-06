@@ -103,6 +103,23 @@ class LoopGrid extends BaseWidget
             ]
         );
 
+        if (!ThemeBuilderBridge::get_instance()->is_available()) {
+            $this->add_control(
+                'theme_builder_notice',
+                [
+                    'type' => Controls_Manager::RAW_HTML,
+                    'raw' => sprintf(
+                        '<strong>%s</strong><br>%s <a href="%s" target="_blank" rel="noopener">%s</a>',
+                        esc_html__('Theme Builder module required', 'elemacy'),
+                        esc_html__('Enable the Theme Builder module to create and select loop templates.', 'elemacy'),
+                        esc_url(admin_url('admin.php?page=elemacy#/modules')),
+                        esc_html__('Open Modules →', 'elemacy')
+                    ),
+                    'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+                ]
+            );
+        }
+
         $this->add_responsive_control(
             'columns',
             [
