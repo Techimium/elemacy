@@ -26,7 +26,6 @@ final class Hooks
     const CONDITIONS_REGISTER_ACTION = 'elemacy/action/conditions/register';
 
     // Popups
-    const POPUP_TYPES_FILTER                = 'elemacy/filter/popups/types';
     const POPUP_DISPLAY_SETTINGS_FILTER     = 'elemacy/filter/popups/display_settings';
     const POPUP_FRONTEND_CONFIG_FILTER      = 'elemacy/filter/popups/frontend_config';
     const POPUP_MATCHED_FILTER              = 'elemacy/filter/popups/matched';

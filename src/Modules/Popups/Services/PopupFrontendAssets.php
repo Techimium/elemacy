@@ -24,7 +24,7 @@ class PopupFrontendAssets
             'elemacy-popups-engine',
             Utils::get_plugin_url('src/Modules/Popups/assets/scripts/engine.js'),
             ['jquery', 'elemacy-frontend'],
-            $this->asset_version('src/Modules/Popups/assets/scripts/engine.js'),
+            ELEMACY_VERSION,
             true
         );
 
@@ -32,22 +32,7 @@ class PopupFrontendAssets
             'elemacy-popups',
             Utils::get_plugin_url('src/Modules/Popups/assets/styles/popups.css'),
             ['elemacy-core'],
-            $this->asset_version('src/Modules/Popups/assets/styles/popups.css')
+            ELEMACY_VERSION
         );
-    }
-
-    /**
-     * Version a frontend asset by its file modification time so edits bust the
-     * browser cache automatically, falling back to the plugin version.
-     *
-     * @param string $relative_path
-     * @return string
-     */
-    protected function asset_version(string $relative_path): string
-    {
-        $file = Utils::get_plugin_path($relative_path);
-        $mtime = is_readable($file) ? filemtime($file) : false;
-
-        return $mtime ? (string) $mtime : ELEMACY_VERSION;
     }
 }
