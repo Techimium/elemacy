@@ -5,6 +5,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use Elemacy\Support\Utils;
+
 class FrontendScripts
 {
     public function __construct()
@@ -25,7 +27,7 @@ class FrontendScripts
 
         wp_localize_script('elemacy-frontend', 'elemacy', [
             'ajax_url' => esc_url_raw(admin_url('admin-ajax.php')),
-            'nonce' => wp_create_nonce('elemacy_ajax_nonce'),
+            'nonce' => wp_create_nonce(Utils::with_prefix('ajax_nonce')),
         ]);
     }
 

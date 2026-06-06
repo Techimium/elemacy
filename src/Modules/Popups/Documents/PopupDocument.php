@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Documents;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\PostTypes\PopupPostType;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\DisplayKeys;
@@ -80,7 +81,7 @@ class PopupDocument extends PageBase
 
     protected function register_controls()
     {
-        $type     = get_post_meta($this->get_main_id(), '_elemacy_popup_type', true);
+        $type     = get_post_meta($this->get_main_id(), MetaKeys::TYPE, true);
         $defaults = DisplayDefaults::for_type($type ? $type : 'popup');
 
         $this->register_layout_controls($type ? $type : 'popup', $defaults);

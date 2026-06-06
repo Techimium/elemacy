@@ -5,6 +5,7 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Modules\ThemeBuilder\Constants\MetaKeys;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
@@ -38,7 +39,7 @@ class TemplateService
         if (!empty($filter_dto->type)) {
             $query_args['meta_query'] = [
                 [
-                    'key' => '_elemacy_template_type',
+                    'key' => MetaKeys::TEMPLATE_TYPE,
                     'value' => $filter_dto->type,
                 ],
             ];
@@ -89,7 +90,7 @@ class TemplateService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($post_id, '_elemacy_template_type', $dto->type);
+            update_post_meta($post_id, MetaKeys::TEMPLATE_TYPE, $dto->type);
         }
 
         if (in_array($dto->type, ['header', 'footer'], true)) {
@@ -130,7 +131,7 @@ class TemplateService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($id, '_elemacy_template_type', $dto->type);
+            update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $dto->type);
 
             if (in_array($dto->type, ['header', 'footer'], true)) {
                 update_post_meta($id, '_wp_page_template', 'elementor_canvas');
@@ -209,7 +210,7 @@ class TemplateService
         $dto->id = $post->ID;
         $dto->title = $post->post_title;
         $dto->status = $post->post_status;
-        $dto->type = get_post_meta($post->ID, '_elemacy_template_type', true);
+        $dto->type = get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
         $dto->conditions = $this->conditions->get($post->ID);

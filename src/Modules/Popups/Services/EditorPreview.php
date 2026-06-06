@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\PostTypes\PopupPostType;
 use Elemacy\Support\Utils;
 
@@ -68,7 +69,7 @@ class EditorPreview
 
     protected function build_css(int $id): string
     {
-        $type = get_post_meta($id, '_elemacy_popup_type', true);
+        $type = get_post_meta($id, MetaKeys::TYPE, true);
         $type = $type ? $type : 'popup';
         $wrap = '.elementor-' . $id;
 

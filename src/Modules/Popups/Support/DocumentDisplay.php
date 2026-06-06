@@ -4,6 +4,8 @@ namespace Elemacy\Modules\Popups\Support;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Popups\Constants\MetaKeys;
+
 /**
  * Reads display/behavior settings off the popup's Elementor document
  * (registered in PopupDocument::register_controls) and maps them into the
@@ -30,7 +32,7 @@ class DocumentDisplay
             return static::$cache[$id];
         }
 
-        $type = get_post_meta($id, '_elemacy_popup_type', true);
+        $type = get_post_meta($id, MetaKeys::TYPE, true);
         $def  = DisplayDefaults::for_type($type ? $type : 'popup');
 
         $settings = [];

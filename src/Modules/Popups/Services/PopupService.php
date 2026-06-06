@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Hooks;
+use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
@@ -17,11 +18,6 @@ use WP_Query;
 
 class PopupService
 {
-    protected const TYPE_META_KEY      = '_elemacy_popup_type';
-    protected const TRIGGERS_META_KEY  = '_elemacy_popup_triggers';
-    protected const RULES_META_KEY     = '_elemacy_popup_rules';
-    protected const AB_GROUP_META_KEY  = '_elemacy_popup_ab_group';
-
     protected ConditionRepository $conditions;
 
     public function __construct()
@@ -49,7 +45,7 @@ class PopupService
         if (!empty($filter_dto->type)) {
             $query_args['meta_query'] = [
                 [
-                    'key' => static::TYPE_META_KEY,
+                    'key' => MetaKeys::TYPE,
                     'value' => $filter_dto->type,
                 ],
             ];
@@ -102,7 +98,7 @@ class PopupService
         $type = $dto->type ?? '';
 
         if ($type !== '') {
-            update_post_meta($post_id, static::TYPE_META_KEY, $type);
+            update_post_meta($post_id, MetaKeys::TYPE, $type);
         }
 
         // Popups render in an isolated Elementor canvas (no theme header/footer).
@@ -128,7 +124,7 @@ class PopupService
         // Display/layout settings live on the Elementor document (see
         // Documents\PopupDocument); they are read back via Support\DocumentDisplay.
 
-        update_post_meta($post_id, static::AB_GROUP_META_KEY, '');
+        update_post_meta($post_id, MetaKeys::AB_GROUP, '');
 
         return $this->create_dto(get_post($post_id));
     }
@@ -160,7 +156,7 @@ class PopupService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($id, static::TYPE_META_KEY, $dto->type);
+            update_post_meta($id, MetaKeys::TYPE, $dto->type);
         }
 
         if (isset($dto->conditions)) {
@@ -245,26 +241,26 @@ class PopupService
 
     protected function get_triggers(int $popup_id): array
     {
-        $raw = get_post_meta($popup_id, static::TRIGGERS_META_KEY, true);
+        $raw = get_post_meta($popup_id, MetaKeys::TRIGGERS, true);
 
         return TriggerDTO::collection(is_array($raw) ? $raw : []);
     }
 
     protected function save_triggers(int $popup_id, array $triggers): void
     {
-        update_post_meta($popup_id, static::TRIGGERS_META_KEY, $this->normalize_items($triggers, TriggerDTO::class));
+        update_post_meta($popup_id, MetaKeys::TRIGGERS, $this->normalize_items($triggers, TriggerDTO::class));
     }
 
     protected function get_rules(int $popup_id): array
     {
-        $raw = get_post_meta($popup_id, static::RULES_META_KEY, true);
+        $raw = get_post_meta($popup_id, MetaKeys::RULES, true);
 
         return RuleDTO::collection(is_array($raw) ? $raw : []);
     }
 
     protected function save_rules(int $popup_id, array $rules): void
     {
-        update_post_meta($popup_id, static::RULES_META_KEY, $this->normalize_items($rules, RuleDTO::class));
+        update_post_meta($popup_id, MetaKeys::RULES, $this->normalize_items($rules, RuleDTO::class));
     }
 
     /**
@@ -289,7 +285,7 @@ class PopupService
         $dto->id = $post->ID;
         $dto->title = $post->post_title;
         $dto->status = $post->post_status;
-        $dto->type = get_post_meta($post->ID, static::TYPE_META_KEY, true);
+        $dto->type = get_post_meta($post->ID, MetaKeys::TYPE, true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
         $dto->conditions = $this->conditions->get($post->ID);
