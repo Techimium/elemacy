@@ -253,6 +253,16 @@
 				close(id);
 			}, autoClose * 1000);
 		}
+
+		// Lifecycle seam: lets add-ons react to a popup being displayed (e.g. pro
+		// analytics records an impression). Symmetric to 'elemacy-popup:closed'.
+		try {
+			document.dispatchEvent(
+				new CustomEvent('elemacy-popup:shown', { detail: { id: id } })
+			);
+		} catch (error) {
+			/* CustomEvent unsupported — ignore */
+		}
 	}
 
 	function close(id) {

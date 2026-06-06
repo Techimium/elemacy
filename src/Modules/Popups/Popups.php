@@ -49,8 +49,6 @@ class Popups extends Module
         (new PopupFrontendAssets());
         PopupManager::instance()->register_hooks();
         (new TriggerRuleBootstrap())->register();
-
-        require_once Utils::get_plugin_path('src/Modules/Popups/Config/ajax.php');
     }
 
     public function register_routes()

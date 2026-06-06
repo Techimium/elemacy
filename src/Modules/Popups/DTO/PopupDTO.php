@@ -23,10 +23,4 @@ class PopupDTO extends DTO
 
     /** @var RuleDTO[] */
     public $rules = [];
-
-    /** @var array{impressions: int, conversions: int} */
-    public $analytics = [
-        'impressions' => 0,
-        'conversions' => 0,
-    ];
 }

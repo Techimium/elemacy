@@ -17,11 +17,6 @@ const RuleSchema = TriggerRuleSchema;
 
 export type TriggerRule = z.infer<typeof TriggerRuleSchema>;
 
-const AnalyticsSchema = z.object({
-    impressions: z.number(),
-    conversions: z.number(),
-});
-
 export const PopupListItemSchema = z.object({
     id: z.number(),
     title: z.string(),
@@ -41,7 +36,6 @@ export const PopupSchema = z.object({
     conditions: z.array(ConditionRuleSchema).default([]),
     triggers: z.array(TriggerSchema).default([]),
     rules: z.array(RuleSchema).default([]),
-    analytics: AnalyticsSchema.optional(),
     edit_with_elementor: z.string(),
 });
 

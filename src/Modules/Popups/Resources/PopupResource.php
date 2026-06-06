@@ -24,7 +24,6 @@ class PopupResource extends Resource
             'conditions' => ConditionRuleDTO::to_arrays($this->conditions ?? []),
             'triggers' => TriggerDTO::to_arrays($this->triggers ?? []),
             'rules' => RuleDTO::to_arrays($this->rules ?? []),
-            'analytics' => $this->analytics,
         ];
     }
 }

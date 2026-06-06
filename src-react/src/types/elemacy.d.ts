@@ -17,6 +17,7 @@ export interface ElemacyShared {
     ReactDOM: typeof ReactDOM;
     components: typeof ElemacyComponents;
     toast: typeof toast;
+    registry: typeof import('../lib/registry').registry;
 }
 
 declare global {

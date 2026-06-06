@@ -5,7 +5,6 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\Middlewares\API\AdminMiddleware;
 use Elemacy\Core\Route;
-use Elemacy\Modules\Popups\Controllers\PopupAnalyticsController;
 use Elemacy\Modules\Popups\Controllers\PopupController;
 use Elemacy\Modules\Popups\Controllers\PopupSettingsController;
 
@@ -14,7 +13,6 @@ Route::get('/popups/triggers', [PopupSettingsController::class, 'triggers'])->mi
 Route::get('/popups/rules', [PopupSettingsController::class, 'rules'])->middleware(AdminMiddleware::class);
 Route::get('/popups', [PopupController::class, 'index'])->middleware(AdminMiddleware::class);
 Route::get('/popups/{id}', [PopupController::class, 'show'])->middleware(AdminMiddleware::class);
-Route::get('/popups/{id}/analytics', [PopupAnalyticsController::class, 'show'])->middleware(AdminMiddleware::class);
 Route::post('/popups', [PopupController::class, 'store'])->middleware(AdminMiddleware::class);
 Route::put('/popups/{id}', [PopupController::class, 'update'])->middleware(AdminMiddleware::class);
 Route::post('/popups/{id}/duplicate', [PopupController::class, 'duplicate'])->middleware(AdminMiddleware::class);

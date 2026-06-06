@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
@@ -19,7 +20,6 @@ class PopupService
     protected const TYPE_META_KEY      = '_elemacy_popup_type';
     protected const TRIGGERS_META_KEY  = '_elemacy_popup_triggers';
     protected const RULES_META_KEY     = '_elemacy_popup_rules';
-    protected const ANALYTICS_META_KEY = '_elemacy_popup_analytics';
     protected const AB_GROUP_META_KEY  = '_elemacy_popup_ab_group';
 
     protected ConditionRepository $conditions;
@@ -128,11 +128,6 @@ class PopupService
         // Display/layout settings live on the Elementor document (see
         // Documents\PopupDocument); they are read back via Support\DocumentDisplay.
 
-        update_post_meta($post_id, static::ANALYTICS_META_KEY, [
-            'impressions' => 0,
-            'conversions' => 0,
-        ]);
-
         update_post_meta($post_id, static::AB_GROUP_META_KEY, '');
 
         return $this->create_dto(get_post($post_id));
@@ -208,13 +203,17 @@ class PopupService
 
         $meta = get_post_meta($id);
 
+        // Meta keys add-ons own and should not carry over to the copy (e.g. pro
+        // resets analytics counters for the new popup).
+        $excluded_meta = (array) apply_filters(Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER, []);
+
         if (is_array($meta)) {
             foreach ($meta as $meta_key => $meta_values) {
                 if (strpos($meta_key, '_edit_lock') === 0 || strpos($meta_key, '_edit_last') === 0) {
                     continue;
                 }
 
-                if ($meta_key === static::ANALYTICS_META_KEY) {
+                if (in_array($meta_key, $excluded_meta, true)) {
                     continue;
                 }
 
@@ -223,11 +222,6 @@ class PopupService
                 }
             }
         }
-
-        update_post_meta($new_post_id, static::ANALYTICS_META_KEY, [
-            'impressions' => 0,
-            'conversions' => 0,
-        ]);
 
         return $this->create_dto(get_post($new_post_id));
     }
@@ -301,12 +295,6 @@ class PopupService
         $dto->conditions = $this->conditions->get($post->ID);
         $dto->triggers = $this->get_triggers($post->ID);
         $dto->rules = $this->get_rules($post->ID);
-
-        $analytics = get_post_meta($post->ID, static::ANALYTICS_META_KEY, true);
-        $dto->analytics = is_array($analytics) ? $analytics : [
-            'impressions' => 0,
-            'conversions' => 0,
-        ];
 
         return $dto;
     }
