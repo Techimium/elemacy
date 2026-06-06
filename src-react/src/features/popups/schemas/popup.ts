@@ -1,0 +1,62 @@
+import { z } from 'zod';
+import { ConditionRuleSchema } from '@/schemas/condition';
+import { POPUP_TYPE_VALUES } from '@/features/popups/constants/popups';
+
+const StatusSchema = z.enum(['publish', 'draft', 'trash']);
+
+// Triggers and advanced rules share the same stored shape: a typed entry with
+// an opaque params bag whose keys are driven by the type's `params_schema`.
+export const TriggerRuleSchema = z.object({
+    id: z.string(),
+    type: z.string(),
+    params: z.record(z.string(), z.unknown()),
+});
+
+const TriggerSchema = TriggerRuleSchema;
+const RuleSchema = TriggerRuleSchema;
+
+export type TriggerRule = z.infer<typeof TriggerRuleSchema>;
+
+const AnalyticsSchema = z.object({
+    impressions: z.number(),
+    conversions: z.number(),
+});
+
+export const PopupListItemSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    type: z.enum(POPUP_TYPE_VALUES),
+    status: StatusSchema,
+    date: z.string().optional(),
+    edit_with_elementor: z.string(),
+});
+
+export const PopupSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    type: z.enum(POPUP_TYPE_VALUES),
+    status: StatusSchema,
+    author: z.number().optional(),
+    date: z.string().optional(),
+    conditions: z.array(ConditionRuleSchema).default([]),
+    triggers: z.array(TriggerSchema).default([]),
+    rules: z.array(RuleSchema).default([]),
+    analytics: AnalyticsSchema.optional(),
+    edit_with_elementor: z.string(),
+});
+
+export const CreatePopupSchema = z.object({
+    title: z.string(),
+    type: z.enum(POPUP_TYPE_VALUES),
+    status: StatusSchema,
+    conditions: z.array(ConditionRuleSchema).default([]),
+    triggers: z.array(TriggerSchema).default([]),
+    rules: z.array(RuleSchema).default([]),
+});
+
+export const UpdatePopupSchema = CreatePopupSchema;
+
+export type PopupListItem = z.infer<typeof PopupListItemSchema>;
+export type Popup = z.infer<typeof PopupSchema>;
+export type CreatePopup = z.infer<typeof CreatePopupSchema>;
+export type UpdatePopup = z.infer<typeof UpdatePopupSchema>;

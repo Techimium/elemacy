@@ -10,6 +10,7 @@ use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
+use Elemacy\Conditions\ConditionsBootstrap;
 
 class Elemacy
 {
@@ -73,6 +74,13 @@ class Elemacy
 			return;
 		}
 
+		// Fresh install: nothing to migrate, so just stamp the version and skip
+		// the upgrade branch below (version_compare(false, ...) would run it).
+		if ($installed_version === false) {
+			update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
+			return;
+		}
+
 		if (version_compare($installed_version, ELEMACY_VERSION, '<')) {
 			// @todo: implement later if needed
 		}
@@ -84,6 +92,8 @@ class Elemacy
 	{
 		new AdminScripts();
 		new FrontendScripts();
+
+		(new ConditionsBootstrap())->register();
 
 		$this->module_manager = new ModuleManager();
 	}

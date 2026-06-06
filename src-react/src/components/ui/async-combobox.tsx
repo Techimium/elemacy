@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { useConditionSearch, useConditionValueLabel } from '@/features/theme-builder/services/conditions';
+import { useConditionSearch, useConditionValueLabel } from '@/services/conditions';
 import { useDebounce } from '@/hooks/use-debounce';
 
 // Mirrors the sentinel used by the static value select: empty value means "Any".

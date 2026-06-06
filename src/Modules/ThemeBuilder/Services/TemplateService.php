@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\DTO\ConditionRuleDTO;
+use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
@@ -14,7 +14,12 @@ use WP_Query;
 
 class TemplateService
 {
-    protected const CONDITIONS_META_KEY = '_elemacy_conditions';
+    protected ConditionRepository $conditions;
+
+    public function __construct()
+    {
+        $this->conditions = new ConditionRepository();
+    }
 
     public function get_all(TemplateListFilterDTO $filter_dto)
     {
@@ -92,7 +97,7 @@ class TemplateService
         }
 
         if (isset($dto->conditions)) {
-            $this->save_conditions($post_id, (array) $dto->conditions);
+            $this->conditions->save($post_id, (array) $dto->conditions);
         }
 
         return $this->create_dto(get_post($post_id));
@@ -135,7 +140,7 @@ class TemplateService
         }
 
         if (isset($dto->conditions)) {
-            $this->save_conditions($id, (array) $dto->conditions);
+            $this->conditions->save($id, (array) $dto->conditions);
         }
 
         return $this->create_dto(get_post($id));
@@ -198,27 +203,6 @@ class TemplateService
         return true;
     }
 
-    protected function get_conditions(int $template_id): array
-    {
-        $raw = get_post_meta($template_id, static::CONDITIONS_META_KEY, true);
-
-        return ConditionRuleDTO::collection(is_array($raw) ? $raw : []);
-    }
-
-    protected function save_conditions(int $template_id, array $conditions): void
-    {
-        update_post_meta($template_id, static::CONDITIONS_META_KEY, $this->normalize_conditions($conditions));
-    }
-
-    protected function normalize_conditions(array $conditions): array
-    {
-        return array_values(array_map(function ($rule): array {
-            $dto = ConditionRuleDTO::from_array(is_array($rule) ? $rule : []);
-            $dto->id = $dto->id !== '' ? $dto->id : wp_generate_uuid4();
-            return $dto->to_array();
-        }, $conditions));
-    }
-
     protected function create_dto($post): TemplateDTO
     {
         $dto = new TemplateDTO();
@@ -228,7 +212,7 @@ class TemplateService
         $dto->type = get_post_meta($post->ID, '_elemacy_template_type', true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
-        $dto->conditions = $this->get_conditions($post->ID);
+        $dto->conditions = $this->conditions->get($post->ID);
 
         return $dto;
     }

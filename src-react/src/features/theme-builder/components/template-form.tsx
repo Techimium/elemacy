@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ConditionsField } from "@/features/theme-builder/components/conditions/conditions-field"
+import { ConditionsField } from "@/components/conditions/conditions-field"
 import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
 import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
 

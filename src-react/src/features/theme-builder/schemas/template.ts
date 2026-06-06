@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TEMPLATE_VALUES } from '@/features/theme-builder/constants/templates';
-import { ConditionRuleSchema } from '@/features/theme-builder/schemas/condition';
+import { ConditionRuleSchema } from '@/schemas/condition';
 
 const TemplateFilterSchema = z.object({
     search: z.string().optional(),

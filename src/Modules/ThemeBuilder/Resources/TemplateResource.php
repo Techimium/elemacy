@@ -4,8 +4,8 @@ namespace Elemacy\Modules\ThemeBuilder\Resources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Resource;
-use Elemacy\Modules\ThemeBuilder\DTO\ConditionRuleDTO;
 
 class TemplateResource extends Resource
 {

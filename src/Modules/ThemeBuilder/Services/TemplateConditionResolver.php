@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\DTO\ConditionRuleDTO;
+use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 
 class TemplateConditionResolver
@@ -41,53 +41,11 @@ class TemplateConditionResolver
                 continue;
             }
 
-            if ($this->evaluate($template->conditions)) {
+            if (ConditionEvaluator::instance()->evaluate($template->conditions)) {
                 return $template;
             }
         }
 
         return $fallback;
-    }
-
-    /**
-     * Evaluate a set of condition rules against the current request.
-     *
-     * A single exclude match vetoes the template. Include rules are OR'd. When a
-     * rule set has no include rules (excludes only), the base is "show everywhere"
-     * so excludes subtract from it — otherwise an exclude-only set could never match.
-     *
-     * @param ConditionRuleDTO[] $conditions
-     */
-    protected function evaluate(array $conditions): bool
-    {
-        $manager     = ConditionManager::instance();
-        $has_include = false;
-        $included    = false;
-
-        foreach ($conditions as $rule) {
-            $condition = $manager->get($rule->type);
-
-            if (!$condition) {
-                continue;
-            }
-
-            $matches = $condition->check($rule);
-
-            if ($rule->is_exclude()) {
-                if ($matches) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            $has_include = true;
-
-            if ($matches) {
-                $included = true;
-            }
-        }
-
-        return $has_include ? $included : true;
     }
 }

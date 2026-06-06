@@ -6,6 +6,7 @@ use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
 use Elemacy\Modules\DynamicTags\DynamicTags;
 use Elemacy\Modules\Widgets\Widgets;
 use Elemacy\Modules\CustomCss\CustomCss;
+use Elemacy\Modules\Popups\Popups;
 use Elemacy\Placeholders\AnimationsPlaceholder;
 
 return [
@@ -13,6 +14,7 @@ return [
     DynamicTags::class,
     Widgets::class,
     CustomCss::class,
+    Popups::class,
 
     // Promotional modules
     AnimationsPlaceholder::class,
