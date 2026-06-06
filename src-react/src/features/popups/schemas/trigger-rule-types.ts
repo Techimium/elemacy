@@ -13,7 +13,7 @@ export const ParamOptionSchema = z.object({
 export const ParamDescriptorSchema = z.object({
     key: z.string(),
     label: z.string().optional(),
-    type: z.enum(['number', 'text', 'select', 'boolean', 'checkbox-group']),
+    type: z.enum(['number', 'text', 'datetime', 'select', 'boolean', 'checkbox-group']),
     default: z.unknown().optional(),
     min: z.number().optional(),
     max: z.number().optional(),

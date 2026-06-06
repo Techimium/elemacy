@@ -2,6 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import {
     Select,
     SelectContent,
@@ -94,6 +95,17 @@ function ParamField({
                     <Input
                         value={typeof value === 'string' ? value : ''}
                         onChange={(event) => onChange(event.target.value)}
+                    />
+                </div>
+            );
+
+        case 'datetime':
+            return (
+                <div className="space-y-2">
+                    <Label>{label}</Label>
+                    <DateTimePicker
+                        value={typeof value === 'string' ? value : undefined}
+                        onChange={onChange}
                     />
                 </div>
             );
