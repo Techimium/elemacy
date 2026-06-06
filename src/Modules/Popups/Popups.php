@@ -89,9 +89,12 @@ class Popups extends Module
      */
     protected function exclude_from_conditions(): void
     {
-        add_filter(\Elemacy\Core\Hooks::CONDITIONS_EXCLUDED_POST_TYPES_FILTER, function ($excluded) {
+        add_filter(Hooks::CONDITIONS_EXCLUDED_POST_TYPES_FILTER, function ($excluded) {
             $excluded = is_array($excluded) ? $excluded : [];
-            $excluded[] = PopupPostType::POST_TYPE;
+
+            if (!in_array(PopupPostType::POST_TYPE, $excluded, true)) {
+                $excluded[] = PopupPostType::POST_TYPE;
+            }
 
             return $excluded;
         });

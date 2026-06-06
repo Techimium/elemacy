@@ -55,6 +55,7 @@ class Elemacy
 		}
 
 		$this->init_core_components();
+		$this->init_module_manager();
 		$this->load_modules();
 		$this->init_admin_menus();
 		$this->init_modules();
@@ -79,8 +80,6 @@ class Elemacy
 			return;
 		}
 
-		// Fresh install: nothing to migrate, so just stamp the version and skip
-		// the upgrade branch below (version_compare(false, ...) would run it).
 		if ($installed_version === false) {
 			update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
 			return;
@@ -98,9 +97,11 @@ class Elemacy
 		new AdminScripts();
 		new FrontendScripts();
 		new PluginLinks();
+		new ConditionsBootstrap();
+	}
 
-		(new ConditionsBootstrap())->register();
-
+	public function init_module_manager()
+	{
 		$this->module_manager = new ModuleManager();
 	}
 

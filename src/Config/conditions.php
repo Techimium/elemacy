@@ -20,11 +20,9 @@ use Elemacy\Conditions\Singular\PostType as SingularPostType;
 
 /**
  * Conditions free ships, as class-strings or ready-made instances. Mock
- * conditions are non-functional placeholders shown (and locked) in the UI so
- * free users can see what elemacy-pro adds; pro overrides each by name with a
- * real implementation when active.
+ * conditions are non-functional placeholders.
  *
- * @see \Elemacy\Core\ConditionsBootstrap::register()
+ * @see \Elemacy\Core\ConditionsBootstrap
  */
 return [
     EntireSite::class,

@@ -5,7 +5,6 @@ namespace Elemacy\Modules\Widgets\Widgets;
 use Elemacy\Modules\Widgets\Bridges\ThemeBuilderBridge;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
-use Elementor\Group_Control_Typography;
 use WP_Query;
 
 if (!defined('ABSPATH')) {

@@ -53,7 +53,7 @@ abstract class Module
 		return null;
 	}
 
-	public function is_placeholder(): bool
+	public function is_mock(): bool
 	{
 		return false;
 	}

@@ -35,7 +35,7 @@ class ModuleManager
 				'description'    => $module->get_description(),
 				'is_active'      => $this->is_active($module->get_name()),
 				'is_headless'    => $module->is_headless(),
-				'is_placeholder' => $module->is_placeholder(),
+				'is_mock'        => $module->is_mock(),
 				'badge'          => $module->get_badge(),
 				'url'            => $module->get_url(),
 			];

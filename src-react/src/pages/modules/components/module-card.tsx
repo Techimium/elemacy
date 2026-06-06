@@ -25,7 +25,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                             <DynamicIcon name={module.icon} className="w-6 h-6" />
                         </div>
                         {module.badge &&
-                            (module.is_placeholder ? (
+                            (module.is_mock ? (
                                 <ProBadge label={module.badge} />
                             ) : (
                                 <Badge variant="default">{module.badge}</Badge>
@@ -42,7 +42,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                 </CardContent>
             </div>
             <CardFooter className="flex items-center justify-between">
-                {module.is_placeholder ? (
+                {module.is_mock ? (
                    <Button
                     className="cursor-pointer"
                     variant={'outline'}
@@ -56,7 +56,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                     <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-4">
                         {__('Status', 'elemacy')}
                     </div>
-                    {module.is_placeholder ? (
+                    {module.is_mock ? (
                         <Lock
                             className="w-5 h-5 text-gray-400"
                             aria-label={__('Not available yet', 'elemacy')}

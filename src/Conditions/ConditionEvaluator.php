@@ -22,9 +22,7 @@ class ConditionEvaluator
     /**
      * Flat matching model (mirrors Elementor, no AND/grouping): includes are
      * OR'd, any exclude match vetoes, and an exclude-only set is based on "show
-     * everywhere". Unknown types are skipped — free ships a mock per pro
-     * condition under the same name, so deactivating pro just makes its
-     * includes hide the template (safe) rather than leaving the type unresolved.
+     * everywhere". Unknown types are skipped.
      *
      * @param ConditionRuleDTO[] $conditions
      */

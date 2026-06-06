@@ -16,7 +16,6 @@ class CustomCssManager
     public function __construct()
     {
         add_action('elementor/element/after_section_end', [$this, 'register_controls'], 10, 2);
-
         add_action('elementor/element/parse_css', [$this, 'add_element_custom_css'], 10, 2);
         add_action('elementor/css-file/post/parse', [$this, 'add_page_settings_css']);
     }

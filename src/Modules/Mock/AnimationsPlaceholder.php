@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Placeholders;
+namespace Elemacy\Modules\Mock;
 
 defined('ABSPATH') || exit;
 
@@ -38,7 +38,7 @@ class AnimationsPlaceholder extends Module
         return 'https://elemacy.com';
     }
 
-    public function is_placeholder(): bool
+    public function is_mock(): bool
     {
         return true;
     }

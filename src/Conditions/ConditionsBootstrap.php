@@ -28,20 +28,23 @@ use Elemacy\Support\Utils;
  */
 class ConditionsBootstrap
 {
-    public function register(): void
+    public function __construct()
     {
-        add_action('init', function () {
-            $manager = ConditionManager::instance();
+        add_action('init', [$this, 'register'], 99);
+    }
 
-            foreach (require Utils::get_plugin_path('src/Config/conditions.php') as $entry) {
-                $condition = is_string($entry) ? new $entry() : $entry;
+    public function register()
+    {
+        $manager = ConditionManager::instance();
 
-                if ($condition instanceof ConditionInterface) {
-                    $manager->register($condition);
-                }
+        foreach (require Utils::get_plugin_path('src/Config/conditions.php') as $entry) {
+            $condition = is_string($entry) ? new $entry() : $entry;
+
+            if ($condition instanceof ConditionInterface) {
+                $manager->register($condition);
             }
+        }
 
-            do_action(Hooks::CONDITIONS_REGISTER_ACTION, $manager);
-        }, 99);
+        do_action(Hooks::CONDITIONS_REGISTER_ACTION, $manager);
     }
 }

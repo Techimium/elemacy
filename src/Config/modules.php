@@ -7,7 +7,7 @@ use Elemacy\Modules\DynamicTags\DynamicTags;
 use Elemacy\Modules\Widgets\Widgets;
 use Elemacy\Modules\CustomCss\CustomCss;
 use Elemacy\Modules\Popups\Popups;
-use Elemacy\Placeholders\AnimationsPlaceholder;
+use Elemacy\Modules\Mock\AnimationsPlaceholder;
 
 return [
     ThemeBuilder::class,

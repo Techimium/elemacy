@@ -27,7 +27,7 @@ class ModuleController
         $module_manager = Elemacy::get_instance()->get_module_manager();
 
         $module = $module_manager->get_module($name);
-        if ($module && $module->is_placeholder()) {
+        if ($module && $module->is_mock()) {
             throw new InvalidRoutActionException(
                 esc_html__('This module is not available yet.', 'elemacy'),
                 Response::FORBIDDEN // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- HTTP status code, not output.
