@@ -49,7 +49,11 @@ class Elemacy
 	{
 		$this->load_textdomain();
 		$this->handle_version_update();
-		$this->check_requirements();
+
+		if (!$this->check_requirements()) {
+			return;
+		}
+
 		$this->init_core_components();
 		$this->load_modules();
 		$this->init_admin_menus();
@@ -191,9 +195,9 @@ class Elemacy
 		});
 	}
 
-	public function check_requirements(): void
+	public function check_requirements(): bool
 	{
-		CompatibilityChecker::instance()->check();
+		return CompatibilityChecker::instance()->check();
 	}
 
 	public static function boot()

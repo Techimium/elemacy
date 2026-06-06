@@ -24,4 +24,15 @@ dist-ssr
 *.sw?
 
 vendor
-assets/admin/
+
+# React build output (Vite — src-react/vite.config). Ignore everything the
+# build generates under assets/admin/, but keep the hand-authored admin assets.
+assets/admin/*
+!assets/admin/scripts/
+!assets/admin/styles/
+assets/admin/scripts/*
+!assets/admin/scripts/admin-global.js
+!assets/admin/scripts/sidebar-sync.js
+assets/admin/styles/*
+!assets/admin/styles/admin-global.css
+!assets/admin/styles/dependency-notice.css

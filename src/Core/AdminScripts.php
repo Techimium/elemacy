@@ -29,13 +29,13 @@ class AdminScripts
     {
         wp_enqueue_style(
             'elemacy-admin-global',
-            ELEMACY_URL . 'assets/admin-extras/admin-global.css',
+            ELEMACY_URL . 'assets/admin/styles/admin-global.css',
             [],
             ELEMACY_VERSION
         );
         wp_enqueue_script(
             'elemacy-admin-global',
-            ELEMACY_URL . 'assets/admin-extras/admin-global.js',
+            ELEMACY_URL . 'assets/admin/scripts/admin-global.js',
             [],
             ELEMACY_VERSION,
             true
@@ -71,7 +71,7 @@ class AdminScripts
     {
         wp_register_script(
             'elemacy-admin-sidebar-sync',
-            ELEMACY_URL . 'assets/admin-extras/sidebar-sync.js',
+            ELEMACY_URL . 'assets/admin/scripts/sidebar-sync.js',
             [],
             ELEMACY_VERSION,
             true

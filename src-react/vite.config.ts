@@ -21,7 +21,9 @@ export default defineConfig({
   },
   build: {
     outDir: '../assets/admin',
-    emptyOutDir: true,
+    // Keep hand-authored admin assets (admin-global.*, sidebar-sync.js,
+    // dependency-notice.css) that live alongside the build output.
+    emptyOutDir: false,
     rollupOptions: {
       input: {
         admin: path.resolve(__dirname, 'index.html'),
