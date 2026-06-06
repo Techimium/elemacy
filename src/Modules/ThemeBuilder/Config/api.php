@@ -7,6 +7,7 @@ use Elemacy\Core\Middlewares\API\AdminMiddleware;
 use Elemacy\Core\Route;
 use Elemacy\Modules\ThemeBuilder\Controllers\ThemeBuilderController;
 
+Route::get('/theme-builder/template-types', [ThemeBuilderController::class, 'types'])->middleware(AdminMiddleware::class);
 Route::get('/theme-builder/templates', [ThemeBuilderController::class, 'index'])->middleware(AdminMiddleware::class);
 Route::get('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'show'])->middleware(AdminMiddleware::class);
 Route::post('/theme-builder/templates', [ThemeBuilderController::class, 'store'])->middleware(AdminMiddleware::class);

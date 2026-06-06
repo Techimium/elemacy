@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select"
 import { ConditionsField } from "@/components/conditions/conditions-field"
 import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
-import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
+import { useTemplateTypes } from "@/features/theme-builder/services/template"
 
 interface TemplateFormProps {
     defaultValues?: CreateTemplate
@@ -30,6 +30,7 @@ interface TemplateFormProps {
 
 export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }: TemplateFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Template', 'elemacy');
+    const { data: templateTypes = [], isLoading: isLoadingTypes } = useTemplateTypes();
     const form = useForm<CreateTemplate>({
         defaultValues: defaultValues || {
             title: "",
@@ -63,12 +64,12 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
                             <FormLabel>{__('Type', 'elemacy')}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full" disabled={isLoadingTypes}>
                                         <SelectValue placeholder={__('Select a template type', 'elemacy')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {TEMPLATE_TYPES.map((type) => (
+                                    {templateTypes.map((type) => (
                                         <SelectItem key={type.value} value={type.value}>
                                             {type.label}
                                         </SelectItem>

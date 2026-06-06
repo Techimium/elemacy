@@ -1,4 +1,4 @@
-import type { CreateTemplate, Template, UpdateTemplate } from "@/features/theme-builder/schemas/template";
+import type { CreateTemplate, Template, TemplateType, UpdateTemplate } from "@/features/theme-builder/schemas/template";
 import { apiClient } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -11,6 +11,19 @@ export const useTemplates = () => {
     return useQuery({
         queryKey: ['templates'],
         queryFn: fetchTemplates,
+    });
+};
+
+const fetchTemplateTypes = async (): Promise<TemplateType[]> => {
+    const response = await apiClient.get('theme-builder/template-types');
+    return response.data?.data;
+};
+
+export const useTemplateTypes = () => {
+    return useQuery({
+        queryKey: ['template-types'],
+        queryFn: fetchTemplateTypes,
+        staleTime: Infinity,
     });
 };
 

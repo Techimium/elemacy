@@ -14,6 +14,7 @@ use Elemacy\Modules\ThemeBuilder\Requests\UpdateTemplateRequest;
 use Elemacy\Modules\ThemeBuilder\Resources\TemplateListResource;
 use Elemacy\Modules\ThemeBuilder\Resources\TemplateResource;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
+use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 class ThemeBuilderController
 {
@@ -22,6 +23,13 @@ class ThemeBuilderController
     public function __construct()
     {
         $this->service = new TemplateService();
+    }
+
+    public function types()
+    {
+        return Response::create()->json([
+            'data' => ThemeBuilderManager::instance()->get_available_template_types(),
+        ]);
     }
 
     public function index(Request $request)
