@@ -14,6 +14,7 @@ import type { PopupListItem } from '@/features/popups/schemas/popup';
 import { POPUP_TYPES } from '@/features/popups/constants/popups';
 import { Slot } from '@/components/slot';
 import { Slots } from '@/lib/slots';
+import { LockedAnalytics } from '@/features/popups/components/locked-analytics';
 
 interface PopupCardProps {
     popup: PopupListItem;
@@ -71,7 +72,11 @@ function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }
                     <Badge variant="secondary">{typeLabel}</Badge>
                     {popup.date && <span className="text-xs text-gray-400">{popup.date}</span>}
                 </div>
-                <Slot name={Slots.POPUP_CARD_FOOTER} slotProps={{ popupId: popup.id }} />
+                <Slot
+                    name={Slots.POPUP_CARD_FOOTER}
+                    slotProps={{ popupId: popup.id }}
+                    fallback={<LockedAnalytics />}
+                />
             </div>
         </Card>
     );

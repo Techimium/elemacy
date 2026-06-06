@@ -1,6 +1,6 @@
-import { Lock } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
+import { ProBadge } from '@/components/pro-badge';
 import {
     Select,
     SelectContent,
@@ -89,9 +89,7 @@ function TypeSelect({
                                 >
                                     <span className="flex items-center gap-2">
                                         {c.label}
-                                        {c.is_mock && (
-                                            <Lock className="size-3 text-muted-foreground" aria-hidden />
-                                        )}
+                                        {c.is_mock && <ProBadge />}
                                     </span>
                                 </SelectItem>
                             ))}

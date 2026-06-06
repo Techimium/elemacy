@@ -1,7 +1,6 @@
-import { Lock } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { ProBadge } from '@/components/pro-badge';
 import {
     Select,
     SelectContent,
@@ -52,12 +51,7 @@ export function TriggerRow({ entry, types, onChange, onRemove }: TriggerRowProps
                                 >
                                     <span className="flex items-center gap-2">
                                         {type.label}
-                                        {locked && (
-                                            <Badge variant="secondary" className="gap-1">
-                                                <Lock aria-hidden />
-                                                {__('Pro', 'elemacy')}
-                                            </Badge>
-                                        )}
+                                        {locked && <ProBadge />}
                                     </span>
                                 </SelectItem>
                             );
