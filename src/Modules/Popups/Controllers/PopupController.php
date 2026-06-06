@@ -37,13 +37,7 @@ class PopupController
 
     public function show(Request $request, $id)
     {
-        $popup = $this->service->get((int) $id);
-
-        if (!$popup) {
-            return Response::create()->json([
-                'message' => 'Popup not found'
-            ], Response::NOT_FOUND);
-        }
+        $popup = $this->service->get_or_fail((int) $id);
 
         return Response::create()->json([
             'data' => PopupResource::make($popup),
@@ -53,66 +47,37 @@ class PopupController
 
     public function store(CreatePopupRequest $request)
     {
-        $data = $request->clean();
-        $result = $this->service->create(CreatePopupDTO::from_array($data));
-
-        if (is_wp_error($result)) {
-            return Response::create()->json([
-                'message' => $result->get_error_message()
-            ], Response::INTERNAL_SERVER_ERROR);
-        }
+        $popup = $this->service->create(CreatePopupDTO::from_array($request->clean()));
 
         return Response::create()->json([
             'message' => __('Popup created successfully', 'elemacy'),
-            'data' => PopupResource::make($result)
+            'data' => PopupResource::make($popup)
         ], Response::CREATED);
     }
 
     public function update(UpdatePopupRequest $request, $id)
     {
-        $data = $request->clean();
-        $result = $this->service->update((int) $id, UpdatePopupDTO::from_array($data));
-
-        if (is_wp_error($result)) {
-            $status = $result->get_error_code() === 'not_found' ? Response::NOT_FOUND : Response::INTERNAL_SERVER_ERROR;
-            return Response::create()->json([
-                'message' => $result->get_error_message()
-            ], $status);
-        }
+        $popup = $this->service->update((int) $id, UpdatePopupDTO::from_array($request->clean()));
 
         return Response::create()->json([
             'message' => __('Popup updated successfully', 'elemacy'),
-            'data' => PopupResource::make($result)
+            'data' => PopupResource::make($popup)
         ]);
     }
 
     public function duplicate(Request $request, $id)
     {
-        $result = $this->service->duplicate((int) $id);
-
-        if (is_wp_error($result)) {
-            $status = $result->get_error_code() === 'not_found' ? Response::NOT_FOUND : Response::INTERNAL_SERVER_ERROR;
-            return Response::create()->json([
-                'message' => $result->get_error_message()
-            ], $status);
-        }
+        $popup = $this->service->duplicate((int) $id);
 
         return Response::create()->json([
             'message' => __('Popup duplicated successfully', 'elemacy'),
-            'data' => PopupResource::make($result)
+            'data' => PopupResource::make($popup)
         ], Response::CREATED);
     }
 
     public function destroy(Request $request, $id)
     {
-        $result = $this->service->delete((int) $id);
-
-        if (is_wp_error($result)) {
-            $status = $result->get_error_code() === 'not_found' ? Response::NOT_FOUND : Response::INTERNAL_SERVER_ERROR;
-            return Response::create()->json([
-                'message' => $result->get_error_message()
-            ], $status);
-        }
+        $this->service->delete((int) $id);
 
         return Response::create()->json([
             'message' => __('Popup deleted successfully', 'elemacy')

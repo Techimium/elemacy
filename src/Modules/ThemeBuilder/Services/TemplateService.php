@@ -5,6 +5,8 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Core\Exceptions\HttpException;
+use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Modules\ThemeBuilder\Constants\MetaKeys;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
@@ -75,6 +77,17 @@ class TemplateService
         return $this->create_dto($post);
     }
 
+    public function get_or_fail(int $id): TemplateDTO
+    {
+        $template = $this->get($id);
+
+        if (!$template) {
+            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
+        }
+
+        return $template;
+    }
+
     public function create(CreateTemplateDTO $dto)
     {
         $post_data = [
@@ -86,7 +99,7 @@ class TemplateService
         $post_id = wp_insert_post($post_data, true);
 
         if (is_wp_error($post_id)) {
-            return $post_id;
+            throw new HttpException(esc_html($post_id->get_error_message()));
         }
 
         if (isset($dto->type)) {
@@ -109,7 +122,7 @@ class TemplateService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Template not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
         $post_data = [
@@ -127,7 +140,7 @@ class TemplateService
         $result = wp_update_post($post_data, true);
 
         if (is_wp_error($result)) {
-            return $result;
+            throw new HttpException(esc_html($result->get_error_message()));
         }
 
         if (isset($dto->type)) {
@@ -152,7 +165,7 @@ class TemplateService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Template not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
         /* translators: %s: original template title. */
@@ -167,7 +180,7 @@ class TemplateService
         ], true);
 
         if (is_wp_error($new_post_id)) {
-            return $new_post_id;
+            throw new HttpException(esc_html($new_post_id->get_error_message()));
         }
 
         $meta = get_post_meta($id);
@@ -192,13 +205,13 @@ class TemplateService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Template not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
         $result = wp_delete_post($id, true);
 
         if (!$result) {
-            return new \WP_Error('delete_failed', __('Failed to delete template.', 'elemacy'), ['status' => 500]);
+            throw new HttpException(esc_html__('Failed to delete template.', 'elemacy'));
         }
 
         return true;

@@ -5,6 +5,8 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Core\Exceptions\HttpException;
+use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
@@ -81,6 +83,17 @@ class PopupService
         return $this->create_dto($post);
     }
 
+    public function get_or_fail(int $id): PopupDTO
+    {
+        $popup = $this->get($id);
+
+        if (!$popup) {
+            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
+        }
+
+        return $popup;
+    }
+
     public function create(CreatePopupDTO $dto)
     {
         $post_data = [
@@ -92,7 +105,7 @@ class PopupService
         $post_id = wp_insert_post($post_data, true);
 
         if (is_wp_error($post_id)) {
-            return $post_id;
+            throw new HttpException(esc_html($post_id->get_error_message()));
         }
 
         $type = $dto->type ?? '';
@@ -134,7 +147,7 @@ class PopupService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Popup not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
         $post_data = [
@@ -152,7 +165,7 @@ class PopupService
         $result = wp_update_post($post_data, true);
 
         if (is_wp_error($result)) {
-            return $result;
+            throw new HttpException(esc_html($result->get_error_message()));
         }
 
         if (isset($dto->type)) {
@@ -179,7 +192,7 @@ class PopupService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Popup not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
         /* translators: %s: original popup title. */
@@ -194,7 +207,7 @@ class PopupService
         ], true);
 
         if (is_wp_error($new_post_id)) {
-            return $new_post_id;
+            throw new HttpException(esc_html($new_post_id->get_error_message()));
         }
 
         $meta = get_post_meta($id);
@@ -227,13 +240,13 @@ class PopupService
         $post = get_post($id);
 
         if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
-            return new \WP_Error('not_found', __('Popup not found.', 'elemacy'), ['status' => 404]);
+            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
         $result = wp_delete_post($id, true);
 
         if (!$result) {
-            return new \WP_Error('delete_failed', __('Failed to delete popup.', 'elemacy'), ['status' => 500]);
+            throw new HttpException(esc_html__('Failed to delete popup.', 'elemacy'));
         }
 
         return true;
