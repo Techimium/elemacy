@@ -123,21 +123,21 @@ class NavMenu extends BaseWidget
             'type'      => Controls_Manager::CHOOSE,
             'options'   => [
                 'flex-start'    => [
-					'title' => esc_html__('Start', 'elemacy'),
-					'icon' => 'eicon-align-start-h'
-				],
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-align-start-h'
+                ],
                 'center'        => [
-					'title' => esc_html__('Center', 'elemacy'),
-					'icon' => 'eicon-align-center-h'
-				],
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-align-center-h'
+                ],
                 'flex-end'      => [
-					'title' => esc_html__('End', 'elemacy'),
-					'icon' => 'eicon-align-end-h'
-				],
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-align-end-h'
+                ],
                 'space-between' => [
-					'title' => esc_html__('Justify', 'elemacy'),
-					'icon' => 'eicon-align-stretch-h'
-				],
+                    'title' => esc_html__('Justify', 'elemacy'),
+                    'icon' => 'eicon-align-stretch-h'
+                ],
             ],
             'default'   => 'flex-start',
             'selectors' => ['{{WRAPPER}} .elemacy-nav__list' => 'justify-content: {{VALUE}};'],
@@ -172,14 +172,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', '%', 'vw', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 200,
-					'max' => 800
-				]],
+                'px' => [
+                    'min' => 200,
+                    'max' => 800
+                ],
+            ],
             'default'    => [
-				'size' => 320,
-				'unit' => 'px'
-			],
+                'size' => 320,
+                'unit' => 'px'
+            ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-overlay-panel-width: {{SIZE}}{{UNIT}};'],
             'condition'  => [
                 'overlay_type'        => ['slide-right', 'slide-left'],
@@ -219,17 +220,17 @@ class NavMenu extends BaseWidget
             'type'      => Controls_Manager::CHOOSE,
             'options'   => [
                 'start'  => [
-					'title' => esc_html__('Start', 'elemacy'),
-					'icon' => 'eicon-align-start-h'
-				],
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-align-start-h'
+                ],
                 'center' => [
-					'title' => esc_html__('Center', 'elemacy'),
-					'icon' => 'eicon-align-center-h'
-				],
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-align-center-h'
+                ],
                 'end'    => [
-					'title' => esc_html__('End', 'elemacy'),
-					'icon' => 'eicon-align-end-h'
-				],
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-align-end-h'
+                ],
             ],
             'default'   => 'end',
             'selectors' => ['{{WRAPPER}} .elemacy-nav__inner' => 'justify-content: {{VALUE}};'],
@@ -240,18 +241,18 @@ class NavMenu extends BaseWidget
             'label'   => esc_html__('Toggle Icon', 'elemacy'),
             'type'    => Controls_Manager::ICONS,
             'default' => [
-				'value' => 'eicon-menu-bar',
-				'library' => 'eicon'
-			],
+                'value' => 'eicon-menu-bar',
+                'library' => 'eicon'
+            ],
         ]);
 
         $this->add_control('toggle_close_icon', [
             'label'   => esc_html__('Close Icon', 'elemacy'),
             'type'    => Controls_Manager::ICONS,
             'default' => [
-				'value' => 'eicon-close',
-				'library' => 'eicon'
-			],
+                'value' => 'eicon-close',
+                'library' => 'eicon'
+            ],
         ]);
 
         $this->end_controls_section();
@@ -328,14 +329,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 80
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 80
+                ],
+            ],
             'default'    => [
-				'size' => 20,
-				'unit' => 'px'
-			],
+                'size' => 20,
+                'unit' => 'px'
+            ],
             'selectors'  => [$list => 'gap: {{SIZE}}{{UNIT}};'],
             'separator'  => 'before',
         ]);
@@ -395,14 +397,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 1,
-					'max' => 10
-				]],
+                'px' => [
+                    'min' => 1,
+                    'max' => 10
+                ],
+            ],
             'default'    => [
-				'size' => 2,
-				'unit' => 'px'
-			],
+                'size' => 2,
+                'unit' => 'px'
+            ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-pointer-height: {{SIZE}}{{UNIT}};'],
             'condition'  => ['pointer!' => 'none'],
         ]);
@@ -423,14 +426,15 @@ class NavMenu extends BaseWidget
             'label'     => esc_html__('Duration (ms)', 'elemacy'),
             'type'      => Controls_Manager::SLIDER,
             'range'     => [
-				'px' => [
-					'min' => 50,
-					'max' => 1000
-				]],
+                'px' => [
+                    'min' => 50,
+                    'max' => 1000
+                ],
+            ],
             'default'   => [
-				'size' => 300,
-				'unit' => 'px'
-			],
+                'size' => 300,
+                'unit' => 'px'
+            ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-pointer-duration: {{SIZE}}ms;'],
             'condition' => ['pointer!' => 'none'],
         ]);
@@ -474,14 +478,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 40
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 40
+                ],
+            ],
             'default'    => [
-				'size' => 10,
-				'unit' => 'px'
-			],
+                'size' => 10,
+                'unit' => 'px'
+            ],
             'selectors'  => [$menu => 'backdrop-filter: blur({{SIZE}}px); -webkit-backdrop-filter: blur({{SIZE}}px);'],
         ]);
 
@@ -508,17 +513,17 @@ class NavMenu extends BaseWidget
             'type'      => Controls_Manager::CHOOSE,
             'options'   => [
                 'flex-start' => [
-					'title' => esc_html__('Start', 'elemacy'),
-					'icon' => 'eicon-align-start-h'
-				],
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-align-start-h'
+                ],
                 'center'     => [
-					'title' => esc_html__('Center', 'elemacy'),
-					'icon' => 'eicon-align-center-h'
-				],
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-align-center-h'
+                ],
                 'flex-end'   => [
-					'title' => esc_html__('End', 'elemacy'),
-					'icon' => 'eicon-align-end-h'
-				],
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-align-end-h'
+                ],
             ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav.is-open' => '--elemacy-overlay-items-align: {{VALUE}};'],
         ]);
@@ -528,17 +533,17 @@ class NavMenu extends BaseWidget
             'type'      => Controls_Manager::CHOOSE,
             'options'   => [
                 'flex-start' => [
-					'title' => esc_html__('Top', 'elemacy'),
-					'icon' => 'eicon-v-align-top'
-				],
+                    'title' => esc_html__('Top', 'elemacy'),
+                    'icon' => 'eicon-v-align-top'
+                ],
                 'center'     => [
-					'title' => esc_html__('Middle', 'elemacy'),
-					'icon' => 'eicon-v-align-middle'
-				],
+                    'title' => esc_html__('Middle', 'elemacy'),
+                    'icon' => 'eicon-v-align-middle'
+                ],
                 'flex-end'   => [
-					'title' => esc_html__('Bottom', 'elemacy'),
-					'icon' => 'eicon-v-align-bottom'
-				],
+                    'title' => esc_html__('Bottom', 'elemacy'),
+                    'icon' => 'eicon-v-align-bottom'
+                ],
             ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav.is-open' => '--elemacy-overlay-menu-valign: {{VALUE}};'],
             'condition' => ['overlay_type' => 'fullscreen'],
@@ -598,10 +603,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 80
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 80
+                ],
+            ],
             'selectors'  => [$list => 'gap: {{SIZE}}{{UNIT}};'],
             'separator'  => 'before',
         ]);
@@ -684,10 +690,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 40
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 40
+                ],
+            ],
             'selectors'  => [$sub => 'gap: {{SIZE}}{{UNIT}};'],
             'separator'  => 'before',
         ]);
@@ -720,10 +727,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 1000
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 1000
+                ],
+            ],
             'selectors'  => [$sub => 'min-width: {{SIZE}}{{UNIT}}'],
         ]);
 
@@ -740,12 +748,12 @@ class NavMenu extends BaseWidget
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'selectors'  => [$sub => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
             'default'    => [
-				'top' => 10,
-				'right' => 10,
-				'bottom' => 10,
-				'left' => 10,
-				'unit' => 'px'
-			],
+                'top' => 10,
+                'right' => 10,
+                'bottom' => 10,
+                'left' => 10,
+                'unit' => 'px'
+            ],
         ]);
 
         $this->add_responsive_control('submenu_offset', [
@@ -753,10 +761,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => -20,
-					'max' => 40
-				]],
+                'px' => [
+                    'min' => -20,
+                    'max' => 40
+                ],
+            ],
             'selectors'  => [$sub => 'margin-top: {{SIZE}}{{UNIT}};'],
         ]);
 
@@ -846,10 +855,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 0,
-					'max' => 60
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 60
+                ],
+            ],
             'selectors'  => [$sub => 'gap: {{SIZE}}{{UNIT}};'],
             'separator'  => 'before',
         ]);
@@ -938,10 +948,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 10,
-					'max' => 80
-				]],
+                'px' => [
+                    'min' => 10,
+                    'max' => 80
+                ],
+            ],
             'selectors'  => [
                 '{{WRAPPER}} .elemacy-nav__toggle-icon i'   => 'font-size: {{SIZE}}{{UNIT}};',
                 '{{WRAPPER}} .elemacy-nav__toggle-icon svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
@@ -1021,10 +1032,11 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => 10,
-					'max' => 80
-				]],
+                'px' => [
+                    'min' => 10,
+                    'max' => 80
+                ],
+            ],
             'selectors'  => [
                 '{{WRAPPER}} .elemacy-nav__toggle-close-icon i'   => 'font-size: {{SIZE}}{{UNIT}};',
                 '{{WRAPPER}} .elemacy-nav__toggle-close-icon svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
@@ -1067,14 +1079,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', '%', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => -500,
-					'max' => 500
-				]],
+                'px' => [
+                    'min' => -500,
+                    'max' => 500
+                ],
+            ],
             'default'    => [
-				'unit' => 'px',
-				'size' => 10
-			],
+                'unit' => 'px',
+                'size' => 10
+            ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-close-top: {{SIZE}}{{UNIT}};'],
         ]);
 
@@ -1083,14 +1096,15 @@ class NavMenu extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', '%', 'custom'],
             'range'      => [
-				'px' => [
-					'min' => -500,
-					'max' => 500
-				]],
+                'px' => [
+                    'min' => -500,
+                    'max' => 500
+                ],
+            ],
             'default'    => [
-				'unit' => 'px',
-				'size' => 10
-			],
+                'unit' => 'px',
+                'size' => 10
+            ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-close-right: {{SIZE}}{{UNIT}};'],
         ]);
 

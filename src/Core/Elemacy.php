@@ -39,8 +39,8 @@ class Elemacy
 			add_option(OptionKeys::ACTIVE_MODULES, [
 				'theme-builder',
 				'widgets',
-				'custom_css',
-				'dynamic-tags'
+				'custom-css',
+				'dynamic-tags',
 			]);
 		});
 	}

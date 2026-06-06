@@ -18,7 +18,6 @@ class AjaxFormController
         $form_data = $request->get_array('form_field');
         $honeypot = $request->get_string('elemacy_honeypot');
 
-        // Simple Honeypot check
         if (!empty($honeypot)) {
             SiteResponse::instance()->success([
                 'message' => esc_html__('Form submitted successfully!', 'elemacy'),
@@ -29,21 +28,18 @@ class AjaxFormController
             throw new ValidationException(esc_html__('Missing required parameters.', 'elemacy'));
         }
 
-        // Get Elementor document
         $document = Plugin::$instance->documents->get($post_id);
 
         if (!$document) {
             throw new ValidationException(esc_html__('Invalid post ID.', 'elemacy'));
         }
 
-        // Find widget data
         $element_data = $this->find_element($document->get_elements_data(), $widget_id);
 
         if (!$element_data) {
             throw new ValidationException(esc_html__('Widget not found.', 'elemacy'));
         }
 
-        // Create widget instance to get settings with defaults
         $widget = Plugin::$instance->elements_manager->create_element_instance($element_data);
 
         if (!$widget) {
@@ -52,7 +48,6 @@ class AjaxFormController
 
         $settings = $widget->get_settings();
 
-        // Process actions
         $actions = $settings['submit_actions'] ?? [];
 
         if (in_array('email', $actions, true)) {

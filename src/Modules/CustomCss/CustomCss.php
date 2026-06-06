@@ -12,7 +12,7 @@ class CustomCss extends Module
 {
     public function get_name(): string
     {
-        return 'custom_css';
+        return 'custom-css';
     }
 
     public function get_title(): string

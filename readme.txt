@@ -31,7 +31,7 @@ Elemacy gives you a genuinely powerful set of features at no cost. No credit car
 - ✅ **Loop Builder** (dynamic Grid & Carousel with AJAX pagination)
 - ✅ **Form Builder** with email notifications
 - ✅ **Custom CSS** per widget / section / column / page
-- ✅ **Dynamic Tags** (Post, Site & ACF data)
+- ✅ **Dynamic Tags** (Post, Site, Archive, Author, Utility, WooCommerce & ACF data)
 - ✅ **Widgets** — Nav Menu, Site Logo, Search, ACF Accordion, ACF Icon List, ACF Gallery
 - ✅ **Modular architecture** — enable only the features you need
 
@@ -179,16 +179,32 @@ A fully-featured, highly customizable navigation menu widget built from the grou
 
 Make your Elementor designs truly dynamic. Use real data from your WordPress site anywhere a dynamic field is supported.
 
-**Post & Site dynamic tags:**
+**Post dynamic tags:**
 
-* Post Title, Post URL, Post Content, Post Excerpt, Post Date (with format control), Post Featured Image, Post Custom Field
+* Post Title, Post URL, Post Content, Post Excerpt, Post Date (with format control), Post Featured Image, Post Custom Field, Post Terms, Comments Number, Page Title
+
+**Site dynamic tags:**
+
 * Site Title, Site Tagline, Site URL, Site Logo
 
-**Advanced Custom Fields (ACF) dynamic tags:**
+**Archive & Author dynamic tags:**
+
+* Archive Title, Archive Description, Archive URL
+* Author Name, Author Info, Author URL, Author Profile Picture
+
+**Utility dynamic tags:**
+
+* Shortcode, Request Parameter, Current Date/Time, Contact URL (mailto / tel)
+
+**WooCommerce dynamic tags** *(active when WooCommerce is installed):*
+
+* Product Price, Product SKU, Product Stock, Product Rating, Product Short Description, Product Gallery, Add-to-Cart URL
+
+**Advanced Custom Fields (ACF) dynamic tags** *(requires ACF):*
 
 * ACF Field (text), ACF Image, ACF Gallery, ACF Color, ACF Date/Time, ACF Number, ACF URL
 
-> **⚡ Coming Soon:** More dynamic tags including user data, WooCommerce product fields, and taxonomy terms.
+> **⚡ Coming Soon:** Even more dynamic tags, including user data.
 
 ---
 
@@ -247,7 +263,7 @@ Elemacy Pro installs on top of the free plugin and unlocks advanced features. No
 We're actively developing Elemacy. Here's what's coming:
 
 * 📥 **Form Submission Storage** – Save all form entries to your database and manage them from the admin
-* 🏷️ **More Dynamic Tags** – WooCommerce fields, user data, taxonomy terms
+* 🏷️ **More Dynamic Tags** – user & role data, and more
 * 🧩 **More Widgets** – New, powerful widgets added regularly
 * 🔗 **External Integrations** – Connect form submissions to email marketing tools and CRMs
 
@@ -331,7 +347,7 @@ Elemacy is built with performance in mind. It uses a modular architecture — di
 
 = Is Elemacy compatible with WooCommerce? =
 
-Partial support is included. The Theme Builder detects the WooCommerce Shop page when resolving archive templates. Full WooCommerce widget support is planned for a future release.
+Yes. When WooCommerce is active, Elemacy adds a set of WooCommerce **dynamic tags** (Product Price, SKU, Stock, Rating, Short Description, Gallery, Add-to-Cart URL), and the Theme Builder detects the WooCommerce Shop page when resolving archive templates. Dedicated WooCommerce widgets are planned for a future release.
 
 = Can I contribute to Elemacy? =
 
@@ -367,7 +383,8 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 * Site Logo and Search widgets
 * ACF widgets: ACF Accordion, ACF Icon List, ACF Gallery (require ACF)
 * Custom CSS control added to the Advanced tab of all Elementor elements and to page settings
-* Dynamic Tags: Post Title, Post URL, Post Content, Post Excerpt, Post Date, Post Featured Image, Post Custom Field, Site Title, Site Tagline, Site URL, Site Logo
+* Dynamic Tags: Post Title, Post URL, Post Content, Post Excerpt, Post Date, Post Featured Image, Post Custom Field, Post Terms, Comments Number, Page Title, Site Title, Site Tagline, Site URL, Site Logo, Archive Title/Description/URL, Author Name/Info/URL/Profile Picture, Shortcode, Request Parameter, Current Date/Time, Contact URL
+* Dynamic Tags (WooCommerce, when active): Product Price, SKU, Stock, Rating, Short Description, Gallery, Add-to-Cart URL
 * Dynamic Tags (ACF): ACF Field, ACF Image, ACF Gallery, ACF Color, ACF DateTime, ACF Number, ACF URL
 * Module management admin page — enable or disable individual feature modules
 
@@ -375,5 +392,3 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 
 = 1.0.0 =
 Initial release of Elemacy. Install and activate to get started with the free, all-in-one Elementor addon.
-</content>
-</invoke>

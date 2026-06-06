@@ -170,17 +170,17 @@ class SiteLogo extends BaseWidget
             'type'                 => Controls_Manager::CHOOSE,
             'options'              => [
                 'start'  => [
-					'title' => esc_html__('Start', 'elemacy'),
-					'icon' => 'eicon-text-align-left'
-				],
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-text-align-left'
+                ],
                 'center' => [
-					'title' => esc_html__('Center', 'elemacy'),
-					'icon' => 'eicon-text-align-center'
-				],
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-text-align-center'
+                ],
                 'end'    => [
-					'title' => esc_html__('End', 'elemacy'),
-					'icon' => 'eicon-text-align-right'
-				],
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-text-align-right'
+                ],
             ],
             'classes'              => 'elementor-control-start-end',
             'selectors_dictionary' => [
@@ -201,17 +201,17 @@ class SiteLogo extends BaseWidget
             'size_units'     => ['px', '%', 'em', 'rem', 'vw', 'custom'],
             'range'          => [
                 '%'  => [
-					'min' => 1,
-					'max' => 100
-				],
+                    'min' => 1,
+                    'max' => 100
+                ],
                 'px' => [
-					'min' => 1,
-					'max' => 1000
-				],
+                    'min' => 1,
+                    'max' => 1000
+                ],
                 'vw' => [
-					'min' => 1,
-					'max' => 100
-				],
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'      => [
                 '{{WRAPPER}} img' => 'width: {{SIZE}}{{UNIT}};',
@@ -227,17 +227,17 @@ class SiteLogo extends BaseWidget
             'size_units'     => ['px', '%', 'em', 'rem', 'vw', 'custom'],
             'range'          => [
                 '%'  => [
-					'min' => 1,
-					'max' => 100
-				],
+                    'min' => 1,
+                    'max' => 100
+                ],
                 'px' => [
-					'min' => 1,
-					'max' => 1000
-				],
+                    'min' => 1,
+                    'max' => 1000
+                ],
                 'vw' => [
-					'min' => 1,
-					'max' => 100
-				],
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'      => [
                 '{{WRAPPER}} img' => 'max-width: {{SIZE}}{{UNIT}};',
@@ -250,13 +250,13 @@ class SiteLogo extends BaseWidget
             'size_units' => ['px', '%', 'em', 'rem', 'vh', 'custom'],
             'range'      => [
                 'px' => [
-					'min' => 1,
-					'max' => 500
-				],
+                    'min' => 1,
+                    'max' => 500
+                ],
                 'vh' => [
-					'min' => 1,
-					'max' => 100
-				],
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'  => [
                 '{{WRAPPER}} img' => 'height: {{SIZE}}{{UNIT}};',
@@ -317,11 +317,12 @@ class SiteLogo extends BaseWidget
             'label'     => esc_html__('Opacity', 'elemacy'),
             'type'      => Controls_Manager::SLIDER,
             'range'     => [
-				'px' => [
-					'max' => 1,
-					'min' => 0.10,
-					'step' => 0.01
-				]],
+                'px' => [
+                    'max' => 1,
+                    'min' => 0.10,
+                    'step' => 0.01
+                ],
+            ],
             'selectors' => ['{{WRAPPER}} img' => 'opacity: {{SIZE}};'],
         ]);
 
@@ -338,11 +339,12 @@ class SiteLogo extends BaseWidget
             'label'     => esc_html__('Opacity', 'elemacy'),
             'type'      => Controls_Manager::SLIDER,
             'range'     => [
-				'px' => [
-					'max' => 1,
-					'min' => 0.10,
-					'step' => 0.01
-				]],
+                'px' => [
+                    'max' => 1,
+                    'min' => 0.10,
+                    'step' => 0.01
+                ],
+            ],
             'selectors' => ['{{WRAPPER}}:hover img' => 'opacity: {{SIZE}};'],
         ]);
 
@@ -355,11 +357,12 @@ class SiteLogo extends BaseWidget
             'label'     => esc_html__('Transition Duration', 'elemacy') . ' (s)',
             'type'      => Controls_Manager::SLIDER,
             'range'     => [
-				'px' => [
-					'min' => 0,
-					'max' => 3,
-					'step' => 0.1
-				]],
+                'px' => [
+                    'min' => 0,
+                    'max' => 3,
+                    'step' => 0.1
+                ],
+            ],
             'selectors' => ['{{WRAPPER}} img' => 'transition-duration: {{SIZE}}s'],
         ]);
 
@@ -408,21 +411,21 @@ class SiteLogo extends BaseWidget
             'type'                 => Controls_Manager::CHOOSE,
             'options'              => [
                 'start'   => [
-					'title' => esc_html__('Start', 'elemacy'),
-					'icon' => 'eicon-text-align-left'
-				],
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-text-align-left'
+                ],
                 'center'  => [
-					'title' => esc_html__('Center', 'elemacy'),
-					'icon' => 'eicon-text-align-center'
-				],
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-text-align-center'
+                ],
                 'end'     => [
-					'title' => esc_html__('End', 'elemacy'),
-					'icon' => 'eicon-text-align-right'
-				],
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-text-align-right'
+                ],
                 'justify' => [
-					'title' => esc_html__('Justified', 'elemacy'),
-					'icon' => 'eicon-text-align-justify'
-				],
+                    'title' => esc_html__('Justified', 'elemacy'),
+                    'icon' => 'eicon-text-align-justify'
+                ],
             ],
             'classes'              => 'elementor-control-start-end',
             'selectors_dictionary' => [
@@ -470,13 +473,13 @@ class SiteLogo extends BaseWidget
             'range'      => [
                 'px'  => ['max' => 100],
                 'em'  => [
-					'min' => 0,
-					'max' => 10
-				],
+                    'min' => 0,
+                    'max' => 10
+                ],
                 'rem' => [
-					'min' => 0,
-					'max' => 10
-				],
+                    'min' => 0,
+                    'max' => 10
+                ],
             ],
             'selectors'  => [
                 '{{WRAPPER}} .elemacy-site-logo__caption' => 'margin-block-start: {{SIZE}}{{UNIT}};',

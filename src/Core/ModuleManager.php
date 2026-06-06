@@ -79,11 +79,10 @@ class ModuleManager
 	public function enable_module(string $name): void
 	{
 		if (!isset($this->modules[$name])) {
-			throw new ModuleNotFoundException( // phpcs:disable line
-				/* translators: %s: module name */
-				sprintf(__('Module "%s" not found.', 'elemacy'), $name), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.I18n.MissingTranslatorsComment
-				Response::NOT_FOUND // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			);
+			/* translators: %s: module slug. */
+			$message = sprintf(__('Module %s not found.', 'elemacy'), $name);
+
+			throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
 		}
 
 		$active = get_option(OptionKeys::ACTIVE_MODULES, []);
@@ -98,11 +97,10 @@ class ModuleManager
 	public function disable_module(string $name): void
 	{
 		if (!isset($this->modules[$name])) {
-			throw new ModuleNotFoundException( // phpcs:disable line
-				/* translators: %s: module name */
-				sprintf(__('Module "%s" not found.', 'elemacy'), $name), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.I18n.MissingTranslatorsComment
-				Response::NOT_FOUND // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			);
+			/* translators: %s: module slug. */
+			$message = sprintf(__('Module %s not found.', 'elemacy'), $name);
+
+			throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
 		}
 
 		$stored = get_option(OptionKeys::ACTIVE_MODULES, []);

@@ -69,7 +69,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
             add_action('wp_enqueue_scripts', function () use ($has_header, $has_footer) {
                 $handle = 'elemacy-themebuilder-compat';
                 if (!wp_style_is($handle, 'registered')) {
-                    wp_register_style($handle, false);
+                    wp_register_style($handle, false, [], ELEMACY_VERSION);
                 }
                 wp_enqueue_style($handle);
 

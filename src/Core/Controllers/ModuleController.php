@@ -29,8 +29,8 @@ class ModuleController
         $module = $module_manager->get_module($name);
         if ($module && $module->is_placeholder()) {
             throw new InvalidRoutActionException(
-                __('This module is not available yet.', 'elemacy'),
-                Response::FORBIDDEN
+                esc_html__('This module is not available yet.', 'elemacy'),
+                Response::FORBIDDEN // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- HTTP status code, not output.
             );
         }
 
@@ -40,8 +40,8 @@ class ModuleController
             $module_manager->disable_module($name);
         } else {
             throw new InvalidRoutActionException(
-                __('Invalid action.', 'elemacy'),
-                Response::BAD_REQUEST
+                esc_html__('Invalid action.', 'elemacy'),
+                Response::BAD_REQUEST // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- HTTP status code, not output.
             );
         }
 

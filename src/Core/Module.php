@@ -4,6 +4,8 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Constants\OptionKeys;
+
 abstract class Module
 {
 	abstract public function get_name(): string;
@@ -26,7 +28,7 @@ abstract class Module
 
 	public function is_active(): bool
 	{
-		$active_modules = get_option('elemacy_active_modules', []);
+		$active_modules = get_option(OptionKeys::ACTIVE_MODULES, []);
 
 		return in_array($this->get_name(), $active_modules, true);
 	}

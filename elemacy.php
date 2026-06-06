@@ -21,7 +21,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ELEMACY_ENV', 'dev');
+if (!defined('ELEMACY_ENV')) {
+    define('ELEMACY_ENV', 'production');
+}
+
 define('ELEMACY_VERSION', '1.0.0');
 define('ELEMACY_FILE', __FILE__);
 define('ELEMACY_PLUGIN_BASE', plugin_basename(ELEMACY_FILE));

@@ -559,7 +559,6 @@ class LoopGrid extends BaseWidget
             $args['post__not_in'] = [get_the_ID()];
         }
 
-        // Handle pagination correctly in WP_Query
         if (!empty($settings['pagination_type']) && empty($settings['offset'])) {
             $paged = get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1);
             $args['paged'] = $paged;
@@ -646,12 +645,10 @@ class LoopGrid extends BaseWidget
             echo '</div>';
         }
 
-        // Restore global post data
         wp_reset_postdata();
 
-        echo '</div>'; // End elementor-loop-grid
+        echo '</div>';
 
-        // Pagination
         if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
             static::render_pagination_html($settings, $query);
         }

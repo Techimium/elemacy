@@ -14,21 +14,12 @@ use Elementor\Group_Control_Box_Shadow;
 use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
 
 /**
- * Custom Elementor document type for popups.
- *
- * Extends Elementor core's PageBase (the same base used by the built-in
- * "Page" / "Post" documents) so popups are edited on a real WordPress post
- * bound to our CPT, with full page-style controls. We force the Elementor
- * Canvas page template so the popup is authored without theme header/footer.
- *
- * PageBase lives in free Elementor core (core/document-types/page-base.php),
- * so this works without Elementor Pro.
+ * Custom Elementor document type for popups. Extends free-core PageBase (no
+ * Elementor Pro needed) so popups edit on a real CPT post with page controls,
+ * forced onto the Canvas template (no theme header/footer).
  */
 class PopupDocument extends PageBase
 {
-    /**
-     * Document type slug, also used as the `_elementor_template_type` meta value.
-     */
     public static function get_type()
     {
         return 'elemacy_popup';
@@ -49,20 +40,6 @@ class PopupDocument extends PageBase
         return esc_html__('Popups', 'elemacy');
     }
 
-    /**
-     * Document properties.
-     *
-     * - `cpt` binds the document type to our popup CPT.
-     * - `support_kit` lets popups inherit global kit (site) settings.
-     * - `show_in_library` keeps popups out of Elementor's template library UI.
-     * - `admin_tab_group` empty so it is not grouped under another admin tab.
-     *
-     * The blank canvas is enforced in the constructor (forcing the
-     * `_wp_page_template` => `elementor_canvas` setting), matching how
-     * PageBase reads the template from `_wp_page_template`.
-     *
-     * @return array
-     */
     public static function get_properties()
     {
         $properties = parent::get_properties();
@@ -75,16 +52,7 @@ class PopupDocument extends PageBase
         return $properties;
     }
 
-    /**
-     * Force the Elementor Canvas layout so popups edit with no theme chrome.
-     *
-     * PageBase's constructor seeds `$data['settings']['template']` from the
-     * post's `_wp_page_template` meta (defaulting to `default`). We override
-     * that default to canvas so a freshly-created popup opens blank even before
-     * the meta is persisted.
-     *
-     * @param array $data
-     */
+    // Force Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -101,39 +69,15 @@ class PopupDocument extends PageBase
     }
 
     /**
-     * Scope the document's settings CSS ({{WRAPPER}}) to the Elementor content
-     * wrapper `.elementor-{id}` — the popup box.
-     *
-     * PageBase defaults this to `body.elementor-page-{id}` (the whole page),
-     * which is wrong for a popup: size/style controls would target the page, not
-     * the box, and would not match on the frontend (where the popup is injected
-     * in the footer). `.elementor-{id}` is the one element present in BOTH the
-     * editor canvas and the frontend (the engine tags it `.elemacy-popup__box`),
-     * so controls live-preview in the editor and apply on the site.
-     *
-     * @return string
+     * Scope settings CSS to `.elementor-{id}` (the popup box), not PageBase's
+     * default `body.elementor-page-{id}`: that element exists in both the editor
+     * canvas and the frontend footer injection, so controls preview and apply.
      */
     public function get_css_wrapper_selector()
     {
         return '.elementor-' . $this->get_main_id();
     }
 
-    /**
-     * Register native Elementor controls for the popup's display / layout.
-     * These replace our old `_elemacy_popup_display` meta + React form: authors
-     * edit them in the builder (Settings + Style tabs) and see them live.
-     *
-     * Controls drive the preview two ways, both live-updated by Elementor:
-     * - Direct CSS `selectors` on `{{WRAPPER}}` (the box) for size/spacing/style.
-     * - CSS custom properties (e.g. `--elemacy-ov-color`) consumed by the
-     *   editor-preview chrome (see EditorPreview) and the frontend close button,
-     *   so overlay / close / position update live without custom JS.
-     * Behavior values (position, overlay on/off, close on/off, animation, auto
-     *   close, prevent scroll, z-index) are ALSO read in PHP via DocumentDisplay
-     *   and handed to the frontend engine.
-     *
-     * Defaults are seeded per popup type from DisplayDefaults.
-     */
     protected function register_controls()
     {
         $type     = get_post_meta($this->get_main_id(), '_elemacy_popup_type', true);
@@ -143,15 +87,8 @@ class PopupDocument extends PageBase
         $this->register_close_style_controls();
     }
 
-    /**
-     * Position options relevant to each popup type.
-     *
-     * @param string $type
-     * @return array<string, string>
-     */
     protected function position_options(string $type): array
     {
-        // A top/bottom bar is inherently edge-anchored.
         if ('topbar' === $type) {
             return [
                 'top'    => esc_html__('Top', 'elemacy'),
@@ -159,7 +96,6 @@ class PopupDocument extends PageBase
             ];
         }
 
-        // Popups, floating elements and banners can sit anywhere.
         return [
             'center'       => esc_html__('Center', 'elemacy'),
             'top'          => esc_html__('Top', 'elemacy'),
@@ -171,12 +107,6 @@ class PopupDocument extends PageBase
         ];
     }
 
-    /**
-     * Settings tab — layout & behavior.
-     *
-     * @param string $type
-     * @param array  $defaults
-     */
     protected function register_layout_controls(string $type, array $defaults)
     {
         $this->start_controls_section(
@@ -187,11 +117,8 @@ class PopupDocument extends PageBase
             ]
         );
 
-        // NOTE: position/overlay write CSS vars to `body` ONLY to drive the
-        // editor-preview live binding (EditorPreview reads them). They are
-        // page-global, so the FRONTEND must not consume them — there each popup
-        // positions off its own `.elemacy-popup--pos-*` class (engine.js) and
-        // the overlay uses per-element inline styles, keeping popups independent.
+        // Position/overlay write CSS vars to `body` only for the editor preview;
+        // the frontend ignores them and positions each popup off its own class.
         $this->add_control(
             DisplayKeys::POSITION,
             [
@@ -215,9 +142,7 @@ class PopupDocument extends PageBase
         );
 
         if ('topbar' === $type) {
-            // A top bar flows in the page by default (pushes content down). When
-            // sticky it stays in view while scrolling. Bottom bars are always
-            // fixed to the viewport, so sticky only applies to the top position.
+            // Bottom bars are always viewport-fixed, so sticky only applies to top.
             $this->add_control(
                 DisplayKeys::STICKY,
                 [
@@ -449,15 +374,6 @@ class PopupDocument extends PageBase
         $this->end_controls_section();
     }
 
-    /**
-     * Style tab — the close button, styled with native Elementor controls
-     * (Normal / Hover / Active tabs + Border & Box Shadow group controls).
-     *
-     * Selectors target the real `.elemacy-popup__close` element, which exists on
-     * the frontend (injected by the engine) and in the editor preview (injected
-     * by preview.js), so styling — including hover/active states — previews live
-     * and renders identically on the site.
-     */
     protected function register_close_style_controls()
     {
         $btn = '{{WRAPPER}} .elemacy-popup__close';
