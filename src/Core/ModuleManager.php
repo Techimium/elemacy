@@ -91,6 +91,7 @@ class ModuleManager
 		if (!in_array($name, $active, true)) {
 			$active[] = $name;
 			update_option(OptionKeys::ACTIVE_MODULES, $active);
+			$this->modules[$name]->on_enable();
 		}
 	}
 
@@ -104,11 +105,15 @@ class ModuleManager
 			);
 		}
 
-		$active = array_values(array_diff(
-			get_option(OptionKeys::ACTIVE_MODULES, []),
-			[$name]
-		));
+		$stored = get_option(OptionKeys::ACTIVE_MODULES, []);
+
+		if (!in_array($name, $stored, true)) {
+			return;
+		}
+
+		$active = array_values(array_diff($stored, [$name]));
 
 		update_option(OptionKeys::ACTIVE_MODULES, $active);
+		$this->modules[$name]->on_disable();
 	}
 }

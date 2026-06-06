@@ -20,6 +20,10 @@ abstract class Module
 
 	public function register_assets() {}
 
+	public function on_enable(): void {}
+
+	public function on_disable(): void {}
+
 	public function is_active(): bool
 	{
 		$active_modules = get_option('elemacy_active_modules', []);

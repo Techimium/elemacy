@@ -58,6 +58,23 @@ class Popups extends Module
         require_once Utils::get_plugin_path('src/Modules/Popups/Config/api.php');
     }
 
+    /**
+     * The module is toggled long after `init` has fired, so the popup CPT is
+     * not registered in this request. Register it inline so its rewrite rules
+     * are part of the set baked in by the flush; otherwise popup permalinks
+     * 404 and break the Elementor editor preview.
+     */
+    public function on_enable(): void
+    {
+        PopupPostType::register_post_type();
+        flush_rewrite_rules(false);
+    }
+
+    public function on_disable(): void
+    {
+        flush_rewrite_rules(false);
+    }
+
     public function register_admin_menu()
     {
         add_action('init', function () {
