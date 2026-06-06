@@ -11,6 +11,7 @@ use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Conditions\ConditionsBootstrap;
+use Elemacy\Support\Utils;
 
 class Elemacy
 {
@@ -92,6 +93,7 @@ class Elemacy
 	{
 		new AdminScripts();
 		new FrontendScripts();
+		new PluginLinks();
 
 		(new ConditionsBootstrap())->register();
 
@@ -154,6 +156,15 @@ class Elemacy
 			$modules_menu_dto->menu_title = __('Modules', 'elemacy');
 			$modules_menu_dto->menu_slug = 'modules';
 			AdminMenu::add_submenu($modules_menu_dto);
+
+			if (!Utils::is_pro_active()) {
+				$upgrade_menu_dto = new SubMenuDTO();
+				$upgrade_menu_dto->page_title = __('Upgrade to Pro', 'elemacy');
+				$upgrade_menu_dto->menu_title = '<span class="elemacy-external-menu-link">' . esc_html__('Upgrade to Pro', 'elemacy') . '</span>';
+				$upgrade_menu_dto->external_url = 'https://elemacy.com';
+				$upgrade_menu_dto->position = 999;
+				AdminMenu::add_submenu($upgrade_menu_dto);
+			}
 		});
 	}
 

@@ -15,12 +15,31 @@ class AdminScripts
 {
     public function __construct()
     {
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_global_assets']);
+
         if (!Utils::is_plugin_page()) {
             return;
         }
 
         add_action('admin_enqueue_scripts', [$this, 'enqueue']);
         add_action('script_loader_tag', [$this, 'update_script_type'], 10, 3);
+    }
+
+    public function enqueue_global_assets()
+    {
+        wp_enqueue_style(
+            'elemacy-admin-global',
+            ELEMACY_URL . 'assets/admin-extras/admin-global.css',
+            [],
+            ELEMACY_VERSION
+        );
+        wp_enqueue_script(
+            'elemacy-admin-global',
+            ELEMACY_URL . 'assets/admin-extras/admin-global.js',
+            [],
+            ELEMACY_VERSION,
+            true
+        );
     }
 
     public function enqueue()

@@ -11,6 +11,11 @@ class Utils
         return ELEMACY_VERSION;
     }
 
+    public static function is_pro_active(): bool
+    {
+        return defined('ELEMACY_PRO_VERSION');
+    }
+
     public static function is_plugin_page()
     {
         $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
