@@ -90,7 +90,7 @@ Create high-converting popups, top/bottom bars, banners, and floating elements �
 * **Rules (free):** Frequency Cap ("show up to X times"), Hide for Logged-in Users.
 * Lightweight, vanilla-JS frontend engine that loads **only when a popup actually matches the current page** — zero overhead otherwise.
 
-> **⚡ Elemacy Pro** adds advanced triggers (Scroll, Exit Intent, Inactivity, Scroll to Element, On Popup Close), advanced rules (Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, Browser), plus popup analytics and A/B testing.
+> **⚡ Elemacy Pro** adds advanced triggers (Scroll, Exit Intent, Inactivity, Scroll to Element, On Popup Close), advanced rules (Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, Browser), plus popup analytics.
 
 ---
 
@@ -241,7 +241,7 @@ Elemacy Pro installs on top of the free plugin and unlocks advanced features. No
 * **Advanced Display Conditions** – Front Page, Blog, 404, Search Results, By Author, Specific Post, Child Of, In {Taxonomy}, {Taxonomy} Archive, All Archives, Date Archive, and Author Archive.
 * **Advanced Popup Triggers** – Scroll, Exit Intent, Inactivity, Scroll to Element, and On Popup Close.
 * **Advanced Popup Rules** – Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, and Browser targeting.
-* **Popup Analytics & A/B Testing** – Track impressions and conversions and run experiments.
+* **Popup Analytics** – Track impressions and conversions.
 * **License management** – In-dashboard license activation for updates and support.
 
 > 👉 Learn more and upgrade at [elemacy.com](https://elemacy.com).
@@ -315,7 +315,7 @@ Yes. Every feature documented under the free version is available at no cost —
 
 = What's the difference between Elemacy and Elemacy Pro? =
 
-Elemacy (free) gives you the complete core toolkit: Theme Builder, basic display conditions, popups with the essential triggers and rules, the Loop and Form builders, dynamic tags, custom CSS, and the widget library. Elemacy Pro adds the Animations module, advanced display conditions, advanced popup triggers/rules, popup analytics & A/B testing, and license-based updates and support. Pro never replaces free code — it only adds to it.
+Elemacy (free) gives you the complete core toolkit: Theme Builder, basic display conditions, popups with the essential triggers and rules, the Loop and Form builders, dynamic tags, custom CSS, and the widget library. Elemacy Pro adds the Animations module, advanced display conditions, advanced popup triggers/rules, popup analytics, and license-based updates and support. Pro never replaces free code — it only adds to it.
 
 = Does the Theme Builder work with any WordPress theme? =
 

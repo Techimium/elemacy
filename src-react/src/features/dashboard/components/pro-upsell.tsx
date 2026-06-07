@@ -44,8 +44,8 @@ const proFeatures: ProFeature[] = [
     },
     {
         icon: BarChart3,
-        title: __('Analytics & A/B Testing', 'elemacy'),
-        description: __('Track popup impressions and conversions, and run experiments.', 'elemacy'),
+        title: __('Popup Analytics', 'elemacy'),
+        description: __('Track popup impressions and conversions.', 'elemacy'),
     },
     {
         icon: KeyRound,

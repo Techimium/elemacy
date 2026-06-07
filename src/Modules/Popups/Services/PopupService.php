@@ -134,11 +134,6 @@ class PopupService
             $this->save_rules($post_id, (array) $dto->rules);
         }
 
-        // Display/layout settings live on the Elementor document (see
-        // Documents\PopupDocument); they are read back via Support\DocumentDisplay.
-
-        update_post_meta($post_id, MetaKeys::AB_GROUP, '');
-
         return $this->create_dto(get_post($post_id));
     }
 
