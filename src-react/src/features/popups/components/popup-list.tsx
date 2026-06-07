@@ -16,8 +16,9 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquareIcon } from 'lucide-react';
+import { MessageSquareIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EditPopupModal } from './edit-popup-modal';
 import { DeletePopupDialog } from './delete-popup-dialog';
@@ -31,6 +32,7 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [deletingPopup, setDeletingPopup] = useState<PopupListItem | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [filter, setFilter] = useState<string>('all');
+    const [search, setSearch] = useState('');
 
     const { data: popups, isLoading } = usePopups();
     const { mutateAsync: deletePopup, isPending: isDeleting } = useDeletePopupMutation();
@@ -38,8 +40,11 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
 
     const filtered = useMemo(() => {
         if (!popups) return [];
-        return filter === 'all' ? popups : popups.filter((p) => p.type === filter);
-    }, [popups, filter]);
+        const byType = filter === 'all' ? popups : popups.filter((p) => p.type === filter);
+        const query = search.trim().toLowerCase();
+        if (!query) return byType;
+        return byType.filter((p) => p.title.toLowerCase().includes(query));
+    }, [popups, filter, search]);
 
     const handleEdit = (popup: PopupListItem) => {
         setEditingId(popup.id);
@@ -62,15 +67,27 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
 
     return (
         <>
-            <Tabs value={filter} onValueChange={setFilter}>
-                <TabsList>
-                    {FILTERS.map((f) => (
-                        <TabsTrigger key={f.value} value={f.value}>
-                            {f.label}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-            </Tabs>
+            <div className="flex items-center justify-between gap-4">
+                <Tabs value={filter} onValueChange={setFilter}>
+                    <TabsList>
+                        {FILTERS.map((f) => (
+                            <TabsTrigger key={f.value} value={f.value}>
+                                {f.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
+
+                <div className="relative w-full max-w-xs">
+                    <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={__('Search popups…', 'elemacy')}
+                        className="pl-9"
+                    />
+                </div>
+            </div>
 
             {filtered.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

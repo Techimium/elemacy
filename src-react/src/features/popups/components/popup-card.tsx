@@ -24,6 +24,20 @@ interface PopupCardProps {
     onEditWithElementor: (popup: PopupListItem) => void;
 }
 
+function formatDate(date: string) {
+    const parsed = new Date(date.replace(' ', 'T') + 'Z');
+
+    if (Number.isNaN(parsed.getTime())) {
+        return date;
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
 function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }: PopupCardProps) {
     const typeLabel =
         POPUP_TYPES.find((t) => t.value === popup.type)?.label || __('Unknown', 'elemacy');
@@ -70,7 +84,9 @@ function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }
                 </div>
                 <div className="flex items-center justify-between">
                     <Badge variant="secondary">{typeLabel}</Badge>
-                    {popup.date && <span className="text-xs text-gray-400">{popup.date}</span>}
+                    {popup.date && (
+                        <span className="text-xs text-gray-400">{formatDate(popup.date)}</span>
+                    )}
                 </div>
                 <Slot
                     name={Slots.POPUP_CARD_FOOTER}
