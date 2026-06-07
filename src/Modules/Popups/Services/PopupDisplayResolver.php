@@ -67,6 +67,12 @@ class PopupDisplayResolver
      */
     protected function matches(PopupDTO $popup): bool
     {
+        // A published popup with no Elementor elements would render as a bare
+        // overlay with no content box, so it never matches.
+        if (!$this->has_content($popup)) {
+            return false;
+        }
+
         // Server-evaluable advanced rules (logged-in, etc.) gate the popup
         // before it is handed to the frontend. Client-side rules (frequency,
         // devices, …) are enforced in engine.js.
@@ -79,6 +85,26 @@ class PopupDisplayResolver
         }
 
         return ConditionEvaluator::instance()->evaluate($popup->conditions);
+    }
+
+    /**
+     * Whether the popup has any authored Elementor content. A never-edited
+     * document returns an empty elements array; showing it would paint only the
+     * overlay backdrop with no visible content box.
+     */
+    protected function has_content(PopupDTO $popup): bool
+    {
+        if (!class_exists('\Elementor\Plugin')) {
+            return false;
+        }
+
+        $document = \Elementor\Plugin::instance()->documents->get((int) $popup->id);
+
+        if (!$document) {
+            return false;
+        }
+
+        return !empty($document->get_elements_data());
     }
 
     /**
