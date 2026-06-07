@@ -17,6 +17,7 @@ export interface ElemacyShared {
     components: typeof ElemacyComponents;
     toast: typeof toast;
     registry: typeof import('../lib/registry').registry;
+    routes: typeof import('../lib/route-registry').routeRegistry;
 }
 
 declare global {
