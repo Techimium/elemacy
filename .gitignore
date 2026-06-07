@@ -25,6 +25,9 @@ dist-ssr
 
 vendor
 
+# Production package output (npm run build:zip)
+build
+
 # React build output (Vite — src-react/vite.config). Ignore everything the
 # build generates under assets/admin/, but keep the hand-authored admin assets.
 assets/admin/*
