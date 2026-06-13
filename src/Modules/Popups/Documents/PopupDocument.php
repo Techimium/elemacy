@@ -4,10 +4,11 @@ namespace Elemacy\Modules\Popups\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\Constants\MetaKeys;
-use Elemacy\Modules\Popups\PostTypes\PopupPostType;
+use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\DisplayKeys;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elementor\Controls_Manager;
 use Elementor\Core\DocumentTypes\PageBase;
 use Elementor\Group_Control_Border;
@@ -45,7 +46,7 @@ class PopupDocument extends PageBase
     {
         $properties = parent::get_properties();
 
-        $properties['cpt']             = [PopupPostType::POST_TYPE];
+        $properties['cpt']             = [LibraryPostType::POST_TYPE];
         $properties['support_kit']     = true;
         $properties['show_in_library'] = false;
         $properties['admin_tab_group'] = '';
@@ -81,16 +82,17 @@ class PopupDocument extends PageBase
 
     protected function register_controls()
     {
-        $type     = get_post_meta($this->get_main_id(), MetaKeys::TYPE, true);
-        $defaults = DisplayDefaults::for_type($type ? $type : 'popup');
+        $type     = get_post_meta($this->get_main_id(), MetaKeys::TEMPLATE_TYPE, true);
+        $type     = $type ? $type : PopupTypes::POPUP;
+        $defaults = DisplayDefaults::for_type($type);
 
-        $this->register_layout_controls($type ? $type : 'popup', $defaults);
+        $this->register_layout_controls($type, $defaults);
         $this->register_close_style_controls();
     }
 
     protected function position_options(string $type): array
     {
-        if ('topbar' === $type) {
+        if (PopupTypes::TOPBAR === $type) {
             return [
                 'top'    => esc_html__('Top', 'elemacy'),
                 'bottom' => esc_html__('Bottom', 'elemacy'),
@@ -110,6 +112,10 @@ class PopupDocument extends PageBase
 
     protected function register_layout_controls(string $type, array $defaults)
     {
+        // Overlay, scroll-lock and the dialog-style close behaviors only apply to
+        // the centered modal popup; topbar/banner/floating are non-modal.
+        $is_modal = PopupTypes::POPUP === $type;
+
         $this->start_controls_section(
             'elemacy_popup_section',
             [
@@ -142,7 +148,7 @@ class PopupDocument extends PageBase
             ]
         );
 
-        if ('topbar' === $type) {
+        if (PopupTypes::TOPBAR === $type) {
             // Bottom bars are always viewport-fixed, so sticky only applies to top.
             $this->add_control(
                 DisplayKeys::STICKY,
@@ -222,60 +228,9 @@ class PopupDocument extends PageBase
             ]
         );
 
-        $this->add_control(
-            DisplayKeys::OVERLAY_ENABLED,
-            [
-                'label'        => esc_html__('Overlay', 'elemacy'),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__('On', 'elemacy'),
-                'label_off'    => esc_html__('Off', 'elemacy'),
-                'return_value' => 'yes',
-                'default'      => $defaults['overlay']['enabled'] ? 'yes' : '',
-                'separator'    => 'before',
-                'selectors'    => [
-                    'body' => '--elemacy-ov-display: block;',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            DisplayKeys::OVERLAY_COLOR,
-            [
-                'label'     => esc_html__('Overlay Color', 'elemacy'),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => $defaults['overlay']['color'],
-                'condition' => [
-                    DisplayKeys::OVERLAY_ENABLED => 'yes',
-                ],
-                'selectors' => [
-                    'body' => '--elemacy-ov-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            DisplayKeys::OVERLAY_OPACITY,
-            [
-                'label'     => esc_html__('Overlay Opacity', 'elemacy'),
-                'type'      => Controls_Manager::SLIDER,
-                'range'     => [
-                    'px' => [
-                        'min'  => 0,
-                        'max'  => 1,
-                        'step' => 0.05,
-                    ],
-                ],
-                'default'   => [
-                    'size' => $defaults['overlay']['opacity'],
-                ],
-                'condition' => [
-                    DisplayKeys::OVERLAY_ENABLED => 'yes',
-                ],
-                'selectors' => [
-                    'body' => '--elemacy-ov-opacity: {{SIZE}};',
-                ],
-            ]
-        );
+        if ($is_modal) {
+            $this->register_overlay_controls($defaults);
+        }
 
         $this->add_control(
             DisplayKeys::ANIMATION_IN,
@@ -335,44 +290,88 @@ class PopupDocument extends PageBase
             ]
         );
 
-        $this->add_control(
-            DisplayKeys::CLOSE_ON_OVERLAY,
-            [
-                'label'        => esc_html__('Close on Overlay Click', 'elemacy'),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__('Yes', 'elemacy'),
-                'label_off'    => esc_html__('No', 'elemacy'),
-                'return_value' => 'yes',
-                'default'      => $defaults['close']['on_overlay_click'] ? 'yes' : '',
-            ]
-        );
+        if ($is_modal) {
+            $this->add_control(
+                DisplayKeys::CLOSE_ON_OVERLAY,
+                [
+                    'label'        => esc_html__('Close on Overlay Click', 'elemacy'),
+                    'type'         => Controls_Manager::SWITCHER,
+                    'label_on'     => esc_html__('Yes', 'elemacy'),
+                    'label_off'    => esc_html__('No', 'elemacy'),
+                    'return_value' => 'yes',
+                    'default'      => $defaults['close']['on_overlay_click'] ? 'yes' : '',
+                ]
+            );
 
-        $this->add_control(
-            DisplayKeys::CLOSE_ON_ESC,
-            [
-                'label'        => esc_html__('Close on Esc', 'elemacy'),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__('Yes', 'elemacy'),
-                'label_off'    => esc_html__('No', 'elemacy'),
-                'return_value' => 'yes',
-                'default'      => $defaults['close']['on_esc'] ? 'yes' : '',
-            ]
-        );
+            $this->add_control(
+                DisplayKeys::CLOSE_ON_ESC,
+                [
+                    'label'        => esc_html__('Close on Esc', 'elemacy'),
+                    'type'         => Controls_Manager::SWITCHER,
+                    'label_on'     => esc_html__('Yes', 'elemacy'),
+                    'label_off'    => esc_html__('No', 'elemacy'),
+                    'return_value' => 'yes',
+                    'default'      => $defaults['close']['on_esc'] ? 'yes' : '',
+                ]
+            );
 
-        $this->add_control(
-            DisplayKeys::PREVENT_SCROLL,
-            [
-                'label'        => esc_html__('Prevent Body Scroll', 'elemacy'),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__('Yes', 'elemacy'),
-                'label_off'    => esc_html__('No', 'elemacy'),
-                'return_value' => 'yes',
-                'default'      => $defaults['prevent_body_scroll'] ? 'yes' : '',
-                'separator'    => 'before',
-            ]
-        );
+            $this->add_control(
+                DisplayKeys::PREVENT_SCROLL,
+                [
+                    'label'        => esc_html__('Prevent Body Scroll', 'elemacy'),
+                    'type'         => Controls_Manager::SWITCHER,
+                    'label_on'     => esc_html__('Yes', 'elemacy'),
+                    'label_off'    => esc_html__('No', 'elemacy'),
+                    'return_value' => 'yes',
+                    'default'      => $defaults['prevent_body_scroll'] ? 'yes' : '',
+                    'separator'    => 'before',
+                ]
+            );
+        }
 
         $this->end_controls_section();
+    }
+
+    /**
+     * Overlay (backdrop) controls — modal popups only. The backdrop is always
+     * present for a popup (it is part of the modal contract); only its look is
+     * configurable. Topbar/banner/floating are non-modal and have no backdrop.
+     */
+    protected function register_overlay_controls(array $defaults)
+    {
+        $this->add_control(
+            DisplayKeys::OVERLAY_COLOR,
+            [
+                'label'     => esc_html__('Overlay Color', 'elemacy'),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => $defaults['overlay']['color'],
+                'separator' => 'before',
+                'selectors' => [
+                    'body' => '--elemacy-ov-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            DisplayKeys::OVERLAY_OPACITY,
+            [
+                'label'     => esc_html__('Overlay Opacity', 'elemacy'),
+                'type'      => Controls_Manager::SLIDER,
+                'range'     => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1,
+                        'step' => 0.05,
+                    ],
+                ],
+                'default'   => [
+                    'size' => $defaults['overlay']['opacity'],
+                ],
+                'selectors' => [
+                    'body' => '--elemacy-ov-opacity: {{SIZE}};',
+                ],
+            ]
+        );
     }
 
     protected function register_close_style_controls()

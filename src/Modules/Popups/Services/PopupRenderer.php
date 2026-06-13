@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\PopupDTO;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elementor\Plugin as ElementorPlugin;
 
 /**
@@ -40,7 +41,14 @@ class PopupRenderer
         $html  = '<div class="' . esc_attr($classes) . '"';
         $html .= ' data-elemacy-popup-id="' . esc_attr((string) $id) . '"';
         $html .= ' data-elemacy-popup-type="' . esc_attr($type) . '"';
-        $html .= ' role="dialog" aria-modal="true" aria-hidden="true" hidden>';
+
+        // Only the centered popup is a modal dialog. Topbars/banners/floating are
+        // persistent, non-modal UI, so they must not claim role="dialog"/aria-modal.
+        if (PopupTypes::POPUP === $type) {
+            $html .= ' role="dialog" aria-modal="true"';
+        }
+
+        $html .= ' aria-hidden="true" hidden>';
         $html .= '<template class="elemacy-popup-tpl">' . $content . '</template>';
         $html .= '</div>';
 

@@ -11,24 +11,21 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-$elemacy_post_types = ['elemacy_template', 'elemacy_popup'];
-
-foreach ($elemacy_post_types as $elemacy_post_type) {
-    $post_ids = get_posts([
-        'post_type'   => $elemacy_post_type,
-        'post_status' => 'any',
-        'numberposts' => -1,
-        'fields'      => 'ids',
-    ]);
-
-    foreach ($post_ids as $elemacy_post_id) {
-        wp_delete_post($elemacy_post_id, true);
-    }
-}
-
 global $wpdb;
 
 // phpcs:disable WordPress.DB.DirectDatabaseQuery
+// Delete every library post and its meta in one query rather than loading and
+// deleting each post individually. (Elementor's generated per-post CSS files are
+// left on disk — an acceptable trade on uninstall.)
+$wpdb->query(
+    $wpdb->prepare(
+        "DELETE p, pm FROM {$wpdb->posts} p
+         LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+         WHERE p.post_type = %s",
+        'elemacy_library'
+    )
+);
+
 $wpdb->query(
     $wpdb->prepare(
         "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name NOT LIKE %s",

@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Popups\Support;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\Constants\MetaKeys;
 
 /**
  * Reads display/behavior settings off the popup's Elementor document
@@ -32,8 +32,13 @@ class DocumentDisplay
             return static::$cache[$id];
         }
 
-        $type = get_post_meta($id, MetaKeys::TYPE, true);
-        $def  = DisplayDefaults::for_type($type ? $type : 'popup');
+        $type = get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
+        $type = $type ? $type : PopupTypes::POPUP;
+        $def  = DisplayDefaults::for_type($type);
+
+        // Overlay, scroll-lock and the dialog close behaviors are modal-only. For
+        // non-modal types force them off so a stale value can never apply.
+        $is_modal = PopupTypes::POPUP === $type;
 
         $settings = [];
 
@@ -63,9 +68,7 @@ class DocumentDisplay
                 : $def['position'],
             'sticky'    => 'yes' === ($settings[DisplayKeys::STICKY] ?? ''),
             'overlay'   => [
-                'enabled' => isset($settings[DisplayKeys::OVERLAY_ENABLED])
-                    ? ('yes' === $settings[DisplayKeys::OVERLAY_ENABLED])
-                    : $def['overlay']['enabled'],
+                'enabled' => $is_modal,
                 'color'   => $overlay_color,
                 'opacity' => $overlay_opacity,
             ],
@@ -84,10 +87,10 @@ class DocumentDisplay
                 'auto_close_s'     => isset($settings[DisplayKeys::AUTO_CLOSE])
                     ? (int) $settings[DisplayKeys::AUTO_CLOSE]
                     : 0,
-                'on_overlay_click' => 'yes' === ($settings[DisplayKeys::CLOSE_ON_OVERLAY] ?? ''),
-                'on_esc'           => 'yes' === ($settings[DisplayKeys::CLOSE_ON_ESC] ?? ''),
+                'on_overlay_click' => $is_modal && 'yes' === ($settings[DisplayKeys::CLOSE_ON_OVERLAY] ?? ''),
+                'on_esc'           => $is_modal && 'yes' === ($settings[DisplayKeys::CLOSE_ON_ESC] ?? ''),
             ],
-            'prevent_body_scroll' => 'yes' === ($settings[DisplayKeys::PREVENT_SCROLL] ?? ''),
+            'prevent_body_scroll' => $is_modal && 'yes' === ($settings[DisplayKeys::PREVENT_SCROLL] ?? ''),
             'z_index'             => isset($settings[DisplayKeys::Z_INDEX]) && '' !== $settings[DisplayKeys::Z_INDEX]
                 ? (int) $settings[DisplayKeys::Z_INDEX]
                 : (int) $def['z_index'],

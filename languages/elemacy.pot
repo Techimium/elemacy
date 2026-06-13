@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-13T03:49:58+00:00\n"
+"POT-Creation-Date: 2026-06-13T12:35:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: elemacy\n"
 
 #. Plugin Name of the plugin
 #: elemacy.php
-#: src/Core/Elemacy.php:152
-#: src/Core/Elemacy.php:153
+#: src/Core/Elemacy.php:170
+#: src/Core/Elemacy.php:171
 #: src/Modules/DynamicTags/Services/TagManager.php:125
 #: src/Modules/Widgets/Services/WidgetManager.php:50
 msgid "Elemacy"
@@ -90,7 +90,7 @@ msgid "404 Not Found"
 msgstr ""
 
 #: src/Conditions/Mock/SearchResults.php:23
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:213
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:64
 msgid "Search Results"
 msgstr ""
 
@@ -114,7 +114,7 @@ msgid "General"
 msgstr ""
 
 #: src/Conditions/Support/ConditionGroups.php:20
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:205
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:62
 msgid "Archive"
 msgstr ""
 
@@ -125,7 +125,7 @@ msgstr ""
 #. translators: %s: Controller name
 #. translators: %s: Controller class
 #: src/Core/AjaxRouter.php:73
-#: src/Core/Route.php:575
+#: src/Core/Route.php:567
 #, php-format
 msgid "Controller %s not found"
 msgstr ""
@@ -184,18 +184,18 @@ msgstr ""
 msgid "Install %s"
 msgstr ""
 
-#: src/Core/Elemacy.php:159
-#: src/Core/Elemacy.php:160
+#: src/Core/Elemacy.php:177
+#: src/Core/Elemacy.php:178
 msgid "Overview"
 msgstr ""
 
-#: src/Core/Elemacy.php:165
-#: src/Core/Elemacy.php:166
+#: src/Core/Elemacy.php:183
+#: src/Core/Elemacy.php:184
 msgid "Modules"
 msgstr ""
 
-#: src/Core/Elemacy.php:172
-#: src/Core/Elemacy.php:173
+#: src/Core/Elemacy.php:190
+#: src/Core/Elemacy.php:191
 msgid "Upgrade to Pro"
 msgstr ""
 
@@ -218,66 +218,62 @@ msgstr ""
 msgid "Get Elemacy Pro"
 msgstr ""
 
-#: src/Core/Route.php:369
-msgid "You are not allowed to access this endpoint."
-msgstr ""
-
 #. translators: %s: Class name
-#: src/Core/Route.php:456
+#: src/Core/Route.php:448
 #, php-format
 msgid "Circular dependency detected for class %s."
 msgstr ""
 
 #. translators: %s: Class name
-#: src/Core/Route.php:461
+#: src/Core/Route.php:453
 #, php-format
 msgid "Class %s does not exist."
 msgstr ""
 
 #. translators: %s: Class name
-#: src/Core/Route.php:468
+#: src/Core/Route.php:460
 #, php-format
 msgid "Class %s is abstract and cannot be instantiated."
 msgstr ""
 
 #. translators: %s: Class name
-#: src/Core/Route.php:479
+#: src/Core/Route.php:471
 #, php-format
 msgid "Class %s has a non-public constructor and cannot be instantiated."
 msgstr ""
 
 #. translators: %s: Parameter name
-#: src/Core/Route.php:490
+#: src/Core/Route.php:482
 #, php-format
 msgid "Parameter %s must have a single class type hint. Union or intersection types are not supported."
 msgstr ""
 
 #. translators: %s: Parameter name
-#: src/Core/Route.php:495
+#: src/Core/Route.php:487
 #, php-format
 msgid "Parameter %s must be a class type, not a built-in type. Please specify a valid class dependency."
 msgstr ""
 
 #. translators: %s: Parameter name
-#: src/Core/Route.php:534
+#: src/Core/Route.php:526
 #, php-format
 msgid "Parameter %s must not be a built-in type."
 msgstr ""
 
 #. translators: %s: Route endpoint
-#: src/Core/Route.php:563
+#: src/Core/Route.php:555
 #, php-format
 msgid "Invalid method registered for the route %s"
 msgstr ""
 
 #. translators: %s: Route endpoint
-#: src/Core/Route.php:568
+#: src/Core/Route.php:560
 #, php-format
 msgid "Invalid controller syntax for the route %s"
 msgstr ""
 
 #. translators: 1: Method name, 2: Controller class
-#: src/Core/Route.php:582
+#: src/Core/Route.php:574
 #, php-format
 msgid "The method %1$s is missing in the controller %2$s"
 msgstr ""
@@ -749,10 +745,10 @@ msgid "Apply to post content"
 msgstr ""
 
 #: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:45
-#: src/Modules/Popups/Documents/PopupDocument.php:152
-#: src/Modules/Popups/Documents/PopupDocument.php:343
-#: src/Modules/Popups/Documents/PopupDocument.php:355
-#: src/Modules/Popups/Documents/PopupDocument.php:367
+#: src/Modules/Popups/Documents/PopupDocument.php:158
+#: src/Modules/Popups/Documents/PopupDocument.php:299
+#: src/Modules/Popups/Documents/PopupDocument.php:311
+#: src/Modules/Popups/Documents/PopupDocument.php:323
 #: src/Modules/Widgets/Widgets/NavMenu.php:194
 #: src/Modules/Widgets/Widgets/NavMenu.php:204
 #: src/Modules/Widgets/Widgets/SiteLogo.php:150
@@ -760,10 +756,10 @@ msgid "Yes"
 msgstr ""
 
 #: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:46
-#: src/Modules/Popups/Documents/PopupDocument.php:153
-#: src/Modules/Popups/Documents/PopupDocument.php:344
-#: src/Modules/Popups/Documents/PopupDocument.php:356
-#: src/Modules/Popups/Documents/PopupDocument.php:368
+#: src/Modules/Popups/Documents/PopupDocument.php:159
+#: src/Modules/Popups/Documents/PopupDocument.php:300
+#: src/Modules/Popups/Documents/PopupDocument.php:312
+#: src/Modules/Popups/Documents/PopupDocument.php:324
 #: src/Modules/Widgets/Widgets/NavMenu.php:195
 #: src/Modules/Widgets/Widgets/NavMenu.php:205
 #: src/Modules/Widgets/Widgets/SiteLogo.php:151
@@ -925,31 +921,32 @@ msgstr ""
 msgid "Popup deleted successfully"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:36
-#: src/Modules/Popups/Documents/PopupDocument.php:116
+#: src/Modules/Popups/Documents/PopupDocument.php:37
+#: src/Modules/Popups/Documents/PopupDocument.php:122
+#: src/Modules/Popups/Popups.php:71
 msgid "Popup"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:41
-#: src/Modules/Popups/Popups.php:80
-#: src/Modules/Popups/Popups.php:81
+#: src/Modules/Popups/Documents/PopupDocument.php:42
+#: src/Modules/Popups/Popups.php:87
+#: src/Modules/Popups/Popups.php:88
 msgid "Popups"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:95
-#: src/Modules/Popups/Documents/PopupDocument.php:102
+#: src/Modules/Popups/Documents/PopupDocument.php:97
+#: src/Modules/Popups/Documents/PopupDocument.php:104
 #: src/Modules/Widgets/Widgets/NavMenu.php:536
 #: src/Modules/Widgets/Widgets/NavMenu.php:1078
 msgid "Top"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:96
-#: src/Modules/Popups/Documents/PopupDocument.php:103
+#: src/Modules/Popups/Documents/PopupDocument.php:98
+#: src/Modules/Popups/Documents/PopupDocument.php:105
 #: src/Modules/Widgets/Widgets/NavMenu.php:544
 msgid "Bottom"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:101
+#: src/Modules/Popups/Documents/PopupDocument.php:103
 #: src/Modules/Widgets/Widgets/Form.php:244
 #: src/Modules/Widgets/Widgets/LoopCarousel.php:509
 #: src/Modules/Widgets/Widgets/LoopGrid.php:347
@@ -962,81 +959,59 @@ msgstr ""
 msgid "Center"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:104
+#: src/Modules/Popups/Documents/PopupDocument.php:106
 #: src/Modules/Widgets/Widgets/SiteLogo.php:295
 msgid "Top Left"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:105
+#: src/Modules/Popups/Documents/PopupDocument.php:107
 #: src/Modules/Widgets/Widgets/SiteLogo.php:296
 msgid "Top Right"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:106
+#: src/Modules/Popups/Documents/PopupDocument.php:108
 #: src/Modules/Widgets/Widgets/SiteLogo.php:298
 msgid "Bottom Left"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:107
+#: src/Modules/Popups/Documents/PopupDocument.php:109
 #: src/Modules/Widgets/Widgets/SiteLogo.php:299
 msgid "Bottom Right"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:126
+#: src/Modules/Popups/Documents/PopupDocument.php:132
 #: src/Modules/Widgets/Widgets/NavMenu.php:1072
 msgid "Position"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:150
+#: src/Modules/Popups/Documents/PopupDocument.php:156
 msgid "Sticky"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:156
+#: src/Modules/Popups/Documents/PopupDocument.php:162
 msgid "Keep the bar visible while scrolling."
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:167
+#: src/Modules/Popups/Documents/PopupDocument.php:173
 #: src/Modules/Widgets/Widgets/SiteLogo.php:196
 msgid "Width"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:197
+#: src/Modules/Popups/Documents/PopupDocument.php:203
 #: src/Modules/Widgets/Widgets/SiteLogo.php:248
 msgid "Height"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:219
+#: src/Modules/Popups/Documents/PopupDocument.php:225
 msgid "Z-Index"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:228
-msgid "Overlay"
-msgstr ""
-
-#: src/Modules/Popups/Documents/PopupDocument.php:230
-#: src/Modules/Popups/Documents/PopupDocument.php:316
-msgid "On"
-msgstr ""
-
-#: src/Modules/Popups/Documents/PopupDocument.php:231
-#: src/Modules/Popups/Documents/PopupDocument.php:317
-msgid "Off"
-msgstr ""
-
-#: src/Modules/Popups/Documents/PopupDocument.php:244
-msgid "Overlay Color"
-msgstr ""
-
-#: src/Modules/Popups/Documents/PopupDocument.php:259
-msgid "Overlay Opacity"
-msgstr ""
-
-#: src/Modules/Popups/Documents/PopupDocument.php:283
+#: src/Modules/Popups/Documents/PopupDocument.php:238
 msgid "Animation In"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:288
-#: src/Modules/Popups/Documents/PopupDocument.php:303
+#: src/Modules/Popups/Documents/PopupDocument.php:243
+#: src/Modules/Popups/Documents/PopupDocument.php:258
 #: src/Modules/Widgets/Widgets/Form.php:757
 #: src/Modules/Widgets/Widgets/LoopCarousel.php:349
 #: src/Modules/Widgets/Widgets/LoopGrid.php:301
@@ -1046,57 +1021,73 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:289
-#: src/Modules/Popups/Documents/PopupDocument.php:304
+#: src/Modules/Popups/Documents/PopupDocument.php:244
+#: src/Modules/Popups/Documents/PopupDocument.php:259
 #: src/Modules/Widgets/Widgets/NavMenu.php:420
 msgid "Fade"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:290
-#: src/Modules/Popups/Documents/PopupDocument.php:305
+#: src/Modules/Popups/Documents/PopupDocument.php:245
+#: src/Modules/Popups/Documents/PopupDocument.php:260
 msgid "Slide Down"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:291
-#: src/Modules/Popups/Documents/PopupDocument.php:306
+#: src/Modules/Popups/Documents/PopupDocument.php:246
+#: src/Modules/Popups/Documents/PopupDocument.php:261
 msgid "Slide Up"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:299
+#: src/Modules/Popups/Documents/PopupDocument.php:254
 msgid "Animation Out"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:314
-#: src/Modules/Popups/Documents/PopupDocument.php:385
+#: src/Modules/Popups/Documents/PopupDocument.php:269
+#: src/Modules/Popups/Documents/PopupDocument.php:384
 #: src/Modules/Widgets/Widgets/NavMenu.php:995
 msgid "Close Button"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:330
+#: src/Modules/Popups/Documents/PopupDocument.php:271
+msgid "On"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:272
+msgid "Off"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:285
 msgid "Auto Close (seconds)"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:334
+#: src/Modules/Popups/Documents/PopupDocument.php:289
 msgid "0 disables auto close."
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:341
+#: src/Modules/Popups/Documents/PopupDocument.php:297
 msgid "Close on Overlay Click"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:353
+#: src/Modules/Popups/Documents/PopupDocument.php:309
 msgid "Close on Esc"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:365
+#: src/Modules/Popups/Documents/PopupDocument.php:321
 msgid "Prevent Body Scroll"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:396
+#: src/Modules/Popups/Documents/PopupDocument.php:345
+msgid "Overlay Color"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:358
+msgid "Overlay Opacity"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:395
 msgid "Button Size"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:418
+#: src/Modules/Popups/Documents/PopupDocument.php:417
 #: src/Modules/Widgets/Widgets/NavMenu.php:947
 #: src/Modules/Widgets/Widgets/NavMenu.php:1031
 #: src/Modules/Widgets/Widgets/Search.php:317
@@ -1104,11 +1095,11 @@ msgstr ""
 msgid "Icon Size"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:440
+#: src/Modules/Popups/Documents/PopupDocument.php:439
 msgid "Distance From Edge"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:462
+#: src/Modules/Popups/Documents/PopupDocument.php:461
 #: src/Modules/Widgets/Widgets/Form.php:548
 #: src/Modules/Widgets/Widgets/Form.php:678
 #: src/Modules/Widgets/Widgets/Form.php:788
@@ -1125,7 +1116,7 @@ msgstr ""
 msgid "Border Radius"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:506
+#: src/Modules/Popups/Documents/PopupDocument.php:505
 #: src/Modules/Widgets/Widgets/Form.php:595
 #: src/Modules/Widgets/Widgets/LoopGrid.php:407
 #: src/Modules/Widgets/Widgets/NavMenu.php:286
@@ -1142,15 +1133,15 @@ msgstr ""
 msgid "Normal"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:512
-#: src/Modules/Popups/Documents/PopupDocument.php:543
-#: src/Modules/Popups/Documents/PopupDocument.php:583
+#: src/Modules/Popups/Documents/PopupDocument.php:511
+#: src/Modules/Popups/Documents/PopupDocument.php:542
+#: src/Modules/Popups/Documents/PopupDocument.php:582
 msgid "Icon Color"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:524
-#: src/Modules/Popups/Documents/PopupDocument.php:554
-#: src/Modules/Popups/Documents/PopupDocument.php:594
+#: src/Modules/Popups/Documents/PopupDocument.php:523
+#: src/Modules/Popups/Documents/PopupDocument.php:553
+#: src/Modules/Popups/Documents/PopupDocument.php:593
 #: src/Modules/Widgets/Widgets/NavMenu.php:293
 #: src/Modules/Widgets/Widgets/NavMenu.php:306
 #: src/Modules/Widgets/Widgets/NavMenu.php:319
@@ -1167,7 +1158,7 @@ msgstr ""
 msgid "Background"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:537
+#: src/Modules/Popups/Documents/PopupDocument.php:536
 #: src/Modules/Widgets/Widgets/Form.php:634
 #: src/Modules/Widgets/Widgets/LoopGrid.php:445
 #: src/Modules/Widgets/Widgets/NavMenu.php:299
@@ -1182,8 +1173,8 @@ msgstr ""
 msgid "Hover"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:565
-#: src/Modules/Popups/Documents/PopupDocument.php:605
+#: src/Modules/Popups/Documents/PopupDocument.php:564
+#: src/Modules/Popups/Documents/PopupDocument.php:604
 #: src/Modules/Widgets/Widgets/Form.php:663
 #: src/Modules/Widgets/Widgets/Form.php:859
 #: src/Modules/Widgets/Widgets/Form.php:907
@@ -1195,7 +1186,7 @@ msgstr ""
 msgid "Border Color"
 msgstr ""
 
-#: src/Modules/Popups/Documents/PopupDocument.php:577
+#: src/Modules/Popups/Documents/PopupDocument.php:576
 #: src/Modules/Widgets/Widgets/LoopGrid.php:483
 #: src/Modules/Widgets/Widgets/NavMenu.php:312
 #: src/Modules/Widgets/Widgets/NavMenu.php:586
@@ -1204,73 +1195,24 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: src/Modules/Popups/Popups.php:28
+#: src/Modules/Popups/Popups.php:29
 msgid "Popups & Floating Elements"
 msgstr ""
 
-#: src/Modules/Popups/Popups.php:38
+#: src/Modules/Popups/Popups.php:39
 msgid "Build popups, top/bottom bars, banners and floating elements with display conditions and triggers."
 msgstr ""
 
-#: src/Modules/Popups/PostTypes/PopupPostType.php:24
-msgctxt "post type general name"
-msgid "Popups"
+#: src/Modules/Popups/Popups.php:72
+msgid "Top / Bottom Bar"
 msgstr ""
 
-#: src/Modules/Popups/PostTypes/PopupPostType.php:25
-msgctxt "post type singular name"
-msgid "Popup"
+#: src/Modules/Popups/Popups.php:73
+msgid "Banner"
 msgstr ""
 
-#: src/Modules/Popups/PostTypes/PopupPostType.php:26
-msgctxt "admin menu"
-msgid "Popups"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:27
-msgctxt "add new on admin bar"
-msgid "Popup"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:28
-msgctxt "popup"
-msgid "Add New"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:29
-msgid "Add New Popup"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:30
-msgid "New Popup"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:31
-msgid "Edit Popup"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:32
-msgid "View Popup"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:33
-msgid "All Popups"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:34
-msgid "Search Popups"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:35
-msgid "Parent Popups:"
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:36
-msgid "No popups found."
-msgstr ""
-
-#: src/Modules/Popups/PostTypes/PopupPostType.php:37
-msgid "No popups found in Trash."
+#: src/Modules/Popups/Popups.php:74
+msgid "Floating Element"
 msgstr ""
 
 #: src/Modules/Popups/Rules/FrequencyCap.php:18
@@ -1386,22 +1328,22 @@ msgstr ""
 msgid "Sessions"
 msgstr ""
 
-#: src/Modules/Popups/Services/PopupService.php:91
-#: src/Modules/Popups/Services/PopupService.php:145
-#: src/Modules/Popups/Services/PopupService.php:190
-#: src/Modules/Popups/Services/PopupService.php:238
+#: src/Modules/Popups/Services/PopupService.php:104
+#: src/Modules/Popups/Services/PopupService.php:158
+#: src/Modules/Popups/Services/PopupService.php:203
+#: src/Modules/Popups/Services/PopupService.php:251
 msgid "Popup not found."
 msgstr ""
 
 #. translators: %s: original popup title.
 #. translators: %s: original template title.
-#: src/Modules/Popups/Services/PopupService.php:194
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:172
+#: src/Modules/Popups/Services/PopupService.php:207
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:184
 #, php-format
 msgid "%s (Copy)"
 msgstr ""
 
-#: src/Modules/Popups/Services/PopupService.php:244
+#: src/Modules/Popups/Services/PopupService.php:257
 msgid "Failed to delete popup."
 msgstr ""
 
@@ -1474,106 +1416,45 @@ msgstr ""
 msgid "Template deleted successfully"
 msgstr ""
 
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:21
-msgctxt "post type general name"
-msgid "Templates"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:22
-msgctxt "post type singular name"
-msgid "Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:23
-msgctxt "admin menu"
-msgid "Templates"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:24
-msgctxt "add new on admin bar"
-msgid "Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:25
-msgctxt "template"
-msgid "Add New"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:26
-msgid "Add New Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:27
-msgid "New Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:28
-msgid "Edit Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:29
-msgid "View Template"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:30
-msgid "All Templates"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:31
-msgid "Search Templates"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:32
-msgid "Parent Templates:"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:33
-msgid "No templates found."
-msgstr ""
-
-#: src/Modules/ThemeBuilder/PostTypes/TemplatePostType.php:34
-msgid "No templates found in Trash."
-msgstr ""
-
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:85
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:125
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:168
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:208
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:97
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:137
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:180
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:220
 msgid "Template not found."
 msgstr ""
 
-#: src/Modules/ThemeBuilder/Services/TemplateService.php:214
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:226
 msgid "Failed to delete template."
 msgstr ""
 
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:193
-msgid "Header"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:197
-msgid "Footer"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:201
-msgid "Single"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:209
-msgid "404 Page"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php:217
-msgid "Loop"
-msgstr ""
-
-#: src/Modules/ThemeBuilder/ThemeBuilder.php:24
-#: src/Modules/ThemeBuilder/ThemeBuilder.php:53
-#: src/Modules/ThemeBuilder/ThemeBuilder.php:54
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:27
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:100
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:101
 msgid "Theme Builder"
 msgstr ""
 
-#: src/Modules/ThemeBuilder/ThemeBuilder.php:34
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:37
 msgid "Manage your site structure templates for a full theme experience."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:59
+msgid "Header"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:60
+msgid "Footer"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:61
+msgid "Single"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:63
+msgid "404 Page"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:65
+msgid "Loop"
 msgstr ""
 
 #: src/Modules/Widgets/Config/widgets.php:24
@@ -2812,4 +2693,65 @@ msgstr ""
 
 #: src/Modules/Widgets/Widgets/SiteLogo.php:370
 msgid "Hover Animation"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:30
+msgctxt "post type general name"
+msgid "Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:31
+msgctxt "post type singular name"
+msgid "Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:32
+msgctxt "admin menu"
+msgid "Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:33
+msgctxt "add new on admin bar"
+msgid "Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:34
+msgctxt "library item"
+msgid "Add New"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:35
+msgid "Add New Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:36
+msgid "New Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:37
+msgid "Edit Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:38
+msgid "View Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:39
+msgid "All Library Items"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:40
+msgid "Search Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:41
+msgid "Parent Items:"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:42
+msgid "No library items found."
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:43
+msgid "No library items found in Trash."
 msgstr ""

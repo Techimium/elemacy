@@ -6,15 +6,16 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
-use Elemacy\Core\Hooks;
-use Elemacy\Core\Module;
 use Elemacy\Modules\Popups\Documents\DocumentManager;
-use Elemacy\Modules\Popups\PostTypes\PopupPostType;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 use Elemacy\Modules\Popups\Services\PopupFrontendAssets;
 use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Modules\Popups\Services\TriggerRuleBootstrap;
+use Elemacy\Modules\Popups\Support\PopupTypes;
+use Elemacy\Core\Module;
 use Elemacy\Support\Utils;
+use Elemacy\TemplateLibrary\TypeDefinition;
+use Elemacy\TemplateLibrary\TypeRegistry;
 
 class Popups extends Module
 {
@@ -41,8 +42,7 @@ class Popups extends Module
     public function init(): void
     {
         $this->register_admin_menu();
-        PopupPostType::register();
-        $this->exclude_from_conditions();
+        $this->register_types();
 
         (new DocumentManager())->register_hooks();
         (new EditorPreview())->register_hooks();
@@ -57,20 +57,27 @@ class Popups extends Module
     }
 
     /**
-     * The module is toggled long after `init` has fired, so the popup CPT is
-     * not registered in this request. Register it inline so its rewrite rules
-     * are part of the set baked in by the flush; otherwise popup permalinks
-     * 404 and break the Elementor editor preview.
+     * The popup item types this module owns. The CPT itself is registered by
+     * Core, so enabling/disabling the module no longer needs a rewrite flush.
+     * Hooked on `init` because the labels are translated — calling __() before
+     * `init` trips WP 6.7's "translation loaded too early" notice.
      */
-    public function on_enable(): void
+    protected function register_types(): void
     {
-        PopupPostType::register_post_type();
-        flush_rewrite_rules(false);
-    }
+        add_action('init', function () {
+            $registry = TypeRegistry::instance();
 
-    public function on_disable(): void
-    {
-        flush_rewrite_rules(false);
+            $types = [
+                PopupTypes::POPUP    => __('Popup', 'elemacy'),
+                PopupTypes::TOPBAR   => __('Top / Bottom Bar', 'elemacy'),
+                PopupTypes::BANNER   => __('Banner', 'elemacy'),
+                PopupTypes::FLOATING => __('Floating Element', 'elemacy'),
+            ];
+
+            foreach ($types as $name => $label) {
+                $registry->register(new TypeDefinition($name, $label, 'popup', $this->get_name()));
+            }
+        });
     }
 
     public function register_admin_menu()
@@ -81,22 +88,6 @@ class Popups extends Module
             $submenu_dto->menu_title = __('Popups', 'elemacy');
             $submenu_dto->menu_slug = 'popups';
             AdminMenu::add_submenu($submenu_dto);
-        });
-    }
-
-    /**
-     * Keep the popup CPT out of the display-condition target lists.
-     */
-    protected function exclude_from_conditions(): void
-    {
-        add_filter(Hooks::CONDITIONS_EXCLUDED_POST_TYPES_FILTER, function ($excluded) {
-            $excluded = is_array($excluded) ? $excluded : [];
-
-            if (!in_array(PopupPostType::POST_TYPE, $excluded, true)) {
-                $excluded[] = PopupPostType::POST_TYPE;
-            }
-
-            return $excluded;
         });
     }
 }

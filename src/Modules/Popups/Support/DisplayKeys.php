@@ -18,7 +18,6 @@ final class DisplayKeys
     const HEIGHT          = 'elemacy_height';
     const Z_INDEX         = 'elemacy_z_index';
 
-    const OVERLAY_ENABLED = 'elemacy_overlay_enabled';
     const OVERLAY_COLOR   = 'elemacy_overlay_color';
     const OVERLAY_OPACITY = 'elemacy_overlay_opacity';
 

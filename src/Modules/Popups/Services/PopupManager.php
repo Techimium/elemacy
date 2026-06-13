@@ -4,9 +4,11 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\PostTypes\PopupPostType;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
+use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Plugin as ElementorPlugin;
 
 /**
@@ -59,7 +61,15 @@ class PopupManager
      */
     public function force_canvas_template($template)
     {
-        if (!is_singular(PopupPostType::POST_TYPE)) {
+        if (!is_singular(LibraryPostType::POST_TYPE)) {
+            return $template;
+        }
+
+        // Only popup-group library items should open on the popup canvas; theme
+        // templates on the same CPT keep their own preview handling.
+        $type = (string) get_post_meta((int) get_queried_object_id(), MetaKeys::TEMPLATE_TYPE, true);
+
+        if (!in_array($type, TypeRegistry::instance()->names_in_group('popup'), true)) {
             return $template;
         }
 

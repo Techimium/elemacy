@@ -4,9 +4,11 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\Constants\MetaKeys;
-use Elemacy\Modules\Popups\PostTypes\PopupPostType;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Support\Utils;
+use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeRegistry;
 
 /**
  * Renders the popup "chrome" (overlay + framed box + position + a real close
@@ -64,28 +66,31 @@ class EditorPreview
     {
         $id = (int) get_queried_object_id();
 
-        return $id > 0 && PopupPostType::POST_TYPE === get_post_type($id);
+        if ($id <= 0 || LibraryPostType::POST_TYPE !== get_post_type($id)) {
+            return false;
+        }
+
+        $type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
+
+        return in_array($type, TypeRegistry::instance()->names_in_group('popup'), true);
     }
 
     protected function build_css(int $id): string
     {
-        $type = get_post_meta($id, MetaKeys::TYPE, true);
-        $type = $type ? $type : 'popup';
+        $type = get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
+        $type = $type ? $type : PopupTypes::POPUP;
         $wrap = '.elementor-' . $id;
 
-        switch ($type) {
-            case 'topbar':
-                $css = $this->topbar_css($wrap);
-                break;
-            case 'banner':
-            case 'floating':
-            case 'popup':
-            default:
-                $css = $this->frame_css($wrap);
-                break;
+        $css = PopupTypes::TOPBAR === $type
+            ? $this->topbar_css($wrap)
+            : $this->frame_css($wrap);
+
+        // Only the modal popup has a backdrop.
+        if (PopupTypes::POPUP === $type) {
+            $css .= $this->overlay_css();
         }
 
-        return $css . $this->overlay_css() . $this->close_base_css();
+        return $css . $this->close_base_css();
     }
 
     /**
@@ -112,13 +117,13 @@ class EditorPreview
     }
 
     /**
-     * Overlay backdrop — visibility/colour/opacity come from the overlay
-     * controls' variables, so they toggle and recolour live.
+     * Overlay backdrop — always shown for a popup; colour/opacity come from the
+     * overlay controls' CSS variables, so they recolour live.
      */
     protected function overlay_css(): string
     {
         return 'body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;'
-            . 'display:var(--elemacy-ov-display,none);'
+            . 'display:block;'
             . 'background:var(--elemacy-ov-color,#000000);'
             . 'opacity:var(--elemacy-ov-opacity,0.6);}';
     }

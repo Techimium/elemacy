@@ -220,8 +220,6 @@
 		var root = state.root;
 		var display = state.config.display || {};
 
-		state.lastFocused = document.activeElement;
-
 		root.removeAttribute('hidden');
 		root.setAttribute('aria-hidden', 'false');
 		root.classList.remove('is-closing');
@@ -237,13 +235,18 @@
 			document.body.style.overflow = 'hidden';
 		}
 
-		// Focus trap: focus first focusable.
-		var focusables = getFocusable(state.content || root);
-		if (focusables.length) {
-			focusables[0].focus();
-		} else {
-			root.setAttribute('tabindex', '-1');
-			root.focus();
+		// Focus management applies to modal popups only; non-modal bars
+		// (topbar/banner/floating) must not steal or trap keyboard focus.
+		if (state.config.modal) {
+			state.lastFocused = document.activeElement;
+
+			var focusables = getFocusable(state.content || root);
+			if (focusables.length) {
+				focusables[0].focus();
+			} else {
+				root.setAttribute('tabindex', '-1');
+				root.focus();
+			}
 		}
 
 		// Auto-close timer.
@@ -501,9 +504,10 @@
 			}
 
 			if (event.key === 'Tab' || event.keyCode === 9) {
+				// Only modal popups trap Tab; non-modal bars leave page focus alone.
 				var openState = null;
 				Object.keys(registry).forEach(function (id) {
-					if (registry[id].isOpen) {
+					if (registry[id].isOpen && registry[id].config.modal) {
 						openState = registry[id];
 					}
 				});

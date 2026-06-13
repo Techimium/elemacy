@@ -4,12 +4,10 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
-use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
-use Elemacy\Modules\Popups\Services\RuleManager;
+use Elemacy\TemplateLibrary\TemplateResolver;
 
 /**
  * Resolves which published popups match the current request based on their
@@ -40,14 +38,36 @@ class PopupDisplayResolver
      */
     public function resolve_all(): array
     {
-        $filter         = new PopupListFilterDTO();
-        $filter->status = 'publish';
+        // The shared resolver returns popups whose display conditions match the
+        // request (using the cached candidate index); popup-specific gates are
+        // applied here.
+        $ids = TemplateResolver::instance()->resolve_group('popup');
 
-        $popups  = (new PopupService())->get_all($filter);
+        if (!empty($ids)) {
+            // Warm the post + meta caches once so the hydration below issues no
+            // per-popup queries (each get()/get_post_meta() becomes a cache hit).
+            _prime_post_caches($ids, false, true);
+        }
+
+        $service = new PopupService();
         $matched = [];
 
-        foreach ($popups as $popup) {
-            if (!$this->matches($popup)) {
+        foreach ($ids as $id) {
+            $popup = $service->get($id);
+
+            if (!$popup) {
+                continue;
+            }
+
+            // A published popup with no Elementor elements is never shown
+            if (!$this->has_content($popup)) {
+                continue;
+            }
+
+            // Server-evaluable advanced rules (logged-in, etc.) gate the popup
+            // before it is handed to the frontend. Client-side rules (frequency,
+            // devices, …) are enforced in engine.js.
+            if (!$this->passes_server_rules($popup)) {
                 continue;
             }
 
@@ -60,31 +80,6 @@ class PopupDisplayResolver
          * @param PopupDTO[] $matched
          */
         return apply_filters(Hooks::POPUP_MATCHED_FILTER, $matched);
-    }
-
-    /**
-     * Decide whether a single popup should display on the current request.
-     */
-    protected function matches(PopupDTO $popup): bool
-    {
-        // A published popup with no Elementor elements would render as a bare
-        // overlay with no content box, so it never matches.
-        if (!$this->has_content($popup)) {
-            return false;
-        }
-
-        // Server-evaluable advanced rules (logged-in, etc.) gate the popup
-        // before it is handed to the frontend. Client-side rules (frequency,
-        // devices, …) are enforced in engine.js.
-        if (!$this->passes_server_rules($popup)) {
-            return false;
-        }
-
-        if (empty($popup->conditions)) {
-            return true;
-        }
-
-        return ConditionEvaluator::instance()->evaluate($popup->conditions);
     }
 
     /**

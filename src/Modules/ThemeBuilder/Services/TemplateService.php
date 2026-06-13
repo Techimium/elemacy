@@ -7,12 +7,14 @@ defined('ABSPATH') || exit;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
-use Elemacy\Modules\ThemeBuilder\Constants\MetaKeys;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
-use Elemacy\Modules\ThemeBuilder\PostTypes\TemplatePostType;
+use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeRegistry;
+use WP_Post;
 use WP_Query;
 
 class TemplateService
@@ -27,7 +29,7 @@ class TemplateService
     public function get_all(TemplateListFilterDTO $filter_dto)
     {
         $query_args = [
-            'post_type' => TemplatePostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
             'post_status' => 'any',
             'posts_per_page' => -1,
             'orderby' => 'date',
@@ -38,11 +40,21 @@ class TemplateService
             $query_args['s'] = $filter_dto->search;
         }
 
+        // The CPT is shared with popups, so always scope to theme-group types:
+        // either the requested type or every theme type.
         if (!empty($filter_dto->type)) {
             $query_args['meta_query'] = [
                 [
                     'key' => MetaKeys::TEMPLATE_TYPE,
                     'value' => $filter_dto->type,
+                ],
+            ];
+        } else {
+            $query_args['meta_query'] = [
+                [
+                    'key' => MetaKeys::TEMPLATE_TYPE,
+                    'value' => $this->theme_types(),
+                    'compare' => 'IN',
                 ],
             ];
         }
@@ -70,7 +82,7 @@ class TemplateService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             return null;
         }
 
@@ -93,7 +105,7 @@ class TemplateService
         $post_data = [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? 'publish',
-            'post_type' => TemplatePostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
         ];
 
         $post_id = wp_insert_post($post_data, true);
@@ -121,7 +133,7 @@ class TemplateService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
@@ -164,7 +176,7 @@ class TemplateService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
@@ -175,7 +187,7 @@ class TemplateService
             'post_title' => $new_title,
             'post_content' => $post->post_content,
             'post_status' => 'draft',
-            'post_type' => TemplatePostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
             'post_author' => get_current_user_id(),
         ], true);
 
@@ -204,7 +216,7 @@ class TemplateService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== TemplatePostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
         }
 
@@ -215,6 +227,31 @@ class TemplateService
         }
 
         return true;
+    }
+
+    /**
+     * The library item types this service is responsible for.
+     *
+     * @return string[]
+     */
+    protected function theme_types(): array
+    {
+        return TypeRegistry::instance()->names_in_group('theme');
+    }
+
+    /**
+     * A theme template lives on the shared library CPT and carries a theme-group
+     * type, so popups on the same CPT are never treated as templates.
+     */
+    protected function owns(?WP_Post $post): bool
+    {
+        if (!$post || $post->post_type !== LibraryPostType::POST_TYPE) {
+            return false;
+        }
+
+        $type = (string) get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
+
+        return in_array($type, $this->theme_types(), true);
     }
 
     protected function create_dto($post): TemplateDTO

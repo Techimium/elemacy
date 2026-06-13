@@ -12,6 +12,7 @@ use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 
 /**
  * Per-popup configuration contract handed to the frontend engine (engine.js)
@@ -30,6 +31,7 @@ class PopupConfigResource extends Resource
         $config = [
             'id'          => (int) $popup->id,
             'type'        => $popup->type,
+            'modal'       => $popup->type === PopupTypes::POPUP,
             'triggers'    => $this->normalize_triggers(is_array($popup->triggers) ? $popup->triggers : []),
             'rules'       => $this->normalize_rules(is_array($popup->rules) ? $popup->rules : []),
             'display'     => DocumentDisplay::for_popup((int) $popup->id),

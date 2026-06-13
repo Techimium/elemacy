@@ -15,7 +15,10 @@ use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
-use Elemacy\Modules\Popups\PostTypes\PopupPostType;
+use Elemacy\TemplateLibrary\Constants\MetaKeys as LibraryMetaKeys;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeRegistry;
+use WP_Post;
 use WP_Query;
 
 class PopupService
@@ -33,7 +36,7 @@ class PopupService
     public function get_all(PopupListFilterDTO $filter_dto)
     {
         $query_args = [
-            'post_type' => PopupPostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
             'post_status' => 'any',
             'posts_per_page' => -1,
             'orderby' => 'date',
@@ -44,11 +47,21 @@ class PopupService
             $query_args['s'] = $filter_dto->search;
         }
 
+        // The CPT is shared with theme templates, so always scope to popup-group
+        // types: either the requested type or every popup type.
         if (!empty($filter_dto->type)) {
             $query_args['meta_query'] = [
                 [
-                    'key' => MetaKeys::TYPE,
+                    'key' => LibraryMetaKeys::TEMPLATE_TYPE,
                     'value' => $filter_dto->type,
+                ],
+            ];
+        } else {
+            $query_args['meta_query'] = [
+                [
+                    'key' => LibraryMetaKeys::TEMPLATE_TYPE,
+                    'value' => $this->popup_types(),
+                    'compare' => 'IN',
                 ],
             ];
         }
@@ -76,7 +89,7 @@ class PopupService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             return null;
         }
 
@@ -99,7 +112,7 @@ class PopupService
         $post_data = [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? 'publish',
-            'post_type' => PopupPostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
         ];
 
         $post_id = wp_insert_post($post_data, true);
@@ -111,7 +124,7 @@ class PopupService
         $type = $dto->type ?? '';
 
         if ($type !== '') {
-            update_post_meta($post_id, MetaKeys::TYPE, $type);
+            update_post_meta($post_id, LibraryMetaKeys::TEMPLATE_TYPE, $type);
         }
 
         // Popups render in an isolated Elementor canvas (no theme header/footer).
@@ -141,7 +154,7 @@ class PopupService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
@@ -164,7 +177,7 @@ class PopupService
         }
 
         if (isset($dto->type)) {
-            update_post_meta($id, MetaKeys::TYPE, $dto->type);
+            update_post_meta($id, LibraryMetaKeys::TEMPLATE_TYPE, $dto->type);
         }
 
         if (isset($dto->conditions)) {
@@ -186,7 +199,7 @@ class PopupService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
@@ -197,7 +210,7 @@ class PopupService
             'post_title' => $new_title,
             'post_content' => $post->post_content,
             'post_status' => 'draft',
-            'post_type' => PopupPostType::POST_TYPE,
+            'post_type' => LibraryPostType::POST_TYPE,
             'post_author' => get_current_user_id(),
         ], true);
 
@@ -234,7 +247,7 @@ class PopupService
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== PopupPostType::POST_TYPE) {
+        if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
         }
 
@@ -287,13 +300,38 @@ class PopupService
         }, $items));
     }
 
+    /**
+     * The library item types this service is responsible for.
+     *
+     * @return string[]
+     */
+    protected function popup_types(): array
+    {
+        return TypeRegistry::instance()->names_in_group('popup');
+    }
+
+    /**
+     * A popup lives on the shared library CPT and carries a popup-group type, so
+     * theme templates on the same CPT are never treated as popups.
+     */
+    protected function owns(?WP_Post $post): bool
+    {
+        if (!$post || $post->post_type !== LibraryPostType::POST_TYPE) {
+            return false;
+        }
+
+        $type = (string) get_post_meta($post->ID, LibraryMetaKeys::TEMPLATE_TYPE, true);
+
+        return in_array($type, $this->popup_types(), true);
+    }
+
     protected function create_dto($post): PopupDTO
     {
         $dto = new PopupDTO();
         $dto->id = $post->ID;
         $dto->title = $post->post_title;
         $dto->status = $post->post_status;
-        $dto->type = get_post_meta($post->ID, MetaKeys::TYPE, true);
+        $dto->type = get_post_meta($post->ID, LibraryMetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
         $dto->date = $post->post_date_gmt;
         $dto->conditions = $this->conditions->get($post->ID);

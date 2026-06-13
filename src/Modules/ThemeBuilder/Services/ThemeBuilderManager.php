@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TemplateResolver;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Plugin;
 
 class ThemeBuilderManager
@@ -16,7 +19,6 @@ class ThemeBuilderManager
      * @var ThemeBuilderManager
      */
     protected static $instance = null;
-    protected static $template_registry = [];
 
     public static function instance()
     {
@@ -49,6 +51,12 @@ class ThemeBuilderManager
             return $template;
         }
 
+        // A library post viewed directly (template/popup preview) is not site
+        // content to wrap in a theme template.
+        if (is_singular(LibraryPostType::POST_TYPE)) {
+            return $template;
+        }
+
         $location_template = $this->get_location_template_id();
 
         if ($location_template) {
@@ -59,29 +67,15 @@ class ThemeBuilderManager
     }
 
     /**
-     * Get the ID of the template for the current content location (Single/Archive).
+     * Get the ID of the template for the current content location (Single/Archive/…).
      *
      * @return int|null
      */
     public function get_location_template_id()
     {
-        if (is_singular()) {
-            return $this->find_template_id('single');
-        }
+        $type = LocationRegistry::instance()->current_type();
 
-        if (is_archive() || is_home()) {
-            return $this->find_template_id('archive');
-        }
-
-        if (is_search()) {
-            return $this->find_template_id('search');
-        }
-
-        if (is_404()) {
-            return $this->find_template_id('404');
-        }
-
-        return null;
+        return $type ? TemplateResolver::instance()->resolve($type) : null;
     }
 
     /**
@@ -91,7 +85,7 @@ class ThemeBuilderManager
      */
     public function get_header_id()
     {
-        return $this->find_template_id('header');
+        return TemplateResolver::instance()->resolve('header');
     }
 
     /**
@@ -101,30 +95,7 @@ class ThemeBuilderManager
      */
     public function get_footer_id()
     {
-        return $this->find_template_id('footer');
-    }
-
-    /**
-     * Helper to find a template by type.
-     * In the future, this will handle conditions.
-     *
-     * @param string $type
-     * @return int|null
-     */
-    protected function find_template_id($type)
-    {
-        if (isset(static::$template_registry[$type])) {
-            return static::$template_registry[$type]->id ?? null;
-        }
-
-        static::$template_registry[$type] = $this->find_template($type);
-
-        return static::$template_registry[$type]->id ?? null;
-    }
-
-    protected function find_template($type)
-    {
-        return TemplateConditionResolver::instance()->resolve($type);
+        return TemplateResolver::instance()->resolve('footer');
     }
 
     /**
@@ -187,36 +158,13 @@ class ThemeBuilderManager
      */
     public function get_available_template_types()
     {
-        $types = [
-            [
-                'value' => 'header',
-                'label' => __('Header', 'elemacy'),
+        $types = array_map(
+            static fn ($definition): array => [
+                'value' => $definition->name,
+                'label' => $definition->label,
             ],
-            [
-                'value' => 'footer',
-                'label' => __('Footer', 'elemacy'),
-            ],
-            [
-                'value' => 'single',
-                'label' => __('Single', 'elemacy'),
-            ],
-            [
-                'value' => 'archive',
-                'label' => __('Archive', 'elemacy'),
-            ],
-            [
-                'value' => '404',
-                'label' => __('404 Page', 'elemacy'),
-            ],
-            [
-                'value' => 'search',
-                'label' => __('Search Results', 'elemacy'),
-            ],
-            [
-                'value' => 'loop',
-                'label' => __('Loop', 'elemacy'),
-            ],
-        ];
+            TypeRegistry::instance()->by_group('theme')
+        );
 
         return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
     }

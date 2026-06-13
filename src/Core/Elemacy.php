@@ -12,6 +12,9 @@ use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Support\Utils;
+use Elemacy\TemplateLibrary\LibraryBootstrap;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeRegistry;
 
 class Elemacy
 {
@@ -42,6 +45,9 @@ class Elemacy
 				'custom-css',
 				'dynamic-tags',
 			]);
+
+			LibraryPostType::register_post_type();
+			flush_rewrite_rules(false);
 		});
 	}
 
@@ -59,6 +65,7 @@ class Elemacy
 		$this->load_modules();
 		$this->init_admin_menus();
 		$this->init_modules();
+		$this->register_library_types();
 		$this->init_routes();
 		$this->register_rest_routes();
 		$this->register_ajax_routes();
@@ -80,14 +87,11 @@ class Elemacy
 			return;
 		}
 
-		// Fresh install: no prior data to migrate, just record the version.
 		if ($installed_version === false) {
 			update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
 			return;
 		}
 
-		// Upgrade: run migrations introduced between the two versions.
-		// Downgrades fall through and simply re-stamp the version.
 		if (version_compare($installed_version, ELEMACY_VERSION, '<')) {
 			(new Migrator())->run((string) $installed_version, ELEMACY_VERSION);
 		}
@@ -103,6 +107,7 @@ class Elemacy
 		new FrontendScripts();
 		new PluginLinks();
 		new ConditionsBootstrap();
+		new LibraryBootstrap();
 	}
 
 	public function init_module_manager()
@@ -137,6 +142,19 @@ class Elemacy
 	protected function init_modules()
 	{
 		$this->module_manager->init_modules();
+	}
+
+	/**
+	 * Fire the library-types registration hook on `init` (priority 20) — after
+	 * modules register their own types at the default priority — so add-ons can
+	 * contribute more, all after the textdomain is available (never on
+	 * plugins_loaded, which would load translations too early).
+	 */
+	protected function register_library_types()
+	{
+		add_action('init', static function () {
+			do_action(Hooks::LIBRARY_TYPES_REGISTER_ACTION, TypeRegistry::instance());
+		}, 20);
 	}
 
 	protected function init_routes()
