@@ -72,7 +72,7 @@ class Elemacy
 		load_plugin_textdomain('elemacy', false, dirname(ELEMACY_PLUGIN_BASE) . '/languages');
 	}
 
-	function handle_version_update()
+	public function handle_version_update()
 	{
 		$installed_version = get_option(OptionKeys::DB_VERSION, false);
 
@@ -80,16 +80,21 @@ class Elemacy
 			return;
 		}
 
+		// Fresh install: no prior data to migrate, just record the version.
 		if ($installed_version === false) {
 			update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
 			return;
 		}
 
+		// Upgrade: run migrations introduced between the two versions.
+		// Downgrades fall through and simply re-stamp the version.
 		if (version_compare($installed_version, ELEMACY_VERSION, '<')) {
-			// @todo: implement later if needed
+			(new Migrator())->run((string) $installed_version, ELEMACY_VERSION);
 		}
 
 		update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
+
+		do_action(Hooks::VERSION_UPDATED_ACTION, (string) $installed_version, ELEMACY_VERSION);
 	}
 
 	public function init_core_components()

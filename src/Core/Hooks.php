@@ -10,6 +10,9 @@ final class Hooks
     const LOADED_ACTION           = 'elemacy/action/loaded';
     const REGISTER_MODULES_ACTION = 'elemacy/action/register_modules';
 
+    // Fired after the stored DB version changes (passes old, new version strings).
+    const VERSION_UPDATED_ACTION = 'elemacy/action/version_updated';
+
     // Admin scripts
     const ADMIN_SCRIPT_DATA_FILTER     = 'elemacy/filter/admin_script_data';
     const ENQUEUE_ADMIN_SCRIPTS_ACTION = 'elemacy/action/enqueue_admin_scripts';

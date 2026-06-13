@@ -101,7 +101,9 @@ class AjaxFormController
 
         $content = !empty($settings['email_content']) ? $settings['email_content'] : '[all-fields]';
         $from_name = !empty($settings['email_from_name']) ? $settings['email_from_name'] : get_bloginfo('name');
-        $from_name = sanitize_text_field(str_replace(["\r", "\n"], '', wp_strip_all_tags((string) $from_name)));
+        // Strip CR/LF (header injection) and angle brackets (which would break the
+        // structured "From: Name <email>" header) from the display name.
+        $from_name = sanitize_text_field(str_replace(["\r", "\n", '<', '>'], '', wp_strip_all_tags((string) $from_name)));
 
         $from_email = !empty($settings['email_from']) ? $settings['email_from'] : get_option('admin_email');
         $from_email = sanitize_email((string) $from_email);
