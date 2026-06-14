@@ -5,7 +5,6 @@ namespace Elemacy\Modules\Popups\Documents;
 defined('ABSPATH') || exit;
 
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
-use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\DisplayKeys;
 use Elemacy\Modules\Popups\Support\PopupTypes;
@@ -46,7 +45,6 @@ class PopupDocument extends PageBase
     {
         $properties = parent::get_properties();
 
-        $properties['cpt']             = [LibraryPostType::POST_TYPE];
         $properties['support_kit']     = true;
         $properties['show_in_library'] = false;
         $properties['admin_tab_group'] = '';

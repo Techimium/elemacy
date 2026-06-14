@@ -20,8 +20,9 @@ use WP_Query;
  * CRUD for "block" library items — referenced-by-ID building blocks (Loop today).
  * Lives in Core because these items sit on the always-registered library CPT and
  * are not owned by any toggleable module. Deliberately self-contained: no
- * conditions and no page-template handling, since block items are neither
- * auto-resolved nor rendered as standalone pages.
+ * conditions, since block items are neither auto-resolved nor rendered as
+ * standalone pages. They only carry editor defaults — a bare Canvas (no theme
+ * header/footer) and a pinned Elementor document type.
  */
 class BlockTemplateService
 {
@@ -117,6 +118,10 @@ class BlockTemplateService
             update_post_meta($post_id, MetaKeys::TEMPLATE_TYPE, $dto->type);
         }
 
+        update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
+        update_post_meta($post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($post_id, '_elementor_edit_mode', 'builder');
+
         return $this->create_dto(get_post($post_id));
     }
 
@@ -187,6 +192,11 @@ class BlockTemplateService
                 }
             }
         }
+
+        // Guarantee the editor defaults even when the source predates them.
+        update_post_meta($new_post_id, '_wp_page_template', 'elementor_canvas');
+        update_post_meta($new_post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
 
         return $this->create_dto(get_post($new_post_id));
     }
