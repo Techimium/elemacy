@@ -84,22 +84,24 @@ class PopupDisplayResolver
 
     /**
      * Whether the popup has any authored Elementor content. A never-edited
-     * document returns an empty elements array; showing it would paint only the
+     * document stores an empty elements array; showing it would paint only the
      * overlay backdrop with no visible content box.
+     *
+     * Mirrors Elementor's own Document::get_elements_data() (a json_decode of the
+     * _elementor_data meta) without instantiating a Document on the hot path; the
+     * meta is already cache-primed in resolve_all().
      */
     protected function has_content(PopupDTO $popup): bool
     {
-        if (!class_exists('\Elementor\Plugin')) {
+        $raw = get_post_meta((int) $popup->id, '_elementor_data', true);
+
+        if (empty($raw)) {
             return false;
         }
 
-        $document = \Elementor\Plugin::instance()->documents->get((int) $popup->id);
+        $elements = json_decode((string) $raw, true);
 
-        if (!$document) {
-            return false;
-        }
-
-        return !empty($document->get_elements_data());
+        return is_array($elements) && !empty($elements);
     }
 
     /**

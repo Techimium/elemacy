@@ -116,11 +116,14 @@ class TemplateService
 
         if (isset($dto->type)) {
             update_post_meta($post_id, MetaKeys::TEMPLATE_TYPE, $dto->type);
+            update_post_meta($post_id, '_wp_page_template', $this->page_template_for_type($dto->type));
         }
 
-        if (in_array($dto->type, ['header', 'footer'], true)) {
-            update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
-        }
+        // Pin Elementor's built-in page document so the editor never falls back to
+        // the popup document that shares the elemacy_library CPT (Documents_Manager
+        // maps one doc type per CPT when _elementor_template_type is empty).
+        update_post_meta($post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($post_id, '_elementor_edit_mode', 'builder');
 
         if (isset($dto->conditions)) {
             $this->conditions->save($post_id, (array) $dto->conditions);
@@ -157,12 +160,7 @@ class TemplateService
 
         if (isset($dto->type)) {
             update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $dto->type);
-
-            if (in_array($dto->type, ['header', 'footer'], true)) {
-                update_post_meta($id, '_wp_page_template', 'elementor_canvas');
-            } else {
-                delete_post_meta($id, '_wp_page_template');
-            }
+            update_post_meta($id, '_wp_page_template', $this->page_template_for_type($dto->type));
         }
 
         if (isset($dto->conditions)) {
@@ -209,6 +207,11 @@ class TemplateService
             }
         }
 
+        // Guarantee the correct doc type even when the source template predates the
+        // _elementor_template_type pin (see create()).
+        update_post_meta($new_post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
+
         return $this->create_dto(get_post($new_post_id));
     }
 
@@ -237,6 +240,19 @@ class TemplateService
     protected function theme_types(): array
     {
         return TypeRegistry::instance()->names_in_group('theme');
+    }
+
+    /**
+     * Elementor page template the editor (and direct preview) renders the type in.
+     * Header/footer are the chrome themselves, so they edit on a bare Canvas; the
+     * page-rendering types edit Full Width so the theme/Elemacy header and footer
+     * wrap the editable content in the editor, like Elementor Pro's theme builder.
+     */
+    protected function page_template_for_type(string $type): string
+    {
+        return in_array($type, ['header', 'footer'], true)
+            ? 'elementor_canvas'
+            : 'elementor_header_footer';
     }
 
     /**

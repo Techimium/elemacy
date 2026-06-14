@@ -111,7 +111,7 @@ class PopupService
     {
         $post_data = [
             'post_title' => $dto->title ?? '',
-            'post_status' => $dto->status ?? 'publish',
+            'post_status' => $dto->status ?? 'draft',
             'post_type' => LibraryPostType::POST_TYPE,
         ];
 

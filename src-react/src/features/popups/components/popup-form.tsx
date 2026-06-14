@@ -37,6 +37,8 @@ interface PopupFormProps {
     onSaveAndEdit?: (values: CreatePopup | UpdatePopup) => Promise<void>;
     submitLabel?: string;
     saveAndEditLabel?: string;
+    /** Whether to show the publish/draft status select (Edit modal only). */
+    showStatus?: boolean;
 }
 
 export function PopupForm({
@@ -45,6 +47,7 @@ export function PopupForm({
     onSaveAndEdit,
     submitLabel,
     saveAndEditLabel,
+    showStatus = false,
 }: PopupFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Popup', 'elemacy');
     const displaySaveAndEditLabel =
@@ -59,7 +62,7 @@ export function PopupForm({
         defaultValues: defaultValues || {
             title: '',
             type: 'popup',
-            status: 'publish',
+            status: 'draft',
             conditions: [],
             triggers: [],
             rules: [],
@@ -107,30 +110,32 @@ export function PopupForm({
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{__('Status', 'elemacy')}</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder={__('Select a status', 'elemacy')} />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {STATUS_OPTIONS.map((s) => (
-                                        <SelectItem key={s.value} value={s.value}>
-                                            {s.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {showStatus && (
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{__('Status', 'elemacy')}</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={__('Select a status', 'elemacy')} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {STATUS_OPTIONS.map((s) => (
+                                            <SelectItem key={s.value} value={s.value}>
+                                                {s.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
                 <Tabs defaultValue="type">
                     <TabsList className="w-full">
