@@ -62,7 +62,6 @@ class ThemeBuilder extends Module
                 'archive' => __('Archive', 'elemacy'),
                 '404'     => __('404 Page', 'elemacy'),
                 'search'  => __('Search Results', 'elemacy'),
-                'loop'    => __('Loop', 'elemacy'),
             ];
 
             foreach ($types as $name => $label) {

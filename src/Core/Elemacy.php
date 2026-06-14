@@ -14,6 +14,7 @@ use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\LibraryBootstrap;
 use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
 class Elemacy
@@ -65,6 +66,7 @@ class Elemacy
 		$this->load_modules();
 		$this->init_admin_menus();
 		$this->init_modules();
+		$this->register_block_library_type();
 		$this->register_library_types();
 		$this->init_routes();
 		$this->register_rest_routes();
@@ -157,6 +159,23 @@ class Elemacy
 		}, 20);
 	}
 
+	/**
+	 * Register the built-in generic "block" library type owned by Core. Block
+	 * items are referenced by ID rather than auto-resolved, so the library always
+	 * has a default type even with every module off; modules push their own
+	 * specialized types (e.g. Widgets → "Loop Item"). Priority 5 keeps the generic
+	 * type first in the registry so it is the default selection. Deferred to
+	 * `init` because the label is translated.
+	 */
+	protected function register_block_library_type()
+	{
+		add_action('init', static function () {
+			TypeRegistry::instance()->register(
+				new TypeDefinition('section', __('Section', 'elemacy'), 'block', 'core')
+			);
+		}, 5);
+	}
+
 	protected function init_routes()
 	{
 		Route::set_namespace('elemacy');
@@ -184,6 +203,12 @@ class Elemacy
 			$modules_menu_dto->menu_title = __('Modules', 'elemacy');
 			$modules_menu_dto->menu_slug = 'modules';
 			AdminMenu::add_submenu($modules_menu_dto);
+
+			$library_menu_dto = new SubMenuDTO();
+			$library_menu_dto->page_title = __('Template Library', 'elemacy');
+			$library_menu_dto->menu_title = __('Template Library', 'elemacy');
+			$library_menu_dto->menu_slug = 'library';
+			AdminMenu::add_submenu($library_menu_dto);
 
 			if (!Utils::is_pro_active()) {
 				$upgrade_menu_dto = new SubMenuDTO();

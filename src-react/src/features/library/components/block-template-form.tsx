@@ -1,6 +1,6 @@
-import { useState } from "react"
 import { __ } from "@wordpress/i18n"
-import { Controller, useForm } from "react-hook-form"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -18,39 +18,40 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ConditionsField } from "@/components/conditions/conditions-field"
-import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
-import { useTemplateTypes } from "@/features/theme-builder/services/template"
+import type { CreateBlockTemplate, UpdateBlockTemplate } from "@/features/library/schemas/block-template"
+import { useBlockTemplateTypes } from "@/features/library/services/block-template"
 
-interface TemplateFormProps {
-    defaultValues?: CreateTemplate
+interface BlockTemplateFormProps {
+    defaultValues?: CreateBlockTemplate
     /** Primary save action (e.g. create / update, then close). */
-    onSubmit: (values: CreateTemplate | UpdateTemplate) => Promise<void>
+    onSubmit: (values: CreateBlockTemplate | UpdateBlockTemplate) => Promise<void>
     /**
      * Optional secondary action that saves the form, then opens the Elementor
      * editor. When provided, a "Save & Edit with Elementor" button is shown.
      */
-    onSaveAndEdit?: (values: CreateTemplate | UpdateTemplate) => Promise<void>
+    onSaveAndEdit?: (values: CreateBlockTemplate | UpdateBlockTemplate) => Promise<void>
     submitLabel?: string
     saveAndEditLabel?: string
 }
 
-export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLabel, saveAndEditLabel }: TemplateFormProps) {
+export function BlockTemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLabel, saveAndEditLabel }: BlockTemplateFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Template', 'elemacy');
     const displaySaveAndEditLabel = saveAndEditLabel || __('Save & Edit with Elementor', 'elemacy');
-    const { data: templateTypes = [], isLoading: isLoadingTypes } = useTemplateTypes();
+    const { data: templateTypes = [] } = useBlockTemplateTypes();
 
     // Tracks which button triggered the in-flight request so each shows its own
     // loading label while both stay disabled.
     const [pending, setPending] = useState<null | 'save' | 'edit'>(null);
     const busy = pending !== null;
 
-    const form = useForm<CreateTemplate>({
+    // Default a new template to Core's always-present generic "section" type.
+    // The selector is hidden when only one type exists, so this keeps the
+    // submitted value valid even when the user never sees a choice.
+    const form = useForm<CreateBlockTemplate>({
         defaultValues: defaultValues || {
             title: "",
-            type: "header",
+            type: "section",
             status: "publish",
-            conditions: [],
         }
     })
 
@@ -94,30 +95,32 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{__('Type', 'elemacy')}</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger className="w-full" disabled={isLoadingTypes}>
-                                        <SelectValue placeholder={__('Select a template type', 'elemacy')} />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {templateTypes.map((type) => (
-                                        <SelectItem key={type.value} value={type.value}>
-                                            {type.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {templateTypes.length > 1 && (
+                    <FormField
+                        control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{__('Type', 'elemacy')}</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={__('Select a template type', 'elemacy')} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {templateTypes.map((type) => (
+                                            <SelectItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="status"
@@ -137,17 +140,6 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
                             </Select>
                             <FormMessage />
                         </FormItem>
-                    )}
-                />
-                <Controller
-                    control={form.control}
-                    name="conditions"
-                    render={({ field }) => (
-                        <ConditionsField
-                            value={field.value ?? []}
-                            onChange={field.onChange}
-                            templateType={form.watch('type')}
-                        />
                     )}
                 />
                 <div className="flex flex-col gap-3 sm:flex-row">

@@ -1,35 +1,35 @@
 import { __ } from "@wordpress/i18n";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { TemplateForm } from "./template-form";
-import { type Template, type UpdateTemplate } from "../schemas/template";
-import { useUpdateTemplateMutation } from "../services/template";
+import { BlockTemplateForm } from "./block-template-form";
+import { type BlockTemplate, type UpdateBlockTemplate } from "../schemas/block-template";
+import { useUpdateBlockTemplateMutation } from "../services/block-template";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
-interface EditTemplateModalProps {
-  template: Template | null;
+interface EditBlockTemplateModalProps {
+  template: BlockTemplate | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (template: UpdateTemplate) => void;
+  onSuccess?: (template: UpdateBlockTemplate) => void;
 }
 
-export function EditTemplateModal({
+export function EditBlockTemplateModal({
   template,
   open,
   onOpenChange,
   onSuccess,
-}: EditTemplateModalProps) {
-  const { mutateAsync: updateTemplate } = useUpdateTemplateMutation();
+}: EditBlockTemplateModalProps) {
+  const { mutateAsync: updateTemplate } = useUpdateBlockTemplateMutation();
 
   if (!template) return null;
 
-  const onSubmit = async (values: UpdateTemplate) => {
+  const onSubmit = async (values: UpdateBlockTemplate) => {
     const data = await updateTemplate({ id: template.id, ...values });
     onSuccess?.(data);
     onOpenChange(false);
   };
 
   // Save the form first, then open the Elementor editor for this template.
-  const onSaveAndEdit = async (values: UpdateTemplate) => {
+  const onSaveAndEdit = async (values: UpdateBlockTemplate) => {
     const data = await updateTemplate({ id: template.id, ...values });
     onSuccess?.(data);
     const editUrl = data?.edit_with_elementor || template.edit_with_elementor;
@@ -53,7 +53,7 @@ export function EditTemplateModal({
             </div>
           </DialogDescription>
         </DialogHeader>
-        <TemplateForm
+        <BlockTemplateForm
           defaultValues={template}
           onSubmit={onSubmit}
           onSaveAndEdit={onSaveAndEdit}

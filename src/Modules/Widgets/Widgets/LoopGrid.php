@@ -2,7 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Bridges\ThemeBuilderBridge;
+use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
+use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Group_Control_Typography;
@@ -52,15 +53,26 @@ class LoopGrid extends BaseWidget
         $this->register_pagination_style_section();
     }
 
+    private $loop_templates;
+
+    protected function get_loop_templates()
+    {
+        if ($this->loop_templates === null) {
+            $this->loop_templates = (new BlockTemplateService())->get_all(
+                BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
+            );
+        }
+
+        return $this->loop_templates;
+    }
+
     protected function get_elementor_templates()
     {
-        $templates = ThemeBuilderBridge::get_instance()->get_templates('loop');
-
         $options = [
             '' => esc_html__('Select Template', 'elemacy'),
         ];
 
-        foreach ($templates as $template) {
+        foreach ($this->get_loop_templates() as $template) {
             $options[$template->id] = $template->title;
         }
 
@@ -103,19 +115,19 @@ class LoopGrid extends BaseWidget
             ]
         );
 
-        if (!ThemeBuilderBridge::get_instance()->is_available()) {
+        if (empty($this->get_loop_templates())) {
             $this->add_control(
-                'theme_builder_notice',
+                'no_templates_notice',
                 [
                     'type' => Controls_Manager::RAW_HTML,
                     'raw' => sprintf(
                         '<strong>%s</strong><br>%s <a href="%s" target="_blank" rel="noopener">%s</a>',
-                        esc_html__('Theme Builder module required', 'elemacy'),
-                        esc_html__('Enable the Theme Builder module to create and select loop templates.', 'elemacy'),
-                        esc_url(admin_url('admin.php?page=elemacy#/modules')),
-                        esc_html__('Open Modules →', 'elemacy')
+                        esc_html__('No loop templates yet', 'elemacy'),
+                        esc_html__('Create a loop template in the Template Library, then select it here.', 'elemacy'),
+                        esc_url(admin_url('admin.php?page=elemacy#/library')),
+                        esc_html__('Open Template Library →', 'elemacy')
                     ),
-                    'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+                    'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
                 ]
             );
         }
