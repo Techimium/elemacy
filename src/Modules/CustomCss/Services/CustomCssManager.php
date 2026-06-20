@@ -2,6 +2,7 @@
 
 namespace Elemacy\Modules\CustomCss\Services;
 
+use Elemacy\Support\Brand;
 use Elementor\Controls_Manager;
 
 if (!defined('ABSPATH')) {
@@ -47,7 +48,7 @@ class CustomCssManager
         $element->start_controls_section(
             'elemacy_section_custom_css',
             [
-                'label' => esc_html__('Custom CSS (Elemacy)', 'elemacy'),
+                'label' => esc_html__('Custom CSS', 'elemacy') . Brand::inline_mark(),
                 'tab' => Controls_Manager::TAB_ADVANCED,
             ]
         );

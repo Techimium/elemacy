@@ -34,7 +34,7 @@ class ThemeBuilder extends Module
 
     public function get_description(): string
     {
-        return __('Manage your site structure templates for a full theme experience.', 'elemacy');
+        return __('Design headers, footers, archives and other site-wide templates that apply across your theme.', 'elemacy');
     }
 
     public function init(): void

@@ -4,6 +4,7 @@ namespace Elemacy\TemplateLibrary;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Constants\PostStatus;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use WP_Query;
 
@@ -57,7 +58,7 @@ class ResolverCache
     {
         $query = new WP_Query([
             'post_type'      => LibraryPostType::POST_TYPE,
-            'post_status'    => 'publish',
+            'post_status'    => PostStatus::PUBLISH,
             'posts_per_page' => -1,
             'fields'         => 'ids',
             'no_found_rows'  => true,

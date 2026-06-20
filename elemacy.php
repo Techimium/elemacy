@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('ELEMACY_ENV')) {
-    define('ELEMACY_ENV', 'dev');
+    define('ELEMACY_ENV', 'production');
 }
 
 define('ELEMACY_VERSION', '1.0.0');

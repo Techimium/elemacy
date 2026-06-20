@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Widgets\Controllers;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
@@ -53,14 +54,14 @@ class AjaxPaginationController
                 : [];
 
             $query_args = array_merge($current_vars, ['paged' => $paged]);
-            $query_args['post_status'] = 'publish';
+            $query_args['post_status'] = PostStatus::PUBLISH;
         } else {
             $query_args = [
                 'post_type' => $post_type,
                 'posts_per_page' => $posts_per_page,
                 'orderby' => $orderby,
                 'order' => $order,
-                'post_status' => 'publish',
+                'post_status' => PostStatus::PUBLISH,
                 'paged' => $paged,
             ];
 

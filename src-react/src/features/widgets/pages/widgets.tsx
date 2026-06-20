@@ -28,7 +28,7 @@ function Widgets() {
                                     <span>{module?.title || __("Widgets", "elemacy")}</span>
                                 </div>
                                 <div className="text-gray-500 mt-2 max-w-2xl">
-                                    {module?.description || __("Manage native and pro widgets provided by Elemacy for your Elementor editor.", "elemacy")}
+                                    {module?.description || __("Extend the Elementor editor with extra widgets built by Elemacy.", "elemacy")}
                                 </div>
                             </div>
                         </Card>

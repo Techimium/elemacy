@@ -3,7 +3,7 @@
 // Pipeline:
 //   1. Compile the React admin app (tsc + vite) into ../assets/admin.
 //   2. Stage a whitelist of runtime files into build/elemacy.
-//   3. Force ELEMACY_ENV to 'prod' so the shipped copy never points at the Vite dev server.
+//   3. Assert ELEMACY_ENV is production so a dev build can never be packaged.
 //   4. Install a no-dev Composer autoloader (falls back to copying the existing one).
 //   5. Zip the staging folder into build/elemacy-<version>.zip.
 //
@@ -70,19 +70,22 @@ async function copyRuntimeFiles() {
   }
 }
 
-async function forceProdEnv() {
+async function assertProdEnv() {
   const target = path.join(STAGING_DIR, 'elemacy.php');
   const contents = await fs.readFile(target, 'utf8');
-  const patched = contents.replace(
-    /define\(\s*'ELEMACY_ENV'\s*,\s*'dev'\s*\)/,
-    "define('ELEMACY_ENV', 'prod')"
-  );
-  if (patched === contents) {
-    console.warn('  warning: ELEMACY_ENV default not found — verify production env manually.');
+
+  if (/define\(\s*'ELEMACY_ENV'\s*,\s*'dev'\s*\)/.test(contents)) {
+    throw new Error(
+      "ELEMACY_ENV default is 'dev' in elemacy.php — refusing to package a dev build. Set it to 'production'."
+    );
+  }
+
+  if (!/define\(\s*'ELEMACY_ENV'\s*,\s*'production'\s*\)/.test(contents)) {
+    console.warn('  warning: ELEMACY_ENV default not recognized — verify production env manually.');
     return;
   }
-  await fs.writeFile(target, patched);
-  console.log('  ELEMACY_ENV default set to prod');
+
+  console.log('  ELEMACY_ENV default verified: production');
 }
 
 async function buildVendor() {
@@ -162,8 +165,8 @@ async function main() {
   await fs.mkdir(STAGING_DIR, { recursive: true });
   await copyRuntimeFiles();
 
-  log('Patching production environment');
-  await forceProdEnv();
+  log('Verifying production environment');
+  await assertProdEnv();
 
   log('Preparing Composer autoloader');
   await buildVendor();

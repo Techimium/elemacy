@@ -22,7 +22,7 @@ export const PopupListItemSchema = z.object({
     title: z.string(),
     type: z.enum(POPUP_TYPE_VALUES),
     status: StatusSchema,
-    date: z.string().optional(),
+    date: z.string().nullable().optional(),
     edit_with_elementor: z.string(),
 });
 
@@ -32,7 +32,7 @@ export const PopupSchema = z.object({
     type: z.enum(POPUP_TYPE_VALUES),
     status: StatusSchema,
     author: z.number().optional(),
-    date: z.string().optional(),
+    date: z.string().nullable().optional(),
     conditions: z.array(ConditionRuleSchema).default([]),
     triggers: z.array(TriggerSchema).default([]),
     rules: z.array(RuleSchema).default([]),

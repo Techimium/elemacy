@@ -4,6 +4,8 @@ namespace Elemacy\Conditions;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Constants\PostStatus;
+
 /**
  * Runs the lookups behind a condition's `search` value input.
  *
@@ -44,7 +46,7 @@ class ConditionSearchService
     {
         $args = [
             'post_type'        => $config['post_type'] ?? 'any',
-            'post_status'      => 'publish',
+            'post_status'      => PostStatus::PUBLISH,
             'posts_per_page'   => self::LIMIT,
             'orderby'          => 'title',
             'order'            => 'ASC',

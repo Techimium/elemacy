@@ -5,6 +5,7 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
@@ -30,7 +31,7 @@ class TemplateService
     {
         $query_args = [
             'post_type' => LibraryPostType::POST_TYPE,
-            'post_status' => 'any',
+            'post_status' => PostStatus::ANY,
             'posts_per_page' => -1,
             'orderby' => 'date',
             'order' => 'DESC',
@@ -104,7 +105,7 @@ class TemplateService
     {
         $post_data = [
             'post_title' => $dto->title ?? '',
-            'post_status' => $dto->status ?? 'publish',
+            'post_status' => $dto->status ?? PostStatus::PUBLISH,
             'post_type' => LibraryPostType::POST_TYPE,
         ];
 
@@ -184,7 +185,7 @@ class TemplateService
         $new_post_id = wp_insert_post([
             'post_title' => $new_title,
             'post_content' => $post->post_content,
-            'post_status' => 'draft',
+            'post_status' => PostStatus::DRAFT,
             'post_type' => LibraryPostType::POST_TYPE,
             'post_author' => get_current_user_id(),
         ], true);

@@ -2,6 +2,7 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
+use Elemacy\Core\Constants\PostStatus;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
@@ -113,7 +114,7 @@ class LoopCarousel extends BaseWidget
                 'label_block' => true,
                 'options' => $this->get_elementor_templates(),
                 'default' => '',
-                'description' => esc_html__('Select an Elementor template (e.g., Section or Container) to design the loop item.', 'elemacy'),
+                'description' => esc_html__('Select a loop template from the Template Library.', 'elemacy'),
             ]
         );
 
@@ -582,7 +583,7 @@ class LoopCarousel extends BaseWidget
             'posts_per_page' => $settings['posts_per_page'],
             'orderby' => $settings['orderby'],
             'order' => $settings['order'],
-            'post_status' => 'publish',
+            'post_status' => PostStatus::PUBLISH,
         ];
 
         if (!empty($settings['offset'])) {

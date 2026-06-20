@@ -26,7 +26,7 @@ class DynamicTags extends Module
 
     public function get_description(): string
     {
-        return __('Additional dynamic tags for Elementor.', 'elemacy');
+        return __('Pull live post, site, author, archive and WooCommerce data into any Elementor element.', 'elemacy');
     }
 
     public function is_headless(): bool

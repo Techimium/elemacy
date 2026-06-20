@@ -21,7 +21,7 @@ function Library() {
               <span>{__('Template Library', 'elemacy')}</span>
             </div>
             <div className="text-gray-500 mt-1">
-              {__('Build reusable loop templates and reference them from the Loop Builder and Loop Carousel widgets.', 'elemacy')}
+              {__('Create, manage, and reuse templates across your site to design faster with Elementor.', 'elemacy')}
             </div>
           </div>
 

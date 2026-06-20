@@ -487,15 +487,12 @@ msgid "The validation rule %s does not exist or is invalid"
 msgstr ""
 
 #: src/Modules/CustomCss/CustomCss.php:20
+#: src/Modules/CustomCss/Services/CustomCssManager.php:51
 msgid "Custom CSS"
 msgstr ""
 
 #: src/Modules/CustomCss/CustomCss.php:30
 msgid "Add custom CSS controls to Elementor elements and pages."
-msgstr ""
-
-#: src/Modules/CustomCss/Services/CustomCssManager.php:50
-msgid "Custom CSS (Elemacy)"
 msgstr ""
 
 #: src/Modules/CustomCss/Services/CustomCssManager.php:58
@@ -1987,7 +1984,7 @@ msgstr ""
 
 #: src/Modules/Widgets/Widgets/LoopCarousel.php:104
 #: src/Modules/Widgets/Widgets/LoopGrid.php:102
-msgid "Select an Elementor template (e.g., Section or Container) to design the loop item."
+msgid "Select a loop template from the Template Library."
 msgstr ""
 
 #: src/Modules/Widgets/Widgets/LoopCarousel.php:115

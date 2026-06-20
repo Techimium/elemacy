@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
+use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
@@ -37,7 +38,7 @@ class PopupService
     {
         $query_args = [
             'post_type' => LibraryPostType::POST_TYPE,
-            'post_status' => 'any',
+            'post_status' => PostStatus::ANY,
             'posts_per_page' => -1,
             'orderby' => 'date',
             'order' => 'DESC',
@@ -111,7 +112,7 @@ class PopupService
     {
         $post_data = [
             'post_title' => $dto->title ?? '',
-            'post_status' => $dto->status ?? 'draft',
+            'post_status' => $dto->status ?? PostStatus::DRAFT,
             'post_type' => LibraryPostType::POST_TYPE,
         ];
 
@@ -209,7 +210,7 @@ class PopupService
         $new_post_id = wp_insert_post([
             'post_title' => $new_title,
             'post_content' => $post->post_content,
-            'post_status' => 'draft',
+            'post_status' => PostStatus::DRAFT,
             'post_type' => LibraryPostType::POST_TYPE,
             'post_author' => get_current_user_id(),
         ], true);
@@ -333,11 +334,31 @@ class PopupService
         $dto->status = $post->post_status;
         $dto->type = get_post_meta($post->ID, LibraryMetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
-        $dto->date = $post->post_date_gmt;
+        $dto->date = $this->resolve_gmt_date($post);
         $dto->conditions = $this->conditions->get($post->ID);
         $dto->triggers = $this->get_triggers($post->ID);
         $dto->rules = $this->get_rules($post->ID);
 
         return $dto;
+    }
+
+    /**
+     * WordPress only fills post_date_gmt on publish, leaving drafts with the
+     * '0000-00-00 00:00:00' sentinel. Fall back to the always-set local
+     * post_date so draft popups still show a real date.
+     */
+    private function resolve_gmt_date(WP_Post $post): ?string
+    {
+        $datetime = get_post_datetime($post, 'date', 'gmt');
+
+        if (!$datetime) {
+            $datetime = get_post_datetime($post, 'date', 'local');
+        }
+
+        if (!$datetime) {
+            return null;
+        }
+
+        return $datetime->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 }

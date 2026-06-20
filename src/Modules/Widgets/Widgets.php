@@ -1,4 +1,5 @@
 <?php
+
 namespace Elemacy\Modules\Widgets;
 
 if (!defined('ABSPATH')) {
@@ -34,7 +35,7 @@ class Widgets extends Module
 
     public function get_description(): string
     {
-        return __('Custom Elementor widgets to enhance your website.', 'elemacy');
+        return __('Extend the Elementor editor with extra widgets built by Elemacy.', 'elemacy');
     }
 
     public function init(): void
