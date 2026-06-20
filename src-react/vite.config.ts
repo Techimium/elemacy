@@ -17,6 +17,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Use WordPress's enqueued wp-i18n (window.wp.i18n) instead of bundling a
+      // second copy, so wp_set_script_translations actually feeds the app.
+      "@wordpress/i18n": path.resolve(__dirname, "./src/lib/wp-i18n.ts"),
     },
   },
   build: {

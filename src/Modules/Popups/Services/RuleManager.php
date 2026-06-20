@@ -22,7 +22,7 @@ class RuleManager
         return static::$instance;
     }
 
-    public function register(RuleInterface $rule): static
+    public function register(RuleInterface $rule): self
     {
         $this->rules[$rule->get_name()] = $rule;
 

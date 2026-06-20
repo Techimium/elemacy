@@ -4,6 +4,7 @@ namespace Elemacy\TemplateLibrary;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use WP_Query;
@@ -76,7 +77,7 @@ class ResolverCache
                 continue;
             }
 
-            $conditions = get_post_meta($post_id, '_elemacy_conditions', true);
+            $conditions = get_post_meta($post_id, ConditionRepository::META_KEY, true);
 
             $index[$type][] = [
                 'id'         => $post_id,

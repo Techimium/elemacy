@@ -12,11 +12,15 @@ defined('ABSPATH') || exit;
  */
 class DependencyNotice
 {
-    public function __construct(
-        private string $slug,
-        private string $basename,
-        private string $plugin_label
-    ) {
+    private string $slug;
+    private string $basename;
+    private string $plugin_label;
+
+    public function __construct(string $slug, string $basename, string $plugin_label)
+    {
+        $this->slug         = $slug;
+        $this->basename     = $basename;
+        $this->plugin_label = $plugin_label;
     }
 
     public function register(): void

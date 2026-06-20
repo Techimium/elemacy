@@ -22,7 +22,7 @@ class ConditionManager
         return static::$instance;
     }
 
-    public function register(ConditionInterface $condition): static
+    public function register(ConditionInterface $condition): self
     {
         $this->conditions[$condition->get_name()] = $condition;
 

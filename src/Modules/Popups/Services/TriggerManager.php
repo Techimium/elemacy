@@ -22,7 +22,7 @@ class TriggerManager
         return static::$instance;
     }
 
-    public function register(TriggerInterface $trigger): static
+    public function register(TriggerInterface $trigger): self
     {
         $this->triggers[$trigger->get_name()] = $trigger;
 

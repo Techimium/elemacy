@@ -12,7 +12,7 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
  */
 class ConditionRepository
 {
-    protected const META_KEY = '_elemacy_conditions';
+    public const META_KEY = '_elemacy_conditions';
 
     /**
      * @return ConditionRuleDTO[]

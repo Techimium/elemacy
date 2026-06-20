@@ -587,7 +587,10 @@ class SiteLogo extends BaseWidget
 
     // ─── Private Helpers ─────────────────────────────────────────────────────
 
-    private function resolve_image_size(array $settings): string|array
+    /**
+     * @return string|array
+     */
+    private function resolve_image_size(array $settings)
     {
         $size = $settings['image_size'] ?? 'full';
 
@@ -601,7 +604,10 @@ class SiteLogo extends BaseWidget
         return $size;
     }
 
-    private function get_attachment_image_html(int $attachment_id, string|array $size, array $settings): string
+    /**
+     * @param string|array $size
+     */
+    private function get_attachment_image_html(int $attachment_id, $size, array $settings): string
     {
         $hover_class  = $settings['hover_animation']
             ? 'elementor-animation-' . $settings['hover_animation']

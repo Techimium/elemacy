@@ -72,13 +72,13 @@ class NavMenuWalker extends Walker_Nav_Menu
 
         $list_item_attributes        = ['class' => $class_names];
         $list_item_attributes        = apply_filters('nav_menu_item_attributes', $list_item_attributes, $menu_item, $args, $depth);
-        $list_item_attribute_string  = $this->buildAttributeString($list_item_attributes, escape_urls: false);
+        $list_item_attribute_string  = $this->buildAttributeString($list_item_attributes, false);
 
         $output .= $indent . '<li' . $list_item_attribute_string . '>';
 
         $link_attributes        = $this->buildLinkAttributes($menu_item, $is_current_item, $has_children);
         $link_attributes        = apply_filters('nav_menu_link_attributes', $link_attributes, $menu_item, $args, $depth);
-        $link_attribute_string  = $this->buildAttributeString($link_attributes, escape_urls: true);
+        $link_attribute_string  = $this->buildAttributeString($link_attributes, true);
 
         $title = apply_filters('the_title', $menu_item->title, $menu_item->ID);
         $title = apply_filters('nav_menu_item_title', $title, $menu_item, $args, $depth);

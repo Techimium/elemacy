@@ -8,7 +8,7 @@ use Elemacy\Core\Hooks;
 
 class PostTypes
 {
-    protected const EXCLUDED = ['attachment', 'elemacy_template', 'elementor_library', 'e-floating-buttons'];
+    protected const EXCLUDED = ['attachment', 'elementor_library', 'e-floating-buttons'];
 
     /**
      * Public post types as `[{value, label}, ...]` for use as sub_values on a condition.
