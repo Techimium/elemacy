@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\Documents\DocumentManager;
 use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
@@ -42,6 +43,7 @@ class Widgets extends Module
     {
         $this->register_admin_menu();
         $this->register_types();
+        new DocumentManager();
         new FrontendAssets();
         new EditorAssets();
         WidgetManager::instance();

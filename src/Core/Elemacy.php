@@ -10,6 +10,8 @@ use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
+use Elemacy\Core\Preview\PreviewAssets;
+use Elemacy\Core\Preview\PreviewManager;
 use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\LibraryBootstrap;
@@ -110,6 +112,8 @@ class Elemacy
 		new PluginLinks();
 		new ConditionsBootstrap();
 		new LibraryBootstrap();
+		new PreviewManager();
+		new PreviewAssets();
 	}
 
 	public function init_module_manager()

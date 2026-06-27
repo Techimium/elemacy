@@ -14,6 +14,7 @@ use Elemacy\TemplateLibrary\DTO\CreateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Support\Utils;
 use WP_Post;
 use WP_Query;
 
@@ -120,7 +121,7 @@ class BlockTemplateService
         }
 
         update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
-        update_post_meta($post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($post_id, '_elementor_template_type', $this->elementor_document_type($dto->type ?? ''));
         update_post_meta($post_id, '_elementor_edit_mode', 'builder');
 
         return $this->create_dto(get_post($post_id));
@@ -195,8 +196,9 @@ class BlockTemplateService
         }
 
         // Guarantee the editor defaults even when the source predates them.
+        $source_type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
         update_post_meta($new_post_id, '_wp_page_template', 'elementor_canvas');
-        update_post_meta($new_post_id, '_elementor_template_type', 'wp-page');
+        update_post_meta($new_post_id, '_elementor_template_type', $this->elementor_document_type($source_type));
         update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
 
         return $this->create_dto(get_post($new_post_id));
@@ -227,6 +229,20 @@ class BlockTemplateService
     protected function block_types(): array
     {
         return TypeRegistry::instance()->names_in_group(self::GROUP);
+    }
+
+    /**
+     * Loop items get their own Elementor document (mapped in the Widgets module's
+     * Config/documents.php) so the editor can offer real-data Preview Settings;
+     * other block items keep Elementor's built-in page document. Either way the type
+     * is pinned so the editor never falls back to the popup document that shares the
+     * library CPT.
+     */
+    protected function elementor_document_type(string $type): string
+    {
+        $documents = require Utils::get_plugin_path('src/Modules/Widgets/Config/documents.php');
+
+        return isset($documents[$type]) ? $documents[$type]::get_type() : 'wp-page';
     }
 
     /**

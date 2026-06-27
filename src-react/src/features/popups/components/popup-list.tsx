@@ -97,7 +97,7 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                             popup={popup}
                             onEdit={handleEdit}
                             onEditWithElementor={() =>
-                                window.open(popup.edit_with_elementor, '_self')
+                                window.open(popup.edit_with_elementor, '_blank')
                             }
                             onDuplicate={(p) => duplicatePopup(p.id)}
                             onDelete={(p) => setDeletingPopup(p)}

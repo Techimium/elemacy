@@ -28,6 +28,11 @@ final class Hooks
     // Fired so add-ons can register theme locations (passes the LocationRegistry).
     const THEME_BUILDER_LOCATIONS_REGISTER_ACTION = 'elemacy/action/theme_builder/locations/register';
 
+    // Preview (editor real-data preview)
+    // Lets add-ons adjust the WP_Query args a previewable document renders against
+    // (passes the args array and the document instance).
+    const PREVIEW_QUERY_ARGS_FILTER = 'elemacy/filter/preview/query_args';
+
     // Theme Builder — display conditions
     const CONDITIONS_EXCLUDED_POST_TYPES_FILTER = 'elemacy/filter/conditions/excluded_post_types';
     const CONDITIONS_EXCLUDED_TAXONOMIES_FILTER = 'elemacy/filter/conditions/excluded_taxonomies';

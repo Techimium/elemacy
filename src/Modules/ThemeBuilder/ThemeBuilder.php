@@ -9,6 +9,7 @@ use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
+use Elemacy\Modules\ThemeBuilder\Documents\DocumentManager;
 use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Support\Utils;
@@ -42,6 +43,7 @@ class ThemeBuilder extends Module
         $this->register_admin_menu();
         $this->register_types();
         $this->register_locations();
+        new DocumentManager();
         ThemeBuilderManager::instance()->register_hooks();
     }
 

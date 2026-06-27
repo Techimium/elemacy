@@ -12,6 +12,7 @@ use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
+use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -120,10 +121,11 @@ class TemplateService
             update_post_meta($post_id, '_wp_page_template', $this->page_template_for_type($dto->type));
         }
 
-        // Pin Elementor's built-in page document so the editor never falls back to
+        // Pin the Elementor document for the type so the editor never falls back to
         // the popup document that shares the elemacy_library CPT (Documents_Manager
-        // maps one doc type per CPT when _elementor_template_type is empty).
-        update_post_meta($post_id, '_elementor_template_type', 'wp-page');
+        // maps one doc type per CPT when _elementor_template_type is empty). Single/
+        // Archive/Search get their own previewable documents; the rest stay wp-page.
+        update_post_meta($post_id, '_elementor_template_type', $this->elementor_document_type($dto->type ?? ''));
         update_post_meta($post_id, '_elementor_edit_mode', 'builder');
 
         if (isset($dto->conditions)) {
@@ -162,6 +164,7 @@ class TemplateService
         if (isset($dto->type)) {
             update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $dto->type);
             update_post_meta($id, '_wp_page_template', $this->page_template_for_type($dto->type));
+            update_post_meta($id, '_elementor_template_type', $this->elementor_document_type($dto->type));
         }
 
         if (isset($dto->conditions)) {
@@ -210,7 +213,8 @@ class TemplateService
 
         // Guarantee the correct doc type even when the source template predates the
         // _elementor_template_type pin (see create()).
-        update_post_meta($new_post_id, '_elementor_template_type', 'wp-page');
+        $source_type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
+        update_post_meta($new_post_id, '_elementor_template_type', $this->elementor_document_type($source_type));
         update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
 
         return $this->create_dto(get_post($new_post_id));
@@ -254,6 +258,18 @@ class TemplateService
         return in_array($type, ['header', 'footer'], true)
             ? 'elementor_canvas'
             : 'elementor_header_footer';
+    }
+
+    /**
+     * The Elementor document type for a template type. Single/Archive/Search get
+     * their own previewable documents (mapped in Config/documents.php); every other
+     * theme type keeps Elementor's built-in page document.
+     */
+    protected function elementor_document_type(string $type): string
+    {
+        $documents = require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/documents.php');
+
+        return isset($documents[$type]) ? $documents[$type]::get_type() : 'wp-page';
     }
 
     /**
