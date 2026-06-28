@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
-use Elemacy\Conditions\Support\PostTypes;
+use Elemacy\Support\PostTypes;
 
 class PostType extends BaseCondition
 {

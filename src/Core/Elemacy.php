@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Controls\Query\QueryControlManager;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Preview\PreviewAssets;
 use Elemacy\Core\Preview\PreviewManager;
@@ -114,6 +115,7 @@ class Elemacy
 		new LibraryBootstrap();
 		new PreviewManager();
 		new PreviewAssets();
+		new QueryControlManager();
 	}
 
 	public function init_module_manager()
