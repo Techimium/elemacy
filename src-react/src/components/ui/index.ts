@@ -11,3 +11,4 @@ export * from './select';
 export * from './sonner';
 export * from './switch';
 export * from './tabs';
+export { default as Topbar } from '../layout/topbar';
