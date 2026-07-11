@@ -11,10 +11,12 @@ use WP_Query;
 
 /**
  * Caches the per-type candidate index used to resolve which library items apply
- * to a request. The index holds only published items' ids + raw conditions, so
- * it is small enough to autoload — the frontend hot path reads it from
- * `alloptions` with no extra query. It is deleted (not rebuilt) on any change
- * and lazily rebuilt on the next read, which sidesteps save-ordering issues.
+ * to a request. The index holds published items' ids + raw conditions. It is
+ * NOT autoloaded — it grows with content, and `get_option()` already rides the
+ * persistent `options` cache group — so plain requests never carry it in
+ * `alloptions`. On any change it is deleted, then rebuilt on this request's
+ * `shutdown` (after all service/Elementor meta writes have landed), so the
+ * saving request pays the rebuild query instead of the next frontend visitor.
  */
 class ResolverCache
 {
@@ -24,6 +26,8 @@ class ResolverCache
      * @var array<string, array<int, array{id:int, conditions:array}>>|null
      */
     protected static ?array $memo = null;
+
+    protected static bool $rebuild_scheduled = false;
 
     /**
      * @return array<string, array<int, array{id:int, conditions:array}>>
@@ -38,7 +42,7 @@ class ResolverCache
 
         if (!is_array($index)) {
             $index = $this->build_index();
-            update_option(self::OPTION, $index, true);
+            update_option(self::OPTION, $index, false);
         }
 
         static::$memo = $index;
@@ -50,6 +54,14 @@ class ResolverCache
     {
         static::$memo = null;
         delete_option(self::OPTION);
+
+        if (!static::$rebuild_scheduled) {
+            static::$rebuild_scheduled = true;
+            add_action('shutdown', static function (): void {
+                static::$memo = null;
+                (new static())->get_index();
+            });
+        }
     }
 
     /**

@@ -14,6 +14,8 @@ export default defineConfig({
     }
   },
   plugins: [react(), tailwindcss()],
+  // No static public/ assets belong in the WP build output (kills vite.svg).
+  publicDir: false,
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -28,8 +30,10 @@ export default defineConfig({
     // dependency-notice.css) that live alongside the build output.
     emptyOutDir: false,
     rollupOptions: {
+      // Entry is the module itself, not index.html, so the build emits only
+      // scripts/admin.js + styles/admin.css (no dead index.html in dist).
       input: {
-        admin: path.resolve(__dirname, 'index.html'),
+        admin: path.resolve(__dirname, 'src/main.tsx'),
       },
       output: {
         entryFileNames: 'scripts/[name].js',

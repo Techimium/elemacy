@@ -5,12 +5,21 @@ namespace Elemacy\Modules\Widgets\Controllers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Http\Response;
 use Elemacy\Core\Http\SiteRequest as Request;
 use Elemacy\Core\Http\SiteResponse;
+use Elemacy\Support\Utils;
 use Elementor\Plugin;
 
 class AjaxFormController
 {
+    /**
+     * Per-IP submission cap: the endpoint is guest-reachable and sends mail
+     * synchronously, so unthrottled bursts are an abuse surface.
+     */
+    protected const THROTTLE_MAX_SUBMISSIONS = 5;
+    protected const THROTTLE_WINDOW_SECONDS = 60;
+
     public function index(Request $request)
     {
         $widget_id = $request->get_string('widget_id');
@@ -23,6 +32,8 @@ class AjaxFormController
                 'message' => esc_html__('Form submitted successfully!', 'elemacy'),
             ]);
         }
+
+        $this->assert_not_throttled();
 
         if (empty($widget_id) || empty($post_id)) {
             throw new ValidationException(esc_html__('Missing required parameters.', 'elemacy'));
@@ -65,6 +76,29 @@ class AjaxFormController
         SiteResponse::instance()->success([
             'message' => esc_html__('Form submitted successfully!', 'elemacy'),
         ]);
+    }
+
+    /**
+     * Per-IP transient throttle. Honeypot-caught bots never reach this, so only
+     * real submissions consume the bucket. REMOTE_ADDR only — forwarded headers
+     * are attacker-controlled.
+     */
+    protected function assert_not_throttled(): void
+    {
+        $visitor_ip = isset($_SERVER['REMOTE_ADDR'])
+            ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']))
+            : '';
+
+        $transient = Utils::with_prefix('form_throttle_' . md5($visitor_ip));
+        $count = (int) get_transient($transient);
+
+        if ($count >= self::THROTTLE_MAX_SUBMISSIONS) {
+            SiteResponse::instance()->error([
+                'message' => esc_html__('Too many submissions. Please try again in a minute.', 'elemacy'),
+            ], Response::TOO_MANY_REQUESTS);
+        }
+
+        set_transient($transient, $count + 1, self::THROTTLE_WINDOW_SECONDS);
     }
 
     /**

@@ -38,9 +38,10 @@
                         $messageContainer.html('<div class="elemacy-message elemacy-message-danger">' + errorMessage + '</div>');
                     }
                 },
-                error: function () {
+                error: function (xhr) {
                     $submitButton.removeAttr('disabled').removeClass('loading');
-                    $messageContainer.html('<div class="elemacy-message elemacy-message-danger">Server error. Please try again later.</div>');
+                    const serverMessage = xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message;
+                    $messageContainer.html('<div class="elemacy-message elemacy-message-danger">' + (serverMessage || 'Server error. Please try again later.') + '</div>');
                 }
             });
         });

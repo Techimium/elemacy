@@ -45,11 +45,11 @@ class CreatePopupRequest extends Request
             'triggers' => Sanitizer::ARRAY,
             'triggers.*.id' => Sanitizer::TEXT,
             'triggers.*.type' => Sanitizer::TEXT,
-            'triggers.*.params' => Sanitizer::ARRAY,
+            'triggers.*.params' => Sanitizer::ARRAY_DEEP,
             'rules' => Sanitizer::ARRAY,
             'rules.*.id' => Sanitizer::TEXT,
             'rules.*.type' => Sanitizer::TEXT,
-            'rules.*.params' => Sanitizer::ARRAY,
+            'rules.*.params' => Sanitizer::ARRAY_DEEP,
         ];
     }
 }

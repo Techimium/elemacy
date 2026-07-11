@@ -51,7 +51,7 @@ class SiteRequest implements Request
 
     public function clean()
     {
-        //@todo: decide whether to use this for site request or not
+        // Attributes are set internally; raw input is sanitized per-field in input().
         return $this->all();
     }
 

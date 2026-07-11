@@ -42,17 +42,57 @@ class Elemacy
 
     public function activation_actions()
     {
-        register_activation_hook(ELEMACY_FILE, function () {
-            add_option(OptionKeys::ACTIVE_MODULES, [
-                'theme-builder',
-                'widgets',
-                'custom-css',
-                'dynamic-tags',
-            ]);
+        register_activation_hook(ELEMACY_FILE, function ($network_wide = false) {
+            if (is_multisite() && $network_wide) {
+                foreach (get_sites(['fields' => 'ids']) as $site_id) {
+                    switch_to_blog((int) $site_id);
+                    $this->seed_site();
+                    restore_current_blog();
+                }
 
+                return;
+            }
+
+            $this->seed_site(true);
+        });
+
+        // Sites created after a network activation need the same seeding.
+        add_action('wp_initialize_site', function ($new_site) {
+            if (!function_exists('is_plugin_active_for_network')) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+
+            if (!is_plugin_active_for_network(ELEMACY_PLUGIN_BASE)) {
+                return;
+            }
+
+            switch_to_blog((int) $new_site->blog_id);
+            $this->seed_site();
+            restore_current_blog();
+        }, 10, 1);
+    }
+
+    /**
+     * Seeds one site's defaults. `flush_rewrite_rules()` is unreliable inside a
+     * switched blog, so network paths drop the `rewrite_rules` option instead —
+     * that site regenerates them (with the library CPT registered) on its next
+     * request.
+     */
+    protected function seed_site(bool $flush_now = false): void
+    {
+        add_option(OptionKeys::ACTIVE_MODULES, [
+            'theme-builder',
+            'widgets',
+            'custom-css',
+            'dynamic-tags',
+        ]);
+
+        if ($flush_now) {
             LibraryPostType::register_post_type();
             flush_rewrite_rules(false);
-        });
+        } else {
+            delete_option('rewrite_rules');
+        }
     }
 
     public function init()

@@ -53,11 +53,29 @@ class LibraryPostType
             'query_var'          => true,
             'rewrite'            => ['slug' => 'elemacy-library'],
             'capability_type'    => 'post',
+            // Library items render site-wide (templates/popups), so every write
+            // path — wp-admin, core REST, plugin REST — must be admin-only.
+            'map_meta_cap'       => true,
+            'capabilities'       => [
+                'edit_posts'             => 'manage_options',
+                'edit_others_posts'      => 'manage_options',
+                'publish_posts'          => 'manage_options',
+                'delete_posts'           => 'manage_options',
+                'delete_others_posts'    => 'manage_options',
+                'delete_published_posts' => 'manage_options',
+                'edit_published_posts'   => 'manage_options',
+                'read_private_posts'     => 'manage_options',
+                'create_posts'           => 'manage_options',
+            ],
             'has_archive'        => false,
             'hierarchical'       => false,
             'menu_position'      => null,
             'supports'           => ['title', 'editor', 'author', 'thumbnail', 'elementor'],
-            'show_in_rest'       => true,
+            // No core wp/v2/elemacy_library controller: the plugin's own
+            // /elemacy/library REST routes (Route::*) are registered
+            // independently and unaffected by this flag. Elementor's editor
+            // reaches posts via post.php, not core REST, so nothing needs it.
+            'show_in_rest'       => false,
         ];
     }
 }

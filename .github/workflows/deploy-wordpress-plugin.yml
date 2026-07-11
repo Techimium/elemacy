@@ -60,28 +60,13 @@ jobs:
           echo "Checking out SVN into $TMP_DIR"
           svn checkout $SVN_URL $TMP_DIR --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive --trust-server-cert
 
-          # Copy plugin files to trunk (excludes mirror .distignore + dev tooling)
+          # Copy plugin files to trunk (.distignore is the single source of truth)
           echo "Copying plugin files to trunk..."
           rsync -av --delete ./ $TMP_DIR/trunk \
-            --exclude .git \
-            --exclude .github \
+            --exclude-from=.distignore \
             --exclude .distignore \
-            --exclude .gitignore \
-            --exclude .gitattributes \
-            --exclude .editorconfig \
-            --exclude node_modules \
-            --exclude src-react \
-            --exclude composer.json \
-            --exclude composer.lock \
-            --exclude phpcs.xml \
-            --exclude .phpcs.xml \
-            --exclude package.json \
-            --exclude package-lock.json \
-            --exclude yarn.lock \
-            --exclude tests \
-            --exclude "$ASSETS_DIR" \
-            --exclude wp-assets \
-            --exclude "*.map"
+            --exclude .git \
+            --exclude "$ASSETS_DIR"
 
           # Update SVN assets folder (banner, icon, screenshots) if present
           if [ -d "./$ASSETS_DIR" ]; then
@@ -107,8 +92,8 @@ jobs:
 
           # Add new files and remove deleted files
           cd $TMP_DIR
-          svn status | grep '^?' | awk '{print $2}' | xargs -I{} svn add "{}" --force || true
-          svn status | grep '^!' | awk '{print $2}' | xargs -I{} svn delete "{}" || true
+          svn status | grep '^?' | sed 's/^?[[:space:]]*//' | while IFS= read -r path; do svn add "$path" --force; done || true
+          svn status | grep '^!' | sed 's/^![[:space:]]*//' | while IFS= read -r path; do svn delete "$path"; done || true
 
           # Dry run mode
           if [ "$DRY_RUN" = "true" ]; then

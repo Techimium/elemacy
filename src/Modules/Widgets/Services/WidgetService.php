@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Widgets\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\Widgets\DTO\WidgetDTO;
 use Elemacy\Support\Utils;
 
@@ -33,12 +34,14 @@ class WidgetService
      * Return only widgets whose runtime requirements (e.g. ACF) are satisfied.
      * Used as the single source of truth for both Elementor registration and
      * the admin toggle list, so unavailable widgets stay hidden everywhere.
+     * Add-ons extend the catalog via Hooks::WIDGETS_REGISTER_FILTER.
      *
      * @return array<int, array<string, mixed>>
      */
     public function get_available_widgets(): array
     {
         $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+        $widgets_config = (array) apply_filters(Hooks::WIDGETS_REGISTER_FILTER, $widgets_config);
 
         return array_values(array_filter(
             $widgets_config,
@@ -130,7 +133,8 @@ class WidgetService
         $statuses = $this->get_widget_statuses();
         $statuses[$name] = ($action === 'enable');
 
-        update_option(Utils::with_prefix('widgets'), $statuses);
+        // Autoload: the status map gates frontend widget registration on every Elementor page.
+        update_option(Utils::with_prefix('widgets'), $statuses, true);
 
         return true;
     }

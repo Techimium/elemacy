@@ -134,6 +134,15 @@ class Sanitizer
     const ARRAY = 'array';
 
     /**
+     * Sanitize the value as an array, recursively cleaning every string leaf
+     * with sanitize_text_field() while leaving non-string leaves (numbers,
+     * bools, nested arrays with array-valued params like checkbox lists) untouched.
+     *
+     * @var string
+     */
+    const ARRAY_DEEP = 'array-deep';
+
+    /**
      * Sanitize the value as date.
      *
      * @var string
@@ -380,6 +389,15 @@ class Sanitizer
 
                 // For anything else (int, bool, etc.) cast to array directly
                 $value = [$value];
+                break;
+            case static::ARRAY_DEEP:
+                $value = static::apply_rule($value, static::ARRAY, $data);
+                $value = map_deep(
+                    $value,
+                    static function ($leaf) {
+                        return is_string($leaf) ? sanitize_text_field($leaf) : $leaf;
+                    }
+                );
                 break;
             case static::MONEY:
                 $value = round((float) preg_replace('/[^0-9.\-]/', '', (string) $value), 2);

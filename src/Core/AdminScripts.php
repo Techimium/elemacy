@@ -94,7 +94,7 @@ class AdminScripts
             'elemacy-vite-client',
             'http://localhost:5173/@vite/client',
             [],
-            null,
+            null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
         );
 
@@ -103,7 +103,7 @@ class AdminScripts
             'elemacy-admin-app',
             'http://localhost:5173/src/main.tsx',
             ['elemacy-vite-client', 'wp-i18n'],
-            null,
+            null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
         );
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
