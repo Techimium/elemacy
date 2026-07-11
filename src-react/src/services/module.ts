@@ -1,8 +1,12 @@
 import { apiClient } from "@/lib/api";
 import type { Module } from "@/schemas/module";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { __ } from "@wordpress/i18n";
+import { toast } from "sonner";
 
 const MODULES_QUERY_KEY = ['modules'] as const;
+
+const RELOAD_TOAST_ID = "elemacy-module-reload";
 
 const fetchModules = async (): Promise<Module[]> => {
     const response = await apiClient.get(`modules`);
@@ -56,6 +60,22 @@ export const useToggleModuleMutation = () => {
             if (context?.previousModules) {
                 queryClient.setQueryData(MODULES_QUERY_KEY, context.previousModules);
             }
+        },
+
+        onSuccess: () => {
+            toast.warning(__("Module settings updated.", "elemacy"), {
+                id: RELOAD_TOAST_ID,
+                description: __("Reload the page to apply the changes and update menus.", "elemacy"),
+                duration: Infinity,
+                action: {
+                    label: __("Reload", "elemacy"),
+                    onClick: () => window.location.reload(),
+                },
+                cancel: {
+                    label: __("Dismiss", "elemacy"),
+                    onClick: () => {},
+                },
+            });
         },
 
         onSettled: () => {

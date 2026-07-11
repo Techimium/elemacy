@@ -34,7 +34,9 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
     (response) => {
-        if (response.data && response.data.message) {
+        const isMutation = response.config.method !== "get";
+
+        if (isMutation && response.data && response.data.message) {
             toast.success(response.data.message);
         }
         return response;
