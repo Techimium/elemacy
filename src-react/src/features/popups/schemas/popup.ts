@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { __ } from '@wordpress/i18n';
 import { ConditionRuleSchema } from '@/schemas/condition';
 import { POPUP_TYPE_VALUES } from '@/features/popups/constants/popups';
 
@@ -40,12 +41,12 @@ export const PopupSchema = z.object({
 });
 
 export const CreatePopupSchema = z.object({
-    title: z.string(),
+    title: z.string().min(1, __('Title is required.', 'elemacy')),
     type: z.enum(POPUP_TYPE_VALUES),
     status: StatusSchema,
-    conditions: z.array(ConditionRuleSchema).default([]),
-    triggers: z.array(TriggerSchema).default([]),
-    rules: z.array(RuleSchema).default([]),
+    conditions: z.array(ConditionRuleSchema),
+    triggers: z.array(TriggerSchema),
+    rules: z.array(RuleSchema),
 });
 
 export const UpdatePopupSchema = CreatePopupSchema;

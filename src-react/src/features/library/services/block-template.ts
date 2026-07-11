@@ -1,15 +1,17 @@
-import type {
-    BlockTemplate,
-    BlockTemplateType,
-    CreateBlockTemplate,
-    UpdateBlockTemplate,
+import { z } from "zod";
+import {
+    BlockTemplateSchema,
+    type BlockTemplate,
+    type BlockTemplateType,
+    type CreateBlockTemplate,
+    type UpdateBlockTemplate,
 } from "@/features/library/schemas/block-template";
-import { apiClient } from "@/lib/api";
+import { apiClient, parseResponse } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const fetchBlockTemplates = async (): Promise<BlockTemplate[]> => {
     const response = await apiClient.get('library/templates');
-    return response.data?.data;
+    return parseResponse(z.array(BlockTemplateSchema), response.data?.data ?? []);
 };
 
 export const useBlockTemplates = () => {
@@ -34,7 +36,7 @@ export const useBlockTemplateTypes = () => {
 
 const createBlockTemplate = async (template: CreateBlockTemplate): Promise<BlockTemplate> => {
     const response = await apiClient.post('library/templates', template);
-    return response.data?.data;
+    return parseResponse(BlockTemplateSchema, response.data?.data);
 };
 
 export const useCreateBlockTemplateMutation = () => {
@@ -49,7 +51,7 @@ export const useCreateBlockTemplateMutation = () => {
 
 const updateBlockTemplate = async ({ id, ...template }: UpdateBlockTemplate & { id: number }): Promise<BlockTemplate> => {
     const response = await apiClient.put(`library/templates/${id}`, template);
-    return response.data?.data;
+    return parseResponse(BlockTemplateSchema, response.data?.data);
 };
 
 export const useUpdateBlockTemplateMutation = () => {
@@ -64,7 +66,7 @@ export const useUpdateBlockTemplateMutation = () => {
 
 const duplicateBlockTemplate = async (id: number): Promise<BlockTemplate> => {
     const response = await apiClient.post(`library/templates/${id}/duplicate`);
-    return response.data?.data;
+    return parseResponse(BlockTemplateSchema, response.data?.data);
 };
 
 export const useDuplicateBlockTemplateMutation = () => {

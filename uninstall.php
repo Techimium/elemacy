@@ -36,9 +36,13 @@ $wpdb->query(
 
 $wpdb->query(
     $wpdb->prepare(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+        "DELETE FROM {$wpdb->options}
+         WHERE (option_name LIKE %s OR option_name LIKE %s)
+         AND option_name NOT LIKE %s AND option_name NOT LIKE %s",
         $wpdb->esc_like('_transient_elemacy_') . '%',
-        $wpdb->esc_like('_transient_timeout_elemacy_') . '%'
+        $wpdb->esc_like('_transient_timeout_elemacy_') . '%',
+        $wpdb->esc_like('_transient_elemacy_pro_') . '%',
+        $wpdb->esc_like('_transient_timeout_elemacy_pro_') . '%'
     )
 );
 // phpcs:enable WordPress.DB.DirectDatabaseQuery

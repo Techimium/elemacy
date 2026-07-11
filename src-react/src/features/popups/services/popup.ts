@@ -1,10 +1,11 @@
-import type {
-    CreatePopup,
-    Popup,
-    PopupListItem,
-    UpdatePopup,
+import {
+    PopupSchema,
+    type CreatePopup,
+    type Popup,
+    type PopupListItem,
+    type UpdatePopup,
 } from '@/features/popups/schemas/popup';
-import { apiClient } from '@/lib/api';
+import { apiClient, parseResponse } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const POPUPS_QUERY_KEY = ['popups'] as const;
@@ -23,7 +24,7 @@ export const usePopups = () => {
 
 const fetchPopup = async (id: number): Promise<Popup> => {
     const response = await apiClient.get(`popups/${id}`);
-    return response.data?.data;
+    return parseResponse(PopupSchema, response.data?.data);
 };
 
 export const usePopup = (id: number | null | undefined) => {
@@ -36,7 +37,7 @@ export const usePopup = (id: number | null | undefined) => {
 
 const createPopup = async (popup: CreatePopup): Promise<Popup> => {
     const response = await apiClient.post('popups', popup);
-    return response.data?.data;
+    return parseResponse(PopupSchema, response.data?.data);
 };
 
 export const useCreatePopupMutation = () => {
@@ -51,7 +52,7 @@ export const useCreatePopupMutation = () => {
 
 const updatePopup = async ({ id, ...popup }: UpdatePopup & { id: number }): Promise<Popup> => {
     const response = await apiClient.put(`popups/${id}`, popup);
-    return response.data?.data;
+    return parseResponse(PopupSchema, response.data?.data);
 };
 
 export const useUpdatePopupMutation = () => {
@@ -67,7 +68,7 @@ export const useUpdatePopupMutation = () => {
 
 const duplicatePopup = async (id: number): Promise<Popup> => {
     const response = await apiClient.post(`popups/${id}/duplicate`);
-    return response.data?.data;
+    return parseResponse(PopupSchema, response.data?.data);
 };
 
 export const useDuplicatePopupMutation = () => {

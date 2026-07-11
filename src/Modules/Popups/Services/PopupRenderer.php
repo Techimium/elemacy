@@ -16,11 +16,24 @@ use Elementor\Plugin as ElementorPlugin;
  */
 class PopupRenderer
 {
+    /**
+     * Echoes the popup's markup.
+     *
+     * @param PopupDTO $popup The popup to render.
+     * @return void
+     */
     public function render(PopupDTO $popup): void
     {
         echo $this->build_markup($popup); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- build_markup escapes attributes and Elementor returns safe builder HTML.
     }
 
+    /**
+     * Builds the popup's root container markup, hidden and templated for the
+     * frontend engine to hydrate on first open.
+     *
+     * @param PopupDTO $popup The popup to render.
+     * @return string
+     */
     public function build_markup(PopupDTO $popup): string
     {
         $id   = (int) $popup->id;
@@ -46,6 +59,12 @@ class PopupRenderer
         // persistent, non-modal UI, so they must not claim role="dialog"/aria-modal.
         if (PopupTypes::POPUP === $type) {
             $html .= ' role="dialog" aria-modal="true"';
+
+            // A dialog needs an accessible name; fall back to the popup's title.
+            $label = get_the_title($id);
+            if ('' !== $label) {
+                $html .= ' aria-label="' . esc_attr($label) . '"';
+            }
         }
 
         $html .= ' aria-hidden="true" hidden>';

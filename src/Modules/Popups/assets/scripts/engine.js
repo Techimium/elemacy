@@ -189,7 +189,7 @@
 			var closeBtn = document.createElement('button');
 			closeBtn.type = 'button';
 			closeBtn.className = 'elemacy-popup__close elemacy-close-popup';
-			closeBtn.setAttribute('aria-label', 'Close');
+			closeBtn.setAttribute('aria-label', (window.elemacyPopups && window.elemacyPopups.i18n && window.elemacyPopups.i18n.close) || 'Close');
 			closeBtn.innerHTML = '&times;';
 			content.appendChild(closeBtn);
 		}
@@ -495,8 +495,15 @@
 			if (event.key === 'Escape' || event.keyCode === 27) {
 				Object.keys(registry).forEach(function (id) {
 					var state = registry[id];
-					if (state.isOpen && state.config.display && state.config.display.close &&
-						state.config.display.close.on_esc) {
+					if (!state.isOpen) {
+						return;
+					}
+					var closeConfig = state.config.display && state.config.display.close;
+					// Modal popups trap Tab focus, so ESC must always close them to
+					// avoid a keyboard trap (WCAG 2.1.2) even when the author turned
+					// off close-on-ESC. Non-modal bars don't trap focus, so they keep
+					// honoring the author's setting.
+					if (state.config.modal || (closeConfig && closeConfig.on_esc)) {
 						close(parseInt(id, 10));
 					}
 				});

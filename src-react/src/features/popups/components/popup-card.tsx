@@ -55,7 +55,7 @@ function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }
                         <span className="font-semibold text-gray-900">{popup.title}</span>
                     </div>
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger aria-label={__('Actions', 'elemacy')}>
                             <EllipsisIcon size={16} aria-hidden="true" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

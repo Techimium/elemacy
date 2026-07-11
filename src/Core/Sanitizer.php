@@ -363,7 +363,7 @@ class Sanitizer
                     break;
                 }
 
-                if (is_valid_json($value)) {
+                if (static::is_valid_json($value)) {
                     $value = json_decode($value, true);
                     break;
                 }
@@ -381,19 +381,22 @@ class Sanitizer
                 // For anything else (int, bool, etc.) cast to array directly
                 $value = [$value];
                 break;
+            case static::MONEY:
+                $value = round((float) preg_replace('/[^0-9.\-]/', '', (string) $value), 2);
+                break;
             case static::DATE:
                 if (empty($value) || strtotime($value) === false) {
                     return null;
                 }
 
-                $value = Date::sql_safe($value, true);
+                $value = gmdate('Y-m-d', strtotime($value));
                 break;
             case static::DATETIME:
                 if (empty($value) || strtotime($value) === false) {
                     return null;
                 }
 
-                $value = Date::sql_safe($value);
+                $value = gmdate('Y-m-d H:i:s', strtotime($value));
                 break;
             default:
                 if (is_callable($type)) {

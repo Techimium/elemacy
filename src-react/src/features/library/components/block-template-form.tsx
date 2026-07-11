@@ -1,6 +1,7 @@
 import { __ } from "@wordpress/i18n"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -18,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import type { CreateBlockTemplate, UpdateBlockTemplate } from "@/features/library/schemas/block-template"
+import { CreateBlockTemplateSchema, type CreateBlockTemplate, type UpdateBlockTemplate } from "@/features/library/schemas/block-template"
 import { useBlockTemplateTypes } from "@/features/library/services/block-template"
 
 interface BlockTemplateFormProps {
@@ -48,6 +49,7 @@ export function BlockTemplateForm({ defaultValues, onSubmit, onSaveAndEdit, subm
     // The selector is hidden when only one type exists, so this keeps the
     // submitted value valid even when the user never sees a choice.
     const form = useForm<CreateBlockTemplate>({
+        resolver: zodResolver(CreateBlockTemplateSchema),
         defaultValues: defaultValues || {
             title: "",
             type: "section",
@@ -149,9 +151,10 @@ export function BlockTemplateForm({ defaultValues, onSubmit, onSaveAndEdit, subm
                     {runSaveAndEdit && (
                         <Button
                             type="button"
+                            variant="elementor"
                             onClick={runSaveAndEdit}
                             disabled={busy}
-                            className="flex-1 bg-[#93003F] text-white hover:bg-[#7a0034]"
+                            className="flex-1"
                         >
                             {pending === 'edit' ? __('Saving...', 'elemacy') : displaySaveAndEditLabel}
                         </Button>

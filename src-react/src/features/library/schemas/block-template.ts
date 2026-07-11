@@ -17,7 +17,7 @@ const BlockTemplateSchema = z.object({
 });
 
 const CreateBlockTemplateSchema = z.object({
-    title: z.string(),
+    title: z.string().min(1, __('Title is required', 'elemacy')),
     type: z.string().min(1, __('Type is required', 'elemacy')),
     status: z.enum(['publish', 'draft', 'trash']),
 });

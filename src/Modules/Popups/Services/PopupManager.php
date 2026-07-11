@@ -27,6 +27,11 @@ class PopupManager
      */
     protected $matched = null;
 
+    /**
+     * Returns the shared PopupManager instance.
+     *
+     * @return self
+     */
     public static function instance(): self
     {
         if (static::$instance === null) {
@@ -36,6 +41,11 @@ class PopupManager
         return static::$instance;
     }
 
+    /**
+     * Wires the frontend hooks that enqueue and render matched popups.
+     *
+     * @return void
+     */
     public function register_hooks(): void
     {
         add_action('wp_enqueue_scripts', [$this, 'maybe_enqueue'], 20);
@@ -56,7 +66,7 @@ class PopupManager
      * canvas should be. Only affects direct singular popup requests, i.e. the
      * editor preview; normal pages are untouched.
      *
-     * @param string $template
+     * @param string $template The template path Elementor is about to load.
      * @return string
      */
     public function force_canvas_template($template)
@@ -119,6 +129,12 @@ class PopupManager
         return $this->matched;
     }
 
+    /**
+     * Enqueues the popup engine and localizes matched-popup config, but only
+     * when at least one popup actually matches the current request.
+     *
+     * @return void
+     */
     public function maybe_enqueue(): void
     {
         $matched = $this->get_matched();
@@ -134,6 +150,9 @@ class PopupManager
 
         wp_localize_script('elemacy-popups-engine', 'elemacyPopups', [
             'popups' => PopupConfigResource::collection($matched),
+            'i18n'   => [
+                'close' => __('Close', 'elemacy'),
+            ],
         ]);
     }
 
@@ -146,7 +165,8 @@ class PopupManager
      * widgets would render unstyled. Forcing these here (on wp_enqueue_scripts)
      * keeps the popup styled and interactive without a flash of unstyled content.
      *
-     * @param \Elemacy\Modules\Popups\DTO\PopupDTO[] $matched
+     * @param \Elemacy\Modules\Popups\DTO\PopupDTO[] $matched The popups matched for this request.
+     * @return void
      */
     protected function enqueue_elementor_assets(array $matched): void
     {
@@ -201,7 +221,8 @@ class PopupManager
      * A top-positioned bar flows at the top of the document, so it is rendered
      * early (wp_body_open) instead of in the footer.
      *
-     * @param \Elemacy\Modules\Popups\DTO\PopupDTO $popup
+     * @param \Elemacy\Modules\Popups\DTO\PopupDTO $popup The popup to check.
+     * @return bool
      */
     protected function is_top_bar($popup): bool
     {

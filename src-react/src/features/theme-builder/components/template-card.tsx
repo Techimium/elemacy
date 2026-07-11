@@ -31,7 +31,7 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithEleme
             <span className="font-semibold text-gray-900">{template.title}</span>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
+            <DropdownMenuTrigger aria-label={__('Actions', 'elemacy')}><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>{__('Actions', 'elemacy')}</DropdownMenuLabel>
               <DropdownMenuSeparator />

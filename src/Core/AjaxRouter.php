@@ -2,6 +2,7 @@
 
 namespace Elemacy\Core;
 
+use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\Response;
 use Elemacy\Core\Http\SiteRequest;
@@ -57,9 +58,11 @@ class AjaxRouter
     protected $nonce_action = null;
 
     /**
-     * Bootstrap the ajax router.
+     * Bootstraps the ajax router: wires every registered route to
+     * `wp_ajax_*`/`wp_ajax_nopriv_*`.
      *
      * @return void
+     * @throws Exception If a route's callback is malformed or its controller/method doesn't exist.
      */
     public static function register()
     {
@@ -78,7 +81,7 @@ class AjaxRouter
                 throw new Exception(sprintf(esc_html__('Method %s not found', 'elemacy'), esc_html($route->callback[1])));
             }
 
-            $controller = new $route->callback[0]();
+            $controller = Container::instance()->make($route->callback[0]);
 
             $callback = function () use ($controller, $route) {
                 // Perform nonce verification if required
@@ -110,7 +113,11 @@ class AjaxRouter
     }
 
     /**
-     * Add an ajax route/action.
+     * Registers an ajax route/action.
+     *
+     * @param string $action   The `admin-ajax.php` action name.
+     * @param array  $callback The controller and method, e.g. `[MyController::class, 'index']`.
+     * @return static
      */
     public static function add_action($action, $callback)
     {
@@ -124,7 +131,9 @@ class AjaxRouter
     }
 
     /**
-     * Add a guest route
+     * Marks this route as accessible to guests (`wp_ajax_nopriv_*`).
+     *
+     * @return $this
      */
     public function for_guest()
     {
@@ -134,7 +143,11 @@ class AjaxRouter
     }
 
     /**
-     * Set the route to require nonce check.
+     * Requires a valid nonce before this route's callback runs.
+     *
+     * @param string|null $nonce_action The nonce action to verify against.
+     *                                  Defaults to the plugin's shared ajax nonce.
+     * @return $this
      */
     public function with_nonce($nonce_action = null)
     {
@@ -145,7 +158,9 @@ class AjaxRouter
     }
 
     /**
-     * Add an authenticated route
+     * Marks this route as accessible only to logged-in users (`wp_ajax_*`).
+     *
+     * @return $this
      */
     public function for_authenticated()
     {
@@ -155,7 +170,9 @@ class AjaxRouter
     }
 
     /**
-     * Get the SiteRequest instance.
+     * Returns the current SiteRequest instance.
+     *
+     * @return SiteRequest
      */
     protected static function get_request_instance()
     {
@@ -163,9 +180,9 @@ class AjaxRouter
     }
 
     /**
-     * Send error response
+     * Converts a caught exception into a JSON error response.
      *
-     * @param Exception $error
+     * @param Exception $error The exception raised by the route's callback.
      * @return void
      */
     protected static function send_error_response(Exception $error)
@@ -177,8 +194,22 @@ class AjaxRouter
             ], $error->getCode() ? $error->getCode() : 422);
         }
 
+        // HttpExceptions carry a client-safe, translated message; surface it.
+        if ($error instanceof HttpException) {
+            return SiteResponse::instance()->json_error([
+                'message' => $error->getMessage(),
+                'errors' => [],
+            ], $error->getCode() ? $error->getCode() : Response::INTERNAL_SERVER_ERROR);
+        }
+
+        // Anything else is unexpected — log it and return a generic message
+        // rather than leaking the raw exception text.
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[Elemacy] ' . get_class($error) . ': ' . $error->getMessage()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+        }
+
         return SiteResponse::instance()->json_error([
-            'message' => $error->getMessage(),
+            'message' => esc_html__('Something went wrong. Please try again.', 'elemacy'),
             'errors' => [],
         ], Response::INTERNAL_SERVER_ERROR);
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConditionsField } from '@/components/conditions/conditions-field';
-import type { CreatePopup, UpdatePopup } from '@/features/popups/schemas/popup';
+import { CreatePopupSchema, type CreatePopup, type UpdatePopup } from '@/features/popups/schemas/popup';
 import { STATUS_OPTIONS, type PopupType } from '@/features/popups/constants/popups';
 import { TypeField } from './type-field';
 import { TriggersField } from './triggers/triggers-field';
@@ -59,6 +60,7 @@ export function PopupForm({
     const busy = pending !== null;
 
     const form = useForm<CreatePopup>({
+        resolver: zodResolver(CreatePopupSchema),
         defaultValues: defaultValues || {
             title: '',
             type: 'popup',
@@ -191,9 +193,10 @@ export function PopupForm({
                     {runSaveAndEdit && (
                         <Button
                             type="button"
+                            variant="elementor"
                             onClick={runSaveAndEdit}
                             disabled={busy}
-                            className="flex-1 bg-[#93003F] text-white hover:bg-[#7a0034]"
+                            className="flex-1"
                         >
                             {pending === 'edit'
                                 ? __('Saving...', 'elemacy')

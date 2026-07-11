@@ -1,31 +1,33 @@
 import type { ComponentType } from 'react';
+import type { SlotName, SlotPropsMap } from '@/lib/slots';
 
-type SlotFill<P = Record<string, unknown>> = ComponentType<P>;
+type AnyFill = ComponentType<Record<string, unknown>>;
 
-const fills = new Map<string, SlotFill[]>();
-const listeners = new Map<string, Set<() => void>>();
-const EMPTY: readonly SlotFill[] = [];
+const fills = new Map<SlotName, AnyFill[]>();
+const listeners = new Map<SlotName, Set<() => void>>();
+const EMPTY: readonly AnyFill[] = [];
 
-function notify(slot: string): void {
+function notify(slot: SlotName): void {
     listeners.get(slot)?.forEach(fn => fn());
 }
 
-function register(slot: string, component: SlotFill): void {
+function register<N extends SlotName>(slot: N, component: ComponentType<SlotPropsMap[N]>): void {
+    const fill = component as AnyFill;
     const existing = fills.get(slot) ?? [];
-    if (existing.includes(component)) {
+    if (existing.includes(fill)) {
         console.warn(`[Registry] Component already registered in slot "${slot}"`);
         return;
     }
 
-    fills.set(slot, [...existing, component]);
+    fills.set(slot, [...existing, fill]);
     notify(slot);
 }
 
-function unregister(slot: string, component: SlotFill): void {
+function unregister<N extends SlotName>(slot: N, component: ComponentType<SlotPropsMap[N]>): void {
     const existing = fills.get(slot);
     if (!existing) return;
 
-    const filtered = existing.filter(c => c !== component);
+    const filtered = existing.filter(c => c !== (component as AnyFill));
     if (filtered.length === 0) {
         fills.delete(slot);
     } else {
@@ -35,11 +37,11 @@ function unregister(slot: string, component: SlotFill): void {
     notify(slot);
 }
 
-function get(slot: string): readonly SlotFill[] {
-    return fills.get(slot) ?? EMPTY;
+function get<N extends SlotName>(slot: N): readonly ComponentType<SlotPropsMap[N]>[] {
+    return (fills.get(slot) ?? EMPTY) as readonly ComponentType<SlotPropsMap[N]>[];
 }
 
-function subscribe(slot: string, fn: () => void): () => void {
+function subscribe(slot: SlotName, fn: () => void): () => void {
     if (!listeners.has(slot)) listeners.set(slot, new Set());
     listeners.get(slot)!.add(fn);
 
@@ -54,11 +56,11 @@ function subscribe(slot: string, fn: () => void): () => void {
     };
 }
 
-function has(slot: string): boolean {
+function has(slot: SlotName): boolean {
     return fills.has(slot) && fills.get(slot)!.length > 0;
 }
 
-function clear(slot?: string): void {
+function clear(slot?: SlotName): void {
     if (slot) {
         fills.delete(slot);
         notify(slot);

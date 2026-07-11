@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { __ } from "@wordpress/i18n"
 import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -19,7 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ConditionsField } from "@/components/conditions/conditions-field"
-import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
+import { CreateTemplateSchema, type CreateTemplate, type UpdateTemplate } from "@/features/theme-builder/schemas/template"
 import { useTemplateTypes } from "@/features/theme-builder/services/template"
 
 interface TemplateFormProps {
@@ -46,6 +47,7 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
     const busy = pending !== null;
 
     const form = useForm<CreateTemplate>({
+        resolver: zodResolver(CreateTemplateSchema),
         defaultValues: defaultValues || {
             title: "",
             type: "header",
@@ -157,9 +159,10 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
                     {runSaveAndEdit && (
                         <Button
                             type="button"
+                            variant="elementor"
                             onClick={runSaveAndEdit}
                             disabled={busy}
-                            className="flex-1 bg-[#93003F] text-white hover:bg-[#7a0034]"
+                            className="flex-1"
                         >
                             {pending === 'edit' ? __('Saving...', 'elemacy') : displaySaveAndEditLabel}
                         </Button>

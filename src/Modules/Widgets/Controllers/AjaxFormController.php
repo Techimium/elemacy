@@ -48,6 +48,8 @@ class AjaxFormController
 
         $settings = $widget->get_settings();
 
+        $this->validate_submission($settings['form_fields'] ?? [], $form_data);
+
         $actions = $settings['submit_actions'] ?? [];
 
         if (in_array('email', $actions, true)) {
@@ -63,6 +65,46 @@ class AjaxFormController
         SiteResponse::instance()->success([
             'message' => esc_html__('Form submitted successfully!', 'elemacy'),
         ]);
+    }
+
+    /**
+     * Re-validate required fields and email formats server-side. The browser
+     * enforces these too, but a direct POST (or a client with scripting disabled)
+     * must not be able to trigger form actions with missing or malformed data.
+     *
+     * @param array<int,array<string,mixed>> $form_fields
+     * @param array<int,mixed>               $form_data
+     */
+    protected function validate_submission(array $form_fields, array $form_data): void
+    {
+        $errors = [];
+
+        foreach ($form_fields as $index => $field) {
+            $value    = $form_data[$index] ?? '';
+            $is_empty = is_array($value) ? empty($value) : ('' === trim((string) $value));
+
+            if (!empty($field['required']) && $is_empty) {
+                $label = isset($field['label']) ? (string) $field['label'] : '';
+
+                if ('' !== $label) {
+                    /* translators: %s: form field label. */
+                    $errors[(string) $index] = sprintf(esc_html__('%s is required.', 'elemacy'), esc_html($label));
+                } else {
+                    $errors[(string) $index] = esc_html__('This field is required.', 'elemacy');
+                }
+
+                continue;
+            }
+
+            if (!$is_empty && isset($field['type']) && 'email' === $field['type'] && !is_email((string) $value)) {
+                $errors[(string) $index] = esc_html__('Please enter a valid email address.', 'elemacy');
+            }
+        }
+
+        if (!empty($errors)) {
+            // $errors values are individually escaped above.
+            throw ValidationException::with_errors($errors, esc_html__('Please correct the highlighted fields.', 'elemacy')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+        }
     }
 
     protected function find_element($elements, $widget_id)

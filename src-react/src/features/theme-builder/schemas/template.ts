@@ -20,13 +20,12 @@ const TemplateSchema = z.object({
     status: z.enum(['publish', 'draft', 'trash']),
     author: z.number(),
     edit_with_elementor: z.string(),
-    created_at: z.string().optional(),
-    updated_at: z.string().optional(),
+    date: z.string().nullable().optional(),
     conditions: z.array(ConditionRuleSchema).optional(),
 });
 
 const CreateTemplateSchema = z.object({
-    title: z.string(),
+    title: z.string().min(1, __('Title is required', 'elemacy')),
     type: z.string().min(1, __('Type is required', 'elemacy')),
     status: z.enum(['publish', 'draft', 'trash']),
     conditions: z.array(ConditionRuleSchema).optional(),

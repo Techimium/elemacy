@@ -1,10 +1,11 @@
-import type { CreateTemplate, Template, TemplateType, UpdateTemplate } from "@/features/theme-builder/schemas/template";
-import { apiClient } from "@/lib/api";
+import { z } from "zod";
+import { TemplateSchema, type CreateTemplate, type Template, type TemplateType, type UpdateTemplate } from "@/features/theme-builder/schemas/template";
+import { apiClient, parseResponse } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const fetchTemplates = async (): Promise<Template[]> => {
     const response = await apiClient.get('theme-builder/templates');
-    return response.data?.data;
+    return parseResponse(z.array(TemplateSchema), response.data?.data ?? []);
 };
 
 export const useTemplates = () => {
@@ -29,7 +30,7 @@ export const useTemplateTypes = () => {
 
 const createTemplate = async (template: CreateTemplate): Promise<Template> => {
     const response = await apiClient.post('theme-builder/templates', template);
-    return response.data?.data;
+    return parseResponse(TemplateSchema, response.data?.data);
 };
 
 export const useCreateTemplateMutation = () => {
@@ -44,7 +45,7 @@ export const useCreateTemplateMutation = () => {
 
 const updateTemplate = async ({ id, ...template }: UpdateTemplate & { id: number }): Promise<Template> => {
     const response = await apiClient.put(`theme-builder/templates/${id}`, template);
-    return response.data?.data;
+    return parseResponse(TemplateSchema, response.data?.data);
 };
 
 export const useUpdateTemplateMutation = () => {
@@ -59,7 +60,7 @@ export const useUpdateTemplateMutation = () => {
 
 const duplicateTemplate = async (id: number): Promise<Template> => {
     const response = await apiClient.post(`theme-builder/templates/${id}/duplicate`);
-    return response.data?.data;
+    return parseResponse(TemplateSchema, response.data?.data);
 };
 
 export const useDuplicateTemplateMutation = () => {
