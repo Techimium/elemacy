@@ -41,10 +41,13 @@ class LibraryController
 
     public function index(Request $request)
     {
-        $templates = $this->service->get_all(BlockTemplateListFilterDTO::from_array($request->all()));
+        $result = $this->service->get_all(BlockTemplateListFilterDTO::from_array($request->all()));
 
         return Response::create()->json([
-            'data' => BlockTemplateResource::collection($templates),
+            'data' => [
+                'results' => BlockTemplateResource::collection($result->items),
+                'pagination' => $result->pagination(),
+            ],
             'message' => __('Templates retrieved successfully', 'elemacy'),
         ]);
     }

@@ -1,17 +1,33 @@
-import { z } from "zod";
 import { TemplateSchema, type CreateTemplate, type Template, type TemplateType, type UpdateTemplate } from "@/features/theme-builder/schemas/template";
 import { apiClient, parseResponse } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { parsePage } from "@/lib/pagination";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const fetchTemplates = async (): Promise<Template[]> => {
-    const response = await apiClient.get('theme-builder/templates');
-    return parseResponse(z.array(TemplateSchema), response.data?.data ?? []);
+const TEMPLATES_PER_PAGE = 20;
+
+export type TemplateFilters = { search?: string; type?: string };
+
+const fetchTemplates = async (filters: TemplateFilters, page: number) => {
+    const response = await apiClient.get('theme-builder/templates', {
+        params: { search: filters.search, type: filters.type, page, per_page: TEMPLATES_PER_PAGE },
+    });
+    return parsePage(TemplateSchema, response.data?.data);
 };
 
-export const useTemplates = () => {
-    return useQuery({
-        queryKey: ['templates'],
-        queryFn: fetchTemplates,
+export const useTemplates = (filters: TemplateFilters) => {
+    return useInfiniteQuery({
+        queryKey: ['templates', filters],
+        queryFn: ({ pageParam }) => fetchTemplates(filters, pageParam),
+        initialPageParam: 1,
+        getNextPageParam: (last) =>
+            last.pagination.page < last.pagination.total_pages ? last.pagination.page + 1 : undefined,
+        // Keep only the previous filter's first page as a placeholder (not every
+        // page scrolled to) — avoids a full-height spinner on every keystroke
+        // without flashing dozens of stale, filter-mismatched cards.
+        placeholderData: (previousData) =>
+            previousData
+                ? { pages: previousData.pages.slice(0, 1), pageParams: previousData.pageParams.slice(0, 1) }
+                : previousData,
     });
 };
 

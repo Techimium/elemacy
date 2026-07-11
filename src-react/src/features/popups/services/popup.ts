@@ -1,24 +1,40 @@
 import {
+    PopupListItemSchema,
     PopupSchema,
     type CreatePopup,
     type Popup,
-    type PopupListItem,
     type UpdatePopup,
 } from '@/features/popups/schemas/popup';
 import { apiClient, parseResponse } from '@/lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parsePage } from '@/lib/pagination';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const POPUPS_QUERY_KEY = ['popups'] as const;
+const POPUPS_PER_PAGE = 20;
 
-const fetchPopups = async (): Promise<PopupListItem[]> => {
-    const response = await apiClient.get('popups');
-    return response.data?.data ?? [];
+export type PopupFilters = { search?: string; type?: string };
+
+const fetchPopups = async (filters: PopupFilters, page: number) => {
+    const response = await apiClient.get('popups', {
+        params: { search: filters.search, type: filters.type, page, per_page: POPUPS_PER_PAGE },
+    });
+    return parsePage(PopupListItemSchema, response.data?.data);
 };
 
-export const usePopups = () => {
-    return useQuery({
-        queryKey: POPUPS_QUERY_KEY,
-        queryFn: fetchPopups,
+export const usePopups = (filters: PopupFilters) => {
+    return useInfiniteQuery({
+        queryKey: [...POPUPS_QUERY_KEY, filters],
+        queryFn: ({ pageParam }) => fetchPopups(filters, pageParam),
+        initialPageParam: 1,
+        getNextPageParam: (last) =>
+            last.pagination.page < last.pagination.total_pages ? last.pagination.page + 1 : undefined,
+        // Keep only the previous filter's first page as a placeholder (not every
+        // page scrolled to) — avoids a full-height spinner on every keystroke
+        // without flashing dozens of stale, filter-mismatched cards.
+        placeholderData: (previousData) =>
+            previousData
+                ? { pages: previousData.pages.slice(0, 1), pageParams: previousData.pageParams.slice(0, 1) }
+                : previousData,
     });
 };
 

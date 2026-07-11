@@ -35,10 +35,13 @@ class ThemeBuilderController
     public function index(Request $request)
     {
         $filter_dto = TemplateListFilterDTO::from_array($request->all());
-        $templates = $this->service->get_all($filter_dto);
+        $result = $this->service->get_all($filter_dto);
 
         return Response::create()->json([
-            'data' => TemplateListResource::collection($templates),
+            'data' => [
+                'results' => TemplateListResource::collection($result->items),
+                'pagination' => $result->pagination(),
+            ],
             'message' => __('Templates retrieved successfully', 'elemacy')
         ]);
     }

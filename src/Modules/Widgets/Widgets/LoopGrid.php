@@ -59,7 +59,7 @@ class LoopGrid extends BaseWidget
     protected function get_loop_templates()
     {
         if ($this->loop_templates === null) {
-            $this->loop_templates = (new BlockTemplateService())->get_all(
+            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
                 BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
             );
         }

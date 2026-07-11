@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { PopupListItem } from '../schemas/popup';
 import {
     useDeletePopupMutation,
@@ -16,35 +16,46 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquareIcon, SearchIcon } from 'lucide-react';
+import { MessageSquareIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EditPopupModal } from './edit-popup-modal';
 import { DeletePopupDialog } from './delete-popup-dialog';
 import Spinner from '@/components/spinner';
+import { ListToolbar, type FilterOption } from '@/components/list/list-toolbar';
+import { InfiniteScrollSentinel } from '@/components/list/infinite-scroll-sentinel';
+import { useDebounce } from '@/hooks/use-debounce';
 import { POPUP_TYPES } from '../constants/popups';
 
-const FILTERS = [{ value: 'all', label: __('All', 'elemacy') }, ...POPUP_TYPES];
+const ALL_FILTER = 'all';
+
+const FILTERS: FilterOption[] = [
+    { value: ALL_FILTER, label: __('All', 'elemacy') },
+    ...POPUP_TYPES.map((type) => ({ value: type.value, label: type.label })),
+];
 
 function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [deletingPopup, setDeletingPopup] = useState<PopupListItem | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [filter, setFilter] = useState<string>('all');
+    const [filter, setFilter] = useState<string>(ALL_FILTER);
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 300);
 
-    const { data: popups, isLoading } = usePopups();
+    const {
+        data,
+        isLoading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = usePopups({
+        search: debouncedSearch || undefined,
+        type: filter === ALL_FILTER ? undefined : filter,
+    });
+
     const { mutateAsync: deletePopup, isPending: isDeleting } = useDeletePopupMutation();
     const { mutate: duplicatePopup } = useDuplicatePopupMutation();
 
-    const filtered = useMemo(() => {
-        if (!popups) return [];
-        const byType = filter === 'all' ? popups : popups.filter((p) => p.type === filter);
-        const query = search.trim().toLowerCase();
-        if (!query) return byType;
-        return byType.filter((p) => p.title.toLowerCase().includes(query));
-    }, [popups, filter, search]);
+    const popups = data?.pages.flatMap((page) => page.results) ?? [];
 
     const handleEdit = (popup: PopupListItem) => {
         setEditingId(popup.id);
@@ -57,53 +68,43 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
         setDeletingPopup(null);
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <Spinner />
-            </div>
-        );
-    }
-
     return (
         <>
-            <div className="flex items-center justify-between gap-4">
-                <Tabs value={filter} onValueChange={setFilter}>
-                    <TabsList>
-                        {FILTERS.map((f) => (
-                            <TabsTrigger key={f.value} value={f.value}>
-                                {f.label}
-                            </TabsTrigger>
+            <ListToolbar
+                search={search}
+                onSearchChange={setSearch}
+                searchPlaceholder={__('Search popups…', 'elemacy')}
+                filters={FILTERS}
+                filter={filter}
+                onFilterChange={setFilter}
+            />
+
+            {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                    <Spinner />
+                </div>
+            ) : popups.length > 0 ? (
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {popups.map((popup) => (
+                            <PopupCard
+                                key={popup.id}
+                                popup={popup}
+                                onEdit={handleEdit}
+                                onEditWithElementor={() =>
+                                    window.open(popup.edit_with_elementor, '_blank')
+                                }
+                                onDuplicate={(popup) => duplicatePopup(popup.id)}
+                                onDelete={(popup) => setDeletingPopup(popup)}
+                            />
                         ))}
-                    </TabsList>
-                </Tabs>
-
-                <div className="relative w-full max-w-xs">
-                    <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder={__('Search popups…', 'elemacy')}
-                        className="pl-9"
+                    </div>
+                    <InfiniteScrollSentinel
+                        onLoadMore={fetchNextPage}
+                        hasMore={hasNextPage}
+                        isLoading={isFetchingNextPage}
                     />
-                </div>
-            </div>
-
-            {filtered.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {filtered.map((popup) => (
-                        <PopupCard
-                            key={popup.id}
-                            popup={popup}
-                            onEdit={handleEdit}
-                            onEditWithElementor={() =>
-                                window.open(popup.edit_with_elementor, '_blank')
-                            }
-                            onDuplicate={(p) => duplicatePopup(p.id)}
-                            onDelete={(p) => setDeletingPopup(p)}
-                        />
-                    ))}
-                </div>
+                </>
             ) : (
                 <Card>
                     <Empty>
@@ -113,12 +114,12 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                             </EmptyMedia>
                             <EmptyTitle>{__('No Popups Yet', 'elemacy')}</EmptyTitle>
                             <EmptyDescription>
-                                {filter === 'all'
+                                {filter === ALL_FILTER && !debouncedSearch
                                     ? __(
                                           "You haven't created any popups yet. Get started by creating your first popup.",
                                           'elemacy'
                                       )
-                                    : __('No popups of this type yet.', 'elemacy')}
+                                    : __('No popups match your search or filter.', 'elemacy')}
                             </EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>

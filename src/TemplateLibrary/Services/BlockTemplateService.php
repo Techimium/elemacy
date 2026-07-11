@@ -5,6 +5,7 @@ namespace Elemacy\TemplateLibrary\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
+use Elemacy\Core\DTO\PaginatedResultDTO;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
@@ -30,17 +31,53 @@ class BlockTemplateService
 {
     const GROUP = 'block';
 
-    public function get_all(BlockTemplateListFilterDTO $filter_dto): array
+    /**
+     * Default page size when the request omits (or under/over-shoots) per_page.
+     *
+     * @var int
+     */
+    const DEFAULT_PER_PAGE = 20;
+
+    /**
+     * A page of block templates (BlockTemplateDTO items) matching the filter, plus pagination totals.
+     */
+    public function get_all(BlockTemplateListFilterDTO $filter_dto): PaginatedResultDTO
+    {
+        $page = max(1, (int) $filter_dto->page);
+        $per_page = (int) $filter_dto->per_page;
+        $per_page = $per_page > 0 ? min(100, $per_page) : self::DEFAULT_PER_PAGE;
+
+        $query = $this->query($filter_dto, $per_page, $page);
+        $templates = $this->hydrate($query);
+
+        return new PaginatedResultDTO($templates, (int) $query->found_posts, (int) $query->max_num_pages, $page, $per_page);
+    }
+
+    /**
+     * Every block template matching the filter, unbounded — for internal callers
+     * (e.g. an Elementor control's option list) that need the full set rather
+     * than one REST page. Never expose this to a REST/query-string caller: an
+     * unbounded fetch on a large library is expensive and defeats pagination.
+     *
+     * @return BlockTemplateDTO[]
+     */
+    public function get_all_unbounded(BlockTemplateListFilterDTO $filter_dto): array
+    {
+        return $this->hydrate($this->query($filter_dto, -1, 1));
+    }
+
+    private function query(BlockTemplateListFilterDTO $filter_dto, int $per_page, int $page): WP_Query
     {
         $query_args = [
             'post_type' => LibraryPostType::POST_TYPE,
             'post_status' => PostStatus::ANY,
-            'posts_per_page' => -1,
+            'posts_per_page' => $per_page,
+            'paged' => $page,
             'orderby' => 'date',
             'order' => 'DESC',
         ];
 
-        if (!empty($filter_dto->search)) {
+        if (is_string($filter_dto->search) && $filter_dto->search !== '') {
             $query_args['s'] = $filter_dto->search;
         }
 
@@ -67,8 +104,14 @@ class BlockTemplateService
             $query_args['post_status'] = $filter_dto->status;
         }
 
-        $query = new WP_Query($query_args);
+        return new WP_Query($query_args);
+    }
 
+    /**
+     * @return BlockTemplateDTO[]
+     */
+    private function hydrate(WP_Query $query): array
+    {
         $templates = [];
 
         if ($query->have_posts()) {

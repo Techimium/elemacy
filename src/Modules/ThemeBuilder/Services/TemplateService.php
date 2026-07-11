@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
+use Elemacy\Core\DTO\PaginatedResultDTO;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
@@ -21,6 +22,13 @@ use WP_Query;
 
 class TemplateService
 {
+    /**
+     * Default page size when the request omits (or under/over-shoots) per_page.
+     *
+     * @var int
+     */
+    const DEFAULT_PER_PAGE = 20;
+
     protected ConditionRepository $conditions;
 
     public function __construct()
@@ -28,17 +36,25 @@ class TemplateService
         $this->conditions = new ConditionRepository();
     }
 
-    public function get_all(TemplateListFilterDTO $filter_dto)
+    /**
+     * A page of theme templates (TemplateDTO items) matching the filter, plus pagination totals.
+     */
+    public function get_all(TemplateListFilterDTO $filter_dto): PaginatedResultDTO
     {
+        $page = max(1, (int) $filter_dto->page);
+        $per_page = (int) $filter_dto->per_page;
+        $per_page = $per_page > 0 ? min(100, $per_page) : self::DEFAULT_PER_PAGE;
+
         $query_args = [
             'post_type' => LibraryPostType::POST_TYPE,
             'post_status' => PostStatus::ANY,
-            'posts_per_page' => -1,
+            'posts_per_page' => $per_page,
+            'paged' => $page,
             'orderby' => 'date',
             'order' => 'DESC',
         ];
 
-        if (!empty($filter_dto->search)) {
+        if (is_string($filter_dto->search) && $filter_dto->search !== '') {
             $query_args['s'] = $filter_dto->search;
         }
 
@@ -77,7 +93,7 @@ class TemplateService
             wp_reset_postdata();
         }
 
-        return $templates;
+        return new PaginatedResultDTO($templates, (int) $query->found_posts, (int) $query->max_num_pages, $page, $per_page);
     }
 
     public function get(int $id)

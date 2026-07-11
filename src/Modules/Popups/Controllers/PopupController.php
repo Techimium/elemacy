@@ -27,10 +27,13 @@ class PopupController
     public function index(Request $request)
     {
         $filter_dto = PopupListFilterDTO::from_array($request->all());
-        $popups = $this->service->get_all($filter_dto);
+        $result = $this->service->get_all($filter_dto);
 
         return Response::create()->json([
-            'data' => PopupListResource::collection($popups),
+            'data' => [
+                'results' => PopupListResource::collection($result->items),
+                'pagination' => $result->pagination(),
+            ],
             'message' => __('Popups retrieved successfully', 'elemacy')
         ]);
     }
