@@ -377,17 +377,18 @@ class Sanitizer
                     break;
                 }
 
-                if (is_serialized($value)) {
-                    $value = maybe_unserialize($value);
-                    break;
-                }
-
                 if (is_object($value)) {
                     $value = (array) $value;
                     break;
                 }
 
-                // For anything else (int, bool, etc.) cast to array directly
+                // Anything else (a plain string, int, bool, …) is wrapped as a
+                // single-element array. PHP-serialized strings are intentionally
+                // NOT unserialized here: this rule runs on untrusted request
+                // input (including guest endpoints), and unserialize() on
+                // attacker-controlled data is a PHP object-injection vector.
+                // Real clients send JSON or an actual array; nothing legitimate
+                // arrives PHP-serialized.
                 $value = [$value];
                 break;
             case static::ARRAY_DEEP:
