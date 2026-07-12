@@ -101,7 +101,12 @@ function elemacy_uninstall_current_site(): void
 if (is_multisite()) {
     // number => 0 lifts WP_Site_Query's default 100-site cap so every site is
     // cleaned, not just the first hundred.
-    foreach (get_sites(['fields' => 'ids', 'number' => 0]) as $elemacy_site_id) {
+    $elemacy_all_site_ids = get_sites([
+        'fields' => 'ids',
+        'number' => 0,
+    ]);
+
+    foreach ($elemacy_all_site_ids as $elemacy_site_id) {
         switch_to_blog((int) $elemacy_site_id);
         elemacy_uninstall_current_site();
         restore_current_blog();
