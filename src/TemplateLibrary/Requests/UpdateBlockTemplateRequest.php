@@ -15,7 +15,7 @@ class UpdateBlockTemplateRequest extends Request
             'id' => 'required|integer',
             'title' => 'required|string',
             'type' => 'required|string',
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:publish,draft,trash',
         ];
     }
 

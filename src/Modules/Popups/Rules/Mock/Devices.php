@@ -27,6 +27,7 @@ class Devices extends MockRule
         return [
             [
                 'key'     => 'allow',
+                'label'   => __('Show on', 'elemacy'),
                 'type'    => 'checkbox-group',
                 'default' => ['desktop', 'tablet', 'mobile'],
                 'options' => [

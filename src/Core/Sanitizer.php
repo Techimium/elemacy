@@ -404,18 +404,20 @@ class Sanitizer
                 $value = round((float) preg_replace('/[^0-9.\-]/', '', (string) $value), 2);
                 break;
             case static::DATE:
-                if (empty($value) || strtotime($value) === false) {
+                // Only scalars can hold a date string; an array/object here is
+                // malformed input (and would fatal strtotime() on PHP 8).
+                if (!is_scalar($value) || empty($value) || strtotime((string) $value) === false) {
                     return null;
                 }
 
-                $value = gmdate('Y-m-d', strtotime($value));
+                $value = gmdate('Y-m-d', strtotime((string) $value));
                 break;
             case static::DATETIME:
-                if (empty($value) || strtotime($value) === false) {
+                if (!is_scalar($value) || empty($value) || strtotime((string) $value) === false) {
                     return null;
                 }
 
-                $value = gmdate('Y-m-d H:i:s', strtotime($value));
+                $value = gmdate('Y-m-d H:i:s', strtotime((string) $value));
                 break;
             default:
                 if (is_callable($type)) {

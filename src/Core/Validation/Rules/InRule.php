@@ -18,6 +18,14 @@ class InRule extends BaseRule
      */
     public function validate_rule()
     {
+        // A nullable field that was omitted (or sent null/empty) is the
+        // NullableRule's call, not this rule's — only validate provided values.
+        if (($this->value === null || $this->value === '')
+            && in_array('nullable', (array) $this->all_applied_rules, true)
+        ) {
+            return true;
+        }
+
         $in = $this->rule_value;
 
         if (is_string($in)) {

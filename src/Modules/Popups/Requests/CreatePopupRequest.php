@@ -14,7 +14,7 @@ class CreatePopupRequest extends Request
         return [
             'title' => 'required|string',
             'type' => 'required|string|in:popup,topbar,banner,floating',
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:publish,draft,trash',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',
             'conditions.*.type' => 'string',

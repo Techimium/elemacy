@@ -9,10 +9,12 @@ use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\DTO\PaginatedResultDTO;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
+use Elemacy\Support\PostDates;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
@@ -59,8 +61,10 @@ class TemplateService
         }
 
         // The CPT is shared with popups, so always scope to theme-group types:
-        // either the requested type or every theme type.
-        if (!empty($filter_dto->type)) {
+        // either the requested type (when it really is a theme type — a foreign
+        // type must not leak other groups' items through this endpoint) or every
+        // theme type.
+        if (!empty($filter_dto->type) && in_array($filter_dto->type, $this->theme_types(), true)) {
             $query_args['meta_query'] = [
                 [
                     'key' => MetaKeys::TEMPLATE_TYPE,
@@ -120,6 +124,10 @@ class TemplateService
 
     public function create(CreateTemplateDTO $dto)
     {
+        if (isset($dto->type)) {
+            $this->assert_valid_type((string) $dto->type);
+        }
+
         $post_data = [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::PUBLISH,
@@ -157,6 +165,10 @@ class TemplateService
 
         if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
+        }
+
+        if (isset($dto->type)) {
+            $this->assert_valid_type((string) $dto->type);
         }
 
         $post_data = [
@@ -264,6 +276,21 @@ class TemplateService
     }
 
     /**
+     * Reject a type this service does not own before it is persisted. A foreign
+     * or unknown type would create an item that owns() disowns — invisible to
+     * every list/show/update endpoint — while still sitting in the shared
+     * library CPT.
+     */
+    protected function assert_valid_type(string $type): void
+    {
+        if (!in_array($type, $this->theme_types(), true)) {
+            throw ValidationException::with_errors([
+                'type' => [esc_html__('Invalid template type.', 'elemacy')],
+            ]);
+        }
+    }
+
+    /**
      * Elementor page template the editor (and direct preview) renders the type in.
      * Header/footer are the chrome themselves, so they edit on a bare Canvas; the
      * page-rendering types edit Full Width so the theme/Elemacy header and footer
@@ -311,7 +338,7 @@ class TemplateService
         $dto->status = $post->post_status;
         $dto->type = get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
-        $dto->date = $post->post_date_gmt;
+        $dto->date = PostDates::gmt_datetime($post);
         $dto->conditions = $this->conditions->get($post->ID);
 
         return $dto;
