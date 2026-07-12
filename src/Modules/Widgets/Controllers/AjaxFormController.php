@@ -39,6 +39,17 @@ class AjaxFormController
             throw new ValidationException(esc_html__('Missing required parameters.', 'elemacy'));
         }
 
+        // Only published content renders on the frontend, so a form can only be
+        // legitimately submitted from a published document (page, template, or
+        // popup). Private posts are allowed for users who can actually read them.
+        $post_status = get_post_status($post_id);
+        $is_visible = 'publish' === $post_status
+            || ('private' === $post_status && current_user_can('read_post', $post_id));
+
+        if (!$is_visible) {
+            throw new ValidationException(esc_html__('Invalid post ID.', 'elemacy'));
+        }
+
         $document = Plugin::$instance->documents->get($post_id);
 
         if (!$document) {
@@ -188,21 +199,23 @@ class AjaxFormController
         }
         $reply_to = '';
 
+        $form_fields = isset($settings['form_fields']) && is_array($settings['form_fields']) ? $settings['form_fields'] : [];
+
         // Handle [all-fields] and specific field shortcodes
         if (strpos($content, '[all-fields]') !== false) {
             $all_fields_text = '';
-            foreach ($settings['form_fields'] as $index => $field) {
+            foreach ($form_fields as $index => $field) {
                 $val = isset($form_data[$index]) ? $form_data[$index] : '';
                 if (is_array($val)) {
                     $val = implode(', ', $val);
                 }
-                $all_fields_text .= '<strong>' . esc_html($field['label']) . ':</strong> ' . esc_html($val) . '<br>';
+                $all_fields_text .= '<strong>' . esc_html($field['label'] ?? '') . ':</strong> ' . esc_html($val) . '<br>';
             }
             $content = str_replace('[all-fields]', $all_fields_text, $content);
         }
 
         // Handle specific field shortcodes
-        foreach ($settings['form_fields'] as $index => $field) {
+        foreach ($form_fields as $index => $field) {
             $val = isset($form_data[$index]) ? $form_data[$index] : '';
             if (is_array($val)) {
                 $val = implode(', ', $val);
@@ -222,8 +235,8 @@ class AjaxFormController
         // Also handle Reply-To if it's a field ID or email
         if (!empty($settings['email_reply_to'])) {
             // If reply_to is an index of form_fields
-            foreach ($settings['form_fields'] as $index => $field) {
-                if ($field['label'] === $settings['email_reply_to'] || 
+            foreach ($form_fields as $index => $field) {
+                if (($field['label'] ?? '') === $settings['email_reply_to'] ||
                     (string) $index === (string) $settings['email_reply_to'] || 
                     (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])) {
                     $reply_to = isset($form_data[$index]) ? sanitize_email((string) $form_data[$index]) : '';
