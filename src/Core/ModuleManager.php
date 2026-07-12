@@ -100,7 +100,7 @@ class ModuleManager
      */
     public function init_modules(): void
     {
-        $stored = get_option(OptionKeys::ACTIVE_MODULES, []);
+        $stored = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
 
         foreach ($this->modules as $name => $module) {
             if ($module->is_always_active() || in_array($name, $stored, true)) {
@@ -131,7 +131,7 @@ class ModuleManager
             throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
         }
 
-        $active = get_option(OptionKeys::ACTIVE_MODULES, []);
+        $active = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
 
         if (!in_array($name, $active, true)) {
             $active[] = $name;
@@ -156,7 +156,7 @@ class ModuleManager
             throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
         }
 
-        $stored = get_option(OptionKeys::ACTIVE_MODULES, []);
+        $stored = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
 
         if (!in_array($name, $stored, true)) {
             return;

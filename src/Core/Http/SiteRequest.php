@@ -39,7 +39,8 @@ class SiteRequest implements Request
 
     public function get_headers()
     {
-        $this->headers = getallheaders();
+        // getallheaders() is missing on some SAPIs (e.g. CLI); never fatal there.
+        $this->headers = function_exists('getallheaders') ? getallheaders() : [];
 
         return $this->headers;
     }

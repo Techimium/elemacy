@@ -6,6 +6,7 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
+use Elementor\Plugin;
 use Elementor\Repeater;
 
 if (!defined('ABSPATH')) {
@@ -932,12 +933,19 @@ class Form extends BaseWidget
             'data-id' => $this->get_id(),
         ]);
 
+        // The submit handler looks the widget up inside the document that
+        // actually contains it. When the form lives in a Theme Builder
+        // header/footer, popup, or loop template, that is the template document
+        // Elementor has switched to — not the viewed page (get_the_ID()).
+        $document = Plugin::$instance->documents->get_current();
+        $document_id = $document ? $document->get_main_id() : get_the_ID();
+
         ?>
         <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
             <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
                 <input type="hidden" name="action" value="elemacy_widgets_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
-                <input type="hidden" name="post_id" value="<?php echo esc_attr(get_the_ID()); ?>">
+                <input type="hidden" name="post_id" value="<?php echo esc_attr($document_id); ?>">
                 <?php /* Honeypot field for simple spam protection */ ?>
                 <div style="display:none !important;">
                     <label>Do not fill this field</label>

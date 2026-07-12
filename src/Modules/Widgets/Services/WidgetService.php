@@ -147,6 +147,6 @@ class WidgetService
      */
     protected function get_widget_statuses()
     {
-        return get_option(Utils::with_prefix('widgets'), []);
+        return (array) get_option(Utils::with_prefix('widgets'), []);
     }
 }

@@ -717,22 +717,31 @@ class LoopGrid extends BaseWidget
             'prev_text' => $prev_text,
             'next_text' => $next_text,
             'show_all' => $show_all,
-            'type' => 'plain',
+            'type' => 'array',
         ];
 
         if (!empty($settings['paginate_base'])) {
             $paginate_args['base'] = $settings['paginate_base'];
         }
 
-        if (!$show_numbers && $prev_next) {
-            $paginate_args['prev_next'] = true;
-        }
-
         $links = paginate_links($paginate_args);
 
-        if ($links) {
+        if (!is_array($links)) {
+            return;
+        }
+
+        // paginate_links() has no way to suppress the number list, so the
+        // Previous/Next-only mode keeps just the prev/next anchors.
+        if (!$show_numbers) {
+            $links = array_filter($links, static function ($link) {
+                return strpos($link, 'prev page-numbers') !== false
+                    || strpos($link, 'next page-numbers') !== false;
+            });
+        }
+
+        if (!empty($links)) {
             echo '<nav class="elemacy-pagination" role="navigation">';
-            echo wp_kses_post($links);
+            echo wp_kses_post(implode("\n", $links));
             echo '</nav>';
         }
     }
