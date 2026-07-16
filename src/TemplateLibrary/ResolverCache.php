@@ -79,6 +79,12 @@ class ResolverCache
             'order'          => 'DESC',
         ]);
 
+        // fields => 'ids' skips meta-cache priming, so warm it in one query here
+        // rather than paying two uncached meta lookups per item below.
+        if (!empty($query->posts)) {
+            update_meta_cache('post', array_map('intval', $query->posts));
+        }
+
         $index = [];
 
         foreach ($query->posts as $post_id) {

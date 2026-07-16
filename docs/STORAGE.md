@@ -29,7 +29,7 @@ uninstall sweeps and the migration runner stay uniform.
 | `elemacy_active_modules` | `OptionKeys::ACTIVE_MODULES` | yes | `string[]` of module slugs (`theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`). Slugs are stable identifiers — never rename. |
 | `elemacy_db_version` | `OptionKeys::DB_VERSION` | yes | Version string. |
 | `elemacy_library_index` | `TemplateLibrary\ResolverCache::OPTION` | yes | Resolver candidate cache: published library items' id + raw conditions only. Pure cache — deleted and lazily rebuilt on save/trash/delete; safe to drop. |
-| `elemacy_<slug>_<key>` | `Core\Module::get_option()` | varies | Per-module settings (e.g. the Widgets on/off map). Build the key only via `Module::get_option/update_option`. |
+| `elemacy_<name>` | `Support\Utils::with_prefix()` | varies | Per-module settings (e.g. `elemacy_widgets`, the Widgets on/off map written by `WidgetService`). Build keys only via `Utils::with_prefix()`. |
 | `elemacy_pro_license_key` | `License\LicenseManager` (`OPTION_KEY . '_key'`) | yes | The raw license key string. |
 | `elemacy_pro_license_status` | `License\LicenseManager` (`OPTION_KEY . '_status'`) | yes | `array{ valid: bool, expires: ?string, plan: ?string, grace_start: ?int }`. Read through `get_status()`, which `wp_parse_args()`-merges defaults, so adding a key is backward-compatible; **removing or re-typing one needs a migration**. |
 
@@ -49,14 +49,15 @@ those plugins and is out of this contract.
 
 ## Transients
 
-All caches; safe to drop and regenerate. Free uses the `elemacy_` prefix, Pro uses
-`elemacy_pro_` (e.g. `elemacy_pro_update` for the update check, `elemacy_pro_track_*`
-for per-visitor tracking dedup). Both uninstallers delete the value **and** timeout
-rows for their prefix.
+All caches; safe to drop and regenerate. Free uses the `elemacy_` prefix (e.g.
+`elemacy_form_throttle_*` for the per-IP form submission throttle), Pro uses
+`elemacy_pro_` (e.g. `elemacy_pro_update` for the update-check cache). Both
+uninstallers delete the value **and** timeout rows for their prefix.
 
 ## Ownership & cleanup
 
 Each plugin owns and deletes only its own keys: `elemacy/uninstall.php` removes the
 `elemacy_library` posts + meta and `elemacy_%` options (excluding `elemacy_pro_%`);
-`elemacy-pro/uninstall.php` removes `_elemacy_popup_analytics` and `elemacy_pro_%`.
+`elemacy-pro/uninstall.php` removes the `_elemacy_popup_impressions` /
+`_elemacy_popup_conversions` meta and `elemacy_pro_%` options + transients.
 Keep that boundary when adding keys.
