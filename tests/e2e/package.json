@@ -1,0 +1,11 @@
+{
+    "name": "elemacy-e2e",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "node run-popups.mjs"
+    },
+    "devDependencies": {
+        "playwright-core": "^1.49.0"
+    }
+}
