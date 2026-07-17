@@ -933,7 +933,7 @@ msgid "Animations"
 msgstr ""
 
 #: src/Modules/Mock/AnimationsPlaceholder.php:28
-msgid "Add scroll, hover and entrance animations to any Elementor element with no code."
+msgid "Add polished entrance animations to any Elementor element, triggered on scroll or page load — no code required."
 msgstr ""
 
 #: src/Modules/Mock/AnimationsPlaceholder.php:33

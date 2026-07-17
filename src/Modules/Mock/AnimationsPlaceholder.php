@@ -25,7 +25,7 @@ class AnimationsPlaceholder extends Module
 
     public function get_description(): string
     {
-        return __('Add scroll, hover and entrance animations to any Elementor element with no code.', 'elemacy');
+        return __('Add polished entrance animations to any Elementor element, triggered on scroll or page load — no code required.', 'elemacy');
     }
 
     public function get_badge(): ?string
