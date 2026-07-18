@@ -15,11 +15,8 @@ class UpdatePopupRequest extends Request
         return [
             'id' => 'required|integer',
             'title' => 'required|string',
-            // Derived from the registry so new popup-group types (registered via
-            // LIBRARY_TYPES_REGISTER_ACTION, init:20 — before REST dispatch) are
-            // accepted without touching this rule.
             'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('popup')),
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:publish,draft,trash',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',
             'conditions.*.type' => 'string',

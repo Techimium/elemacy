@@ -14,10 +14,8 @@ class CreateBlockTemplateRequest extends Request
     {
         return [
             'title' => 'required|string',
-            // Derived from the registry so new block-group types are accepted
-            // without touching this rule (types register on init, before REST dispatch).
             'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('block')),
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:publish,draft,trash',
         ];
     }
 

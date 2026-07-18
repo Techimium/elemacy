@@ -368,7 +368,9 @@
 	function setupClickTrigger(id, params) {
 		var selector = params && params.selector ? String(params.selector) : '';
 		var state = registry[id];
-		state.clickSelector = selector;
+		if (selector) {
+			state.clickSelectors.push(selector);
+		}
 	}
 
 	function setupTriggers(config) {
@@ -455,11 +457,15 @@
 				}
 			}
 
-			// Per-popup click-trigger selectors.
+			// Per-popup click-trigger selectors (a popup may have several click
+			// triggers; any matching selector opens it).
 			Object.keys(registry).forEach(function (id) {
 				var state = registry[id];
-				if (state.clickSelector && matchesSelector(target, state.clickSelector)) {
-					triggerOpen(parseInt(id, 10));
+				for (var s = 0; s < state.clickSelectors.length; s++) {
+					if (matchesSelector(target, state.clickSelectors[s])) {
+						triggerOpen(parseInt(id, 10));
+						break;
+					}
 				}
 			});
 
@@ -567,7 +573,7 @@
 				isOpen: false,
 				content: null,
 				overlay: null,
-				clickSelector: '',
+				clickSelectors: [],
 				autoCloseTimer: null,
 				lastFocused: null,
 				prevBodyOverflow: ''

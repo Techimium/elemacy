@@ -44,7 +44,13 @@ class Elemacy
     {
         register_activation_hook(ELEMACY_FILE, function ($network_wide = false) {
             if (is_multisite() && $network_wide) {
-                foreach (get_sites(['fields' => 'ids']) as $site_id) {
+                // number => 0 lifts WP_Site_Query's default 100-site cap.
+                $site_ids = get_sites([
+                    'fields' => 'ids',
+                    'number' => 0,
+                ]);
+
+                foreach ($site_ids as $site_id) {
                     switch_to_blog((int) $site_id);
                     $this->seed_site();
                     restore_current_blog();

@@ -27,6 +27,7 @@ class OncePer extends MockRule
         return [
             [
                 'key'     => 'period',
+                'label'   => __('Period', 'elemacy'),
                 'type'    => 'select',
                 'default' => 'session',
                 'options' => [

@@ -23,6 +23,7 @@ class FrequencyCap extends BaseRule
         return [
             [
                 'key'     => 'max',
+                'label'   => __('Maximum displays', 'elemacy'),
                 'type'    => 'number',
                 'default' => 3,
                 'min'     => 1,
