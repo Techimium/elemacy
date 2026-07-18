@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Sanitizer;
+use Elemacy\TemplateLibrary\TypeRegistry;
 
 class UpdatePopupRequest extends Request
 {
@@ -14,7 +15,7 @@ class UpdatePopupRequest extends Request
         return [
             'id' => 'required|integer',
             'title' => 'required|string',
-            'type' => 'required|string|in:popup,topbar,banner,floating',
+            'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('popup')),
             'status' => 'nullable|string|in:publish,draft,trash',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',

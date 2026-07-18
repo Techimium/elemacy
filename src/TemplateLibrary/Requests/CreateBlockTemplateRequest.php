@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Sanitizer;
+use Elemacy\TemplateLibrary\TypeRegistry;
 
 class CreateBlockTemplateRequest extends Request
 {
@@ -13,7 +14,7 @@ class CreateBlockTemplateRequest extends Request
     {
         return [
             'title' => 'required|string',
-            'type' => 'required|string',
+            'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('block')),
             'status' => 'nullable|string|in:publish,draft,trash',
         ];
     }

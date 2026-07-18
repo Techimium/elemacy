@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Elemacy popups engine harness</title>
+<style>.spacer{height:3000px}</style>
+</head>
+<body>
+  <!-- Markup mirrors PopupRenderer::build_markup() exactly. -->
+
+  <!-- 101: modal popup, page_load trigger, frequency_cap max 2 -->
+  <div class="elemacy-popup elemacy-popup-101 elemacy-popup--popup" data-elemacy-popup-id="101" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup A" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-101">
+        <a href="#one" id="p101-link1">first</a>
+        <a href="#two" id="p101-link2">second</a>
+      </div>
+    </template>
+  </div>
+
+  <!-- 102: modal popup, click trigger -->
+  <div class="elemacy-popup elemacy-popup-102 elemacy-popup--popup" data-elemacy-popup-id="102" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup B" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-102"><p>popup B content</p></div>
+    </template>
+  </div>
+
+  <!-- 103: topbar (non-modal), page_load, ESC disabled -->
+  <div class="elemacy-popup elemacy-popup-103 elemacy-popup--topbar" data-elemacy-popup-id="103" data-elemacy-popup-type="topbar" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-103"><p>topbar content</p></div>
+    </template>
+  </div>
+
+  <button type="button" class="open-b">open popup B (click trigger)</button>
+  <button type="button" class="elemacy-open-popup" data-popup-id="102">explicit open B</button>
+
+  <div class="spacer"></div>
+
+  <script>
+    window.elemacyPopups = {
+      popups: [
+        {
+          id: 101, type: 'popup', modal: true,
+          triggers: [{ type: 'page_load', delay: 0 }],
+          rules: [{ type: 'frequency_cap', max: 2 }],
+          display: {
+            position: 'center', sticky: false,
+            overlay: { enabled: true, color: '#000000', opacity: 0.6 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: true, on_esc: true },
+            prevent_body_scroll: true, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_101'
+        },
+        {
+          id: 102, type: 'popup', modal: true,
+          triggers: [{ type: 'click', selector: '.open-b' }],
+          rules: [],
+          display: {
+            position: 'center', sticky: false,
+            overlay: { enabled: true, color: '#000000', opacity: 0.6 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_102'
+        },
+        {
+          id: 103, type: 'topbar', modal: false,
+          triggers: [{ type: 'page_load', delay: 0 }],
+          rules: [],
+          display: {
+            position: 'top', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: false, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_103'
+        }
+      ],
+      i18n: { close: 'Close' }
+    };
+
+    window.__events = [];
+    document.addEventListener('elemacy-popup:shown', function (e) { window.__events.push(['shown', e.detail.id]); });
+    document.addEventListener('elemacy-popup:closed', function (e) { window.__events.push(['closed', e.detail.id]); });
+  </script>
+  <script src="engine.js"></script>
+</body>
+</html>

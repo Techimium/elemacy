@@ -39,3 +39,7 @@ assets/admin/scripts/*
 assets/admin/styles/*
 !assets/admin/styles/admin-global.css
 !assets/admin/styles/dependency-notice.css
+
+# E2E test runtime artifacts (copied from src at run time)
+tests/e2e/node_modules
+tests/e2e/engine.js
