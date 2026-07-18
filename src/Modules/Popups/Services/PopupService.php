@@ -17,6 +17,7 @@ use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
+use Elemacy\Support\PostDates;
 use Elemacy\TemplateLibrary\Constants\MetaKeys as LibraryMetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -62,8 +63,10 @@ class PopupService
         }
 
         // The CPT is shared with theme templates, so always scope to popup-group
-        // types: either the requested type or every popup type.
-        if (!empty($filter_dto->type)) {
+        // types: either the requested type (when it really is a popup type — a
+        // foreign type must not leak other groups' items through this endpoint)
+        // or every popup type.
+        if (!empty($filter_dto->type) && in_array($filter_dto->type, $this->popup_types(), true)) {
             $query_args['meta_query'] = [
                 [
                     'key' => LibraryMetaKeys::TEMPLATE_TYPE,
@@ -347,31 +350,11 @@ class PopupService
         $dto->status = $post->post_status;
         $dto->type = get_post_meta($post->ID, LibraryMetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
-        $dto->date = $this->resolve_gmt_date($post);
+        $dto->date = PostDates::gmt_datetime($post);
         $dto->conditions = $this->conditions->get($post->ID);
         $dto->triggers = $this->get_triggers($post->ID);
         $dto->rules = $this->get_rules($post->ID);
 
         return $dto;
-    }
-
-    /**
-     * WordPress only fills post_date_gmt on publish, leaving drafts with the
-     * '0000-00-00 00:00:00' sentinel. Fall back to the always-set local
-     * post_date so draft popups still show a real date.
-     */
-    private function resolve_gmt_date(WP_Post $post): ?string
-    {
-        $datetime = get_post_datetime($post, 'date', 'gmt');
-
-        if (!$datetime) {
-            $datetime = get_post_datetime($post, 'date', 'local');
-        }
-
-        if (!$datetime) {
-            return null;
-        }
-
-        return $datetime->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 }

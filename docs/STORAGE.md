@@ -29,7 +29,7 @@ uninstall sweeps and the migration runner stay uniform.
 | `elemacy_active_modules` | `OptionKeys::ACTIVE_MODULES` | yes | `string[]` of module slugs (`theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`). Slugs are stable identifiers — never rename. |
 | `elemacy_db_version` | `OptionKeys::DB_VERSION` | yes | Version string. |
 | `elemacy_library_index` | `TemplateLibrary\ResolverCache::OPTION` | yes | Resolver candidate cache: published library items' id + raw conditions only. Pure cache — deleted and lazily rebuilt on save/trash/delete; safe to drop. |
-| `elemacy_<slug>_<key>` | `Core\Module::get_option()` | varies | Per-module settings (e.g. the Widgets on/off map). Build the key only via `Module::get_option/update_option`. |
+| `elemacy_widgets` | `Modules\Widgets\Services\WidgetService` (`Utils::with_prefix('widgets')`) | yes | `array<string, bool>` widget on/off map keyed by widget name. Missing keys default to enabled. Build any new module option key only via `Support\Utils::with_prefix()` so it stays on the `elemacy_` prefix. |
 | `elemacy_pro_license_key` | `License\LicenseManager` (`OPTION_KEY . '_key'`) | yes | The raw license key string. |
 | `elemacy_pro_license_status` | `License\LicenseManager` (`OPTION_KEY . '_status'`) | yes | `array{ valid: bool, expires: ?string, plan: ?string, grace_start: ?int }`. Read through `get_status()`, which `wp_parse_args()`-merges defaults, so adding a key is backward-compatible; **removing or re-typing one needs a migration**. |
 
@@ -40,7 +40,7 @@ uninstall sweeps and the migration runner stay uniform.
 | `_elemacy_template_type` | `TemplateLibrary\Constants\MetaKeys::TEMPLATE_TYPE` | The type discriminator for **every** library item (`header`/`footer`/`single`/`archive`/`404`/`search`/`loop`/`section`/`popup`/`topbar`/`banner`/`floating`). Type names are stable identifiers. |
 | `_elemacy_conditions` | `Conditions\ConditionRepository::META_KEY` | `array` of condition rules; each item validated by `Conditions\DTO\ConditionRuleDTO`. The only place display conditions are stored. |
 | `_elemacy_popup_triggers` | `Modules\Popups\Constants\MetaKeys::TRIGGERS` | `array` of trigger items, each validated by `Modules\Popups\DTO\TriggerDTO` (every item carries a uuid `id`). |
-| `_elemacy_popup_rules` | `Modules\Popups\Constants\MetaKeys::RULES` | `array` of rule items, each validated by `Modules\Popups\DTO\RuleDTO`. |
+| `_elemacy_popup_rules` | `Modules\Popups\Constants\MetaKeys::RULES` | `array` of rule items, each validated by `Modules\Popups\DTO\RuleDTO`. Each item's `params` bag is owned by the rule type's `get_config_schema()`; `datetime` params (e.g. pro's schedule) are stored as timezone-naive `YYYY-MM-DDTHH:mm` strings — the evaluating side owns the timezone interpretation, so changing that is a shape change requiring a migration. |
 | `_elemacy_popup_impressions` | Pro `Extensions\Popups\Services\AnalyticsService::META_IMPRESSIONS` | `int`. Total displays. Incremented via a single atomic `meta_value = meta_value + 1` SQL UPDATE so concurrent frontend beacons can't lose a count. |
 | `_elemacy_popup_conversions` | Pro `Extensions\Popups\Services\AnalyticsService::META_CONVERSIONS` | `int`. Total in-popup conversions (capped once per display client-side). Same atomic increment as impressions. |
 

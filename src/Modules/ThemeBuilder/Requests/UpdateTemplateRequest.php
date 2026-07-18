@@ -15,7 +15,7 @@ class UpdateTemplateRequest extends Request
             'id' => 'required|integer',
             'title' => 'required|string',
             'type' => 'required|string',
-            'status' => 'nullable|string',
+            'status' => 'nullable|string|in:publish,draft,trash',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',
             'conditions.*.type' => 'string',

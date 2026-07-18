@@ -8,6 +8,7 @@ use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\DTO\PaginatedResultDTO;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
@@ -15,6 +16,7 @@ use Elemacy\TemplateLibrary\DTO\CreateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Support\PostDates;
 use Elemacy\Support\Utils;
 use WP_Post;
 use WP_Query;
@@ -82,8 +84,10 @@ class BlockTemplateService
         }
 
         // The CPT is shared with theme templates and popups, so always scope to
-        // block-group types: either the requested type or every block type.
-        if (!empty($filter_dto->type)) {
+        // block-group types: either the requested type (when it really is a
+        // block type — a foreign type must not leak other groups' items through
+        // this endpoint) or every block type.
+        if (!empty($filter_dto->type) && in_array($filter_dto->type, $this->block_types(), true)) {
             $query_args['meta_query'] = [
                 [
                     'key' => MetaKeys::TEMPLATE_TYPE,
@@ -149,6 +153,10 @@ class BlockTemplateService
 
     public function create(CreateBlockTemplateDTO $dto): BlockTemplateDTO
     {
+        if (isset($dto->type)) {
+            $this->assert_valid_type((string) $dto->type);
+        }
+
         $post_id = wp_insert_post([
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::PUBLISH,
@@ -176,6 +184,10 @@ class BlockTemplateService
 
         if (!$this->owns($post)) {
             throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
+        }
+
+        if (isset($dto->type)) {
+            $this->assert_valid_type((string) $dto->type);
         }
 
         $post_data = ['ID' => $id];
@@ -275,6 +287,21 @@ class BlockTemplateService
     }
 
     /**
+     * Reject a type this service does not own before it is persisted. A foreign
+     * or unknown type would create an item that owns() disowns — invisible to
+     * every list/show/update endpoint — while still sitting in the shared
+     * library CPT.
+     */
+    protected function assert_valid_type(string $type): void
+    {
+        if (!in_array($type, $this->block_types(), true)) {
+            throw ValidationException::with_errors([
+                'type' => [esc_html__('Invalid template type.', 'elemacy')],
+            ]);
+        }
+    }
+
+    /**
      * Loop items get their own Elementor document (mapped in the Widgets module's
      * Config/documents.php) so the editor can offer real-data Preview Settings;
      * other block items keep Elementor's built-in page document. Either way the type
@@ -312,7 +339,7 @@ class BlockTemplateService
         $dto->status = $post->post_status;
         $dto->type = get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
         $dto->author = (int) $post->post_author;
-        $dto->date = $post->post_date_gmt;
+        $dto->date = PostDates::gmt_datetime($post);
 
         return $dto;
     }
