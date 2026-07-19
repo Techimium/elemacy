@@ -134,9 +134,9 @@ class PreviewManager
 
     protected function leave_preview(string $kind): void
     {
-        if ('query' === $kind) {
+        if ($kind === 'query') {
             Plugin::instance()->db->restore_current_query();
-        } elseif ('post' === $kind) {
+        } elseif ($kind === 'post') {
             Plugin::instance()->db->restore_current_post();
         }
     }

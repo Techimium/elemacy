@@ -15,6 +15,9 @@ use Exception;
 
 class AjaxRouter
 {
+    const USER_GUEST = 'guest';
+    const USER_AUTH = 'auth';
+
     /**
      * All registered ajax routes/actions.
      *
@@ -102,11 +105,11 @@ class AjaxRouter
                 }
             };
 
-            if ($route->user_type === 'guest' || $route->user_type === null) {
+            if ($route->user_type === static::USER_GUEST || $route->user_type === null) {
                 add_action('wp_ajax_nopriv_' . $route->action, $callback);
             }
 
-            if ($route->user_type === 'auth' || $route->user_type === null) {
+            if ($route->user_type === static::USER_AUTH || $route->user_type === null) {
                 add_action('wp_ajax_' . $route->action, $callback);
             }
         }
@@ -137,7 +140,7 @@ class AjaxRouter
      */
     public function for_guest()
     {
-        $this->user_type = 'guest';
+        $this->user_type = static::USER_GUEST;
 
         return $this;
     }
@@ -164,7 +167,7 @@ class AjaxRouter
      */
     public function for_authenticated()
     {
-        $this->user_type = 'auth';
+        $this->user_type = static::USER_AUTH;
 
         return $this;
     }

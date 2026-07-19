@@ -91,6 +91,7 @@ class Elemacy
             'widgets',
             'custom-css',
             'dynamic-tags',
+            'popups',
         ]);
 
         if ($flush_now) {
@@ -103,13 +104,12 @@ class Elemacy
 
     public function init()
     {
-        $this->load_textdomain();
-        $this->handle_version_update();
-
         if (!$this->check_requirements()) {
             return;
         }
 
+        $this->load_textdomain();
+        $this->handle_version_update();
         $this->init_core_components();
         $this->init_module_manager();
         $this->load_modules();

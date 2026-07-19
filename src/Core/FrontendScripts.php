@@ -1,4 +1,5 @@
 <?php
+
 namespace Elemacy\Core;
 
 if (!defined('ABSPATH')) {
@@ -32,10 +33,10 @@ class FrontendScripts
 
         // Attached at registration: prints whenever the handle is pulled in as
         // a dependency, not only on a direct enqueue.
-        wp_localize_script('elemacy-frontend', 'elemacy', [
+        wp_localize_script('elemacy-frontend', 'elemacy', apply_filters(Hooks::FRONTEND_SCRIPT_DATA_FILTER, [
             'ajax_url' => esc_url_raw(admin_url('admin-ajax.php')),
             'nonce' => wp_create_nonce(Utils::with_prefix('ajax_nonce')),
-        ]);
+        ]));
     }
 
     protected function register_styles()

@@ -21,6 +21,9 @@ final class Hooks
     const ADMIN_SCRIPT_DATA_FILTER     = 'elemacy/filter/admin_script_data';
     const ENQUEUE_ADMIN_SCRIPTS_ACTION = 'elemacy/action/enqueue_admin_scripts';
 
+    // Frontend scripts
+    const FRONTEND_SCRIPT_DATA_FILTER     = 'elemacy/filter/frontend_script_data';
+
     // Widgets
     // Filters the widget catalog (the Config/widgets.php array) so add-ons can
     // register widgets into Elementor, the admin toggle list, and the REST API

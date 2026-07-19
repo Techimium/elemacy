@@ -22,7 +22,7 @@ class ModuleController
 
         return Response::create()->json([
             'data' => $module_manager->to_array(),
-            'message' => 'Modules fetched successfully',
+            'message' => esc_html__('Modules fetched successfully', 'elemacy'),
         ]);
     }
 
@@ -38,8 +38,8 @@ class ModuleController
     {
         $action = $request->get_string('action');
         $module_manager = Elemacy::get_instance()->get_module_manager();
-
         $module = $module_manager->get_module($name);
+
         if ($module && $module->is_mock()) {
             throw new HttpException(
                 esc_html__('This module is not available yet.', 'elemacy'),
@@ -59,7 +59,7 @@ class ModuleController
         }
 
         return Response::create()->json([
-            'message' => 'Module toggled successfully',
+            'message' => esc_html__('Module toggled successfully', 'elemacy'),
         ]);
     }
 }

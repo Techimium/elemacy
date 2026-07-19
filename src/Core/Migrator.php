@@ -43,8 +43,6 @@ class Migrator
     {
         $migrations = $this->migrations();
 
-        // Enforce ascending version order regardless of how migrations() lists
-        // them, so ordering is never dependent on hand-maintained array order.
         uksort($migrations, static function ($a, $b): int {
             return version_compare((string) $a, (string) $b);
         });

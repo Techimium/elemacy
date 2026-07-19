@@ -23,13 +23,13 @@ use ReflectionNamedType;
  */
 class Container
 {
-    protected static ?self $instance = null;
+    protected static $instance = null;
 
     /** @var array<class-string,object> */
     protected array $shared = [];
 
     /**
-     * Private — use instance().
+     * use instance().
      */
     protected function __construct() {}
 
