@@ -90,7 +90,21 @@ class EditorPreview
             $css .= $this->overlay_css();
         }
 
-        return $css . $this->close_base_css();
+        return $css
+            . $this->empty_document_state_css()
+            . $this->close_base_css();
+    }
+
+    /**
+     * Keep Elementor's document-level creation prompt limited to an empty
+     * popup. The section wrapper and prompt are adjacent siblings, so this
+     * responds automatically when content is added, removed, undone, or
+     * restored without maintaining duplicate state in JavaScript.
+     */
+    protected function empty_document_state_css(): string
+    {
+        return '[data-elementor-type="elemacy_popup"] '
+            . '.elementor-section-wrap:not(:empty) + #elementor-add-new-section{display:none;}';
     }
 
     /**

@@ -16,6 +16,7 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Migrator;
 use Elemacy\Core\Sanitizer;
+use Elemacy\Modules\Popups\Services\EditorPreview;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
 
@@ -97,6 +98,25 @@ final class RecordingMigrator extends Migrator
         ];
     }
 }
+
+final class TestableEditorPreview extends EditorPreview
+{
+    public function get_empty_document_state_css(): string
+    {
+        return $this->empty_document_state_css();
+    }
+}
+
+/* ── Popup editor empty state ───────────────────────────────────── */
+
+check('popup creation prompt is hidden only after content exists', static function () {
+    $css = (new TestableEditorPreview())->get_empty_document_state_css();
+
+    return false !== strpos(
+        $css,
+        '[data-elementor-type="elemacy_popup"] .elementor-section-wrap:not(:empty) + #elementor-add-new-section'
+    );
+});
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */
 
