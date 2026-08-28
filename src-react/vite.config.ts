@@ -1,16 +1,36 @@
 import path from "path"
+import fs from "node:fs"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+
+function readWpConfigDevServer() {
+  const wpConfigPath = path.resolve(__dirname, '../../../..', 'wp-config.php')
+
+  if (!fs.existsSync(wpConfigPath)) {
+    return undefined
+  }
+
+  const wpConfig = fs.readFileSync(wpConfigPath, 'utf8')
+  const match = wpConfig.match(/define\(\s*['"]ELEMACY_VITE_DEV_SERVER['"]\s*,\s*['"]([^'"]+)['"]\s*\)/)
+
+  return match?.[1]
+}
+
+const DEV_SERVER_URL = process.env.ELEMACY_VITE_DEV_SERVER ?? readWpConfigDevServer() ?? 'http://localhost:5173'
+const DEV_SERVER = new URL(DEV_SERVER_URL)
 
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
   server: {
-    origin: 'http://localhost:5173',
+    origin: DEV_SERVER_URL,
+    host: DEV_SERVER.hostname,
+    port: Number(DEV_SERVER.port) || 5173,
+    strictPort: true,
     cors: true,
     hmr: {
-      host: 'localhost'
+      host: DEV_SERVER.hostname
     }
   },
   plugins: [react(), tailwindcss()],

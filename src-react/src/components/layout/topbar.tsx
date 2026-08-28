@@ -10,7 +10,13 @@ function Topbar() {
       <Container className="px-4">
         <div className="flex justify-between items-center">
           <Link to="/">
-            <img src={Logo} alt={__('Elemacy Logo', 'elemacy')} className="h-8" />
+            <img
+              src={Logo}
+              alt={__('Elemacy Logo', 'elemacy')}
+              width={670}
+              height={155}
+              className="h-8 w-auto"
+            />
           </Link>
           <Button className="cursor-pointer" variant="outline" onClick={() => window.open('https://elemacy.com', '_blank')}>
             {__('Docs', 'elemacy')}

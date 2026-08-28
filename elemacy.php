@@ -26,6 +26,10 @@ if (!defined('ELEMACY_ENV')) {
     define('ELEMACY_ENV', 'production');
 }
 
+if (!defined('ELEMACY_VITE_DEV_SERVER')) {
+    define('ELEMACY_VITE_DEV_SERVER', 'http://localhost:5173');
+}
+
 define('ELEMACY_VERSION', '1.0.0');
 define('ELEMACY_FILE', __FILE__);
 define('ELEMACY_PLUGIN_BASE', plugin_basename(ELEMACY_FILE));

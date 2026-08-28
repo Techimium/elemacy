@@ -89,10 +89,14 @@ class AdminScripts
 
     public function enqueue_dev_scripts()
     {
+        $dev_server = defined('ELEMACY_VITE_DEV_SERVER')
+            ? untrailingslashit(ELEMACY_VITE_DEV_SERVER)
+            : 'http://localhost:5173';
+
         // Vite client (HMR websocket)
         wp_enqueue_script(
             'elemacy-vite-client',
-            'http://localhost:5173/@vite/client',
+            $dev_server . '/@vite/client',
             [],
             null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
@@ -101,7 +105,7 @@ class AdminScripts
         // App entry (e.g. main.jsx)
         wp_enqueue_script(
             'elemacy-admin-app',
-            'http://localhost:5173/src/main.tsx',
+            $dev_server . '/src/main.tsx',
             ['elemacy-vite-client', 'wp-i18n'],
             null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
@@ -109,13 +113,16 @@ class AdminScripts
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
 
         // React Refresh preamble as inline module
-        $preamble = '
-            import RefreshRuntime from "http://localhost:5173/@react-refresh";
+        $preamble = sprintf(
+            '
+            import RefreshRuntime from "%s/@react-refresh";
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
-        ';
+        ',
+            esc_url_raw($dev_server)
+        );
 
         wp_add_inline_script('elemacy-admin-app', $preamble, 'before');
     }
