@@ -115,7 +115,6 @@ class EditorPreview
     {
         $css  = 'body{margin:0;min-height:100vh;box-sizing:border-box;display:flex;padding:30px;'
             . 'align-items:var(--elemacy-align,center);justify-content:var(--elemacy-justify,center);}';
-        $css .= ':where(' . $wrap . '){background:#fff;box-shadow:0 10px 40px rgba(0,0,0,0.2);border-radius:4px;}';
         $css .= $wrap . '{position:relative;z-index:1;max-width:100%;}';
 
         return $css;
@@ -124,7 +123,6 @@ class EditorPreview
     protected function topbar_css(string $wrap): string
     {
         $css  = 'body{margin:0;}';
-        $css .= ':where(' . $wrap . '){background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.12);}';
         $css .= $wrap . '{position:relative;z-index:1;}';
 
         return $css;

@@ -105,6 +105,16 @@ final class TestableEditorPreview extends EditorPreview
     {
         return $this->empty_document_state_css();
     }
+
+    public function get_frame_css(string $wrapper): string
+    {
+        return $this->frame_css($wrapper);
+    }
+
+    public function get_topbar_css(string $wrapper): string
+    {
+        return $this->topbar_css($wrapper);
+    }
 }
 
 /* ── Popup editor empty state ───────────────────────────────────── */
@@ -116,6 +126,30 @@ check('popup creation prompt is hidden only after content exists', static functi
         $css,
         '[data-elementor-type="elemacy_popup"] .elementor-section-wrap:not(:empty) + #elementor-add-new-section'
     );
+});
+
+check('popup preview wrapper adds no visual decoration', static function () {
+    $preview = new TestableEditorPreview();
+    $css     = $preview->get_frame_css('.elementor-123')
+        . $preview->get_topbar_css('.elementor-123');
+
+    return false === strpos($css, 'background')
+        && false === strpos($css, 'border-radius')
+        && false === strpos($css, 'box-shadow');
+});
+
+check('popup frontend wrapper adds no visual decoration', static function () {
+    $css = file_get_contents(
+        dirname(__DIR__, 2) . '/src/Modules/Popups/assets/styles/popups.css'
+    );
+
+    $box_rules = [];
+    preg_match_all('/[^{}]*\.elemacy-popup__box[^{}]*\{([^}]*)\}/', $css, $box_rules);
+    $box_css = implode('', $box_rules[1]);
+
+    return false === strpos($box_css, 'background')
+        && false === strpos($box_css, 'border-radius')
+        && false === strpos($box_css, 'box-shadow');
 });
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */

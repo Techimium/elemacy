@@ -1,11 +1,10 @@
 /**
  * Elemacy Popups — frontend base styles.
  *
- * Only structural styling lives here. Per-popup sizing (width/height/z-index,
- * content background/padding/radius, close-button look) comes from the popup
- * document's Elementor controls, compiled into its generated post CSS — all
- * scoped to that popup's own `.elementor-{id}`, so two popups on one page never
- * affect each other.
+ * Only structural styling lives here. Per-popup sizing (width/height/z-index)
+ * comes from the popup document, while visual styling belongs to the author's
+ * root Elementor container. The outer `.elemacy-popup__box` must remain
+ * transparent and undecorated so it never shows behind that container.
  *
  * Independence rules (keep them — they prevent cross-popup style bleed):
  * - Every rule here is scoped under `.elemacy-popup` (each popup's own root).
@@ -53,12 +52,6 @@
 	position: relative;
 	max-width: 100%;
 	overflow: auto;
-}
-
-/* Default box background — :where() keeps zero specificity so the document's
-   own "Content Background" control always wins. */
-:where(.elemacy-popup__box) {
-	background: #fff;
 }
 
 /* Generic close button helper (authors may also use their own). */
@@ -155,8 +148,6 @@
 
 .elemacy-popup--popup .elemacy-popup__box {
 	max-height: calc(100vh - 40px);
-	border-radius: 4px;
-	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,8 +205,6 @@
 .elemacy-popup--floating .elemacy-popup__box,
 .elemacy-popup--banner .elemacy-popup__box {
 	max-width: 100%;
-	border-radius: 6px;
-	box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
 }
 
 .elemacy-popup--floating.elemacy-popup--pos-bottom-right,
