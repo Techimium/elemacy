@@ -20,6 +20,8 @@ use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
 use Elemacy\Modules\Popups\Services\EditorPreview;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
+use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
 
@@ -317,6 +319,107 @@ check('registrar wires related_posts to merge registered ids only for the curren
     $GLOBALS['__current_post_id'] = 0;
 
     return $for_queried_post === [9, 606] && $for_other_post === [9];
+});
+
+/* ── ThemeBuilder single/archive/search/404 content wrapper ──────── */
+
+/**
+ * Real theme-builder-wrapper.php, required fresh per test: it's a plain
+ * top-level script (no declarations), so re-requiring it re-runs get_header(),
+ * the wp_body_open guard, and get_footer() each time.
+ */
+$theme_builder_wrapper_path = dirname(__DIR__, 2) . '/src/Modules/ThemeBuilder/Views/theme-builder-wrapper.php';
+
+function reset_wrapper_hooks(): void
+{
+    unset($GLOBALS['__wp_actions']['get_header'], $GLOBALS['__wp_actions']['get_footer']);
+    $GLOBALS['__wp_actions_fired']['wp_body_open'] = 0;
+}
+
+check('wrapper fires wp_body_open when the theme header does not (deprecated theme-compat fallback)', static function () use ($theme_builder_wrapper_path) {
+    reset_wrapper_hooks();
+    // No listener on 'get_header' — mirrors WordPress's deprecated
+    // wp-includes/theme-compat/header.php, which never calls wp_body_open().
+
+    ob_start();
+    require $theme_builder_wrapper_path;
+    ob_get_clean();
+
+    return did_action('wp_body_open') === 1;
+});
+
+check('wrapper does not double-fire wp_body_open when the theme header already fired it', static function () use ($theme_builder_wrapper_path) {
+    reset_wrapper_hooks();
+    add_action('get_header', static function () {
+        wp_body_open(); // simulates a modern theme's header.php calling it directly
+    });
+
+    ob_start();
+    require $theme_builder_wrapper_path;
+    ob_get_clean();
+
+    return did_action('wp_body_open') === 1;
+});
+
+/* ── ThemeBuilder\Compatibility\Themes\GlobalCompatibility ───────── */
+
+final class FixedHeaderThemeBuilderManager extends ThemeBuilderManager
+{
+    /** @var int */
+    public $render_header_calls = 0;
+
+    public function get_header_id()
+    {
+        return 20;
+    }
+
+    public function get_footer_id()
+    {
+        return null;
+    }
+
+    public function render_header(): void
+    {
+        $this->render_header_calls++;
+        echo '<div class="fixed-header-marker"></div>';
+    }
+}
+
+function reset_global_compat_hooks(): void
+{
+    unset($GLOBALS['__wp_actions']['get_header'], $GLOBALS['__wp_actions']['wp_body_open'], $GLOBALS['__locate_template_stub']);
+    $GLOBALS['__wp_actions_fired']['wp_body_open'] = 0;
+}
+
+check('GlobalCompatibility renders the configured header exactly once when the theme never fires wp_body_open', static function () {
+    reset_global_compat_hooks();
+
+    $manager = new FixedHeaderThemeBuilderManager();
+    (new GlobalCompatibility())->register($manager);
+    // No __locate_template_stub set — mirrors a theme with no header.php
+    // (or the deprecated theme-compat fallback), which never calls wp_body_open().
+
+    ob_start();
+    do_action('get_header');
+    ob_get_clean();
+
+    return $manager->render_header_calls === 1 && did_action('wp_body_open') === 1;
+});
+
+check('GlobalCompatibility does not render the configured header twice when the theme already fires wp_body_open', static function () {
+    reset_global_compat_hooks();
+
+    $manager = new FixedHeaderThemeBuilderManager();
+    (new GlobalCompatibility())->register($manager);
+    $GLOBALS['__locate_template_stub'] = static function () {
+        wp_body_open(); // simulates the located header.php calling it directly
+    };
+
+    ob_start();
+    do_action('get_header');
+    ob_get_clean();
+
+    return $manager->render_header_calls === 1 && did_action('wp_body_open') === 1;
 });
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */

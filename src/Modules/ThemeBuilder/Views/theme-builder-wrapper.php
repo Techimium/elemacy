@@ -16,6 +16,7 @@ $elemacy_content_id = $elemacy_manager->get_location_template_id();
 
 get_header();
 
+did_action('wp_body_open') || wp_body_open();
 
 $elemacy_manager->render_template($elemacy_content_id);
 

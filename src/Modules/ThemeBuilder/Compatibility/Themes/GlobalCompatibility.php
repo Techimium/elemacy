@@ -25,9 +25,10 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
         $has_footer = (bool) $manager->get_footer_id();
 
         if ($has_header) {
-            // Force-load the theme header.php (require_once) so we can detect whether
-            // the theme calls wp_body_open. If it doesn't, we print a fallback header.
-            add_action('get_header', function ($name = '') use ($manager) {
+            // Force-load the theme header.php so we can detect whether the theme
+            // calls wp_body_open. If it doesn't, fire it ourselves (once) so the
+            // primary injection point below still runs.
+            add_action('get_header', function ($name = '') {
                 $templates = [];
                 $name = (string) $name;
                 if ('' !== $name) {
@@ -37,9 +38,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
 
                 locate_template($templates, true, true);
 
-                if (!did_action('wp_body_open')) {
-                    do_action(Hooks::THEME_BUILDER_FALLBACK_HEADER_ACTION);
-                }
+                did_action('wp_body_open') || wp_body_open();
             }, 1);
 
             // Primary injection point.
@@ -82,17 +81,25 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
                 }';
 
                 if ($has_header) {
+                    // #page > hr:first-of-type is the deprecated theme-compat
+                    // header.php's own trailing divider, immediately after #header.
                     $css .= '
                     header#masthead,
-                    .site-header {
+                    .site-header,
+                    #page > #header,
+                    #page > hr:first-of-type {
                         display: none;
                     }';
                 }
 
                 if ($has_footer) {
+                    // #page > hr:last-of-type is the deprecated theme-compat
+                    // footer.php's own leading divider, immediately before #footer.
                     $css .= '
                     footer#colophon,
-                    .site-footer {
+                    .site-footer,
+                    #page > #footer,
+                    #page > hr:last-of-type {
                         display: none;
                     }';
                 }
@@ -102,4 +109,3 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

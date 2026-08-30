@@ -13,6 +13,7 @@ define('HOUR_IN_SECONDS', 3600);
 
 $GLOBALS['__wp_options'] = [];
 $GLOBALS['__wp_actions'] = [];
+$GLOBALS['__wp_actions_fired'] = [];
 $GLOBALS['__current_post_id'] = 0;
 
 function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
@@ -22,8 +23,15 @@ function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
     return true;
 }
 
+function did_action($hook)
+{
+    return $GLOBALS['__wp_actions_fired'][$hook] ?? 0;
+}
+
 function do_action($hook, ...$args)
 {
+    $GLOBALS['__wp_actions_fired'][$hook] = ($GLOBALS['__wp_actions_fired'][$hook] ?? 0) + 1;
+
     if (empty($GLOBALS['__wp_actions'][$hook])) {
         return;
     }
@@ -65,6 +73,35 @@ function apply_filters($hook, $value, ...$args)
 function get_the_ID()
 {
     return $GLOBALS['__current_post_id'];
+}
+
+function get_header($name = null, $args = array())
+{
+    do_action('get_header', $name, $args);
+}
+
+function get_footer($name = null, $args = array())
+{
+    do_action('get_footer', $name, $args);
+}
+
+function wp_body_open()
+{
+    do_action('wp_body_open');
+}
+
+/**
+ * Always reports nothing found, matching a theme with no matching template
+ * file. Tests that need to simulate a located template calling wp_body_open()
+ * itself set $GLOBALS['__locate_template_stub'] to a callable.
+ */
+function locate_template($template_names, $load = false, $require_once = true, $args = array())
+{
+    if ($load && isset($GLOBALS['__locate_template_stub'])) {
+        ($GLOBALS['__locate_template_stub'])();
+    }
+
+    return '';
 }
 
 function get_option($key, $default_value = false)
