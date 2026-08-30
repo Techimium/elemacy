@@ -13,6 +13,7 @@ define('HOUR_IN_SECONDS', 3600);
 
 $GLOBALS['__wp_options'] = [];
 $GLOBALS['__wp_actions'] = [];
+$GLOBALS['__current_post_id'] = 0;
 
 function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
 {
@@ -35,6 +36,35 @@ function do_action($hook, ...$args)
             $callback(...array_slice($args, 0, $accepted_args));
         }
     }
+}
+
+function add_filter($hook, $callback, $priority = 10, $accepted_args = 1)
+{
+    return add_action($hook, $callback, $priority, $accepted_args);
+}
+
+function apply_filters($hook, $value, ...$args)
+{
+    if (empty($GLOBALS['__wp_actions'][$hook])) {
+        return $value;
+    }
+
+    $callbacks_by_priority = $GLOBALS['__wp_actions'][$hook];
+    ksort($callbacks_by_priority);
+
+    foreach ($callbacks_by_priority as $callbacks) {
+        foreach ($callbacks as [$callback, $accepted_args]) {
+            $call_args = array_slice([$value, ...$args], 0, max(1, $accepted_args));
+            $value = $callback(...$call_args);
+        }
+    }
+
+    return $value;
+}
+
+function get_the_ID()
+{
+    return $GLOBALS['__current_post_id'];
 }
 
 function get_option($key, $default_value = false)

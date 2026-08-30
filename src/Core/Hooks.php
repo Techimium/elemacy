@@ -17,6 +17,11 @@ final class Hooks
     // Fired so modules/add-ons can register library item types (passes the TypeRegistry).
     const LIBRARY_TYPES_REGISTER_ACTION = 'elemacy/action/library/types/register';
 
+    // Fired early (before Elementor's own style pass) so modules can register
+    // post IDs whose Elementor content renders outside their own page — a
+    // popup, a theme template, etc. (passes the TemplateAssetsRegistrar).
+    const TEMPLATE_ASSETS_COLLECT_ACTION = 'elemacy/action/template_assets/collect';
+
     // Admin scripts
     const ADMIN_SCRIPT_DATA_FILTER     = 'elemacy/filter/admin_script_data';
     const ENQUEUE_ADMIN_SCRIPTS_ACTION = 'elemacy/action/enqueue_admin_scripts';

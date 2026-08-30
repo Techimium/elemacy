@@ -13,6 +13,7 @@ use Elemacy\Core\Controls\Query\QueryControlManager;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Preview\PreviewAssets;
 use Elemacy\Core\Preview\PreviewManager;
+use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\LibraryBootstrap;
@@ -162,6 +163,7 @@ class Elemacy
         new PreviewManager();
         new PreviewAssets();
         new QueryControlManager();
+        (new TemplateAssetsRegistrar())->register_hooks();
     }
 
     public function init_module_manager()

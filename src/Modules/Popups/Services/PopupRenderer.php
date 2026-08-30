@@ -4,9 +4,9 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\Support\PopupTypes;
-use Elementor\Plugin as ElementorPlugin;
 
 /**
  * Renders a popup's root container into the page footer.
@@ -39,11 +39,7 @@ class PopupRenderer
         $id   = (int) $popup->id;
         $type = (string) $popup->type;
 
-        $content = '';
-
-        if (class_exists('\Elementor\Plugin')) {
-            $content = ElementorPlugin::instance()->frontend->get_builder_content_for_display($id);
-        }
+        $content = (new TemplateRenderer())->render($id);
 
         $classes = sprintf(
             'elemacy-popup elemacy-popup-%1$d elemacy-popup--%2$s',

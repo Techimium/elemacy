@@ -14,9 +14,11 @@ use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Conditions\MockCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Constants\OptionKeys;
+use Elemacy\Core\Hooks;
 use Elemacy\Core\Migrator;
+use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
-use Elemacy\Modules\Popups\Services\AtomicWidgetStylesRegistrar;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
@@ -169,30 +171,94 @@ check('do_action stub fires callbacks in ascending priority order', static funct
     return $order === ['nineteen', 'twenty'];
 });
 
-/* ── AtomicWidgetStylesRegistrar ────────────────────────────────── */
+/* ── Core\Rendering\TemplateRenderer (Elementor not yet loaded) ─── */
 
-check('registrar has no Popup-domain dependency — its only input is a callable', static function () {
-    $constructor = (new \ReflectionClass(AtomicWidgetStylesRegistrar::class))->getConstructor();
-    $param_type  = (string) $constructor->getParameters()[0]->getType();
-
-    return $param_type === 'callable';
+check('renderer returns empty string when Elementor is not loaded', static function () {
+    return (new TemplateRenderer())->render(101) === '';
 });
 
-check('registrar fires elementor/post/render once per given post ID', static function () {
+/* ── Elementor stand-ins required from here on ──────────────────── */
+
+require __DIR__ . '/elementor-stubs.php';
+
+final class FakeElementorFrontend
+{
+    /** @var string[] */
+    public array $calls = [];
+
+    public function enqueue_styles(): void
+    {
+        $this->calls[] = 'enqueue_styles';
+    }
+
+    public function enqueue_scripts(): void
+    {
+        $this->calls[] = 'enqueue_scripts';
+    }
+
+    public function get_builder_content_for_display($id)
+    {
+        return "<fake-content id=\"{$id}\">";
+    }
+}
+
+check('renderer delegates to Elementor when loaded', static function () {
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->frontend = new FakeElementorFrontend();
+
+    return (new TemplateRenderer())->render(303) === '<fake-content id="303">';
+});
+
+/* ── Core\Rendering\TemplateAssetsRegistrar ─────────────────────── */
+
+/**
+ * The stub harness accumulates hook registrations for the whole run (see
+ * bootstrap.php), so tests that self-register on the real 'wp_enqueue_scripts'
+ * / collect-action hooks must clear them first to avoid picking up listeners
+ * left behind by earlier checks.
+ */
+function reset_template_assets_hooks(): void
+{
+    unset(
+        $GLOBALS['__wp_actions']['wp_enqueue_scripts'],
+        $GLOBALS['__wp_actions'][Hooks::TEMPLATE_ASSETS_COLLECT_ACTION],
+        $GLOBALS['__wp_actions']['elementor/post/render'],
+        $GLOBALS['__wp_actions']['elementor/document/related_posts']
+    );
+}
+
+check('registrar collect() passes itself to the collect action, and register() fires elementor/post/render exactly once per id', static function () {
+    reset_template_assets_hooks();
+
     $registered = [];
     add_action('elementor/post/render', static function ($post_id) use (&$registered) {
         $registered[] = $post_id;
     });
 
-    (new AtomicWidgetStylesRegistrar(static fn () => [101, 202]))->register_atomic_styles();
+    $received = null;
+    add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, static function ($registrar) use (&$received) {
+        $received = $registrar;
+        $registrar->register(101);
+        $registrar->register(101);
+    });
 
-    return $registered === [101, 202];
+    $registrar = new TemplateAssetsRegistrar();
+    $registrar->register_hooks();
+
+    do_action('wp_enqueue_scripts');
+
+    return $received === $registrar && $registered === [101];
 });
 
 check('registrar registers before a simulated priority-20 style pass runs', static function () {
+    reset_template_assets_hooks();
+
     $registered = [];
     add_action('elementor/post/render', static function ($post_id) use (&$registered) {
         $registered[] = $post_id;
+    });
+    add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, static function ($registrar) {
+        $registrar->register(404);
     });
 
     $seen_at_priority_20 = null;
@@ -200,22 +266,57 @@ check('registrar registers before a simulated priority-20 style pass runs', stat
         $seen_at_priority_20 = $registered;
     }, 20);
 
-    (new AtomicWidgetStylesRegistrar(static fn () => [303]))->register_hooks();
+    (new TemplateAssetsRegistrar())->register_hooks();
 
     do_action('wp_enqueue_scripts');
 
-    return $seen_at_priority_20 === [303];
+    return $seen_at_priority_20 === [404];
 });
 
-check('registrar registers nothing when given no post IDs', static function () {
+check('registrar registers nothing when nothing is collected', static function () {
+    reset_template_assets_hooks();
+
     $fired = false;
     add_action('elementor/post/render', static function () use (&$fired) {
         $fired = true;
     });
 
-    (new AtomicWidgetStylesRegistrar(static fn () => []))->register_atomic_styles();
+    (new TemplateAssetsRegistrar())->collect();
 
     return false === $fired;
+});
+
+check('registrar collect() force-enqueues Elementor base frontend assets only when something was registered', static function () {
+    reset_template_assets_hooks();
+
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->frontend = new FakeElementorFrontend();
+
+    $registrar = new TemplateAssetsRegistrar();
+    $registrar->collect();
+    $calls_with_nothing_registered = \Elementor\Plugin::$instance->frontend->calls;
+
+    $registrar->register(505);
+    $registrar->collect();
+    $calls_after_register = \Elementor\Plugin::$instance->frontend->calls;
+
+    return $calls_with_nothing_registered === []
+        && $calls_after_register === ['enqueue_styles', 'enqueue_scripts'];
+});
+
+check('registrar wires related_posts to merge registered ids only for the currently queried post', static function () {
+    reset_template_assets_hooks();
+
+    $registrar = new TemplateAssetsRegistrar();
+    $registrar->register_hooks();
+    $registrar->register(606);
+
+    $GLOBALS['__current_post_id'] = 55;
+    $for_queried_post = apply_filters('elementor/document/related_posts', [9], 55);
+    $for_other_post   = apply_filters('elementor/document/related_posts', [9], 999);
+    $GLOBALS['__current_post_id'] = 0;
+
+    return $for_queried_post === [9, 606] && $for_other_post === [9];
 });
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */

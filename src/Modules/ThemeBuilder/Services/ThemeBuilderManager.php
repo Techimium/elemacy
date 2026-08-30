@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Hooks;
+use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
@@ -35,8 +37,26 @@ class ThemeBuilderManager
     public function register_hooks()
     {
         add_filter('template_include', [$this, 'override_template'], 99);
+        add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, [$this, 'register_template_assets']);
 
         CompatibilityManager::instance()->register_hooks();
+    }
+
+    /**
+     * Informs the shared template-assets registrar about the header, footer,
+     * and current location template, so their classic and atomic Elementor
+     * CSS is generated for this request.
+     *
+     * @param TemplateAssetsRegistrar $registrar
+     * @return void
+     */
+    public function register_template_assets(TemplateAssetsRegistrar $registrar): void
+    {
+        $ids = [$this->get_header_id(), $this->get_footer_id(), $this->get_location_template_id()];
+
+        foreach (array_filter($ids) as $id) {
+            $registrar->register((int) $id);
+        }
     }
 
     /**
@@ -105,9 +125,7 @@ class ThemeBuilderManager
      */
     public function get_template_content($post_id)
     {
-        $elementor = Plugin::instance();
-
-        return $elementor->frontend->get_builder_content_for_display($post_id);
+        return (new TemplateRenderer())->render((int) $post_id);
     }
 
     /**

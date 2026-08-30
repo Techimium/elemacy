@@ -4,6 +4,8 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Hooks;
+use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
@@ -52,8 +54,21 @@ class PopupManager
         add_action('wp_body_open', [$this, 'render_top_bars'], 1);
         add_action('wp_footer', [$this, 'render_footer_popups'], 99);
         add_filter('template_include', [$this, 'force_canvas_template'], 99);
+        add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, [$this, 'register_template_assets']);
+    }
 
-        (new AtomicWidgetStylesRegistrar([$this, 'get_matched_ids']))->register_hooks();
+    /**
+     * Informs the shared template-assets registrar about each matched popup,
+     * so its classic and atomic Elementor CSS is generated for this request.
+     *
+     * @param TemplateAssetsRegistrar $registrar
+     * @return void
+     */
+    public function register_template_assets(TemplateAssetsRegistrar $registrar): void
+    {
+        foreach ($this->get_matched_ids() as $id) {
+            $registrar->register($id);
+        }
     }
 
     /**
@@ -158,45 +173,12 @@ class PopupManager
         wp_enqueue_script('elemacy-popups-engine');
         wp_enqueue_style('elemacy-popups');
 
-        $this->enqueue_elementor_assets($matched);
-
         wp_localize_script('elemacy-popups-engine', 'elemacyPopups', [
             'popups' => PopupConfigResource::collection($matched),
             'i18n'   => [
                 'close' => __('Close', 'elemacy'),
             ],
         ]);
-    }
-
-    /**
-     * Load Elementor's frontend assets and each matched popup's generated CSS.
-     *
-     * A popup's Elementor content is injected in the footer. On pages whose main
-     * content is not Elementor-built, Elementor does not enqueue its frontend
-     * stylesheet/scripts, the active kit, or the popup's per-post CSS — so the
-     * widgets would render unstyled. Forcing these here (on wp_enqueue_scripts)
-     * keeps the popup styled and interactive without a flash of unstyled content.
-     *
-     * @param \Elemacy\Modules\Popups\DTO\PopupDTO[] $matched The popups matched for this request.
-     * @return void
-     */
-    protected function enqueue_elementor_assets(array $matched): void
-    {
-        if (!class_exists('\Elementor\Plugin')) {
-            return;
-        }
-
-        $frontend = ElementorPlugin::instance()->frontend;
-        $frontend->enqueue_styles();
-        $frontend->enqueue_scripts();
-
-        if (!class_exists('\Elementor\Core\Files\CSS\Post')) {
-            return;
-        }
-
-        foreach ($matched as $popup) {
-            \Elementor\Core\Files\CSS\Post::create((int) $popup->id)->enqueue();
-        }
     }
 
     /**
