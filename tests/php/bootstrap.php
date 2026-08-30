@@ -12,6 +12,30 @@ define('DAY_IN_SECONDS', 86400);
 define('HOUR_IN_SECONDS', 3600);
 
 $GLOBALS['__wp_options'] = [];
+$GLOBALS['__wp_actions'] = [];
+
+function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
+{
+    $GLOBALS['__wp_actions'][$hook][$priority][] = [$callback, $accepted_args];
+
+    return true;
+}
+
+function do_action($hook, ...$args)
+{
+    if (empty($GLOBALS['__wp_actions'][$hook])) {
+        return;
+    }
+
+    $callbacks_by_priority = $GLOBALS['__wp_actions'][$hook];
+    ksort($callbacks_by_priority);
+
+    foreach ($callbacks_by_priority as $callbacks) {
+        foreach ($callbacks as [$callback, $accepted_args]) {
+            $callback(...array_slice($args, 0, $accepted_args));
+        }
+    }
+}
 
 function get_option($key, $default_value = false)
 {

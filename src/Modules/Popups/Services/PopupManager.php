@@ -52,6 +52,18 @@ class PopupManager
         add_action('wp_body_open', [$this, 'render_top_bars'], 1);
         add_action('wp_footer', [$this, 'render_footer_popups'], 99);
         add_filter('template_include', [$this, 'force_canvas_template'], 99);
+
+        (new AtomicWidgetStylesRegistrar([$this, 'get_matched_ids']))->register_hooks();
+    }
+
+    /**
+     * The IDs of the popups matched for the current request.
+     *
+     * @return int[]
+     */
+    public function get_matched_ids(): array
+    {
+        return array_map(static fn ($popup) => (int) $popup->id, $this->get_matched());
     }
 
     /**

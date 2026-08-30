@@ -16,6 +16,7 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Migrator;
 use Elemacy\Core\Sanitizer;
+use Elemacy\Modules\Popups\Services\AtomicWidgetStylesRegistrar;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
@@ -150,6 +151,71 @@ check('popup frontend wrapper adds no visual decoration', static function () {
     return false === strpos($box_css, 'background')
         && false === strpos($box_css, 'border-radius')
         && false === strpos($box_css, 'box-shadow');
+});
+
+/* ── Action hook stub semantics ─────────────────────────────────── */
+
+check('do_action stub fires callbacks in ascending priority order', static function () {
+    $order = [];
+    add_action('test/priority-order', static function () use (&$order) {
+        $order[] = 'twenty';
+    }, 20);
+    add_action('test/priority-order', static function () use (&$order) {
+        $order[] = 'nineteen';
+    }, 19);
+
+    do_action('test/priority-order');
+
+    return $order === ['nineteen', 'twenty'];
+});
+
+/* ── AtomicWidgetStylesRegistrar ────────────────────────────────── */
+
+check('registrar has no Popup-domain dependency — its only input is a callable', static function () {
+    $constructor = (new \ReflectionClass(AtomicWidgetStylesRegistrar::class))->getConstructor();
+    $param_type  = (string) $constructor->getParameters()[0]->getType();
+
+    return $param_type === 'callable';
+});
+
+check('registrar fires elementor/post/render once per given post ID', static function () {
+    $registered = [];
+    add_action('elementor/post/render', static function ($post_id) use (&$registered) {
+        $registered[] = $post_id;
+    });
+
+    (new AtomicWidgetStylesRegistrar(static fn () => [101, 202]))->register_atomic_styles();
+
+    return $registered === [101, 202];
+});
+
+check('registrar registers before a simulated priority-20 style pass runs', static function () {
+    $registered = [];
+    add_action('elementor/post/render', static function ($post_id) use (&$registered) {
+        $registered[] = $post_id;
+    });
+
+    $seen_at_priority_20 = null;
+    add_action('wp_enqueue_scripts', static function () use (&$registered, &$seen_at_priority_20) {
+        $seen_at_priority_20 = $registered;
+    }, 20);
+
+    (new AtomicWidgetStylesRegistrar(static fn () => [303]))->register_hooks();
+
+    do_action('wp_enqueue_scripts');
+
+    return $seen_at_priority_20 === [303];
+});
+
+check('registrar registers nothing when given no post IDs', static function () {
+    $fired = false;
+    add_action('elementor/post/render', static function () use (&$fired) {
+        $fired = true;
+    });
+
+    (new AtomicWidgetStylesRegistrar(static fn () => []))->register_atomic_styles();
+
+    return false === $fired;
 });
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */
