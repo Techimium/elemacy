@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
+use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Plugin;
@@ -106,8 +107,13 @@ class AjaxPaginationController
 
         ob_start();
 
+        $loop_item_styles = new LoopItemStyles();
+        $loop_item_styles->print_base_css($template_id);
+
         while ($query->have_posts()) {
             $query->the_post();
+
+            $loop_item_styles->print_item_css($template_id, get_the_ID());
 
             echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
             echo Plugin::instance()->frontend->get_builder_content_for_display($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

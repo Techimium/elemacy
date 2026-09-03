@@ -16,6 +16,8 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Migrator;
+use Elemacy\Core\Rendering\AtomicStylesRenderer;
+use Elemacy\Core\Rendering\ClassicCssRenderer;
 use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
@@ -24,6 +26,7 @@ use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
 
@@ -345,6 +348,178 @@ check('registrar wires related_posts to merge registered ids only for the curren
     $GLOBALS['__current_post_id'] = 0;
 
     return $for_queried_post === [9, 606] && $for_other_post === [9];
+});
+
+/* ── Core\Rendering\AtomicStylesRenderer (Elementor atomic classes
+     not loaded — elementor-stubs.php only defines \Elementor\Plugin) ── */
+
+check('AtomicStylesRenderer::render() degrades to empty string when Elementor atomic-widgets internals are unavailable', static function () {
+    return (new AtomicStylesRenderer())->render(101) === '';
+});
+
+check('AtomicStylesRenderer::has_dynamic_styles() degrades to false when Elementor atomic-widgets internals are unavailable', static function () {
+    return (new AtomicStylesRenderer())->has_dynamic_styles(101) === false;
+});
+
+/* ── Core\Rendering\ClassicCssRenderer (Elementor classic CSS/dynamic-tag
+     classes not loaded) ──────────────────────────────────────────── */
+
+check('ClassicCssRenderer::render_base() degrades to empty string when Post_CSS is unavailable', static function () {
+    return (new ClassicCssRenderer())->render_base(101) === '';
+});
+
+check('ClassicCssRenderer::render_dynamic() degrades to empty string when Dynamic_CSS is unavailable', static function () {
+    return (new ClassicCssRenderer())->render_dynamic(101, 202, '.scope') === '';
+});
+
+check('ClassicCssRenderer::has_dynamic_settings() degrades to false when Elementor internals are unavailable', static function () {
+    return (new ClassicCssRenderer())->has_dynamic_settings(101) === false;
+});
+
+/* ── Modules\Widgets\Services\LoopItemStyles ──────────────────────── */
+
+/**
+ * Stand-ins that skip Elementor entirely and let each test control exactly
+ * what the two renderers return, so LoopItemStyles's own orchestration
+ * (concatenation, per-request idempotency, the dynamic-content cache, and
+ * the no-op-when-nothing-to-print guard) is what's under test here — the
+ * real CSS these renderers produce is covered by ClassicCssRenderer's and
+ * AtomicStylesRenderer's own tests (and was verified live against the real
+ * Elementor installation; see design.md).
+ */
+final class FakeClassicCssRenderer extends ClassicCssRenderer
+{
+    public string $base_css = '';
+    public string $dynamic_css = '';
+    public bool $has_dynamic = false;
+    /** @var array<int, array{0:int,1:int,2:string}> */
+    public array $dynamic_calls = [];
+    public int $has_dynamic_calls = 0;
+
+    public function render_base(int $post_id): string
+    {
+        return $this->base_css;
+    }
+
+    public function render_dynamic(int $template_id, int $item_post_id, string $selector_prefix): string
+    {
+        $this->dynamic_calls[] = [$template_id, $item_post_id, $selector_prefix];
+
+        return $this->dynamic_css;
+    }
+
+    public function has_dynamic_settings(int $post_id): bool
+    {
+        $this->has_dynamic_calls++;
+
+        return $this->has_dynamic;
+    }
+}
+
+final class FakeAtomicStylesRenderer extends AtomicStylesRenderer
+{
+    public string $base_css = '';
+    public string $dynamic_css = '';
+    public bool $has_dynamic = false;
+    /** @var array<int, array{0:int,1:string}> */
+    public array $render_calls = [];
+    public int $has_dynamic_calls = 0;
+
+    public function render(int $post_id, string $selector_prefix = '.elementor'): string
+    {
+        $this->render_calls[] = [$post_id, $selector_prefix];
+
+        return '.elementor' === $selector_prefix ? $this->base_css : $this->dynamic_css;
+    }
+
+    public function has_dynamic_styles(int $post_id): bool
+    {
+        $this->has_dynamic_calls++;
+
+        return $this->has_dynamic;
+    }
+}
+
+check('LoopItemStyles::print_base_css() echoes classic and atomic base CSS wrapped in one style tag', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->base_css = '.a{color:red;}';
+    $atomic = new FakeAtomicStylesRenderer();
+    $atomic->base_css = '.b{color:blue;}';
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_base_css(9001);
+    $output = ob_get_clean();
+
+    return $output === '<style id="elemacy-loop-base-9001">.a{color:red;}.b{color:blue;}</style>';
+});
+
+check('LoopItemStyles::print_base_css() prints nothing when both renderers return empty CSS', static function () {
+    ob_start();
+    (new LoopItemStyles(new FakeClassicCssRenderer(), new FakeAtomicStylesRenderer()))->print_base_css(9002);
+    $output = ob_get_clean();
+
+    return $output === '';
+});
+
+check('LoopItemStyles::print_base_css() only prints once per template id per request', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->base_css = '.a{color:red;}';
+
+    $styles = new LoopItemStyles($classic, new FakeAtomicStylesRenderer());
+
+    ob_start();
+    $styles->print_base_css(9003);
+    $styles->print_base_css(9003);
+    $output = ob_get_clean();
+
+    return 1 === substr_count($output, '<style');
+});
+
+check('LoopItemStyles::print_item_css() is a no-op when the template has no dynamic content', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $atomic = new FakeAtomicStylesRenderer();
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_item_css(9004, 55);
+    $output = ob_get_clean();
+
+    return '' === $output && [] === $classic->dynamic_calls && [] === $atomic->render_calls;
+});
+
+check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers when the template has dynamic content', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->has_dynamic = true;
+    $classic->dynamic_css = '.c{color:green;}';
+    $atomic = new FakeAtomicStylesRenderer();
+    $atomic->dynamic_css = '.d{color:yellow;}';
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_item_css(9005, 77);
+    $output = ob_get_clean();
+
+    return $output === '<style id="elemacy-loop-item-77">.c{color:green;}.d{color:yellow;}</style>'
+        && $classic->dynamic_calls === [[9005, 77, '.elemacy-loop-item-77']]
+        && $atomic->render_calls === [[9005, '.elemacy-loop-item-77']];
+});
+
+check('LoopItemStyles caches has_dynamic_content() per template id across multiple items', static function () {
+    // classic false, atomic true: forces the || in has_dynamic_content() to
+    // actually evaluate both sides (a classic-true short-circuit would never
+    // call the atomic side at all), so this also proves atomic content alone
+    // is enough to turn dynamic printing on.
+    $classic = new FakeClassicCssRenderer();
+    $atomic = new FakeAtomicStylesRenderer();
+    $atomic->has_dynamic = true;
+
+    $styles = new LoopItemStyles($classic, $atomic);
+
+    ob_start();
+    $styles->print_item_css(9006, 1);
+    $styles->print_item_css(9006, 2);
+    $styles->print_item_css(9006, 3);
+    ob_get_clean();
+
+    return 1 === $classic->has_dynamic_calls && 1 === $atomic->has_dynamic_calls;
 });
 
 /* ── ThemeBuilder single/archive/search/404 content wrapper ──────── */

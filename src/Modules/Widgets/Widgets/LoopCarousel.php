@@ -3,6 +3,7 @@
 namespace Elemacy\Modules\Widgets\Widgets;
 
 use Elemacy\Core\Constants\PostStatus;
+use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
@@ -629,8 +630,13 @@ class LoopCarousel extends BaseWidget
         echo '<div class="swiper elemacy-loop-carousel">';
         echo '<div class="swiper-wrapper">';
 
+        $loop_item_styles = new LoopItemStyles();
+        $loop_item_styles->print_base_css($settings['template_id']);
+
         while ($query->have_posts()) {
             $query->the_post();
+
+            $loop_item_styles->print_item_css($settings['template_id'], get_the_ID());
 
             echo '<div class="swiper-slide">';
             echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
