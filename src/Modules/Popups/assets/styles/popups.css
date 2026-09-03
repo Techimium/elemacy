@@ -10,7 +10,7 @@
  * - Every rule here is scoped under `.elemacy-popup` (each popup's own root).
  * - Per-popup placement is keyed off the root's `.elemacy-popup--pos-*` class,
  *   applied by engine.js from THIS popup's own `display.position`.
- * - Overlay colour/opacity are inline styles on each popup's own overlay element
+ * - Overlay appearance variables are inline on each popup's own overlay element
  *   (set by engine.js), never shared.
  * - Do NOT make the frontend read the document's `body { --elemacy-* }`
  *   variables: those are page-global (last popup wins) and exist purely as the
@@ -36,10 +36,22 @@
 .elemacy-popup__overlay {
 	position: fixed;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.6);
+	background: transparent;
 	opacity: 0;
 	transition: opacity 0.3s ease;
 	pointer-events: none;
+	-webkit-backdrop-filter: blur(var(--elemacy-popup-overlay-blur, 0px));
+	backdrop-filter: blur(var(--elemacy-popup-overlay-blur, 0px));
+}
+
+/* Keep tint opacity separate from the backdrop-filter layer. Applying opacity
+   to an opaque overlay hides the filtered backdrop during compositing. */
+.elemacy-popup__overlay::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--elemacy-popup-overlay-color, #000);
+	opacity: var(--elemacy-popup-overlay-opacity, 0.6);
 }
 
 .elemacy-popup.is-open .elemacy-popup__overlay {

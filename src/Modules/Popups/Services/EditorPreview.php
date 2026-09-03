@@ -130,12 +130,15 @@ class EditorPreview
 
     /**
      * Overlay backdrop — always shown for a popup; colour/opacity come from the
-     * overlay controls' CSS variables, so they recolour live.
+     * overlay controls' CSS variables, so appearance updates live.
      */
     protected function overlay_css(): string
     {
         return 'body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;'
-            . 'display:block;'
+            . 'display:block;background:transparent;'
+            . '-webkit-backdrop-filter:blur(var(--elemacy-ov-blur,0px));'
+            . 'backdrop-filter:blur(var(--elemacy-ov-blur,0px));}'
+            . 'body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;display:block;'
             . 'background:var(--elemacy-ov-color,#000000);'
             . 'opacity:var(--elemacy-ov-opacity,0.6);}';
     }

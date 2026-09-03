@@ -22,12 +22,16 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(dir, '..', '..');
 copyFileSync(path.join(repo, 'src/Modules/Popups/assets/scripts/engine.js'), path.join(dir, 'engine.js'));
+copyFileSync(path.join(repo, 'src/Modules/Popups/assets/styles/popups.css'), path.join(dir, 'popups.css'));
 
 const server = createServer((req, res) => {
   const file = req.url === '/' ? '/popups.html' : req.url.split('?')[0];
   try {
     const body = readFileSync(path.join(dir, file));
-    res.writeHead(200, { 'Content-Type': file.endsWith('.js') ? 'text/javascript' : 'text/html' });
+    const contentType = file.endsWith('.js')
+      ? 'text/javascript'
+      : file.endsWith('.css') ? 'text/css' : 'text/html';
+    res.writeHead(200, { 'Content-Type': contentType });
     res.end(body);
   } catch {
     res.writeHead(404);
@@ -58,11 +62,15 @@ const check = async (name, fn) => {
 
 const state = (id) => page.evaluate((pid) => {
   const root = document.querySelector(`[data-elemacy-popup-id="${pid}"]`);
+  const overlay = root.querySelector('[data-elemacy-overlay]');
   return {
     open: root.classList.contains('is-open'),
     hidden: root.hasAttribute('hidden'),
     ariaHidden: root.getAttribute('aria-hidden'),
-    hasOverlay: !!root.querySelector('[data-elemacy-overlay]'),
+    hasOverlay: !!overlay,
+    overlayBlur: overlay ? getComputedStyle(overlay).backdropFilter : '',
+    overlayInlineOpacity: overlay?.style.opacity || '',
+    overlayTintOpacity: overlay ? getComputedStyle(overlay, '::before').opacity : '',
     hasClose: !!root.querySelector('.elemacy-popup__close'),
     bodyOverflow: document.body.style.overflow,
   };
@@ -83,6 +91,12 @@ await check('101 opens on page_load (is-open, unhidden, aria-hidden=false)', asy
 await check('101 hydrated with overlay + injected close button', async () => {
   const s = await state(101);
   return s.hasOverlay && s.hasClose;
+});
+await check('101 applies configured overlay background blur', async () =>
+  (await state(101)).overlayBlur === 'blur(8px)');
+await check('101 keeps tint opacity separate from its blur layer', async () => {
+  const s = await state(101);
+  return s.overlayInlineOpacity === '' && s.overlayTintOpacity === '0.6';
 });
 await check('101 modal: body scroll locked', async () => (await state(101)).bodyOverflow === 'hidden');
 await check('101 focus moved inside popup', () =>
@@ -126,6 +140,8 @@ await check('topbar 103 (on_esc=false, non-modal) stays open after ESC', async (
 await page.click('.open-b');
 await page.waitForTimeout(100);
 await check('102 opens via click-trigger selector', async () => (await state(102)).open);
+await check('102 zero blur leaves its overlay unfiltered', async () =>
+  (await state(102)).overlayBlur === 'blur(0px)');
 await check('102 click-trigger open recorded in storage', async () =>
   (await store('elemacy_popup_102')).local?.shown_count === 1);
 

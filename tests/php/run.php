@@ -20,6 +20,8 @@ use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
 use Elemacy\Modules\Popups\Services\EditorPreview;
+use Elemacy\Modules\Popups\Support\DisplayDefaults;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
@@ -120,6 +122,11 @@ final class TestableEditorPreview extends EditorPreview
     {
         return $this->topbar_css($wrapper);
     }
+
+    public function get_overlay_css(): string
+    {
+        return $this->overlay_css();
+    }
 }
 
 /* ── Popup editor empty state ───────────────────────────────────── */
@@ -155,6 +162,25 @@ check('popup frontend wrapper adds no visual decoration', static function () {
     return false === strpos($box_css, 'background')
         && false === strpos($box_css, 'border-radius')
         && false === strpos($box_css, 'box-shadow');
+});
+
+check('popup overlay blur defaults preserve existing appearance', static function () {
+    foreach ([PopupTypes::POPUP, PopupTypes::TOPBAR, PopupTypes::BANNER, PopupTypes::FLOATING] as $type) {
+        $defaults = DisplayDefaults::for_type($type);
+
+        if (DisplayDefaults::DEFAULT_OVERLAY_BLUR !== $defaults['overlay']['blur']) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('popup preview supports prefixed and standard backdrop blur', static function () {
+    $css = (new TestableEditorPreview())->get_overlay_css();
+
+    return false !== strpos($css, '-webkit-backdrop-filter:blur(var(--elemacy-ov-blur,0px))')
+        && false !== strpos($css, 'backdrop-filter:blur(var(--elemacy-ov-blur,0px))');
 });
 
 /* ── Action hook stub semantics ─────────────────────────────────── */

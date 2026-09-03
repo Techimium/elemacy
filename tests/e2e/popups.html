@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Elemacy popups engine harness</title>
+<link rel="stylesheet" href="popups.css">
 <style>.spacer{height:3000px}</style>
 </head>
 <body>
@@ -46,7 +47,7 @@
           rules: [{ type: 'frequency_cap', max: 2 }],
           display: {
             position: 'center', sticky: false,
-            overlay: { enabled: true, color: '#000000', opacity: 0.6 },
+            overlay: { enabled: true, color: '#000000', opacity: 0.6, blur: 8 },
             animation: { in: 'none', out: 'none' },
             close: { button: true, auto_close_s: 0, on_overlay_click: true, on_esc: true },
             prevent_body_scroll: true, z_index: 9999
@@ -59,7 +60,7 @@
           rules: [],
           display: {
             position: 'center', sticky: false,
-            overlay: { enabled: true, color: '#000000', opacity: 0.6 },
+            overlay: { enabled: true, color: '#000000', opacity: 0.6, blur: 0 },
             animation: { in: 'none', out: 'none' },
             close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
             prevent_body_scroll: false, z_index: 9999
@@ -72,7 +73,7 @@
           rules: [],
           display: {
             position: 'top', sticky: false,
-            overlay: { enabled: false, color: '#000000', opacity: 0.6 },
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
             animation: { in: 'none', out: 'none' },
             close: { button: false, auto_close_s: 0, on_overlay_click: false, on_esc: false },
             prevent_body_scroll: false, z_index: 9999

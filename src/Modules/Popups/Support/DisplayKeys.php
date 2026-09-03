@@ -20,6 +20,7 @@ final class DisplayKeys
 
     const OVERLAY_COLOR   = 'elemacy_overlay_color';
     const OVERLAY_OPACITY = 'elemacy_overlay_opacity';
+    const OVERLAY_BLUR    = 'elemacy_overlay_blur';
 
     const ANIMATION_IN    = 'elemacy_animation_in';
     const ANIMATION_OUT   = 'elemacy_animation_out';

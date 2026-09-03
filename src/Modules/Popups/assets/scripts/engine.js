@@ -151,10 +151,17 @@
 			var overlay = document.createElement('div');
 			overlay.className = 'elemacy-popup__overlay';
 			if (display.overlay.color) {
-				overlay.style.background = display.overlay.color;
+				overlay.style.setProperty('--elemacy-popup-overlay-color', display.overlay.color);
 			}
-			if (typeof display.overlay.opacity !== 'undefined') {
-				overlay.style.opacity = String(display.overlay.opacity);
+			var overlayOpacity = parseFloat(display.overlay.opacity);
+			if (isFinite(overlayOpacity)) {
+				overlayOpacity = Math.max(0, Math.min(overlayOpacity, 1));
+				overlay.style.setProperty('--elemacy-popup-overlay-opacity', String(overlayOpacity));
+			}
+			var overlayBlur = parseFloat(display.overlay.blur);
+			if (isFinite(overlayBlur)) {
+				overlayBlur = Math.max(0, Math.min(overlayBlur, 40));
+				overlay.style.setProperty('--elemacy-popup-overlay-blur', overlayBlur + 'px');
 			}
 			overlay.setAttribute('data-elemacy-overlay', '');
 			root.appendChild(overlay);

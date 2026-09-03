@@ -370,6 +370,30 @@ class PopupDocument extends PageBase
                 ],
             ]
         );
+
+        $this->add_control(
+            DisplayKeys::OVERLAY_BLUR,
+            [
+                'label'       => esc_html__('Background Blur', 'elemacy'),
+                'type'        => Controls_Manager::SLIDER,
+                'size_units'  => ['px'],
+                'range'       => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => DisplayDefaults::MAX_OVERLAY_BLUR,
+                        'step' => 1,
+                    ],
+                ],
+                'default'     => [
+                    'size' => $defaults['overlay']['blur'] ?? DisplayDefaults::DEFAULT_OVERLAY_BLUR,
+                    'unit' => 'px',
+                ],
+                'description' => esc_html__('Blur the page behind the overlay. Lower values usually feel more natural and render faster.', 'elemacy'),
+                'selectors'   => [
+                    'body' => '--elemacy-ov-blur: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
     }
 
     protected function register_close_style_controls()

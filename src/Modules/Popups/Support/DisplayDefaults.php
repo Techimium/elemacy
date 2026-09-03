@@ -8,6 +8,9 @@ use Elemacy\Core\Hooks;
 
 class DisplayDefaults
 {
+    const DEFAULT_OVERLAY_BLUR = 0;
+    const MAX_OVERLAY_BLUR     = 40;
+
     /**
      * Default DisplaySettings for a given popup type.
      *
@@ -26,6 +29,7 @@ class DisplayDefaults
                         'enabled' => false,
                         'color' => '#000000',
                         'opacity' => 0.6,
+                        'blur' => self::DEFAULT_OVERLAY_BLUR,
                     ],
                     'animation' => [
                         'in' => 'slide-down',
@@ -57,6 +61,7 @@ class DisplayDefaults
                         'enabled' => false,
                         'color' => '#000000',
                         'opacity' => 0.6,
+                        'blur' => self::DEFAULT_OVERLAY_BLUR,
                     ],
                     'animation' => [
                         'in' => 'fade',
@@ -90,6 +95,7 @@ class DisplayDefaults
                         'enabled' => false,
                         'color' => '#000000',
                         'opacity' => 0.6,
+                        'blur' => self::DEFAULT_OVERLAY_BLUR,
                     ],
                     'animation' => [
                         'in' => 'slide-up',
@@ -122,6 +128,7 @@ class DisplayDefaults
                         'enabled' => true,
                         'color' => '#000000',
                         'opacity' => 0.6,
+                        'blur' => self::DEFAULT_OVERLAY_BLUR,
                     ],
                     'animation' => [
                         'in' => 'fade',

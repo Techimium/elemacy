@@ -11,7 +11,7 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * (registered in PopupDocument::register_controls) and maps them into the
  * engine.js `display` config shape.
  *
- * Only behavior + overlay color/opacity live here; width/height/z-index are
+ * Only behavior + overlay appearance live here; width/height/z-index are
  * handled by the document's generated post CSS and are intentionally omitted.
  */
 class DocumentDisplay
@@ -62,6 +62,11 @@ class DocumentDisplay
             ? (float) $settings[DisplayKeys::OVERLAY_OPACITY]['size']
             : $def['overlay']['opacity'];
 
+        $overlay_blur = isset($settings[DisplayKeys::OVERLAY_BLUR]['size']) && '' !== $settings[DisplayKeys::OVERLAY_BLUR]['size']
+            ? (float) $settings[DisplayKeys::OVERLAY_BLUR]['size']
+            : (float) ($def['overlay']['blur'] ?? DisplayDefaults::DEFAULT_OVERLAY_BLUR);
+        $overlay_blur = max(0, min(DisplayDefaults::MAX_OVERLAY_BLUR, $overlay_blur));
+
         return static::$cache[$id] = [
             'position'  => isset($settings[DisplayKeys::POSITION]) && '' !== $settings[DisplayKeys::POSITION]
                 ? $settings[DisplayKeys::POSITION]
@@ -71,6 +76,7 @@ class DocumentDisplay
                 'enabled' => $is_modal,
                 'color'   => $overlay_color,
                 'opacity' => $overlay_opacity,
+                'blur'    => $overlay_blur,
             ],
             'animation' => [
                 'in'  => isset($settings[DisplayKeys::ANIMATION_IN]) && '' !== $settings[DisplayKeys::ANIMATION_IN]
