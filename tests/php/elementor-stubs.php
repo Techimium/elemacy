@@ -29,3 +29,19 @@ class Plugin
         return static::$instance;
     }
 }
+
+namespace Elementor\Modules\AtomicWidgets\DynamicTags;
+
+/**
+ * Faithful to the real class's one static method actually called by
+ * AtomicStylesRenderer::contains_dynamic_value() — enough to unit-test the
+ * dynamic/static style-filtering logic without the rest of the real
+ * atomic-widgets dynamic-tags machinery.
+ */
+class Dynamic_Prop_Type
+{
+    public static function is_dynamic_prop_value($value): bool
+    {
+        return isset($value['$$type']) && 'dynamic' === $value['$$type'];
+    }
+}

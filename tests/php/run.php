@@ -351,14 +351,131 @@ check('registrar wires related_posts to merge registered ids only for the curren
 });
 
 /* ── Core\Rendering\AtomicStylesRenderer (Elementor atomic classes
-     not loaded — elementor-stubs.php only defines \Elementor\Plugin) ── */
+     not loaded — elementor-stubs.php only defines \Elementor\Plugin and
+     Dynamic_Prop_Type) ──────────────────────────────────────────── */
 
-check('AtomicStylesRenderer::render() degrades to empty string when Elementor atomic-widgets internals are unavailable', static function () {
-    return (new AtomicStylesRenderer())->render(101) === '';
+check('AtomicStylesRenderer::render_base() degrades to empty string when Elementor atomic-widgets internals are unavailable', static function () {
+    return (new AtomicStylesRenderer())->render_base(101) === '';
+});
+
+check('AtomicStylesRenderer::render_dynamic() degrades to empty string when Elementor atomic-widgets internals are unavailable', static function () {
+    return (new AtomicStylesRenderer())->render_dynamic(101, '.scope') === '';
 });
 
 check('AtomicStylesRenderer::has_dynamic_styles() degrades to false when Elementor atomic-widgets internals are unavailable', static function () {
     return (new AtomicStylesRenderer())->has_dynamic_styles(101) === false;
+});
+
+/**
+ * Elementor's real element traversal (Utils::traverse_post_elements,
+ * Atomic_Elements_Utils) isn't stubbed — collect_all_element_styles() is
+ * the one method that needs it, so it's overridden here with fixture data,
+ * isolating the thing this change actually fixes: given each element's
+ * whole style definition, does collect_styles()'s dynamic/static split
+ * route it to the right pass. Dynamic_Prop_Type::is_dynamic_prop_value()
+ * (the only other real-class dependency in the path) is faithfully stubbed
+ * in elementor-stubs.php, so this exercises the real filtering logic.
+ */
+final class FixtureAtomicStylesRenderer extends AtomicStylesRenderer
+{
+    /** @var array<int, array> */
+    public array $fixture_element_styles = [];
+
+    protected function collect_all_element_styles(int $post_id): array
+    {
+        return $this->fixture_element_styles;
+    }
+
+    public function collect_styles_for_test(int $post_id, bool $want_dynamic): array
+    {
+        return $this->collect_styles($post_id, $want_dynamic);
+    }
+}
+
+check('AtomicStylesRenderer routes a style definition containing a dynamic value to the dynamic pass only', static function () {
+    $dynamic_style = [
+        'e-dyn1' => [
+            'id' => 'e-dyn1',
+            'variants' => [
+                [
+                    'props' => [
+                        'background' => ['$$type' => 'dynamic', 'value' => ['name' => 'featured-image']],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $renderer = new FixtureAtomicStylesRenderer();
+    $renderer->fixture_element_styles = [$dynamic_style];
+
+    $dynamic_result = $renderer->collect_styles_for_test(1, true);
+    $base_result = $renderer->collect_styles_for_test(1, false);
+
+    return $dynamic_result === $dynamic_style && $base_result === [];
+});
+
+check('AtomicStylesRenderer routes a purely static style definition to the base pass only', static function () {
+    $static_style = [
+        'e-static1' => [
+            'id' => 'e-static1',
+            'variants' => [
+                [
+                    'props' => [
+                        'border-radius' => ['$$type' => 'size', 'value' => ['size' => 11, 'unit' => 'px']],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $renderer = new FixtureAtomicStylesRenderer();
+    $renderer->fixture_element_styles = [$static_style];
+
+    $dynamic_result = $renderer->collect_styles_for_test(1, true);
+    $base_result = $renderer->collect_styles_for_test(1, false);
+
+    return $base_result === $static_style && $dynamic_result === [];
+});
+
+check('AtomicStylesRenderer keeps a mixed dynamic+static style definition whole, never split, in the dynamic pass', static function () {
+    // Whole-definition exclusion (design.md's Decisions): a style with both
+    // a dynamic prop and a static sibling prop moves entirely to the
+    // dynamic pass, rather than being partially split between passes.
+    $mixed_style = [
+        'e-mixed1' => [
+            'id' => 'e-mixed1',
+            'variants' => [
+                [
+                    'props' => [
+                        'border-radius' => ['$$type' => 'size', 'value' => ['size' => 11, 'unit' => 'px']],
+                        'background' => ['$$type' => 'dynamic', 'value' => ['name' => 'featured-image']],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $renderer = new FixtureAtomicStylesRenderer();
+    $renderer->fixture_element_styles = [$mixed_style];
+
+    $dynamic_result = $renderer->collect_styles_for_test(1, true);
+    $base_result = $renderer->collect_styles_for_test(1, false);
+
+    return $dynamic_result === $mixed_style && $base_result === [];
+});
+
+check('AtomicStylesRenderer merges multiple elements\' styles, each routed independently', static function () {
+    $dynamic_style = ['e-dyn2' => ['id' => 'e-dyn2', 'variants' => [['props' => ['background' => ['$$type' => 'dynamic', 'value' => []]]]]]];
+    $static_style = ['e-static2' => ['id' => 'e-static2', 'variants' => [['props' => ['color' => ['$$type' => 'color', 'value' => '#fff']]]]]];
+
+    $renderer = new FixtureAtomicStylesRenderer();
+    $renderer->fixture_element_styles = [$dynamic_style, $static_style];
+
+    $dynamic_result = $renderer->collect_styles_for_test(1, true);
+    $base_result = $renderer->collect_styles_for_test(1, false);
+
+    return $dynamic_result === $dynamic_style && $base_result === $static_style;
 });
 
 /* ── Core\Rendering\ClassicCssRenderer (Elementor classic CSS/dynamic-tag
@@ -374,6 +491,39 @@ check('ClassicCssRenderer::render_dynamic() degrades to empty string when Dynami
 
 check('ClassicCssRenderer::has_dynamic_settings() degrades to false when Elementor internals are unavailable', static function () {
     return (new ClassicCssRenderer())->has_dynamic_settings(101) === false;
+});
+
+check('ClassicCssRenderer::suppress_automatic_dynamic_css() makes elementor/css-file/dynamic/should_enqueue return false only for the registered post id', static function () {
+    (new ClassicCssRenderer())->suppress_automatic_dynamic_css(64);
+
+    $suppressed = apply_filters('elementor/css-file/dynamic/should_enqueue', true, 64);
+    $unrelated = apply_filters('elementor/css-file/dynamic/should_enqueue', true, 999);
+
+    return false === $suppressed && true === $unrelated;
+});
+
+check('ClassicCssRenderer::suppress_automatic_dynamic_css() hooks the filter only once, even across multiple post ids', static function () {
+    // add_filter() shares add_action()'s __wp_actions storage in this stub
+    // harness — [hook][priority] is a list of registered callbacks.
+    $hook = 'elementor/css-file/dynamic/should_enqueue';
+    $count = static fn () => count($GLOBALS['__wp_actions'][$hook][10] ?? []);
+
+    $renderer = new ClassicCssRenderer();
+    $before = $count();
+
+    $renderer->suppress_automatic_dynamic_css(111);
+    $renderer->suppress_automatic_dynamic_css(111);
+    $renderer->suppress_automatic_dynamic_css(222);
+
+    // Whatever the starting count (0 if this is the first filter test to run,
+    // 1 if a prior check already hooked it), three more suppress_...() calls
+    // — including a repeat of the same id — must add at most one callback.
+    $added = $count() - $before;
+
+    $both_suppressed = false === apply_filters($hook, true, 111)
+        && false === apply_filters($hook, true, 222);
+
+    return $added <= 1 && $both_suppressed;
 });
 
 /* ── Modules\Widgets\Services\LoopItemStyles ──────────────────────── */
@@ -395,6 +545,8 @@ final class FakeClassicCssRenderer extends ClassicCssRenderer
     /** @var array<int, array{0:int,1:int,2:string}> */
     public array $dynamic_calls = [];
     public int $has_dynamic_calls = 0;
+    /** @var array<int, int> */
+    public array $suppress_calls = [];
 
     public function render_base(int $post_id): string
     {
@@ -414,6 +566,13 @@ final class FakeClassicCssRenderer extends ClassicCssRenderer
 
         return $this->has_dynamic;
     }
+
+    public function suppress_automatic_dynamic_css(int $post_id): void
+    {
+        // Spy only — never touches the real, shared suppression registry,
+        // keeping these tests isolated from ClassicCssRenderer's own.
+        $this->suppress_calls[] = $post_id;
+    }
 }
 
 final class FakeAtomicStylesRenderer extends AtomicStylesRenderer
@@ -421,15 +580,24 @@ final class FakeAtomicStylesRenderer extends AtomicStylesRenderer
     public string $base_css = '';
     public string $dynamic_css = '';
     public bool $has_dynamic = false;
+    /** @var array<int, int> */
+    public array $render_base_calls = [];
     /** @var array<int, array{0:int,1:string}> */
-    public array $render_calls = [];
+    public array $render_dynamic_calls = [];
     public int $has_dynamic_calls = 0;
 
-    public function render(int $post_id, string $selector_prefix = '.elementor'): string
+    public function render_base(int $post_id): string
     {
-        $this->render_calls[] = [$post_id, $selector_prefix];
+        $this->render_base_calls[] = $post_id;
 
-        return '.elementor' === $selector_prefix ? $this->base_css : $this->dynamic_css;
+        return $this->base_css;
+    }
+
+    public function render_dynamic(int $post_id, string $selector_prefix): string
+    {
+        $this->render_dynamic_calls[] = [$post_id, $selector_prefix];
+
+        return $this->dynamic_css;
     }
 
     public function has_dynamic_styles(int $post_id): bool
@@ -483,7 +651,7 @@ check('LoopItemStyles::print_item_css() is a no-op when the template has no dyna
     (new LoopItemStyles($classic, $atomic))->print_item_css(9004, 55);
     $output = ob_get_clean();
 
-    return '' === $output && [] === $classic->dynamic_calls && [] === $atomic->render_calls;
+    return '' === $output && [] === $classic->dynamic_calls && [] === $atomic->render_dynamic_calls;
 });
 
 check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers when the template has dynamic content', static function () {
@@ -499,7 +667,18 @@ check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers wh
 
     return $output === '<style id="elemacy-loop-item-77">.c{color:green;}.d{color:yellow;}</style>'
         && $classic->dynamic_calls === [[9005, 77, '.elemacy-loop-item-77']]
-        && $atomic->render_calls === [[9005, '.elemacy-loop-item-77']];
+        && $atomic->render_dynamic_calls === [[9005, '.elemacy-loop-item-77']];
+});
+
+check('LoopItemStyles::print_base_css() suppresses Elementor\'s automatic dynamic CSS for the template before anything else runs', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $atomic = new FakeAtomicStylesRenderer();
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_base_css(9007);
+    ob_get_clean();
+
+    return $classic->suppress_calls === [9007];
 });
 
 check('LoopItemStyles caches has_dynamic_content() per template id across multiple items', static function () {

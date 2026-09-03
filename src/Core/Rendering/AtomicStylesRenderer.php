@@ -23,17 +23,53 @@ defined('ABSPATH') || exit;
 class AtomicStylesRenderer
 {
     /**
-     * $post_id's atomic CSS, scoped under $selector_prefix instead of
-     * Styles_Renderer's own default `.elementor` prefix.
+     * $post_id's atomic CSS for every style that does NOT contain a
+     * dynamic-tag-bound value anywhere in it, using Styles_Renderer's own
+     * default `.elementor` selector prefix. Mirrors classic Elementor's own
+     * base CSS pass, which likewise never bakes in a dynamic-bound value.
+     *
+     * @param int $post_id
+     * @return string
+     */
+    public function render_base(int $post_id): string
+    {
+        return $this->render_styles($this->collect_styles($post_id, false), '.elementor');
+    }
+
+    /**
+     * $post_id's atomic CSS for only the styles that DO contain a
+     * dynamic-tag-bound value somewhere in them, scoped under
+     * $selector_prefix instead of the default `.elementor` prefix.
      *
      * @param int    $post_id
      * @param string $selector_prefix
      * @return string
      */
-    public function render(int $post_id, string $selector_prefix = '.elementor'): string
+    public function render_dynamic(int $post_id, string $selector_prefix): string
     {
-        $styles = $this->collect_styles($post_id);
+        return $this->render_styles($this->collect_styles($post_id, true), $selector_prefix);
+    }
 
+    /**
+     * Whether any atomic element on $post_id has a style prop bound to a
+     * dynamic tag, so callers can skip a render_dynamic() pass when it
+     * would produce nothing.
+     *
+     * @param int $post_id
+     * @return bool
+     */
+    public function has_dynamic_styles(int $post_id): bool
+    {
+        return !empty($this->collect_styles($post_id, true));
+    }
+
+    /**
+     * @param array  $styles
+     * @param string $selector_prefix
+     * @return string
+     */
+    protected function render_styles(array $styles, string $selector_prefix): string
+    {
         if (empty($styles) || !class_exists('\Elementor\Modules\AtomicWidgets\Styles\Styles_Renderer')
             || !class_exists('\Elementor\Plugin')) {
             return '';
@@ -46,48 +82,55 @@ class AtomicStylesRenderer
     }
 
     /**
-     * Whether any atomic element on $post_id has a style prop bound to a
-     * dynamic tag, so callers can skip a per-item render() pass when it
-     * would produce the exact same CSS every time.
+     * Every atomic element's own `styles` definitions on $post_id whose
+     * presence of a dynamic-tag-bound value (anywhere in that element's
+     * whole style definition, checked as one unit — never split apart)
+     * matches $want_dynamic, merged into one flat array. The same
+     * collection Atomic_Widget_Styles builds internally for
+     * Atomic_Styles_Manager, reimplemented here so it can be called outside
+     * that manager's hook-locked pipeline, with the dynamic/non-dynamic
+     * split classic Elementor's own base CSS pass already does natively.
      *
-     * @param int $post_id
-     * @return bool
+     * @param int  $post_id
+     * @param bool $want_dynamic
+     * @return array
      */
-    public function has_dynamic_styles(int $post_id): bool
+    protected function collect_styles(int $post_id, bool $want_dynamic): array
     {
-        $found = false;
+        $styles = [];
 
-        foreach ($this->collect_styles($post_id) as $style) {
-            if ($this->contains_dynamic_value($style)) {
-                $found = true;
-                break;
+        foreach ($this->collect_all_element_styles($post_id) as $element_styles) {
+            if ($this->contains_dynamic_value($element_styles) !== $want_dynamic) {
+                continue;
             }
+
+            $styles = array_merge($styles, $element_styles);
         }
 
-        return $found;
+        return $styles;
     }
 
     /**
-     * Every atomic element's own `styles` definitions on $post_id, merged
-     * into one flat array — the same collection Atomic_Widget_Styles builds
-     * internally for Atomic_Styles_Manager, reimplemented here so it can be
-     * called outside that manager's hook-locked pipeline.
+     * Every atomic element's own `styles` definition on $post_id, one array
+     * per element, kept separate (not yet merged or filtered) so
+     * collect_styles() can decide per element whether it belongs in the
+     * base or the dynamic pass.
      *
      * @param int $post_id
-     * @return array
+     * @return array<int, array>
      */
-    protected function collect_styles(int $post_id): array
+    protected function collect_all_element_styles(int $post_id): array
     {
         if (!class_exists('\Elementor\Modules\AtomicWidgets\Utils\Utils')
             || !class_exists('\Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils')) {
             return [];
         }
 
-        $styles = [];
+        $per_element_styles = [];
 
         \Elementor\Modules\AtomicWidgets\Utils\Utils::traverse_post_elements(
             (string) $post_id,
-            function (array $element_data) use (&$styles) {
+            function (array $element_data) use (&$per_element_styles) {
                 $element_type = \Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils::get_element_type($element_data);
                 $element_instance = \Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils::get_element_instance($element_type);
 
@@ -95,11 +138,11 @@ class AtomicStylesRenderer
                     return;
                 }
 
-                $styles = array_merge($styles, $element_data['styles'] ?? []);
+                $per_element_styles[] = $element_data['styles'] ?? [];
             }
         );
 
-        return $styles;
+        return $per_element_styles;
     }
 
     /**

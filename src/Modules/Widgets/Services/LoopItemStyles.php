@@ -55,13 +55,15 @@ class LoopItemStyles
      */
     public function print_base_css(int $template_id): void
     {
+        $this->classic->suppress_automatic_dynamic_css($template_id);
+
         if (isset(self::$printed_base_css[$template_id])) {
             return;
         }
 
         self::$printed_base_css[$template_id] = true;
 
-        $css = $this->classic->render_base($template_id) . $this->atomic->render($template_id);
+        $css = $this->classic->render_base($template_id) . $this->atomic->render_base($template_id);
 
         $this->echo_style('elemacy-loop-base-' . $template_id, $css);
     }
@@ -84,7 +86,7 @@ class LoopItemStyles
         $selector = '.elemacy-loop-item-' . $item_post_id;
 
         $css = $this->classic->render_dynamic($template_id, $item_post_id, $selector)
-            . $this->atomic->render($template_id, $selector);
+            . $this->atomic->render_dynamic($template_id, $selector);
 
         $this->echo_style('elemacy-loop-item-' . $item_post_id, $css);
     }
