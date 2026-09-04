@@ -5,7 +5,7 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Modules\ThemeBuilder\Compatibility\Contracts\ThemeCompatibilityInterface;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /**

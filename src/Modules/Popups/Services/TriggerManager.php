@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\Triggers\TriggerInterface;
+use Elemacy\Modules\Popups\Contracts\TriggerInterface;
 
 class TriggerManager
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Modules\ThemeBuilder\Compatibility\Contracts;
+namespace Elemacy\Modules\ThemeBuilder\Contracts;
 
 defined('ABSPATH') || exit;
 

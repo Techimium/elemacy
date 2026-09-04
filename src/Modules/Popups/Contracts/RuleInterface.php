@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Modules\Popups\Rules;
+namespace Elemacy\Modules\Popups\Contracts;
 
 defined('ABSPATH') || exit;
 

@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Triggers;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Popups\Contracts\TriggerInterface;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 
 abstract class BaseTrigger implements TriggerInterface

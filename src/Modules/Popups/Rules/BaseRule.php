@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Rules;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\Popups\Contracts\RuleInterface;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 
 abstract class BaseRule implements RuleInterface

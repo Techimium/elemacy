@@ -5,8 +5,8 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Modules\Popups\Rules\RuleInterface;
-use Elemacy\Modules\Popups\Triggers\TriggerInterface;
+use Elemacy\Modules\Popups\Contracts\RuleInterface;
+use Elemacy\Modules\Popups\Contracts\TriggerInterface;
 use Elemacy\Support\Utils;
 
 /**

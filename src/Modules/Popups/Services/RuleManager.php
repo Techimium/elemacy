@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Popups\Rules\RuleInterface;
+use Elemacy\Modules\Popups\Contracts\RuleInterface;
 
 class RuleManager
 {
