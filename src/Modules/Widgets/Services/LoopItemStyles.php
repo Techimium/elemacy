@@ -73,22 +73,26 @@ class LoopItemStyles
      * no-op when the template has no dynamic-tag-bound style anywhere, so a
      * non-dynamic template costs nothing beyond print_base_css().
      *
-     * @param int $template_id
-     * @param int $item_post_id
+     * $item_identity comes from the rendering LoopItemInterface's own
+     * get_identity() — a string unique to that item within this render, not
+     * necessarily a WordPress post ID (see design.md D4).
+     *
+     * @param int    $template_id
+     * @param string $item_identity
      * @return void
      */
-    public function print_item_css(int $template_id, int $item_post_id): void
+    public function print_item_css(int $template_id, string $item_identity): void
     {
         if (!$this->has_dynamic_content($template_id)) {
             return;
         }
 
-        $selector = '.elemacy-loop-item-' . $item_post_id;
+        $selector = '.elemacy-loop-item-' . $item_identity;
 
-        $css = $this->classic->render_dynamic($template_id, $item_post_id, $selector)
+        $css = $this->classic->render_dynamic($template_id, $item_identity, $selector)
             . $this->atomic->render_dynamic($template_id, $selector);
 
-        $this->echo_style('elemacy-loop-item-' . $item_post_id, $css);
+        $this->echo_style('elemacy-loop-item-' . $item_identity, $css);
     }
 
     /**

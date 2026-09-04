@@ -8,10 +8,13 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\Documents\DocumentManager;
 use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
@@ -43,11 +46,27 @@ class Widgets extends Module
     {
         $this->register_admin_menu();
         $this->register_types();
+        $this->register_data_sources();
         new DocumentManager();
         new FrontendAssets();
         new EditorAssets();
         WidgetManager::instance();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
+    }
+
+    /**
+     * The loop data sources Loop Grid / Loop Carousel / AJAX pagination
+     * consume. Registers the built-in Posts source directly, then fires
+     * LOOP_DATA_SOURCES_REGISTER_ACTION so add-ons can register more —
+     * mirrors register_locations() in ThemeBuilder.
+     */
+    protected function register_data_sources(): void
+    {
+        $registry = LoopDataSourceRegistry::instance();
+
+        $registry->register(new PostsDataSource());
+
+        do_action(Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION, $registry);
     }
 
     /**

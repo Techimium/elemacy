@@ -7,11 +7,12 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
+use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
 use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Plugin;
-use WP_Query;
 
 class AjaxPaginationController
 {
@@ -50,6 +51,15 @@ class AjaxPaginationController
         $posts_per_page = isset($settings['posts_per_page']) ? (int) $settings['posts_per_page'] : 6;
         $posts_per_page = max(1, min(100, $posts_per_page));
 
+        $data_source_key = isset($settings['data_source']) ? sanitize_key((string) $settings['data_source']) : 'posts';
+        $source = LoopDataSourceRegistry::instance()->get($data_source_key);
+
+        if (!$source) {
+            wp_send_json_error(esc_html__('The selected data source is not available.', 'elemacy'));
+        }
+
+        $offset_override_used = false;
+
         if ('current_query' === $post_type) {
             $current_vars = isset($settings['current_query_vars']) && is_array($settings['current_query_vars'])
                 ? $settings['current_query_vars']
@@ -58,41 +68,41 @@ class AjaxPaginationController
             $query_args = $this->sanitize_current_query_vars($current_vars);
             $query_args['paged'] = $paged;
             $query_args['post_status'] = PostStatus::PUBLISH;
+
+            $item_settings = [
+                'post_type' => 'current_query',
+                'current_query_args' => $query_args,
+            ];
         } else {
-            $query_args = [
+            $item_settings = [
                 'post_type' => $post_type,
                 'posts_per_page' => $posts_per_page,
                 'orderby' => $orderby,
                 'order' => $order,
-                'post_status' => PostStatus::PUBLISH,
                 'paged' => $paged,
+                'pagination_type' => 'ajax', // any non-empty value: gates paged/offset handling in PostsDataSource::build_query_args()
+                'exclude_current_post' => 'yes' === ($settings['exclude_current_post'] ?? '') ? 'yes' : 'no',
+                'current_post_id' => !empty($settings['current_post_id']) ? (int) $settings['current_post_id'] : 0,
             ];
 
-            // Handling offset properly during pagination
+            // The first page has normal offset. Subsequent pages need offset + previous pages posts.
             if (!empty($settings['offset'])) {
-                $offset = (int) $settings['offset'];
-
-                // The first page has normal offset. Subsequent pages need offset + previous pages posts
-                $query_args['offset'] = $offset + (($paged - 1) * $posts_per_page);
-            }
-
-            if ('yes' === ($settings['exclude_current_post'] ?? '') && !empty($settings['current_post_id'])) {
-                $query_args['post__not_in'] = [intval($settings['current_post_id'])];
+                $offset_override_used = true;
+                $item_settings['offset'] = (int) $settings['offset'] + (($paged - 1) * $posts_per_page);
             }
         }
 
-        $query = new WP_Query($query_args);
+        $result = $source->get_items($item_settings);
 
-        // Fix logic for max_num_pages when custom offset is present, so pagination numbers render correctly
-        if (!empty($settings['offset']) && 'current_query' !== $post_type) {
-            $offset = (int) $settings['offset'];
-            $posts_per_page = isset($settings['posts_per_page']) ? (int) $settings['posts_per_page'] : 6;
-            $posts_per_page = max(1, min(100, $posts_per_page));
-            $total_posts = max(0, $query->found_posts - $offset);
-            $query->max_num_pages = ceil($total_posts / $posts_per_page);
+        // Fix max_num_pages when a custom offset is present: WP_Query computes it
+        // from found_posts alone, which over-counts once an offset has already
+        // consumed some of those posts.
+        if ($offset_override_used) {
+            $total_posts = max(0, $result->total_items - (int) $settings['offset']);
+            $result->max_num_pages = (int) ceil($total_posts / $posts_per_page);
         }
 
-        if (!$query->have_posts()) {
+        if (empty($result->items)) {
             wp_send_json_error(esc_html__('No posts found.', 'elemacy'));
         }
 
@@ -110,24 +120,32 @@ class AjaxPaginationController
         $loop_item_styles = new LoopItemStyles();
         $loop_item_styles->print_base_css($template_id);
 
-        while ($query->have_posts()) {
-            $query->the_post();
+        foreach ($result->items as $item) {
+            LoopContext::push($item);
 
-            $loop_item_styles->print_item_css($template_id, get_the_ID());
+            try {
+                $item->enter();
 
-            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            echo Plugin::instance()->frontend->get_builder_content_for_display($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo '</div>';
+                try {
+                    $loop_item_styles->print_item_css($template_id, $item->get_identity());
+
+                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
+                    echo Plugin::instance()->frontend->get_builder_content_for_display($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo '</div>';
+                } finally {
+                    $item->exit();
+                }
+            } finally {
+                LoopContext::pop();
+            }
         }
-
-        wp_reset_postdata();
 
         $items_html = ob_get_clean();
 
         // Pagination HTML
         ob_start();
-        if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
-            LoopGrid::render_pagination_html($settings, $query, $paged);
+        if (!empty($settings['pagination_type']) && $result->max_num_pages > 1) {
+            LoopGrid::render_pagination_html($settings, $result->max_num_pages, $paged);
         }
         $pagination_html = ob_get_clean();
 

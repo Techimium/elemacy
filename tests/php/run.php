@@ -26,6 +26,13 @@ use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
+use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
+use Elemacy\Modules\Widgets\LoopItems\PostLoopItem;
+use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Modules\Widgets\Support\LoopItemIdentity;
 use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
@@ -542,7 +549,7 @@ final class FakeClassicCssRenderer extends ClassicCssRenderer
     public string $base_css = '';
     public string $dynamic_css = '';
     public bool $has_dynamic = false;
-    /** @var array<int, array{0:int,1:int,2:string}> */
+    /** @var array<int, array{0:int,1:string,2:string}> */
     public array $dynamic_calls = [];
     public int $has_dynamic_calls = 0;
     /** @var array<int, int> */
@@ -553,9 +560,9 @@ final class FakeClassicCssRenderer extends ClassicCssRenderer
         return $this->base_css;
     }
 
-    public function render_dynamic(int $template_id, int $item_post_id, string $selector_prefix): string
+    public function render_dynamic(int $template_id, string $item_identity, string $selector_prefix): string
     {
-        $this->dynamic_calls[] = [$template_id, $item_post_id, $selector_prefix];
+        $this->dynamic_calls[] = [$template_id, $item_identity, $selector_prefix];
 
         return $this->dynamic_css;
     }
@@ -666,7 +673,7 @@ check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers wh
     $output = ob_get_clean();
 
     return $output === '<style id="elemacy-loop-item-77">.c{color:green;}.d{color:yellow;}</style>'
-        && $classic->dynamic_calls === [[9005, 77, '.elemacy-loop-item-77']]
+        && $classic->dynamic_calls === [[9005, '77', '.elemacy-loop-item-77']]
         && $atomic->render_dynamic_calls === [[9005, '.elemacy-loop-item-77']];
 });
 
@@ -928,5 +935,179 @@ check('INT/BOOL casts', static fn() =>
 
 check('null passes through every rule untouched', static fn() =>
     Sanitizer::apply_rule(null, Sanitizer::TEXT) === null);
+
+/* ── Modules\Widgets\DTO\LoopResultDTO ────────────────────────────── */
+
+check('LoopResultDTO stores items, totals, and pagination support as given', static function () {
+    $items = [1, 2, 3];
+    $result = new LoopResultDTO($items, 30, 3, true);
+
+    return $result->items === $items
+        && $result->total_items === 30
+        && $result->max_num_pages === 3
+        && $result->supports_pagination === true;
+});
+
+check('LoopResultDTO defaults to empty/zero/false', static function () {
+    $result = new LoopResultDTO();
+
+    return $result->items === [] && $result->total_items === 0
+        && $result->max_num_pages === 0 && $result->supports_pagination === false;
+});
+
+check('LoopResultDTO::from_array() populates fields like other DTOs in this codebase', static function () {
+    $result = LoopResultDTO::from_array(['total_items' => 5, 'max_num_pages' => 2, 'supports_pagination' => true]);
+
+    return $result->total_items === 5 && $result->max_num_pages === 2 && $result->supports_pagination === true;
+});
+
+/* ── Modules\Widgets\Services\LoopContext ─────────────────────────── */
+
+/**
+ * Identity-only test double: records nothing, exists purely so LoopContext
+ * has something typed as LoopItemInterface to push.
+ */
+final class FixedLoopItem implements LoopItemInterface
+{
+    protected string $identity;
+
+    public function __construct(string $identity)
+    {
+        $this->identity = $identity;
+    }
+
+    public function get_identity(): string
+    {
+        return $this->identity;
+    }
+
+    public function get_field(string $key)
+    {
+        return null;
+    }
+
+    public function enter(): void
+    {
+    }
+
+    public function exit(): void
+    {
+    }
+}
+
+check('LoopContext::current() is null with nothing pushed', static function () {
+    return LoopContext::current() === null;
+});
+
+check('LoopContext push/pop tracks the innermost item, and unwinds to the outer item after an inner pair completes', static function () {
+    $outer = new FixedLoopItem('outer');
+    $inner = new FixedLoopItem('inner');
+
+    LoopContext::push($outer);
+    $seen_outer = LoopContext::current();
+
+    LoopContext::push($inner);
+    $seen_inner = LoopContext::current();
+    LoopContext::pop();
+
+    $seen_outer_again = LoopContext::current();
+    LoopContext::pop();
+    $seen_after_all_popped = LoopContext::current();
+
+    return $seen_outer === $outer && $seen_inner === $inner
+        && $seen_outer_again === $outer && $seen_after_all_popped === null;
+});
+
+/* ── Modules\Widgets\Services\LoopDataSourceRegistry ──────────────── */
+
+final class FixedLoopDataSource implements LoopDataSourceInterface
+{
+    protected string $key;
+
+    public function __construct(string $key)
+    {
+        $this->key = $key;
+    }
+
+    public function get_key(): string
+    {
+        return $this->key;
+    }
+
+    public function get_label(): string
+    {
+        return ucfirst($this->key);
+    }
+
+    public function register_controls($widget): void
+    {
+    }
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        return new LoopResultDTO();
+    }
+}
+
+check('LoopDataSourceRegistry register/get/all round-trip by key', static function () {
+    $registry = new LoopDataSourceRegistry();
+    $a = new FixedLoopDataSource('source-a');
+    $b = new FixedLoopDataSource('source-b');
+
+    $registry->register($a);
+    $registry->register($b);
+
+    return $registry->get('source-a') === $a
+        && $registry->get('source-b') === $b
+        && $registry->get('missing') === null
+        && $registry->all() === ['source-a' => $a, 'source-b' => $b];
+});
+
+check('LoopDataSourceRegistry::instance() returns the same instance across calls', static function () {
+    return LoopDataSourceRegistry::instance() === LoopDataSourceRegistry::instance();
+});
+
+/* ── Modules\Widgets\Support\LoopItemIdentity ─────────────────────── */
+
+check('LoopItemIdentity::sanitize() keeps letters, digits, underscore and hyphen', static function () {
+    return LoopItemIdentity::sanitize('Row-3_of-Post42') === 'Row-3_of-Post42';
+});
+
+check('LoopItemIdentity::sanitize() strips everything else', static function () {
+    return LoopItemIdentity::sanitize('42<script>.foo bar/baz') === '42scriptfoobarbaz';
+});
+
+/* ── Modules\Widgets\LoopItems\PostLoopItem ────────────────────────── */
+
+check('PostLoopItem::get_identity() returns the sanitized post ID as a string', static function () {
+    $item = new PostLoopItem(new WP_Post(42));
+
+    return $item->get_identity() === '42' && is_string($item->get_identity());
+});
+
+check('PostLoopItem::get_field(\'ID\') returns the post ID', static function () {
+    $item = new PostLoopItem(new WP_Post(7));
+
+    return $item->get_field('ID') === 7;
+});
+
+check('PostLoopItem::get_field(\'content\') runs the_content filters over post_content', static function () {
+    $item = new PostLoopItem(new WP_Post(8, ['post_content' => 'hello world']));
+
+    return $item->get_field('content') === 'hello world';
+});
+
+check('PostLoopItem::get_field() falls back to post meta for an unrecognized key when ACF is not active', static function () {
+    update_post_meta(9, 'my_custom_field', 'custom value');
+    $item = new PostLoopItem(new WP_Post(9));
+
+    return $item->get_field('my_custom_field') === 'custom value';
+});
+
+check('PostLoopItem::get_field() returns empty string for an unrecognized key with no meta set', static function () {
+    $item = new PostLoopItem(new WP_Post(10));
+
+    return $item->get_field('nonexistent_field') === '';
+});
 
 conclude();

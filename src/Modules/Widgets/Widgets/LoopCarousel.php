@@ -2,13 +2,13 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Core\Constants\PostStatus;
+use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
 use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
-use WP_Query;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -78,20 +78,6 @@ class LoopCarousel extends BaseWidget
 
         foreach ($this->get_loop_templates() as $template) {
             $options[$template->id] = $template->title;
-        }
-
-        return $options;
-    }
-
-    protected function get_public_post_types()
-    {
-        $post_types = get_post_types(['public' => true], 'objects');
-        $options = [
-            'current_query' => esc_html__('Current Query', 'elemacy'),
-        ];
-
-        foreach ($post_types as $post_type) {
-            $options[$post_type->name] = $post_type->label;
         }
 
         return $options;
@@ -199,87 +185,29 @@ class LoopCarousel extends BaseWidget
             ]
         );
 
+        $registry = LoopDataSourceRegistry::instance();
+
+        $options = [];
+        foreach ($registry->all() as $key => $source) {
+            $options[$key] = $source->get_label();
+        }
+
         $this->add_control(
-            'post_type',
+            'data_source',
             [
-                'label' => esc_html__('Source', 'elemacy'),
+                'label' => esc_html__('Data Source', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'options' => $this->get_public_post_types(),
-                'default' => 'post',
+                'options' => $options,
+                'default' => 'posts',
             ]
         );
 
-        $this->add_control(
-            'posts_per_page',
-            [
-                'label' => esc_html__('Posts Count', 'elemacy'),
-                'type' => Controls_Manager::NUMBER,
-                'default' => 6,
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'offset',
-            [
-                'label' => esc_html__('Offset', 'elemacy'),
-                'type' => Controls_Manager::NUMBER,
-                'default' => 0,
-                'description' => esc_html__('Number of posts to skip. Note: Using an offset can break pagination.', 'elemacy'),
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'orderby',
-            [
-                'label' => esc_html__('Order By', 'elemacy'),
-                'type' => Controls_Manager::SELECT,
-                'default' => 'date',
-                'options' => [
-                    'date' => esc_html__('Date', 'elemacy'),
-                    'title' => esc_html__('Title', 'elemacy'),
-                    'menu_order' => esc_html__('Menu Order', 'elemacy'),
-                    'rand' => esc_html__('Random', 'elemacy'),
-                ],
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'order',
-            [
-                'label' => esc_html__('Order', 'elemacy'),
-                'type' => Controls_Manager::SELECT,
-                'default' => 'DESC',
-                'options' => [
-                    'ASC' => esc_html__('ASC', 'elemacy'),
-                    'DESC' => esc_html__('DESC', 'elemacy'),
-                ],
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'exclude_current_post',
-            [
-                'label' => esc_html__('Exclude Current Post', 'elemacy'),
-                'type' => Controls_Manager::SWITCHER,
-                'return_value' => 'yes',
-                'default' => 'yes',
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
+        // Every registered source's controls are always registered; each
+        // scopes its own visibility with a `data_source` condition, the
+        // same way `post_type!` conditions already worked before this.
+        foreach ($registry->all() as $source) {
+            $source->register_controls($this);
+        }
 
         $this->end_controls_section();
     }
@@ -577,27 +505,6 @@ class LoopCarousel extends BaseWidget
         $this->end_controls_section();
     }
 
-    protected function build_query_args($settings)
-    {
-        $args = [
-            'post_type' => $settings['post_type'],
-            'posts_per_page' => $settings['posts_per_page'],
-            'orderby' => $settings['orderby'],
-            'order' => $settings['order'],
-            'post_status' => PostStatus::PUBLISH,
-        ];
-
-        if (!empty($settings['offset'])) {
-            $args['offset'] = $settings['offset'];
-        }
-
-        if ('yes' === $settings['exclude_current_post'] && is_singular()) {
-            $args['post__not_in'] = [get_the_ID()];
-        }
-
-        return $args;
-    }
-
     protected function render()
     {
         $settings = $this->get_settings_for_display();
@@ -609,22 +516,23 @@ class LoopCarousel extends BaseWidget
             return;
         }
 
-        if ($settings['post_type'] === 'current_query') {
-            global $wp_query;
-            $query = $wp_query;
-        } else {
-            $query_args = $this->build_query_args($settings);
-            $query = new WP_Query($query_args);
+        $source = LoopDataSourceRegistry::instance()->get($settings['data_source'] ?? 'posts');
+
+        if (!$source) {
+            if (Plugin::instance()->editor->is_edit_mode()) {
+                echo '<div class="elemacy-alert elemacy-alert-warning">' . esc_html__('The selected data source for this Loop Carousel is not available.', 'elemacy') . '</div>';
+            }
+            return;
         }
 
-        if (!$query->have_posts()) {
+        $result = $source->get_items($settings);
+
+        if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
                 echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
             }
             return;
         }
-
-        global $post;
 
         echo '<div class="elemacy-loop-carousel-container">';
         echo '<div class="swiper elemacy-loop-carousel">';
@@ -633,20 +541,27 @@ class LoopCarousel extends BaseWidget
         $loop_item_styles = new LoopItemStyles();
         $loop_item_styles->print_base_css($settings['template_id']);
 
-        while ($query->have_posts()) {
-            $query->the_post();
+        foreach ($result->items as $item) {
+            LoopContext::push($item);
 
-            $loop_item_styles->print_item_css($settings['template_id'], get_the_ID());
+            try {
+                $item->enter();
 
-            echo '<div class="swiper-slide">';
-            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-            echo '</div>';
-            echo '</div>';
+                try {
+                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
+
+                    echo '<div class="swiper-slide">';
+                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
+                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
+                    echo '</div>';
+                    echo '</div>';
+                } finally {
+                    $item->exit();
+                }
+            } finally {
+                LoopContext::pop();
+            }
         }
-
-        // Restore global post data
-        wp_reset_postdata();
 
         echo '</div>'; // End swiper-wrapper
 

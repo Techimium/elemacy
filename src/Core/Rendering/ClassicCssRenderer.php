@@ -90,24 +90,30 @@ class ClassicCssRenderer
      * with the selector rewritten from the template's own `.elementor-{id}`
      * to $selector_prefix so it only applies to that one rendered item.
      *
+     * $item_identity is a LoopItemInterface::get_identity() value — a
+     * string unique to one item within this render, not necessarily a
+     * WordPress post ID. LoopDynamicCss never uses it to look up a post
+     * (see design.md D4); it only needs to match the token this method
+     * rewrites out of the generated CSS below.
+     *
      * @param int    $template_id
-     * @param int    $item_post_id
+     * @param string $item_identity
      * @param string $selector_prefix
      * @return string
      */
-    public function render_dynamic(int $template_id, int $item_post_id, string $selector_prefix): string
+    public function render_dynamic(int $template_id, string $item_identity, string $selector_prefix): string
     {
         if (!class_exists('\Elementor\Core\DynamicTags\Dynamic_CSS')) {
             return '';
         }
 
-        $css = (new LoopDynamicCss($item_post_id, $template_id))->get_content();
+        $css = (new LoopDynamicCss($item_identity, $template_id))->get_content();
 
         if ($css === '') {
             return '';
         }
 
-        return str_replace('.elementor-' . $item_post_id, $selector_prefix, $css);
+        return str_replace('.elementor-' . $item_identity, $selector_prefix, $css);
     }
 
     /**

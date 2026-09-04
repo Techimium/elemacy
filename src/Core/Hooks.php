@@ -42,6 +42,10 @@ final class Hooks
     // Fired so add-ons can register theme locations (passes the LocationRegistry).
     const THEME_BUILDER_LOCATIONS_REGISTER_ACTION = 'elemacy/action/theme_builder/locations/register';
 
+    // Fired after the Widgets module registers its built-in loop data sources,
+    // so add-ons can register their own (passes the LoopDataSourceRegistry).
+    const LOOP_DATA_SOURCES_REGISTER_ACTION = 'elemacy/action/loop/data_sources/register';
+
     // Preview (editor real-data preview)
     // Lets add-ons adjust the WP_Query args a previewable document renders against
     // (passes the args array and the document instance).

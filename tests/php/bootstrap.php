@@ -15,6 +15,7 @@ $GLOBALS['__wp_options'] = [];
 $GLOBALS['__wp_actions'] = [];
 $GLOBALS['__wp_actions_fired'] = [];
 $GLOBALS['__current_post_id'] = 0;
+$GLOBALS['__wp_post_meta'] = [];
 
 function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
 {
@@ -206,6 +207,44 @@ function sanitize_mime_type($mime_type)
 function wp_kses_post($content)
 {
     return strip_tags((string) $content, '<a><b><strong><em><i><p><br><ul><ol><li><img><h1><h2><h3><h4><h5><h6><blockquote><code><pre>');
+}
+
+function get_post_meta($post_id, $key = '', $single = false)
+{
+    $value = $GLOBALS['__wp_post_meta'][$post_id][$key] ?? '';
+
+    return $single ? $value : ($value === '' ? [] : [$value]);
+}
+
+function update_post_meta($post_id, $key, $value)
+{
+    $GLOBALS['__wp_post_meta'][$post_id][$key] = $value;
+
+    return true;
+}
+
+/**
+ * Minimal stand-in for WordPress's post object: only the public properties
+ * PostLoopItem actually reads, faithful to the real class's shape for those.
+ */
+class WP_Post
+{
+    public $ID;
+    public $post_title = '';
+    public $post_content = '';
+    public $post_excerpt = '';
+    public $post_type = 'post';
+
+    public function __construct(int $id, array $data = [])
+    {
+        $this->ID = $id;
+
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+    }
 }
 
 function map_deep($value, $callback)
