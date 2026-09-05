@@ -61,16 +61,28 @@ class Widgets extends Module
      * consume. Registers the built-in Posts source directly, then fires
      * LOOP_DATA_SOURCES_REGISTER_ACTION so add-ons can register more —
      * mirrors register_locations() in ThemeBuilder.
+     *
+     * Deferred to `init` (priority 99), mirroring
+     * Popups\Services\TriggerRuleBootstrap::register(): pro extensions hook
+     * this action via Hooks::LOADED_ACTION, which only fires once this
+     * module's own init() (called from Elemacy::init()'s synchronous
+     * init_modules() pass, on `plugins_loaded`) has already returned. Firing
+     * the action directly from here — before LOADED_ACTION even runs — would
+     * leave no listener in place yet. Running on `init` instead guarantees
+     * any extension that hooked in during `plugins_loaded` is ready before
+     * the action fires, without depending on hook priority between plugins.
      */
     protected function register_data_sources(): void
     {
-        $registry = LoopDataSourceRegistry::instance();
+        add_action('init', static function () {
+            $registry = LoopDataSourceRegistry::instance();
 
-        $registry->register(new PostsDataSource());
-        $registry->register(new TaxonomyDataSource());
-        $registry->register(new UsersDataSource());
+            $registry->register(new PostsDataSource());
+            $registry->register(new TaxonomyDataSource());
+            $registry->register(new UsersDataSource());
 
-        do_action(Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION, $registry);
+            do_action(Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION, $registry);
+        }, 99);
     }
 
     /**
