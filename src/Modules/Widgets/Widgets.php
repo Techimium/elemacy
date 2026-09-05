@@ -12,6 +12,7 @@ use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
+use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
 use Elemacy\Modules\Widgets\Documents\DocumentManager;
 use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
@@ -67,6 +68,7 @@ class Widgets extends Module
 
         $registry->register(new PostsDataSource());
         $registry->register(new TaxonomyDataSource());
+        $registry->register(new UsersDataSource());
 
         do_action(Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION, $registry);
     }

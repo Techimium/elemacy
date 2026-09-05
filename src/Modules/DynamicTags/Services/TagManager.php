@@ -38,6 +38,13 @@ use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermCustomField;
 use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermDescription;
 use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermName;
 use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermUrl;
+use Elemacy\Modules\DynamicTags\Tags\User\UserAvatar;
+use Elemacy\Modules\DynamicTags\Tags\User\UserDescription;
+use Elemacy\Modules\DynamicTags\Tags\User\UserEmail;
+use Elemacy\Modules\DynamicTags\Tags\User\UserLogin;
+use Elemacy\Modules\DynamicTags\Tags\User\UserName;
+use Elemacy\Modules\DynamicTags\Tags\User\UserPostCount;
+use Elemacy\Modules\DynamicTags\Tags\User\UserUrl;
 use Elemacy\Modules\DynamicTags\Tags\Utility\ContactUrl;
 use Elemacy\Modules\DynamicTags\Tags\Utility\CurrentDateTime;
 use Elemacy\Modules\DynamicTags\Tags\Utility\RequestParameter;
@@ -103,6 +110,14 @@ class TagManager
         $tags_manager->register(new AuthorInfo());
         $tags_manager->register(new AuthorUrl());
         $tags_manager->register(new AuthorProfilePicture());
+
+        $tags_manager->register(new UserName());
+        $tags_manager->register(new UserDescription());
+        $tags_manager->register(new UserAvatar());
+        $tags_manager->register(new UserUrl());
+        $tags_manager->register(new UserLogin());
+        $tags_manager->register(new UserEmail());
+        $tags_manager->register(new UserPostCount());
 
         $tags_manager->register(new Shortcode());
         $tags_manager->register(new RequestParameter());
