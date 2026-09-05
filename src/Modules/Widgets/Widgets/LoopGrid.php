@@ -535,24 +535,15 @@ class LoopGrid extends BaseWidget
         if (!empty($settings['pagination_ajax']) && $settings['pagination_ajax'] === 'yes') {
             $wrapper_classes .= ' elemacy-ajax-pagination';
 
-            $ajax_settings = [
-                'data_source' => $settings['data_source'] ?? 'posts',
-                'post_type' => $settings['post_type'],
-                'posts_per_page' => $settings['posts_per_page'],
-                'orderby' => $settings['orderby'],
-                'order' => $settings['order'],
-                'offset' => $settings['offset'],
-                'exclude_current_post' => $settings['exclude_current_post'],
-                'template_id' => $settings['template_id'],
-                'pagination_type' => $settings['pagination_type'],
-                'current_post_id' => get_the_ID(),
-                'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
-            ];
-
-            if ($settings['post_type'] === 'current_query') {
-                global $wp_query;
-                $ajax_settings['current_query_vars'] = $wp_query->query_vars;
-            }
+            $ajax_settings = array_merge(
+                [
+                    'data_source' => $settings['data_source'] ?? 'posts',
+                    'template_id' => $settings['template_id'],
+                    'pagination_type' => $settings['pagination_type'],
+                    'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
+                ],
+                $source->get_ajax_payload($settings)
+            );
 
             $settings_json = wp_json_encode($ajax_settings);
 

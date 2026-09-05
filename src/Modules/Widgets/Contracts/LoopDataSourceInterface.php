@@ -48,4 +48,31 @@ interface LoopDataSourceInterface
      * @return LoopResultDTO
      */
     public function get_items(array $settings): LoopResultDTO;
+
+    /**
+     * Builds the settings subset (plus any ambient "current" context this
+     * source needs, e.g. the current post/term ID) to round-trip to the
+     * browser and back for AJAX pagination. Called from LoopGrid::render()/
+     * LoopCarousel::render() when building the data-elemacy-loop-settings
+     * payload; only the keys this source actually needs should be returned,
+     * not the widget's full settings array.
+     *
+     * @param array $settings
+     * @return array
+     */
+    public function get_ajax_payload(array $settings): array;
+
+    /**
+     * Validates and normalizes a decoded AJAX pagination request's settings
+     * — attacker-controlled, since they round-tripped through the browser —
+     * into the shape get_items() expects for the given page. Implementations
+     * SHOULD throw \Elemacy\Core\Exceptions\ValidationException for invalid
+     * input, mirroring how AjaxPaginationController validated input directly
+     * before this method existed.
+     *
+     * @param array $raw_settings
+     * @param int $paged
+     * @return array
+     */
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array;
 }

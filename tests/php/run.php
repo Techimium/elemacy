@@ -1095,6 +1095,16 @@ final class FixedLoopDataSource implements LoopDataSourceInterface
     {
         return new LoopResultDTO();
     }
+
+    public function get_ajax_payload(array $settings): array
+    {
+        return [];
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        return [];
+    }
 }
 
 check('LoopDataSourceRegistry register/get/all round-trip by key', static function () {

@@ -4,7 +4,6 @@ namespace Elemacy\Modules\Widgets\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
 use Elemacy\Modules\Widgets\Services\LoopContext;
@@ -30,27 +29,6 @@ class AjaxPaginationController
 
         $paged = max(1, $request->get_int('paged'));
 
-        $post_type = isset($settings['post_type']) ? sanitize_key((string) $settings['post_type']) : '';
-        $allowed_post_types = array_merge(['current_query'], get_post_types(['public' => true], 'names'));
-
-        if ($post_type === '' || !in_array($post_type, $allowed_post_types, true)) {
-            throw new ValidationException(esc_html__('Invalid post type.', 'elemacy'));
-        }
-
-        $allowed_orderby = ['date', 'title', 'menu_order', 'rand'];
-        $orderby = isset($settings['orderby']) ? sanitize_key((string) $settings['orderby']) : 'date';
-        if (!in_array($orderby, $allowed_orderby, true)) {
-            $orderby = 'date';
-        }
-
-        $order = isset($settings['order']) ? strtoupper(sanitize_text_field((string) $settings['order'])) : 'DESC';
-        if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'DESC';
-        }
-
-        $posts_per_page = isset($settings['posts_per_page']) ? (int) $settings['posts_per_page'] : 6;
-        $posts_per_page = max(1, min(100, $posts_per_page));
-
         $data_source_key = isset($settings['data_source']) ? sanitize_key((string) $settings['data_source']) : 'posts';
         $source = LoopDataSourceRegistry::instance()->get($data_source_key);
 
@@ -58,49 +36,9 @@ class AjaxPaginationController
             wp_send_json_error(esc_html__('The selected data source is not available.', 'elemacy'));
         }
 
-        $offset_override_used = false;
-
-        if ('current_query' === $post_type) {
-            $current_vars = isset($settings['current_query_vars']) && is_array($settings['current_query_vars'])
-                ? $settings['current_query_vars']
-                : [];
-
-            $query_args = $this->sanitize_current_query_vars($current_vars);
-            $query_args['paged'] = $paged;
-            $query_args['post_status'] = PostStatus::PUBLISH;
-
-            $item_settings = [
-                'post_type' => 'current_query',
-                'current_query_args' => $query_args,
-            ];
-        } else {
-            $item_settings = [
-                'post_type' => $post_type,
-                'posts_per_page' => $posts_per_page,
-                'orderby' => $orderby,
-                'order' => $order,
-                'paged' => $paged,
-                'pagination_type' => 'ajax', // any non-empty value: gates paged/offset handling in PostsDataSource::build_query_args()
-                'exclude_current_post' => 'yes' === ($settings['exclude_current_post'] ?? '') ? 'yes' : 'no',
-                'current_post_id' => !empty($settings['current_post_id']) ? (int) $settings['current_post_id'] : 0,
-            ];
-
-            // The first page has normal offset. Subsequent pages need offset + previous pages posts.
-            if (!empty($settings['offset'])) {
-                $offset_override_used = true;
-                $item_settings['offset'] = (int) $settings['offset'] + (($paged - 1) * $posts_per_page);
-            }
-        }
+        $item_settings = $source->sanitize_ajax_settings($settings, $paged);
 
         $result = $source->get_items($item_settings);
-
-        // Fix max_num_pages when a custom offset is present: WP_Query computes it
-        // from found_posts alone, which over-counts once an offset has already
-        // consumed some of those posts.
-        if ($offset_override_used) {
-            $total_posts = max(0, $result->total_items - (int) $settings['offset']);
-            $result->max_num_pages = (int) ceil($total_posts / $posts_per_page);
-        }
 
         if (empty($result->items)) {
             wp_send_json_error(esc_html__('No posts found.', 'elemacy'));
@@ -153,65 +91,5 @@ class AjaxPaginationController
             'items' => $items_html,
             'pagination' => $pagination_html,
         ]);
-    }
-
-    /**
-     * Re-derive a safe subset of the page's main-query vars for "current query"
-     * pagination. The widget round-trips the original query vars through the
-     * browser, so on the way back they are attacker-controlled; rather than merge
-     * them into WP_Query wholesale (which would allow injecting meta_query,
-     * unbounded posts_per_page, arbitrary post__in, etc.) copy only known-safe
-     * archive vars and sanitize each.
-     *
-     * @param array<string,mixed> $vars
-     * @return array<string,mixed>
-     */
-    protected function sanitize_current_query_vars(array $vars): array
-    {
-        $safe = [];
-
-        if (isset($vars['post_type'])) {
-            $public_types = get_post_types(['public' => true], 'names');
-            $requested = array_map('sanitize_key', array_map('strval', (array) $vars['post_type']));
-            $allowed = array_values(array_intersect($requested, $public_types));
-
-            if (!empty($allowed)) {
-                $safe['post_type'] = count($allowed) === 1 ? $allowed[0] : $allowed;
-            }
-        }
-
-        $string_keys = ['category_name', 'tag', 'author_name', 'name', 'pagename', 'taxonomy', 'term', 's'];
-        foreach ($string_keys as $key) {
-            if (isset($vars[$key]) && is_scalar($vars[$key])) {
-                $safe[$key] = sanitize_text_field((string) $vars[$key]);
-            }
-        }
-
-        $int_keys = ['cat', 'tag_id', 'author', 'year', 'monthnum', 'day', 'w', 'hour', 'minute', 'second', 'post_parent'];
-        foreach ($int_keys as $key) {
-            if (isset($vars[$key]) && is_numeric($vars[$key])) {
-                $safe[$key] = (int) $vars[$key];
-            }
-        }
-
-        if (isset($vars['orderby']) && is_scalar($vars['orderby'])) {
-            $orderby = sanitize_key((string) $vars['orderby']);
-            $allowed_orderby = ['date', 'title', 'menu_order', 'rand', 'id', 'name', 'modified', 'comment_count'];
-
-            if (in_array($orderby, $allowed_orderby, true)) {
-                $safe['orderby'] = $orderby;
-            }
-        }
-
-        if (isset($vars['order']) && is_scalar($vars['order'])) {
-            $order = strtoupper(sanitize_text_field((string) $vars['order']));
-            $safe['order'] = in_array($order, ['ASC', 'DESC'], true) ? $order : 'DESC';
-        }
-
-        if (isset($vars['posts_per_page']) && is_numeric($vars['posts_per_page'])) {
-            $safe['posts_per_page'] = max(1, min(100, (int) $vars['posts_per_page']));
-        }
-
-        return $safe;
     }
 }

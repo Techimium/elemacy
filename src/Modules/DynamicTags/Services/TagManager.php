@@ -33,6 +33,11 @@ use Elemacy\Modules\DynamicTags\Tags\Base\SiteLogo;
 use Elemacy\Modules\DynamicTags\Tags\Base\SiteTagline;
 use Elemacy\Modules\DynamicTags\Tags\Base\SiteTitle;
 use Elemacy\Modules\DynamicTags\Tags\Base\SiteUrl;
+use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermCount;
+use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermCustomField;
+use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermDescription;
+use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermName;
+use Elemacy\Modules\DynamicTags\Tags\Taxonomy\TermUrl;
 use Elemacy\Modules\DynamicTags\Tags\Utility\ContactUrl;
 use Elemacy\Modules\DynamicTags\Tags\Utility\CurrentDateTime;
 use Elemacy\Modules\DynamicTags\Tags\Utility\RequestParameter;
@@ -87,6 +92,12 @@ class TagManager
         $tags_manager->register(new ArchiveTitle());
         $tags_manager->register(new ArchiveDescription());
         $tags_manager->register(new ArchiveUrl());
+
+        $tags_manager->register(new TermName());
+        $tags_manager->register(new TermDescription());
+        $tags_manager->register(new TermUrl());
+        $tags_manager->register(new TermCount());
+        $tags_manager->register(new TermCustomField());
 
         $tags_manager->register(new AuthorName());
         $tags_manager->register(new AuthorInfo());
