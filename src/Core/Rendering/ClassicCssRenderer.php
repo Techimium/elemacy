@@ -9,12 +9,30 @@ use Elemacy\Core\Rendering\Support\LoopDynamicCss;
 /**
  * The single place that touches Elementor's classic CSS pipeline
  * (Core\Files\CSS\Post, Core\DynamicTags\Dynamic_CSS) on behalf of anything
- * that needs a post's classic CSS as a plain string rather than an enqueued
- * file — currently Loop widgets, which render post IDs that aren't the
- * current page and can't rely on Elementor's own <head> enqueue timing.
+ * that needs a post's classic CSS rather than an enqueued file — currently
+ * Loop widgets, which render post IDs that aren't the current page and can't
+ * rely on Elementor's own <head> enqueue timing.
  */
 class ClassicCssRenderer
 {
+    /**
+     * render_base() outcome: Elementor already wrote this post's CSS to a
+     * cached, cache-busted file on disk — the caller should reference it by
+     * URL instead of inlining its content.
+     */
+    public const DELIVERY_LINK = 'link';
+
+    /**
+     * render_base() outcome: this post's CSS must be printed as literal CSS
+     * text (no external file exists for it, or none should be trusted).
+     */
+    public const DELIVERY_INLINE = 'inline';
+
+    /**
+     * render_base() outcome: there is no CSS to deliver for this post.
+     */
+    public const DELIVERY_NONE = 'none';
+
     /**
      * @var array<int, true> Post IDs Elementor's own automatic dynamic-CSS
      *                        auto-print is suppressed for, this request.
@@ -62,27 +80,69 @@ class ClassicCssRenderer
     }
 
     /**
-     * A post's own classic CSS, freshly rendered. Also the point where
-     * Elementor learns which of the post's elements use a dynamic tag
-     * (persisted to postmeta as a side effect of Post_CSS::update()) —
-     * render_dynamic() depends on this having run at least once.
+     * A post's own classic base CSS delivery. Also the point where Elementor
+     * learns which of the post's elements use a dynamic tag (persisted to
+     * postmeta as a side effect of Post_CSS::update()) — render_dynamic()
+     * depends on this having run at least once.
+     *
+     * Elementor already writes this content to a cached, cache-busted file
+     * on disk as a side effect of update() (design.md D1) — reusing it via
+     * DELIVERY_LINK avoids re-walking the post's whole element/control tree
+     * on every call, which get_content() would otherwise always do. Callers
+     * must not treat DELIVERY_LINK's content as CSS text.
      *
      * @param int $post_id
-     * @return string
+     * @return array{type: string, content: string} `type` is one of the
+     *              DELIVERY_* constants; `content` is a URL for
+     *              DELIVERY_LINK, CSS text for DELIVERY_INLINE, or '' for
+     *              DELIVERY_NONE.
      */
-    public function render_base(int $post_id): string
+    public function render_base(int $post_id): array
     {
         if (!class_exists('\Elementor\Core\Files\CSS\Post')) {
-            return '';
+            return [
+                'type' => self::DELIVERY_NONE,
+                'content' => '',
+            ];
         }
 
         $css_file = \Elementor\Core\Files\CSS\Post::create($post_id);
+        $meta = $css_file->get_meta();
 
-        if (empty(get_post_meta($post_id, \Elementor\Core\Files\CSS\Post::META_KEY, true))) {
+        // Base::enqueue() also ORs in is_update_required() here, but that
+        // method is protected and Post (unlike Post_Local_Cache) never
+        // overrides it — it's hardcoded false on Base, so it's both
+        // inaccessible from here and would contribute nothing for this
+        // class. An empty status is the only staleness signal available
+        // (and needed) for a plain Post_CSS file.
+        if ('' === $meta['status']) {
             $css_file->update();
+            $meta = $css_file->get_meta();
         }
 
-        return $css_file->get_content();
+        // Elementor's own cache says an external file exists — but never
+        // trust that blindly (design.md D2): a missing file here (e.g. an
+        // uploads/ directory that didn't survive a migration) must fall
+        // back to inline, never a broken <link>.
+        if (\Elementor\Core\Files\CSS\Post::CSS_STATUS_FILE === $meta['status']
+            && file_exists($css_file->get_path())) {
+            return [
+                'type' => self::DELIVERY_LINK,
+                'content' => $css_file->get_url(),
+            ];
+        }
+
+        if (\Elementor\Core\Files\CSS\Post::CSS_STATUS_EMPTY === $meta['status']) {
+            return [
+                'type' => self::DELIVERY_NONE,
+                'content' => '',
+            ];
+        }
+
+        return [
+            'type' => self::DELIVERY_INLINE,
+            'content' => $css_file->get_content(),
+        ];
     }
 
     /**

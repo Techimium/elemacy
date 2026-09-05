@@ -144,6 +144,11 @@ function esc_attr($text)
     return htmlspecialchars((string) $text, ENT_QUOTES);
 }
 
+function esc_url($url)
+{
+    return htmlspecialchars((string) $url, ENT_QUOTES);
+}
+
 function wp_parse_args($args, $defaults = [])
 {
     return array_merge($defaults, (array) $args);

@@ -488,8 +488,8 @@ check('AtomicStylesRenderer merges multiple elements\' styles, each routed indep
 /* ── Core\Rendering\ClassicCssRenderer (Elementor classic CSS/dynamic-tag
      classes not loaded) ──────────────────────────────────────────── */
 
-check('ClassicCssRenderer::render_base() degrades to empty string when Post_CSS is unavailable', static function () {
-    return (new ClassicCssRenderer())->render_base(101) === '';
+check('ClassicCssRenderer::render_base() degrades to a DELIVERY_NONE outcome when Post_CSS is unavailable', static function () {
+    return (new ClassicCssRenderer())->render_base(101) === ['type' => ClassicCssRenderer::DELIVERY_NONE, 'content' => ''];
 });
 
 check('ClassicCssRenderer::render_dynamic() degrades to empty string when Dynamic_CSS is unavailable', static function () {
@@ -538,14 +538,19 @@ check('ClassicCssRenderer::suppress_automatic_dynamic_css() hooks the filter onl
 /**
  * Stand-ins that skip Elementor entirely and let each test control exactly
  * what the two renderers return, so LoopItemStyles's own orchestration
- * (concatenation, per-request idempotency, the dynamic-content cache, and
- * the no-op-when-nothing-to-print guard) is what's under test here — the
- * real CSS these renderers produce is covered by ClassicCssRenderer's and
- * AtomicStylesRenderer's own tests (and was verified live against the real
- * Elementor installation; see design.md).
+ * (merging vs. splitting the base CSS output, per-request idempotency, the
+ * dynamic-content cache, and the no-op-when-nothing-to-print guard) is what's
+ * under test here — the real CSS and link/inline decisions these renderers
+ * produce are covered by ClassicCssRenderer's and AtomicStylesRenderer's own
+ * tests (and were verified live against the real Elementor installation; see
+ * openspec/changes/cache-loop-base-css/design.md).
  */
 final class FakeClassicCssRenderer extends ClassicCssRenderer
 {
+    // Defaults to DELIVERY_INLINE so every pre-existing test that only ever
+    // sets $base_css (never $base_type) keeps exercising the same "here is
+    // literal CSS text" outcome it always has.
+    public string $base_type = self::DELIVERY_INLINE;
     public string $base_css = '';
     public string $dynamic_css = '';
     public bool $has_dynamic = false;
@@ -555,9 +560,9 @@ final class FakeClassicCssRenderer extends ClassicCssRenderer
     /** @var array<int, int> */
     public array $suppress_calls = [];
 
-    public function render_base(int $post_id): string
+    public function render_base(int $post_id): array
     {
-        return $this->base_css;
+        return ['type' => $this->base_type, 'content' => $this->base_css];
     }
 
     public function render_dynamic(int $template_id, string $item_identity, string $selector_prefix): string
@@ -648,6 +653,49 @@ check('LoopItemStyles::print_base_css() only prints once per template id per req
     $output = ob_get_clean();
 
     return 1 === substr_count($output, '<style');
+});
+
+check('LoopItemStyles::print_base_css() links the classic base CSS and prints atomic CSS separately when the classic renderer reports DELIVERY_LINK', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->base_type = ClassicCssRenderer::DELIVERY_LINK;
+    $classic->base_css = 'https://example.test/wp-content/uploads/elementor/css/post-9010.css';
+    $atomic = new FakeAtomicStylesRenderer();
+    $atomic->base_css = '.b{color:blue;}';
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_base_css(9010);
+    $output = ob_get_clean();
+
+    return $output === '<link rel="stylesheet" id="elemacy-loop-base-9010" '
+        . 'href="https://example.test/wp-content/uploads/elementor/css/post-9010.css">'
+        . '<style id="elemacy-loop-base-atomic-9010">.b{color:blue;}</style>';
+});
+
+check('LoopItemStyles::print_base_css() links the classic base CSS alone when there is no atomic CSS to print', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->base_type = ClassicCssRenderer::DELIVERY_LINK;
+    $classic->base_css = 'https://example.test/wp-content/uploads/elementor/css/post-9011.css';
+
+    ob_start();
+    (new LoopItemStyles($classic, new FakeAtomicStylesRenderer()))->print_base_css(9011);
+    $output = ob_get_clean();
+
+    return $output === '<link rel="stylesheet" id="elemacy-loop-base-9011" '
+        . 'href="https://example.test/wp-content/uploads/elementor/css/post-9011.css">';
+});
+
+check('LoopItemStyles::print_base_css() merges atomic CSS into the shared style tag, not a link, when the classic renderer reports DELIVERY_NONE', static function () {
+    $classic = new FakeClassicCssRenderer();
+    $classic->base_type = ClassicCssRenderer::DELIVERY_NONE;
+    $classic->base_css = ''; // DELIVERY_NONE always carries no content
+    $atomic = new FakeAtomicStylesRenderer();
+    $atomic->base_css = '.b{color:blue;}';
+
+    ob_start();
+    (new LoopItemStyles($classic, $atomic))->print_base_css(9012);
+    $output = ob_get_clean();
+
+    return $output === '<style id="elemacy-loop-base-9012">.b{color:blue;}</style>';
 });
 
 check('LoopItemStyles::print_item_css() is a no-op when the template has no dynamic content', static function () {
