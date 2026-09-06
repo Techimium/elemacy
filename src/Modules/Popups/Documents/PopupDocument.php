@@ -105,6 +105,7 @@ class PopupDocument extends PageBase
             'top-right'    => esc_html__('Top Right', 'elemacy'),
             'bottom-left'  => esc_html__('Bottom Left', 'elemacy'),
             'bottom-right' => esc_html__('Bottom Right', 'elemacy'),
+            'custom'       => esc_html__('Custom', 'elemacy'),
         ];
     }
 
@@ -139,12 +140,87 @@ class PopupDocument extends PageBase
                     'top-right'    => '--elemacy-align:flex-start;--elemacy-justify:flex-end;',
                     'bottom-left'  => '--elemacy-align:flex-end;--elemacy-justify:flex-start;',
                     'bottom-right' => '--elemacy-align:flex-end;--elemacy-justify:flex-end;',
+                    'custom'       => '--elemacy-align:flex-start;--elemacy-justify:flex-start;',
                 ],
                 'selectors'            => [
                     'body' => '{{VALUE}}',
                 ],
             ]
         );
+
+        if (PopupTypes::TOPBAR !== $type) {
+            $this->add_control(
+                'elemacy_position_custom_notice',
+                [
+                    'type'        => Controls_Manager::ALERT,
+                    'alert_type'  => 'warning',
+                    'heading'     => esc_html__('Please note!', 'elemacy'),
+                    'content'     => esc_html__('Custom positioning is not recommended for responsive layouts. Use sparingly, and check how it looks on smaller screens.', 'elemacy'),
+                    'render_type' => 'ui',
+                    'condition'   => [
+                        DisplayKeys::POSITION => 'custom',
+                    ],
+                ]
+            );
+
+            $this->add_responsive_control(
+                DisplayKeys::OFFSET_X,
+                [
+                    'label'      => esc_html__('Offset X', 'elemacy'),
+                    'type'       => Controls_Manager::SLIDER,
+                    'size_units' => ['px', '%'],
+                    'range'      => [
+                        'px' => [
+                            'min' => -1000,
+                            'max' => 1000,
+                        ],
+                        '%'  => [
+                            'min' => -100,
+                            'max' => 100,
+                        ],
+                    ],
+                    'default'    => [
+                        'size' => 0,
+                        'unit' => 'px',
+                    ],
+                    'condition'  => [
+                        DisplayKeys::POSITION => 'custom',
+                    ],
+                    'selectors'  => [
+                        '{{WRAPPER}}' => 'left: {{SIZE}}{{UNIT}};',
+                    ],
+                ]
+            );
+
+            $this->add_responsive_control(
+                DisplayKeys::OFFSET_Y,
+                [
+                    'label'      => esc_html__('Offset Y', 'elemacy'),
+                    'type'       => Controls_Manager::SLIDER,
+                    'size_units' => ['px', '%'],
+                    'range'      => [
+                        'px' => [
+                            'min' => -1000,
+                            'max' => 1000,
+                        ],
+                        '%'  => [
+                            'min' => -100,
+                            'max' => 100,
+                        ],
+                    ],
+                    'default'    => [
+                        'size' => 0,
+                        'unit' => 'px',
+                    ],
+                    'condition'  => [
+                        DisplayKeys::POSITION => 'custom',
+                    ],
+                    'selectors'  => [
+                        '{{WRAPPER}}' => 'top: {{SIZE}}{{UNIT}};',
+                    ],
+                ]
+            );
+        }
 
         if (PopupTypes::TOPBAR === $type) {
             // Bottom bars are always viewport-fixed, so sticky only applies to top.
