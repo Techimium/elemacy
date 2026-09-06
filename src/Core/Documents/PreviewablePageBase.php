@@ -5,6 +5,7 @@ namespace Elemacy\Core\Documents;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
+use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
 use Elementor\Controls_Manager;
 use Elementor\Core\DocumentTypes\PageBase;
 
@@ -65,6 +66,16 @@ abstract class PreviewablePageBase extends PageBase
     protected function preview_query_args(): array
     {
         return [];
+    }
+
+    /**
+     * The loop item whose context the preview renders in, for a data-source
+     * aware preview (Loop Item). Returns null for every other previewable
+     * document — a single-post or query-context preview never has one.
+     */
+    public function get_preview_item(): ?LoopItemInterface
+    {
+        return null;
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Widgets\Contracts;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Documents\PreviewablePageBase;
 use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
 use Elementor\Widget_Base;
 
@@ -75,4 +76,29 @@ interface LoopDataSourceInterface
      * @return array
      */
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array;
+
+    /**
+     * Adds this source's own Preview Settings controls to a Loop Item
+     * document, each scoped with `condition => ['preview_data_source' =>
+     * $this->get_key()]` so it is only visible when this source is chosen
+     * as the document's preview source. Mirrors register_controls() but
+     * targets a document's Preview Settings section instead of a widget's
+     * Query section.
+     *
+     * @param PreviewablePageBase $document
+     * @return void
+     */
+    public function register_preview_controls(PreviewablePageBase $document): void;
+
+    /**
+     * Resolves one representative item for standalone editor preview, from
+     * a Loop Item document's settings array. Returns null when no item can
+     * be resolved (e.g. an empty taxonomy, no matching users, an empty or
+     * unavailable ACF repeater) — callers must treat that as "nothing to
+     * preview", not an error.
+     *
+     * @param array $settings
+     * @return LoopItemInterface|null
+     */
+    public function resolve_preview_item(array $settings): ?LoopItemInterface;
 }

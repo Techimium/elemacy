@@ -5,10 +5,16 @@ namespace Elemacy\Modules\Widgets\DataSources;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
+use Elemacy\Core\Controls\Query\QueryControl;
+use Elemacy\Core\Controls\Query\QueryService;
+use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Core\Documents\SinglePostPreviewDocument;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
 use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
 use Elemacy\Modules\Widgets\LoopItems\PostLoopItem;
+use Elemacy\Support\PostTypes;
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
 use WP_Query;
@@ -372,5 +378,72 @@ class PostsDataSource implements LoopDataSourceInterface
         }
 
         return $safe;
+    }
+
+    /**
+     * Same control SinglePostPreviewDocument registers for SingleDocument's
+     * own (non-loop) preview — same key, label, placeholder, and default, so
+     * a Loop Item template saved before this preview support existed keeps
+     * previewing against the same post with no migration (design.md D5).
+     */
+    public function register_preview_controls(PreviewablePageBase $document): void
+    {
+        $condition = ['preview_data_source' => $this->get_key()];
+
+        $document->add_control(
+            SinglePostPreviewDocument::PREVIEW_POST,
+            [
+                'label' => esc_html__('Preview Content', 'elemacy'),
+                'type' => QueryControl::TYPE,
+                'label_block' => true,
+                'placeholder' => esc_html__('Auto (most recent post)', 'elemacy'),
+                'autocomplete' => [
+                    'object' => QueryService::OBJECT_POST,
+                    'query' => ['post_type' => PostTypes::public_names()],
+                ],
+                'default' => '',
+                'description' => esc_html__('Search for a real post to preview this template with. Defaults to the most recent post.', 'elemacy'),
+                'condition' => $condition,
+            ]
+        );
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        $selected = (int) ($settings[SinglePostPreviewDocument::PREVIEW_POST] ?? 0);
+        $post = null;
+
+        if ($selected > 0 && PostStatus::PUBLISH === get_post_status($selected)) {
+            $post = get_post($selected);
+        }
+
+        if (!$post) {
+            $post_id = $this->most_recent_post_id();
+            $post = $post_id ? get_post($post_id) : null;
+        }
+
+        return $post ? new PostLoopItem($post) : null;
+    }
+
+    protected function most_recent_post_id(): int
+    {
+        $post_types = PostTypes::public_names();
+
+        if (empty($post_types)) {
+            return 0;
+        }
+
+        $ids = get_posts([
+            'post_type' => $post_types,
+            'post_status' => PostStatus::PUBLISH,
+            'posts_per_page' => 1,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'suppress_filters' => false,
+        ]);
+
+        return $ids ? (int) $ids[0] : 0;
     }
 }

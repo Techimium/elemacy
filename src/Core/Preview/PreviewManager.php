@@ -5,6 +5,7 @@ namespace Elemacy\Core\Preview;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Modules\Widgets\Services\LoopContext;
 use Elementor\Plugin;
 use WP_Query;
 
@@ -24,15 +25,20 @@ use WP_Query;
  *  - `render_widget`  → Widgets_Manager calls query_posts([ p => editor_post_id ]),
  *                       which we rewrite via pre_get_posts.
  *
- * A document either previews a single post (Loop Item, Single → switch_to_post) or
- * a query (Archive, Search → switch_to_query), decided by get_preview_query_args()
- * vs get_preview_post_id(). Scoped to previewable documents, so normal pages and
- * the frontend are untouched.
+ * A document previews a single post (Single → switch_to_post), a query (Archive,
+ * Search → switch_to_query), or one data-source-provided loop item (Loop Item →
+ * LoopContext::push() + item->enter(), the same seam Loop Grid/Carousel rendering
+ * already uses), decided by get_preview_query_args()/get_preview_post_id()/
+ * get_preview_item(). Scoped to previewable documents, so normal pages and the
+ * frontend are untouched.
  */
 class PreviewManager
 {
-    protected string $tags_context = '';
-    protected string $config_context = '';
+    /** @var array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} */
+    protected array $tags_context = ['kind' => ''];
+
+    /** @var array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} */
+    protected array $config_context = ['kind' => ''];
 
     public function __construct()
     {
@@ -51,7 +57,7 @@ class PreviewManager
     public function after_editor_config(): void
     {
         $this->leave_preview($this->config_context);
-        $this->config_context = '';
+        $this->config_context = ['kind' => ''];
     }
 
     public function before_tags_render(): void
@@ -62,7 +68,7 @@ class PreviewManager
     public function after_tags_render(): void
     {
         $this->leave_preview($this->tags_context);
-        $this->tags_context = '';
+        $this->tags_context = ['kind' => ''];
     }
 
     public function override_render_widget_query(WP_Query $query): void
@@ -102,15 +108,20 @@ class PreviewManager
     }
 
     /**
-     * Swap the global post/query for the document's preview context. Returns the
-     * kind applied ('post' | 'query' | ''), which leave_preview() rolls back.
+     * Swap the global post/query/loop-item for the document's preview context.
+     * Returns the context leave_preview() rolls back — its 'kind' is
+     * 'post' | 'query' | 'item' | '', with the resolved item attached when
+     * 'item' (LoopContext's stack has no "peek without popping" accessor, so
+     * the item is carried here rather than re-fetched in leave_preview()).
+     *
+     * @return array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface}
      */
-    protected function enter_preview(int $document_post_id): string
+    protected function enter_preview(int $document_post_id): array
     {
         $document = $this->previewable_document($document_post_id);
 
         if (!$document) {
-            return '';
+            return ['kind' => ''];
         }
 
         $query_args = $document->get_preview_query_args();
@@ -118,7 +129,7 @@ class PreviewManager
         if (!empty($query_args)) {
             Plugin::instance()->db->switch_to_query($query_args);
 
-            return 'query';
+            return ['kind' => 'query'];
         }
 
         $preview_id = $document->get_preview_post_id();
@@ -126,18 +137,36 @@ class PreviewManager
         if ($preview_id > 0 && $preview_id !== $document_post_id) {
             Plugin::instance()->db->switch_to_post($preview_id);
 
-            return 'post';
+            return ['kind' => 'post'];
         }
 
-        return '';
+        $item = $document->get_preview_item();
+
+        if ($item) {
+            $item->enter();
+            LoopContext::push($item);
+
+            return [
+                'kind' => 'item',
+                'item' => $item,
+            ];
+        }
+
+        return ['kind' => ''];
     }
 
-    protected function leave_preview(string $kind): void
+    /**
+     * @param array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} $context
+     */
+    protected function leave_preview(array $context): void
     {
-        if ($kind === 'query') {
+        if ('query' === $context['kind']) {
             Plugin::instance()->db->restore_current_query();
-        } elseif ($kind === 'post') {
+        } elseif ('post' === $context['kind']) {
             Plugin::instance()->db->restore_current_post();
+        } elseif ('item' === $context['kind']) {
+            LoopContext::pop();
+            $context['item']->exit();
         }
     }
 

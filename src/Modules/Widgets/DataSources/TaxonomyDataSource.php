@@ -4,8 +4,10 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Documents\PreviewablePageBase;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
 use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
 use Elemacy\Modules\Widgets\LoopItems\TermLoopItem;
 use Elementor\Controls_Manager;
@@ -260,5 +262,87 @@ class TaxonomyDataSource implements LoopDataSourceInterface
             'pagination_type' => 'ajax',
             'paged' => $paged,
         ];
+    }
+
+    public function register_preview_controls(PreviewablePageBase $document): void
+    {
+        $condition = ['preview_data_source' => $this->get_key()];
+
+        $document->add_control(
+            'preview_taxonomy',
+            [
+                'label' => esc_html__('Taxonomy', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
+                'options' => $this->get_public_taxonomies(),
+                'default' => 'category',
+                'condition' => $condition,
+            ]
+        );
+
+        $document->add_control(
+            'preview_term',
+            [
+                'label' => esc_html__('Term', 'elemacy'),
+                'type' => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'options' => $this->get_preview_term_options(),
+                'default' => '',
+                'placeholder' => esc_html__('Auto (first term)', 'elemacy'),
+                'description' => esc_html__("Leave empty to preview the selected taxonomy's first term.", 'elemacy'),
+                'condition' => $condition,
+            ]
+        );
+    }
+
+    /**
+     * Capped, server-populated SELECT2 (same accepted pattern as
+     * AcfRepeaterDataSource::get_post_options() — Elementor core exposes no
+     * reusable AJAX term-search endpoint a custom control can hook into).
+     * Spans every public taxonomy, prefixed by taxonomy label, since the
+     * option list can't reactively re-filter based on the sibling Taxonomy
+     * control's value.
+     */
+    protected function get_preview_term_options(): array
+    {
+        $terms = get_terms([
+            'taxonomy' => array_keys($this->get_public_taxonomies()),
+            'hide_empty' => false,
+            'number' => 200,
+        ]);
+
+        if (is_wp_error($terms) || empty($terms)) {
+            return [];
+        }
+
+        $options = [];
+
+        foreach ($terms as $term) {
+            $taxonomy = get_taxonomy($term->taxonomy);
+            $taxonomy_label = $taxonomy ? $taxonomy->labels->singular_name : $term->taxonomy;
+            $options[$term->term_id] = sprintf('%s: %s', $taxonomy_label, $term->name);
+        }
+
+        return $options;
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        $selected = (int) ($settings['preview_term'] ?? 0);
+
+        if ($selected > 0) {
+            $term = get_term($selected);
+
+            if ($term instanceof WP_Term) {
+                return new TermLoopItem($term);
+            }
+        }
+
+        $terms = (new WP_Term_Query([
+            'taxonomy' => $settings['preview_taxonomy'] ?? 'category',
+            'hide_empty' => false,
+            'number' => 1,
+        ]))->get_terms();
+
+        return $terms ? new TermLoopItem($terms[0]) : null;
     }
 }

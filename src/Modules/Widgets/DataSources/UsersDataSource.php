@@ -4,12 +4,15 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Documents\PreviewablePageBase;
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
 use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
 use Elemacy\Modules\Widgets\LoopItems\UserLoopItem;
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
+use WP_User;
 use WP_User_Query;
 
 /**
@@ -225,5 +228,68 @@ class UsersDataSource implements LoopDataSourceInterface
             'pagination_type' => 'ajax',
             'paged' => $paged,
         ];
+    }
+
+    public function register_preview_controls(PreviewablePageBase $document): void
+    {
+        $condition = ['preview_data_source' => $this->get_key()];
+
+        $document->add_control(
+            'preview_user',
+            [
+                'label' => esc_html__('User', 'elemacy'),
+                'type' => Controls_Manager::SELECT2,
+                'label_block' => true,
+                'options' => $this->get_preview_user_options(),
+                'default' => '',
+                'placeholder' => esc_html__('Auto (first user)', 'elemacy'),
+                'description' => esc_html__('Leave empty to preview the first matching user.', 'elemacy'),
+                'condition' => $condition,
+            ]
+        );
+    }
+
+    /**
+     * Capped, server-populated SELECT2 — same accepted pattern as
+     * AcfRepeaterDataSource::get_post_options() (no reusable AJAX
+     * user-search endpoint exists to hook a custom control into).
+     */
+    protected function get_preview_user_options(): array
+    {
+        $users = get_users([
+            'number' => 200,
+            'orderby' => 'display_name',
+            'order' => 'ASC',
+            'fields' => ['ID', 'display_name', 'user_login'],
+        ]);
+
+        $options = [];
+
+        foreach ($users as $user) {
+            $options[$user->ID] = '' !== $user->display_name ? $user->display_name : $user->user_login;
+        }
+
+        return $options;
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        $selected = (int) ($settings['preview_user'] ?? 0);
+
+        if ($selected > 0) {
+            $user = get_user_by('id', $selected);
+
+            if ($user instanceof WP_User) {
+                return new UserLoopItem($user);
+            }
+        }
+
+        $users = get_users([
+            'number' => 1,
+            'orderby' => 'display_name',
+            'order' => 'ASC',
+        ]);
+
+        return $users ? new UserLoopItem($users[0]) : null;
     }
 }

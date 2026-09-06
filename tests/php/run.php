@@ -1120,6 +1120,15 @@ final class FixedLoopDataSource implements LoopDataSourceInterface
     {
         return [];
     }
+
+    public function register_preview_controls($document): void
+    {
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        return null;
+    }
 }
 
 check('LoopDataSourceRegistry register/get/all round-trip by key', static function () {
