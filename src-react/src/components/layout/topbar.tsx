@@ -13,8 +13,8 @@ function Topbar() {
             <img
               src={Logo}
               alt={__('Elemacy Logo', 'elemacy')}
-              width={670}
-              height={155}
+              width={400}
+              height={84}
               className="h-8 w-auto"
             />
           </Link>
