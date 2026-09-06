@@ -11,7 +11,7 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * (registered in PopupDocument::register_controls) and maps them into the
  * engine.js `display` config shape.
  *
- * Only behavior + overlay appearance live here; width/height/z-index are
+ * Only behavior + overlay appearance live here; width/z-index are
  * handled by the document's generated post CSS and are intentionally omitted.
  */
 class DocumentDisplay

@@ -46,10 +46,6 @@ class DisplayDefaults
                         'value' => 100,
                         'unit' => '%',
                     ],
-                    'height' => [
-                        'value' => 0,
-                        'unit' => 'auto',
-                    ],
                     'z_index' => 9990,
                 ];
                 break;
@@ -77,10 +73,6 @@ class DisplayDefaults
                     'width' => [
                         'value' => 360,
                         'unit' => 'px',
-                    ],
-                    'height' => [
-                        'value' => 0,
-                        'unit' => 'auto',
                     ],
                     'z_index' => 9980,
                 ];
@@ -112,10 +104,6 @@ class DisplayDefaults
                         'value' => 720,
                         'unit' => 'px',
                     ],
-                    'height' => [
-                        'value' => 0,
-                        'unit' => 'auto',
-                    ],
                     'z_index' => 9970,
                 ];
                 break;
@@ -144,10 +132,6 @@ class DisplayDefaults
                     'width' => [
                         'value' => 600,
                         'unit' => 'px',
-                    ],
-                    'height' => [
-                        'value' => 0,
-                        'unit' => 'auto',
                     ],
                     'z_index' => 9999,
                 ];

@@ -1,7 +1,7 @@
 /**
  * Elemacy Popups — frontend base styles.
  *
- * Only structural styling lives here. Per-popup sizing (width/height/z-index)
+ * Only structural styling lives here. Per-popup sizing (width/z-index)
  * comes from the popup document, while visual styling belongs to the author's
  * root Elementor container. The outer `.elemacy-popup__box` must remain
  * transparent and undecorated so it never shows behind that container.

@@ -271,28 +271,6 @@ class PopupDocument extends PageBase
             ]
         );
 
-        $this->add_responsive_control(
-            DisplayKeys::HEIGHT,
-            [
-                'label'      => esc_html__('Height', 'elemacy'),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => ['px', 'vh'],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 1200,
-                    ],
-                    'vh' => [
-                        'min' => 0,
-                        'max' => 100,
-                    ],
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}}' => 'height: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
         $this->add_control(
             DisplayKeys::Z_INDEX,
             [

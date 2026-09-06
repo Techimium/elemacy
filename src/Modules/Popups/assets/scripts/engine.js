@@ -115,7 +115,7 @@
 	 * Hydrate the popup once: clone the <template> content into the root and
 	 * apply runtime display config (overlay, position, animation, close).
 	 *
-	 * Width / height / z-index are NOT applied here — they are compiled into the
+	 * Width / z-index are NOT applied here — they are compiled into the
 	 * popup's generated Elementor post CSS from the document's editor controls.
 	 */
 	function hydrate(state) {
