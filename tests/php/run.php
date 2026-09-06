@@ -7,6 +7,7 @@
  */
 
 require __DIR__ . '/bootstrap.php';
+require __DIR__ . '/dynamic-tag-stubs.php';
 
 use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\ConditionManager;
@@ -21,6 +22,7 @@ use Elemacy\Core\Rendering\ClassicCssRenderer;
 use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
+use Elemacy\Modules\DynamicTags\Tags\Base\PostContent;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\PopupTypes;
@@ -213,6 +215,19 @@ check('do_action stub fires callbacks in ascending priority order', static funct
 
 check('renderer returns empty string when Elementor is not loaded', static function () {
     return (new TemplateRenderer())->render(101) === '';
+});
+
+/* ── DynamicTags\Tags\Base\PostContent (Elementor not yet loaded) ── */
+
+check('PostContent falls back to classic content when \Elementor\Plugin is not loaded', static function () {
+    $GLOBALS['__current_post_id'] = 44;
+    $GLOBALS['__current_post_content'] = '<p>Plain content, no Elementor</p>';
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return $output === wp_kses_post('<p>Plain content, no Elementor</p>');
 });
 
 /* ── Elementor stand-ins required from here on ──────────────────── */
@@ -1166,6 +1181,276 @@ check('PostLoopItem::get_field() returns empty string for an unrecognized key wi
     $item = new PostLoopItem(new WP_Post(10));
 
     return $item->get_field('nonexistent_field') === '';
+});
+
+/* ── DynamicTags\Tags\Base\PostContent (Elementor loaded) ────────── */
+
+/**
+ * Returns a canned builder-content string per post id (empty for any id
+ * with no entry, matching get_builder_content()'s own "not built with
+ * Elementor" outcome), and records the $with_css argument it was called
+ * with so tests can confirm PostContent always requests it inline.
+ */
+final class FakePostContentFrontend
+{
+    /** @var array<int, string> */
+    public array $builder_content = [];
+
+    /** @var bool[] */
+    public array $with_css_seen = [];
+
+    public function get_builder_content($post_id, $with_css = false)
+    {
+        $this->with_css_seen[] = $with_css;
+
+        return $this->builder_content[$post_id] ?? '';
+    }
+}
+
+/**
+ * Elementor's real Styles_Renderer isn't stubbed (see the AtomicStylesRenderer
+ * section above) - render_base() is overridden here with a canned value so
+ * these tests can isolate PostContent's own composition of the two CSS
+ * halves, without needing to fake Elementor's atomic-widgets internals.
+ */
+final class FixedCssAtomicStylesRenderer extends AtomicStylesRenderer
+{
+    /** @var string */
+    public $css = '';
+
+    public function render_base(int $post_id): string
+    {
+        return $this->css;
+    }
+}
+
+final class TestablePostContent extends PostContent
+{
+    /** @var string */
+    public $atomic_css = '';
+
+    protected function atomic_styles_renderer()
+    {
+        $renderer = new FixedCssAtomicStylesRenderer();
+        $renderer->css = $this->atomic_css;
+
+        return $renderer;
+    }
+}
+
+function reset_post_content_elementor(): void
+{
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->editor = new \Elementor\Core\Editor\Editor();
+    \Elementor\Plugin::$instance->frontend = new FakePostContentFrontend();
+}
+
+check('PostContent renders Elementor builder content with atomic CSS when the post is built with Elementor', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[228] = '<div class="elementor elementor-228">styled markup</div>';
+
+    $GLOBALS['__current_post_id'] = 228;
+
+    $tag = new TestablePostContent();
+    $tag->atomic_css = '.e-38ce628{background-color:#ecd3d3}';
+
+    ob_start();
+    $tag->render();
+    $output = ob_get_clean();
+
+    return false !== strpos($output, '.e-38ce628{background-color:#ecd3d3}')
+        && false !== strpos($output, '<div class="elementor elementor-228">styled markup</div>')
+        && \Elementor\Plugin::$instance->frontend->with_css_seen === [true];
+});
+
+check('PostContent prints no <style> tag when the post has no atomic CSS', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[229] = '<div class="elementor elementor-229">markup</div>';
+
+    $GLOBALS['__current_post_id'] = 229;
+
+    ob_start();
+    (new TestablePostContent())->render();
+    $output = ob_get_clean();
+
+    return $output === '<div class="elementor elementor-229">markup</div>';
+});
+
+check('PostContent falls back to classic content unchanged when the post is not built with Elementor', static function () {
+    reset_post_content_elementor();
+    // No builder_content entry for 55 -> get_builder_content() returns ''.
+
+    $GLOBALS['__current_post_id'] = 55;
+    $GLOBALS['__current_post_content'] = '<p>Plain classic content</p>';
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return $output === wp_kses_post('<p>Plain classic content</p>');
+});
+
+check('PostContent restores the prior edit-mode state after rendering', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[230] = '<div>markup</div>';
+    \Elementor\Plugin::$instance->editor->set_edit_mode(true);
+
+    $GLOBALS['__current_post_id'] = 230;
+
+    ob_start();
+    (new PostContent())->render();
+    ob_get_clean();
+
+    return true === \Elementor\Plugin::$instance->editor->is_edit_mode();
+});
+
+/**
+ * Simulates the post targeted by the tag itself containing another use of
+ * the same tag for the same post - the recursion case PostContent's guard
+ * exists for, since Elementor's own document-switching has no cycle
+ * protection of its own (see design.md).
+ */
+final class ReentrantPostContentFrontend
+{
+    /** @var int */
+    public $calls = 0;
+
+    public function get_builder_content($post_id, $with_css = false)
+    {
+        $this->calls++;
+
+        if (1 === $this->calls) {
+            ob_start();
+            (new PostContent())->render();
+            $nested_output = ob_get_clean();
+
+            return '<div>outer[' . $nested_output . ']</div>';
+        }
+
+        return '<div>should not be reached</div>';
+    }
+}
+
+check('PostContent does not recurse when its own content contains another use of itself for the same post', static function () {
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->editor = new \Elementor\Core\Editor\Editor();
+    $frontend = new ReentrantPostContentFrontend();
+    \Elementor\Plugin::$instance->frontend = $frontend;
+
+    $GLOBALS['__current_post_id'] = 300;
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    // get_builder_content() must only ever be called once - the nested
+    // re-entry is blocked by the guard before it can call it a second time.
+    return 1 === $frontend->calls && '<div>outer[]</div>' === $output;
+});
+
+check('PostContent falls back to classic content when its target post is the document already being rendered', static function () {
+    // Simulates the tag embedded directly in a post's own design, viewed on
+    // that post's own page with no Theme Builder template involved: the
+    // post's natural render is already in progress when the tag fires, so
+    // embedding it again here would just duplicate the whole document
+    // nested inside itself. $rendering alone cannot catch this (nothing has
+    // entered this tag's own render() yet), so this is exactly what
+    // is_own_document_already_rendering() exists to catch.
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[500] = '<div>should not be used</div>';
+    \Elementor\Plugin::$instance->documents->current = new \Elementor\Core\Base\Document(500);
+
+    $GLOBALS['__current_post_id'] = 500;
+    $GLOBALS['__current_post_content'] = '<p>Natural content</p>';
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return $output === wp_kses_post('<p>Natural content</p>');
+});
+
+check('PostContent still embeds a different post normally when some other document is currently rendering', static function () {
+    // A Theme Builder template (a genuinely different document) is what's
+    // actively rendering when the tag fires - this must still work exactly
+    // as the main success-path test above.
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[228] = '<div class="elementor elementor-228">styled markup</div>';
+    \Elementor\Plugin::$instance->documents->current = new \Elementor\Core\Base\Document(24);
+
+    $GLOBALS['__current_post_id'] = 228;
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return '<div class="elementor elementor-228">styled markup</div>' === $output;
+});
+
+check('PostContent allows two separate, non-nested top-level renders for the same post', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[400] = '<div>content</div>';
+
+    $GLOBALS['__current_post_id'] = 400;
+
+    ob_start();
+    (new PostContent())->render();
+    $first = ob_get_clean();
+
+    ob_start();
+    (new PostContent())->render();
+    $second = ob_get_clean();
+
+    return '<div>content</div>' === $first && '<div>content</div>' === $second;
+});
+
+check('PostContent renders the password form instead of an Elementor-built design when the target post is password-protected', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[600] = '<div class="elementor elementor-600">secret design</div>';
+
+    $GLOBALS['__current_post_id'] = 600;
+    $GLOBALS['__password_required_post_ids'] = [600];
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    $GLOBALS['__password_required_post_ids'] = [];
+
+    return $output === get_the_password_form(600)
+        && [] === \Elementor\Plugin::$instance->frontend->with_css_seen;
+});
+
+check('PostContent renders the password form instead of classic content when the target post is password-protected', static function () {
+    reset_post_content_elementor();
+    // No builder_content entry for 601 -> would fall to classic content if reached.
+
+    $GLOBALS['__current_post_id'] = 601;
+    $GLOBALS['__current_post_content'] = '<p>Secret classic content</p>';
+    $GLOBALS['__password_required_post_ids'] = [601];
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    $GLOBALS['__password_required_post_ids'] = [];
+
+    return $output === get_the_password_form(601)
+        && false === strpos($output, 'Secret classic content');
+});
+
+check('PostContent renders normally once the target post\'s password has already been entered', static function () {
+    reset_post_content_elementor();
+    \Elementor\Plugin::$instance->frontend->builder_content[602] = '<div class="elementor elementor-602">unlocked design</div>';
+
+    $GLOBALS['__current_post_id'] = 602;
+    $GLOBALS['__password_required_post_ids'] = []; // post_password_required() reports false, matching a supplied password.
+
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return '<div class="elementor elementor-602">unlocked design</div>' === $output;
 });
 
 conclude();

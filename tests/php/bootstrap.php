@@ -15,7 +15,9 @@ $GLOBALS['__wp_options'] = [];
 $GLOBALS['__wp_actions'] = [];
 $GLOBALS['__wp_actions_fired'] = [];
 $GLOBALS['__current_post_id'] = 0;
+$GLOBALS['__current_post_content'] = '';
 $GLOBALS['__wp_post_meta'] = [];
+$GLOBALS['__password_required_post_ids'] = [];
 
 function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
 {
@@ -74,6 +76,31 @@ function apply_filters($hook, $value, ...$args)
 function get_the_ID()
 {
     return $GLOBALS['__current_post_id'];
+}
+
+function get_the_content()
+{
+    return $GLOBALS['__current_post_content'];
+}
+
+/**
+ * Tests opt a post ID into "password required" by adding it to
+ * $GLOBALS['__password_required_post_ids'] rather than this stub inspecting
+ * any real post_password field, matching this bootstrap's existing pattern
+ * of controllable globals for otherwise-unmodeled WP state.
+ */
+function post_password_required($post = null)
+{
+    $post_id = $post ?? $GLOBALS['__current_post_id'];
+
+    return in_array((int) $post_id, $GLOBALS['__password_required_post_ids'], true);
+}
+
+function get_the_password_form($post = null)
+{
+    $post_id = $post ?? $GLOBALS['__current_post_id'];
+
+    return '<form class="post-password-form" data-post-id="' . (int) $post_id . '"></form>';
 }
 
 function get_header($name = null, $args = array())
