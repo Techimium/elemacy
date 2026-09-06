@@ -148,3 +148,14 @@ textarea.elemacy-field-control {
     margin: 0;
     cursor: pointer;
 }
+
+.elemacy-field-invalid .elemacy-field-control {
+    border-color: #dc3545;
+}
+
+.elemacy-field-error {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #dc3545;
+}

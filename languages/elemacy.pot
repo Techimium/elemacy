@@ -1,0 +1,2872 @@
+# Copyright (C) 2026 Techimium
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Elemacy 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elemacy\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-07-11T11:03:23+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: elemacy\n"
+
+#. Plugin Name of the plugin
+#: elemacy.php
+#: src/Core/Elemacy.php:235
+#: src/Core/Elemacy.php:236
+#: src/Modules/DynamicTags/Services/TagManager.php:125
+#: src/Modules/Widgets/Services/WidgetManager.php:50
+msgid "Elemacy"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: elemacy.php
+msgid "https://elemacy.com"
+msgstr ""
+
+#. Description of the plugin
+#: elemacy.php
+msgid "Elemacy is a WordPress plugin to extend elementor."
+msgstr ""
+
+#. Author of the plugin
+#: elemacy.php
+msgid "Techimium"
+msgstr ""
+
+#. Author URI of the plugin
+#: elemacy.php
+msgid "https://techimium.com"
+msgstr ""
+
+#: src/Conditions/Archive/PostType.php:25
+msgid "Post Type Archive"
+msgstr ""
+
+#: src/Conditions/General/EntireSite.php:24
+msgid "Entire Site"
+msgstr ""
+
+#: src/Conditions/Mock/AllArchives.php:23
+msgid "All Archives"
+msgstr ""
+
+#: src/Conditions/Mock/AuthorArchive.php:23
+msgid "Author Archive"
+msgstr ""
+
+#: src/Conditions/Mock/Blog.php:23
+msgid "Blog / Posts Page"
+msgstr ""
+
+#: src/Conditions/Mock/ByAuthor.php:23
+msgid "By Author"
+msgstr ""
+
+#: src/Conditions/Mock/ChildOf.php:23
+msgid "Child Of"
+msgstr ""
+
+#: src/Conditions/Mock/DateArchive.php:23
+msgid "Date Archive"
+msgstr ""
+
+#: src/Conditions/Mock/FrontPage.php:23
+msgid "Front Page"
+msgstr ""
+
+#. translators: %s: taxonomy singular name, e.g. "Category".
+#: src/Conditions/Mock/InTaxonomy.php:53
+#, php-format
+msgid "In %s"
+msgstr ""
+
+#: src/Conditions/Mock/NotFound.php:23
+msgid "404 Not Found"
+msgstr ""
+
+#: src/Conditions/Mock/SearchResults.php:23
+#: src/Modules/ThemeBuilder/Documents/SearchDocument.php:31
+#: src/Modules/ThemeBuilder/Documents/SearchDocument.php:36
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:66
+msgid "Search Results"
+msgstr ""
+
+#: src/Conditions/Mock/SpecificPost.php:23
+msgid "Specific Post / Page"
+msgstr ""
+
+#. translators: %s: taxonomy singular name, e.g. "Category".
+#: src/Conditions/Mock/TaxonomyArchive.php:53
+#, php-format
+msgid "%s Archive"
+msgstr ""
+
+#: src/Conditions/Singular/PostType.php:25
+#: src/Conditions/Support/ConditionGroups.php:18
+msgid "Singular"
+msgstr ""
+
+#: src/Conditions/Support/ConditionGroups.php:16
+msgid "General"
+msgstr ""
+
+#: src/Conditions/Support/ConditionGroups.php:20
+#: src/Modules/ThemeBuilder/Documents/ArchiveDocument.php:33
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:64
+msgid "Archive"
+msgstr ""
+
+#: src/Core/AjaxRouter.php:71
+msgid "Invalid ajax callback handler"
+msgstr ""
+
+#. translators: %s: Controller name
+#. translators: %s: Controller class
+#: src/Core/AjaxRouter.php:76
+#: src/Core/Route.php:344
+#, php-format
+msgid "Controller %s not found"
+msgstr ""
+
+#. translators: %s: Method name
+#: src/Core/AjaxRouter.php:81
+#, php-format
+msgid "Method %s not found"
+msgstr ""
+
+#: src/Core/AjaxRouter.php:93
+msgid "Security check failed"
+msgstr ""
+
+#: src/Core/AjaxRouter.php:212
+#: src/Core/ApiExceptionHandler.php:64
+#: src/Core/Route.php:260
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#. translators: %s: PHP version
+#: src/Core/CompatibilityChecker.php:46
+#, php-format
+msgid "Elemacy requires PHP version %s or greater."
+msgstr ""
+
+#. translators: %s: Class name
+#: src/Core/Container.php:118
+#, php-format
+msgid "Circular dependency detected for class %s."
+msgstr ""
+
+#. translators: %s: Class name
+#: src/Core/Container.php:123
+#, php-format
+msgid "Class %s does not exist."
+msgstr ""
+
+#. translators: %s: Class name
+#: src/Core/Container.php:130
+#, php-format
+msgid "Class %s is abstract and cannot be instantiated."
+msgstr ""
+
+#. translators: %s: Class name
+#: src/Core/Container.php:141
+#, php-format
+msgid "Class %s has a non-public constructor and cannot be instantiated."
+msgstr ""
+
+#. translators: %s: Parameter name
+#: src/Core/Container.php:152
+#, php-format
+msgid "Parameter %s must have a single class type hint. Union or intersection types are not supported."
+msgstr ""
+
+#. translators: %s: Parameter name
+#: src/Core/Container.php:157
+#, php-format
+msgid "Parameter %s must be a class type, not a built-in type. Please specify a valid class dependency."
+msgstr ""
+
+#: src/Core/Controllers/ModuleController.php:45
+msgid "This module is not available yet."
+msgstr ""
+
+#: src/Core/Controllers/ModuleController.php:56
+msgid "Invalid action."
+msgstr ""
+
+#: src/Core/Controls/Query/QueryService.php:94
+msgid "(no title)"
+msgstr ""
+
+#. translators: 1: post title, 2: post type singular name.
+#: src/Core/Controls/Query/QueryService.php:99
+#, php-format
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#. translators: %s: dependency plugin name.
+#: src/Core/DependencyNotice.php:56
+#, php-format
+msgid "Elemacy requires %s"
+msgstr ""
+
+#. translators: %s: dependency plugin name.
+#: src/Core/DependencyNotice.php:62
+#, php-format
+msgid "Elemacy needs %s to run. It is installed but not active — activate it to get started."
+msgstr ""
+
+#. translators: %s: dependency plugin name.
+#: src/Core/DependencyNotice.php:67
+#, php-format
+msgid "Elemacy needs %s to run. Install it to get started."
+msgstr ""
+
+#. translators: %s: dependency plugin name.
+#: src/Core/DependencyNotice.php:76
+#, php-format
+msgid "Activate %s"
+msgstr ""
+
+#. translators: %s: dependency plugin name.
+#: src/Core/DependencyNotice.php:81
+#, php-format
+msgid "Install %s"
+msgstr ""
+
+#: src/Core/Documents/PreviewablePageBase.php:79
+msgid "Preview Settings"
+msgstr ""
+
+#: src/Core/Documents/PreviewablePageBase.php:90
+msgid "Apply & Preview"
+msgstr ""
+
+#: src/Core/Documents/PreviewablePageBase.php:94
+msgid "Preview this template with the selected content."
+msgstr ""
+
+#: src/Core/Documents/SinglePostPreviewDocument.php:26
+msgid "Preview Content"
+msgstr ""
+
+#: src/Core/Documents/SinglePostPreviewDocument.php:29
+msgid "Auto (most recent post)"
+msgstr ""
+
+#: src/Core/Documents/SinglePostPreviewDocument.php:35
+msgid "Search for a real post to preview this template with. Defaults to the most recent post."
+msgstr ""
+
+#: src/Core/Elemacy.php:220
+msgid "Section"
+msgstr ""
+
+#: src/Core/Elemacy.php:242
+#: src/Core/Elemacy.php:243
+msgid "Overview"
+msgstr ""
+
+#: src/Core/Elemacy.php:248
+#: src/Core/Elemacy.php:249
+msgid "Modules"
+msgstr ""
+
+#: src/Core/Elemacy.php:254
+#: src/Core/Elemacy.php:255
+msgid "Template Library"
+msgstr ""
+
+#: src/Core/Elemacy.php:261
+#: src/Core/Elemacy.php:262
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: src/Core/Middlewares/API/AdminMiddleware.php:35
+msgid "You do not have permission for this action"
+msgstr ""
+
+#: src/Core/Middlewares/API/AuthMiddleware.php:34
+msgid "You have to be logged in"
+msgstr ""
+
+#. translators: %s: module slug.
+#: src/Core/ModuleManager.php:129
+#: src/Core/ModuleManager.php:154
+#, php-format
+msgid "Module %s not found."
+msgstr ""
+
+#: src/Core/PluginLinks.php:25
+msgid "Get Elemacy Pro"
+msgstr ""
+
+#. translators: %s: Parameter name
+#: src/Core/Route.php:315
+#, php-format
+msgid "Parameter %s must not be a built-in type."
+msgstr ""
+
+#. translators: %s: Route endpoint
+#: src/Core/Route.php:337
+#, php-format
+msgid "Invalid controller action for the route %s"
+msgstr ""
+
+#. translators: 1: Method name, 2: Controller class
+#: src/Core/Route.php:351
+#, php-format
+msgid "The method %1$s is missing in the controller %2$s"
+msgstr ""
+
+#: src/Core/Sanitizer.php:318
+msgid "The rule type cannot be null."
+msgstr ""
+
+#: src/Core/Sanitizer.php:423
+msgid "Provide valid rule type."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/ArrayRule.php:40
+#, php-format
+msgid "The %s must be an array."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/BaseRule.php:158
+#: src/Core/Validation/Rules/Sanitizer.php:34
+#, php-format
+msgid "The %s field is invalid."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/BooleanRule.php:53
+#, php-format
+msgid "The %s must be a boolean."
+msgstr ""
+
+#. translators: 1: field name, 2: date format
+#: src/Core/Validation/Rules/DateFormatRule.php:37
+#, php-format
+msgid "The %1$s field must be a valid date in the format %2$s."
+msgstr ""
+
+#. translators: 1: field name, 2: date format
+#: src/Core/Validation/Rules/DateRule.php:37
+#: src/Core/Validation/Rules/DateTimeRule.php:37
+#, php-format
+msgid "The %1$s field must be a valid date time in the format %2$s."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/EmailRule.php:33
+#, php-format
+msgid "The %s must be an email."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/EmailUniqueRule.php:67
+#, php-format
+msgid "The %s is already taken."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/FloatRule.php:40
+#, php-format
+msgid "The %s must be a float."
+msgstr ""
+
+#. translators: 1: field name, 2: target value
+#. translators: 1: field name, 2: value limit
+#: src/Core/Validation/Rules/GreaterThanEqualRule.php:52
+#: src/Core/Validation/Rules/MinRule.php:57
+#, php-format
+msgid "The %1$s field must be greater than or equal to %2$s."
+msgstr ""
+
+#. translators: 1: field name, 2: target value
+#: src/Core/Validation/Rules/GreaterThanRule.php:52
+#, php-format
+msgid "The %1$s field must be greater than %2$s."
+msgstr ""
+
+#. translators: 1: field name, 2: allowed values
+#: src/Core/Validation/Rules/InRule.php:40
+#, php-format
+msgid "The %1$s field must contain a value from: %2$s."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/IntegerRule.php:40
+#, php-format
+msgid "The %s must be an integer."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/IsValidImageIdRule.php:35
+#, php-format
+msgid "The %s must be a valid image ID."
+msgstr ""
+
+#. translators: 1: field name, 2: target value
+#. translators: 1: field name, 2: value limit
+#: src/Core/Validation/Rules/LessThanEqualRule.php:52
+#: src/Core/Validation/Rules/MaxRule.php:57
+#, php-format
+msgid "The %1$s field must be less than or equal to %2$s."
+msgstr ""
+
+#. translators: 1: field name, 2: target value
+#: src/Core/Validation/Rules/LessThanRule.php:52
+#, php-format
+msgid "The %1$s field must be less than %2$s."
+msgstr ""
+
+#. translators: 1: field name, 2: character limit
+#: src/Core/Validation/Rules/MaxRule.php:42
+#, php-format
+msgid "The %1$s field must be less than or equal to %2$s characters."
+msgstr ""
+
+#. translators: 1: field name, 2: item limit
+#: src/Core/Validation/Rules/MaxRule.php:49
+#, php-format
+msgid "The %1$s field must be less than or equal to %2$s items."
+msgstr ""
+
+#. translators: 1: field name, 2: character limit
+#: src/Core/Validation/Rules/MinRule.php:42
+#, php-format
+msgid "The %1$s field must be greater than or equal to %2$s characters."
+msgstr ""
+
+#. translators: 1: field name, 2: item limit
+#: src/Core/Validation/Rules/MinRule.php:49
+#, php-format
+msgid "The %1$s field must be greater than or equal to %2$s items."
+msgstr ""
+
+#. translators: 1: field name, 2: values
+#: src/Core/Validation/Rules/NotInRule.php:40
+#, php-format
+msgid "The %1$s field must not contain a value from: %2$s."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/NumberRule.php:40
+#, php-format
+msgid "The %s must be a number."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/ObjectRule.php:33
+#, php-format
+msgid "The %s must be an object."
+msgstr ""
+
+#. translators: 1: field name, 2: other field name, 3: other field value
+#: src/Core/Validation/Rules/ProhibitedIfRule.php:56
+#, php-format
+msgid "The %1$s field is prohibited when %2$s is %3$s."
+msgstr ""
+
+#. translators: 1: field name, 2: regex pattern
+#: src/Core/Validation/Rules/RegexRule.php:33
+#, php-format
+msgid "The %1$s field must match the regex: %2$s."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/RequiredIfExists.php:37
+#: src/Core/Validation/Rules/RequiredIfRule.php:48
+#: src/Core/Validation/Rules/RequiredRule.php:37
+#, php-format
+msgid "The %s field is required."
+msgstr ""
+
+#. translators: 1: field name, 2: other field name
+#: src/Core/Validation/Rules/SameAsRule.php:35
+#, php-format
+msgid "The %1$s field must be same as %2$s."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/StringRule.php:40
+#, php-format
+msgid "The %s must be a string."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/UrlRule.php:33
+#, php-format
+msgid "The %s must be a valid URL."
+msgstr ""
+
+#. translators: %s: field name
+#: src/Core/Validation/Rules/UserExists.php:37
+#, php-format
+msgid "The %s does not exist."
+msgstr ""
+
+#. translators: %s: field key
+#: src/Core/Validation/Validator.php:218
+#, php-format
+msgid "Expected an array at \"%s\""
+msgstr ""
+
+#. translators: %s: response type
+#: src/Core/Validation/Validator.php:270
+#, php-format
+msgid "The closure must return a boolean true for valid or string as error message, \"%s\" given"
+msgstr ""
+
+#. translators: %s: rule name
+#: src/Core/Validation/Validator.php:384
+#, php-format
+msgid "The validation rule %s does not exist or is invalid"
+msgstr ""
+
+#: src/Modules/CustomCss/CustomCss.php:20
+#: src/Modules/CustomCss/Services/CustomCssManager.php:51
+msgid "Custom CSS"
+msgstr ""
+
+#: src/Modules/CustomCss/CustomCss.php:30
+msgid "Add custom CSS controls to Elementor elements and pages."
+msgstr ""
+
+#: src/Modules/CustomCss/Services/CustomCssManager.php:59
+msgid "Add your own custom CSS"
+msgstr ""
+
+#. translators: 1: selector keyword
+#: src/Modules/CustomCss/Services/CustomCssManager.php:64
+#, php-format
+msgid "Use %s to target the specific element."
+msgstr ""
+
+#: src/Modules/DynamicTags/DynamicTags.php:19
+msgid "Dynamic Tags"
+msgstr ""
+
+#: src/Modules/DynamicTags/DynamicTags.php:29
+msgid "Pull live post, site, author, archive and WooCommerce data into any Elementor element."
+msgstr ""
+
+#: src/Modules/DynamicTags/Services/TagManager.php:133
+msgid "Elemacy WooCommerce"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfColor.php:24
+msgid "ACF Color Picker Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfColor.php:62
+#: src/Modules/DynamicTags/Tags/Acf/AcfDateTime.php:56
+#: src/Modules/DynamicTags/Tags/Acf/AcfField.php:45
+#: src/Modules/DynamicTags/Tags/Acf/AcfGallery.php:63
+#: src/Modules/DynamicTags/Tags/Acf/AcfImage.php:67
+#: src/Modules/DynamicTags/Tags/Acf/AcfNumber.php:57
+#: src/Modules/DynamicTags/Tags/Acf/AcfUrl.php:57
+msgid "Field Name (Meta Key)"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfColor.php:64
+#: src/Modules/DynamicTags/Tags/Acf/AcfDateTime.php:58
+#: src/Modules/DynamicTags/Tags/Acf/AcfField.php:47
+#: src/Modules/DynamicTags/Tags/Acf/AcfGallery.php:65
+#: src/Modules/DynamicTags/Tags/Acf/AcfImage.php:69
+#: src/Modules/DynamicTags/Tags/Acf/AcfNumber.php:59
+#: src/Modules/DynamicTags/Tags/Acf/AcfUrl.php:59
+msgid "Enter ACF field key/name (e.g. my_custom_field)"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfDateTime.php:23
+msgid "ACF Date Time Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfField.php:24
+msgid "ACF Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfField.php:48
+msgid "Supported ACF fields: text, textarea, number, email, password, WYSIWYG, select, checkbox, radio, true/false, oEmbed, Google Map, date picker, time picker, date/time picker, color picker."
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfGallery.php:23
+msgid "ACF Gallery Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfImage.php:23
+msgid "ACF Image Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfImage.php:79
+#: src/Modules/DynamicTags/Tags/Acf/AcfUrl.php:69
+#: src/Modules/DynamicTags/Tags/Base/PostFeaturedImage.php:59
+msgid "Fallback"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfNumber.php:23
+msgid "ACF Number Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Acf/AcfUrl.php:23
+msgid "ACF URL Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Archive/ArchiveDescription.php:21
+msgid "Archive Description"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Archive/ArchiveTitle.php:22
+msgid "Archive Title"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Archive/ArchiveTitle.php:40
+msgid "Remove Prefix"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Archive/ArchiveTitle.php:41
+msgid "Remove the \"Category:\", \"Tag:\", \"Author:\" prefix."
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Archive/ArchiveUrl.php:21
+msgid "Archive URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Author/AuthorInfo.php:21
+msgid "Author Info"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Author/AuthorName.php:21
+msgid "Author Name"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Author/AuthorProfilePicture.php:21
+msgid "Author Profile Picture"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Author/AuthorUrl.php:21
+msgid "Author URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:22
+msgid "Comments Number"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:40
+msgid "No Comments Text"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:42
+msgid "No Comments"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:52
+msgid "One Comment Text"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:54
+msgid "One Comment"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:64
+msgid "Many Comments Text"
+msgstr ""
+
+#. translators: %s: The comments count placeholder token.
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:66
+#, php-format
+msgid "Use %s as a placeholder for the comments count."
+msgstr ""
+
+#. translators: %s: The comments count.
+#: src/Modules/DynamicTags/Tags/Base/CommentsNumber.php:69
+#, php-format
+msgid "%s Comments"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PageTitle.php:21
+msgid "Page Title"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostContent.php:22
+msgid "Post Content"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostCustomField.php:22
+msgid "Post Custom Field"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostCustomField.php:57
+msgid "Key"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostCustomField.php:66
+msgid "Custom Key"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostCustomField.php:116
+msgid "Select..."
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:22
+msgid "Post Date"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:40
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:40
+#: src/Modules/DynamicTags/Tags/Utility/RequestParameter.php:45
+#: src/Modules/Widgets/Widgets/Form.php:74
+#: src/Modules/Widgets/Widgets/NavMenu.php:376
+msgid "Type"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:43
+msgid "Post Published"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:44
+msgid "Post Modified"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:53
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:43
+msgid "Format"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:56
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:46
+#: src/Modules/Widgets/Widgets/Form.php:756
+#: src/Modules/Widgets/Widgets/SiteLogo.php:149
+#: src/Modules/Widgets/Widgets/SiteLogo.php:271
+msgid "Default"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:61
+msgid "Human Readable"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:62
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:52
+msgid "Custom"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:71
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:61
+msgid "Custom Format"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:76
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:66
+msgid "Documentation on date and time formatting"
+msgstr ""
+
+#. translators: %s: Post date.
+#: src/Modules/DynamicTags/Tags/Base/PostDate.php:102
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:21
+msgid "Post Excerpt"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:35
+msgid "Excerpt Length"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:43
+msgid "Apply to post content"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:45
+#: src/Modules/Popups/Documents/PopupDocument.php:156
+#: src/Modules/Popups/Documents/PopupDocument.php:297
+#: src/Modules/Popups/Documents/PopupDocument.php:309
+#: src/Modules/Popups/Documents/PopupDocument.php:321
+#: src/Modules/Widgets/Widgets/NavMenu.php:194
+#: src/Modules/Widgets/Widgets/NavMenu.php:204
+#: src/Modules/Widgets/Widgets/SiteLogo.php:150
+msgid "Yes"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostExcerpt.php:46
+#: src/Modules/Popups/Documents/PopupDocument.php:157
+#: src/Modules/Popups/Documents/PopupDocument.php:298
+#: src/Modules/Popups/Documents/PopupDocument.php:310
+#: src/Modules/Popups/Documents/PopupDocument.php:322
+#: src/Modules/Widgets/Widgets/NavMenu.php:195
+#: src/Modules/Widgets/Widgets/NavMenu.php:205
+#: src/Modules/Widgets/Widgets/SiteLogo.php:151
+msgid "No"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostFeaturedImage.php:35
+msgid "Featured Image"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostTerms.php:22
+msgid "Post Terms"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostTerms.php:40
+msgid "Taxonomy"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostTerms.php:50
+msgid "Separator"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostTerms.php:62
+#: src/Modules/Widgets/Widgets/SiteLogo.php:124
+#: src/Modules/Widgets/Widgets/SiteLogo.php:137
+msgid "Link"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostTitle.php:22
+msgid "Post Title"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/PostUrl.php:21
+msgid "Post URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/SiteLogo.php:20
+#: src/Modules/Widgets/Config/widgets.php:18
+#: src/Modules/Widgets/Widgets/SiteLogo.php:36
+#: src/Modules/Widgets/Widgets/SiteLogo.php:558
+msgid "Site Logo"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/SiteTagline.php:20
+msgid "Site Tagline"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/SiteTitle.php:20
+msgid "Site Title"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Base/SiteUrl.php:21
+msgid "Site URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:22
+msgid "Contact URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:43
+#: src/Modules/Widgets/Widgets/Form.php:79
+#: src/Modules/Widgets/Widgets/Form.php:182
+#: src/Modules/Widgets/Widgets/Form.php:183
+#: src/Modules/Widgets/Widgets/Form.php:301
+#: src/Modules/Widgets/Widgets/Form.php:317
+msgid "Email"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:44
+msgid "Phone"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:45
+msgid "SMS"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/ContactUrl.php:54
+msgid "Value"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php:22
+msgid "Current Date Time"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/RequestParameter.php:22
+msgid "Request Parameter"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/RequestParameter.php:58
+msgid "Parameter Name"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/Utility/Shortcode.php:22
+#: src/Modules/DynamicTags/Tags/Utility/Shortcode.php:45
+msgid "Shortcode"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductAddToCartUrl.php:22
+msgid "Product Add To Cart URL"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductGallery.php:22
+msgid "Product Gallery"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductPrice.php:22
+msgid "Product Price"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductRating.php:22
+msgid "Product Rating"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductShortDescription.php:22
+msgid "Product Short Description"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductSku.php:22
+msgid "Product SKU"
+msgstr ""
+
+#: src/Modules/DynamicTags/Tags/WooCommerce/ProductStock.php:22
+msgid "Product Stock"
+msgstr ""
+
+#: src/Modules/Mock/AnimationsPlaceholder.php:18
+msgid "Animations"
+msgstr ""
+
+#: src/Modules/Mock/AnimationsPlaceholder.php:28
+msgid "Add polished entrance animations to any Elementor element, triggered on scroll or page load — no code required."
+msgstr ""
+
+#: src/Modules/Mock/AnimationsPlaceholder.php:33
+msgid "Pro"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:34
+msgid "Popups retrieved successfully"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:44
+msgid "Popup retrieved successfully"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:53
+msgid "Popup created successfully"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:63
+msgid "Popup updated successfully"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:73
+msgid "Popup duplicated successfully"
+msgstr ""
+
+#: src/Modules/Popups/Controllers/PopupController.php:83
+msgid "Popup deleted successfully"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:36
+#: src/Modules/Popups/Documents/PopupDocument.php:120
+#: src/Modules/Popups/Popups.php:71
+msgid "Popup"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:41
+#: src/Modules/Popups/Popups.php:87
+#: src/Modules/Popups/Popups.php:88
+msgid "Popups"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:95
+#: src/Modules/Popups/Documents/PopupDocument.php:102
+#: src/Modules/Widgets/Widgets/NavMenu.php:536
+#: src/Modules/Widgets/Widgets/NavMenu.php:1078
+msgid "Top"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:96
+#: src/Modules/Popups/Documents/PopupDocument.php:103
+#: src/Modules/Widgets/Widgets/NavMenu.php:544
+msgid "Bottom"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:101
+#: src/Modules/Widgets/Widgets/Form.php:244
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:522
+#: src/Modules/Widgets/Widgets/LoopGrid.php:360
+#: src/Modules/Widgets/Widgets/NavMenu.php:130
+#: src/Modules/Widgets/Widgets/NavMenu.php:227
+#: src/Modules/Widgets/Widgets/NavMenu.php:520
+#: src/Modules/Widgets/Widgets/Search.php:170
+#: src/Modules/Widgets/Widgets/SiteLogo.php:177
+#: src/Modules/Widgets/Widgets/SiteLogo.php:418
+msgid "Center"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:104
+#: src/Modules/Widgets/Widgets/SiteLogo.php:295
+msgid "Top Left"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:105
+#: src/Modules/Widgets/Widgets/SiteLogo.php:296
+msgid "Top Right"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:106
+#: src/Modules/Widgets/Widgets/SiteLogo.php:298
+msgid "Bottom Left"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:107
+#: src/Modules/Widgets/Widgets/SiteLogo.php:299
+msgid "Bottom Right"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:130
+#: src/Modules/Widgets/Widgets/NavMenu.php:1072
+msgid "Position"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:154
+msgid "Sticky"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:160
+msgid "Keep the bar visible while scrolling."
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:171
+#: src/Modules/Widgets/Widgets/SiteLogo.php:196
+msgid "Width"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:201
+#: src/Modules/Widgets/Widgets/SiteLogo.php:248
+msgid "Height"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:223
+msgid "Z-Index"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:236
+msgid "Animation In"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:241
+#: src/Modules/Popups/Documents/PopupDocument.php:256
+#: src/Modules/Widgets/Widgets/Form.php:757
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:362
+#: src/Modules/Widgets/Widgets/LoopGrid.php:314
+#: src/Modules/Widgets/Widgets/NavMenu.php:380
+#: src/Modules/Widgets/Widgets/SiteLogo.php:108
+#: src/Modules/Widgets/Widgets/SiteLogo.php:131
+msgid "None"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:242
+#: src/Modules/Popups/Documents/PopupDocument.php:257
+#: src/Modules/Widgets/Widgets/NavMenu.php:420
+msgid "Fade"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:243
+#: src/Modules/Popups/Documents/PopupDocument.php:258
+msgid "Slide Down"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:244
+#: src/Modules/Popups/Documents/PopupDocument.php:259
+msgid "Slide Up"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:252
+msgid "Animation Out"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:267
+#: src/Modules/Popups/Documents/PopupDocument.php:382
+#: src/Modules/Widgets/Widgets/NavMenu.php:995
+msgid "Close Button"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:269
+msgid "On"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:270
+msgid "Off"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:283
+msgid "Auto Close (seconds)"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:287
+msgid "0 disables auto close."
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:295
+msgid "Close on Overlay Click"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:307
+msgid "Close on Esc"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:319
+msgid "Prevent Body Scroll"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:343
+msgid "Overlay Color"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:356
+msgid "Overlay Opacity"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:393
+msgid "Button Size"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:415
+#: src/Modules/Widgets/Widgets/NavMenu.php:947
+#: src/Modules/Widgets/Widgets/NavMenu.php:1031
+#: src/Modules/Widgets/Widgets/Search.php:317
+#: src/Modules/Widgets/Widgets/Search.php:439
+msgid "Icon Size"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:437
+msgid "Distance From Edge"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:459
+#: src/Modules/Widgets/Widgets/Form.php:548
+#: src/Modules/Widgets/Widgets/Form.php:678
+#: src/Modules/Widgets/Widgets/Form.php:788
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:457
+#: src/Modules/Widgets/Widgets/LoopGrid.php:550
+#: src/Modules/Widgets/Widgets/NavMenu.php:358
+#: src/Modules/Widgets/Widgets/NavMenu.php:778
+#: src/Modules/Widgets/Widgets/NavMenu.php:976
+#: src/Modules/Widgets/Widgets/NavMenu.php:1060
+#: src/Modules/Widgets/Widgets/Search.php:280
+#: src/Modules/Widgets/Widgets/Search.php:404
+#: src/Modules/Widgets/Widgets/Search.php:598
+#: src/Modules/Widgets/Widgets/SiteLogo.php:384
+msgid "Border Radius"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:503
+#: src/Modules/Widgets/Widgets/Form.php:595
+#: src/Modules/Widgets/Widgets/LoopGrid.php:420
+#: src/Modules/Widgets/Widgets/NavMenu.php:286
+#: src/Modules/Widgets/Widgets/NavMenu.php:560
+#: src/Modules/Widgets/Widgets/NavMenu.php:647
+#: src/Modules/Widgets/Widgets/NavMenu.php:812
+#: src/Modules/Widgets/Widgets/NavMenu.php:906
+#: src/Modules/Widgets/Widgets/NavMenu.php:1002
+#: src/Modules/Widgets/Widgets/Search.php:212
+#: src/Modules/Widgets/Widgets/Search.php:341
+#: src/Modules/Widgets/Widgets/Search.php:478
+#: src/Modules/Widgets/Widgets/Search.php:544
+#: src/Modules/Widgets/Widgets/SiteLogo.php:314
+msgid "Normal"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:509
+#: src/Modules/Popups/Documents/PopupDocument.php:540
+#: src/Modules/Popups/Documents/PopupDocument.php:580
+msgid "Icon Color"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:521
+#: src/Modules/Popups/Documents/PopupDocument.php:551
+#: src/Modules/Popups/Documents/PopupDocument.php:591
+#: src/Modules/Widgets/Widgets/NavMenu.php:293
+#: src/Modules/Widgets/Widgets/NavMenu.php:306
+#: src/Modules/Widgets/Widgets/NavMenu.php:319
+#: src/Modules/Widgets/Widgets/NavMenu.php:654
+#: src/Modules/Widgets/Widgets/NavMenu.php:667
+#: src/Modules/Widgets/Widgets/NavMenu.php:680
+#: src/Modules/Widgets/Widgets/NavMenu.php:819
+#: src/Modules/Widgets/Widgets/NavMenu.php:832
+#: src/Modules/Widgets/Widgets/NavMenu.php:845
+#: src/Modules/Widgets/Widgets/NavMenu.php:916
+#: src/Modules/Widgets/Widgets/NavMenu.php:932
+#: src/Modules/Widgets/Widgets/NavMenu.php:1009
+#: src/Modules/Widgets/Widgets/NavMenu.php:1022
+msgid "Background"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:534
+#: src/Modules/Widgets/Widgets/Form.php:634
+#: src/Modules/Widgets/Widgets/LoopGrid.php:458
+#: src/Modules/Widgets/Widgets/NavMenu.php:299
+#: src/Modules/Widgets/Widgets/NavMenu.php:573
+#: src/Modules/Widgets/Widgets/NavMenu.php:660
+#: src/Modules/Widgets/Widgets/NavMenu.php:825
+#: src/Modules/Widgets/Widgets/NavMenu.php:922
+#: src/Modules/Widgets/Widgets/NavMenu.php:1015
+#: src/Modules/Widgets/Widgets/Search.php:365
+#: src/Modules/Widgets/Widgets/Search.php:567
+#: src/Modules/Widgets/Widgets/SiteLogo.php:336
+msgid "Hover"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:562
+#: src/Modules/Popups/Documents/PopupDocument.php:602
+#: src/Modules/Widgets/Widgets/Form.php:663
+#: src/Modules/Widgets/Widgets/Form.php:859
+#: src/Modules/Widgets/Widgets/Form.php:907
+#: src/Modules/Widgets/Widgets/LoopGrid.php:447
+#: src/Modules/Widgets/Widgets/LoopGrid.php:485
+#: src/Modules/Widgets/Widgets/LoopGrid.php:523
+#: src/Modules/Widgets/Widgets/Search.php:268
+#: src/Modules/Widgets/Widgets/Search.php:386
+msgid "Border Color"
+msgstr ""
+
+#: src/Modules/Popups/Documents/PopupDocument.php:574
+#: src/Modules/Widgets/Widgets/LoopGrid.php:496
+#: src/Modules/Widgets/Widgets/NavMenu.php:312
+#: src/Modules/Widgets/Widgets/NavMenu.php:586
+#: src/Modules/Widgets/Widgets/NavMenu.php:673
+#: src/Modules/Widgets/Widgets/NavMenu.php:838
+msgid "Active"
+msgstr ""
+
+#: src/Modules/Popups/Popups.php:29
+msgid "Popups & Floating Elements"
+msgstr ""
+
+#: src/Modules/Popups/Popups.php:39
+msgid "Build popups, top/bottom bars, banners and floating elements with display conditions and triggers."
+msgstr ""
+
+#: src/Modules/Popups/Popups.php:72
+msgid "Top / Bottom Bar"
+msgstr ""
+
+#: src/Modules/Popups/Popups.php:73
+msgid "Banner"
+msgstr ""
+
+#: src/Modules/Popups/Popups.php:74
+msgid "Floating Element"
+msgstr ""
+
+#: src/Modules/Popups/Rules/FrequencyCap.php:18
+msgid "Show up to X times"
+msgstr ""
+
+#: src/Modules/Popups/Rules/LoggedInUsers.php:23
+msgid "Hide for logged-in users"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:18
+msgid "By browser"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:26
+msgid "Browsers"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:32
+msgid "Chrome"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:36
+msgid "Firefox"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:40
+msgid "Safari"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Browser.php:44
+msgid "Edge"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Devices.php:22
+msgid "Show on devices"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Devices.php:35
+msgid "Desktop"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Devices.php:39
+msgid "Tablet"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Devices.php:43
+#: src/Modules/Widgets/Widgets/NavMenu.php:152
+msgid "Mobile"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/OncePer.php:22
+msgid "Show once per"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/OncePer.php:35
+msgid "Session"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/OncePer.php:39
+msgid "Day"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/OncePer.php:43
+msgid "Week"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/OncePer.php:47
+msgid "Forever"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/PageViews.php:18
+msgid "After X page views"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/PageViews.php:26
+msgid "Page views"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Referrer.php:18
+msgid "Arriving from URL"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Referrer.php:26
+msgid "Referrer URL"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Roles.php:18
+msgid "By user role"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Roles.php:26
+msgid "User roles"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Schedule.php:18
+msgid "Between dates"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Schedule.php:26
+msgid "Start date"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Schedule.php:32
+msgid "End date"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Sessions.php:18
+msgid "After X sessions"
+msgstr ""
+
+#: src/Modules/Popups/Rules/Mock/Sessions.php:26
+msgid "Sessions"
+msgstr ""
+
+#: src/Modules/Popups/Services/PopupManager.php:154
+msgid "Close"
+msgstr ""
+
+#: src/Modules/Popups/Services/PopupService.php:105
+#: src/Modules/Popups/Services/PopupService.php:159
+#: src/Modules/Popups/Services/PopupService.php:204
+#: src/Modules/Popups/Services/PopupService.php:252
+msgid "Popup not found."
+msgstr ""
+
+#. translators: %s: original popup title.
+#. translators: %s: original template title.
+#: src/Modules/Popups/Services/PopupService.php:208
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:186
+#: src/TemplateLibrary/Services/BlockTemplateService.php:170
+#, php-format
+msgid "%s (Copy)"
+msgstr ""
+
+#: src/Modules/Popups/Services/PopupService.php:258
+msgid "Failed to delete popup."
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Click.php:18
+msgid "On Click"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Click.php:26
+#: src/Modules/Popups/Triggers/Mock/ScrollToElement.php:26
+msgid "CSS selector"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/ExitIntent.php:18
+msgid "On Exit Intent"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/Inactivity.php:18
+msgid "After Inactivity"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/Inactivity.php:26
+msgid "Inactivity (seconds)"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/OnPopupClose.php:18
+msgid "After Another Popup Closes"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/Scroll.php:22
+msgid "On Scroll"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/Scroll.php:30
+msgid "Scroll %"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/Mock/ScrollToElement.php:18
+msgid "On Scroll To Element"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/PageLoad.php:18
+msgid "On Page Load"
+msgstr ""
+
+#: src/Modules/Popups/Triggers/PageLoad.php:26
+msgid "Delay (seconds)"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:42
+#: src/TemplateLibrary/Controllers/LibraryController.php:48
+msgid "Templates retrieved successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:52
+#: src/TemplateLibrary/Controllers/LibraryController.php:58
+msgid "Template retrieved successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:61
+#: src/TemplateLibrary/Controllers/LibraryController.php:67
+msgid "Template created successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:71
+#: src/TemplateLibrary/Controllers/LibraryController.php:77
+msgid "Template updated successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:81
+#: src/TemplateLibrary/Controllers/LibraryController.php:87
+msgid "Template duplicated successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Controllers/ThemeBuilderController.php:91
+#: src/TemplateLibrary/Controllers/LibraryController.php:97
+msgid "Template deleted successfully"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/ArchiveDocument.php:38
+msgid "Archives"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/ArchiveDocument.php:57
+msgid "Preview Source"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/ArchiveDocument.php:62
+msgid "Choose a post type to preview this archive with."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/SearchDocument.php:55
+msgid "Preview Search Term"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/SearchDocument.php:59
+msgid "A sample term to preview this search results template with."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/SingleDocument.php:29
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:63
+msgid "Single"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Documents/SingleDocument.php:34
+msgid "Singles"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:99
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:143
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:182
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:228
+#: src/TemplateLibrary/Services/BlockTemplateService.php:101
+#: src/TemplateLibrary/Services/BlockTemplateService.php:135
+#: src/TemplateLibrary/Services/BlockTemplateService.php:166
+#: src/TemplateLibrary/Services/BlockTemplateService.php:212
+msgid "Template not found."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/Services/TemplateService.php:234
+#: src/TemplateLibrary/Services/BlockTemplateService.php:218
+msgid "Failed to delete template."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:28
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:101
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:102
+msgid "Theme Builder"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:38
+msgid "Design headers, footers, archives and other site-wide templates that apply across your theme."
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:61
+msgid "Header"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:62
+msgid "Footer"
+msgstr ""
+
+#: src/Modules/ThemeBuilder/ThemeBuilder.php:65
+msgid "404 Page"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:24
+msgid "Elemacy Nav Menu"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:30
+#: src/Modules/Widgets/Widgets/LoopGrid.php:26
+msgid "Loop Builder"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:36
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:25
+msgid "Loop Carousel"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:42
+#: src/Modules/Widgets/Widgets/Form.php:24
+msgid "Form Builder"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:48
+#: src/Modules/Widgets/Widgets/Search.php:28
+#: src/Modules/Widgets/Widgets/Search.php:139
+#: src/Modules/Widgets/Widgets/Search.php:727
+#: src/Modules/Widgets/Widgets/Search.php:768
+msgid "Search"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:54
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:31
+msgid "ACF Accordion"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:61
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:29
+msgid "ACF Icon List"
+msgstr ""
+
+#: src/Modules/Widgets/Config/widgets.php:68
+#: src/Modules/Widgets/Widgets/Acf/AcfGallery.php:31
+msgid "ACF Gallery"
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:32
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:77
+msgid "Form submitted successfully!"
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:39
+#: src/Modules/Widgets/Controllers/AjaxPaginationController.php:20
+msgid "Missing required parameters."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:45
+msgid "Invalid post ID."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:51
+msgid "Widget not found."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:57
+msgid "Invalid widget."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:71
+msgid "Failed to send email. Please try again."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:97
+msgid "Too many submissions. Please try again in a minute."
+msgstr ""
+
+#. translators: %s: form field label.
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:125
+#, php-format
+msgid "%s is required."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:127
+msgid "This field is required."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:134
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:140
+msgid "Please correct the highlighted fields."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxFormController.php:175
+msgid "New Form Submission"
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxPaginationController.php:26
+msgid "Invalid settings format."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxPaginationController.php:35
+msgid "Invalid post type."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxPaginationController.php:95
+msgid "No posts found."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/AjaxPaginationController.php:104
+msgid "Invalid loop template."
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/WidgetsApiController.php:34
+msgid "Widgets retrieved successfully"
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/WidgetsApiController.php:52
+msgid "Invalid action"
+msgstr ""
+
+#: src/Modules/Widgets/Controllers/WidgetsApiController.php:60
+msgid "Widget toggled successfully"
+msgstr ""
+
+#: src/Modules/Widgets/Documents/LoopDocument.php:29
+#: src/Modules/Widgets/Widgets.php:63
+msgid "Loop Item"
+msgstr ""
+
+#: src/Modules/Widgets/Documents/LoopDocument.php:34
+msgid "Loop Items"
+msgstr ""
+
+#: src/Modules/Widgets/Services/WidgetService.php:130
+msgid "Widget not found"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets.php:29
+#: src/Modules/Widgets/Widgets.php:77
+#: src/Modules/Widgets/Widgets.php:78
+msgid "Widgets"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets.php:39
+msgid "Extend the Elementor editor with extra widgets built by Elemacy."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:92
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:65
+msgid "Repeater Field Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:93
+msgid "Enter the name of your ACF repeater field (e.g., faq_items)."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:96
+msgid "e.g. faq_items"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:100
+msgid "Title Sub-Field Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:101
+msgid "Name of the sub-field inside the repeater that holds the accordion title."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:104
+msgid "e.g. question"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:108
+msgid "Content Sub-Field Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:109
+msgid "Name of the sub-field inside the repeater that holds the accordion content."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfAccordion.php:113
+msgid "e.g. answer"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfGallery.php:64
+msgid "Gallery Field Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfGallery.php:65
+msgid "Enter the name of the ACF gallery field that holds the images (e.g., gallery)."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:66
+msgid "Enter the name of your ACF repeater field (e.g., features)."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:69
+msgid "e.g. features"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:73
+msgid "Text Sub-Field Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:74
+msgid "Name of the sub-field inside the repeater that holds each item's text."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:78
+msgid "e.g. label"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:82
+#: src/Modules/Widgets/Widgets/Search.php:128
+#: src/Modules/Widgets/Widgets/Search.php:148
+#: src/Modules/Widgets/Widgets/Search.php:433
+msgid "Icon"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Acf/AcfIconList.php:83
+msgid "Applied to every item in the list."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:65
+#: src/Modules/Widgets/Widgets/Form.php:169
+msgid "Form Fields"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:78
+#: src/Modules/Widgets/Widgets/Form.php:227
+#: src/Modules/Widgets/Widgets/Search.php:129
+msgid "Text"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:80
+msgid "Textarea"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:81
+msgid "Tel"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:82
+msgid "Select"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:83
+msgid "Radio"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:84
+msgid "Checkbox"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:92
+#: src/Modules/Widgets/Widgets/Form.php:94
+#: src/Modules/Widgets/Widgets/Form.php:202
+#: src/Modules/Widgets/Widgets/Form.php:441
+msgid "Label"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:104
+msgid "Custom ID"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:106
+msgid "Identify the field with a unique ID for use in emails."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:113
+#: src/Modules/Widgets/Widgets/Form.php:115
+#: src/Modules/Widgets/Widgets/Search.php:84
+#: src/Modules/Widgets/Widgets/Search.php:92
+msgid "Placeholder"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:125
+msgid "Required"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:135
+msgid "Options"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:138
+msgid "Enter each option in a separate line. To differentiate between label and value, separate them with a pipe char (\"|\"). For example: First Name|f_name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:148
+#: src/Modules/Widgets/Widgets/Form.php:264
+msgid "Column Width"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:175
+#: src/Modules/Widgets/Widgets/Form.php:176
+msgid "Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:189
+#: src/Modules/Widgets/Widgets/Form.php:190
+#: src/Modules/Widgets/Widgets/Form.php:347
+msgid "Message"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:204
+msgid "Show"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:205
+msgid "Hide"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:220
+msgid "Submit Button"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:229
+msgid "Send"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:236
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:514
+#: src/Modules/Widgets/Widgets/LoopGrid.php:352
+#: src/Modules/Widgets/Widgets/NavMenu.php:122
+#: src/Modules/Widgets/Widgets/SiteLogo.php:169
+#: src/Modules/Widgets/Widgets/SiteLogo.php:410
+msgid "Alignment"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:240
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:518
+#: src/Modules/Widgets/Widgets/LoopGrid.php:356
+msgid "Left"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:248
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:526
+#: src/Modules/Widgets/Widgets/LoopGrid.php:364
+#: src/Modules/Widgets/Widgets/NavMenu.php:1095
+msgid "Right"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:252
+#: src/Modules/Widgets/Widgets/SiteLogo.php:426
+msgid "Justified"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:290
+msgid "Actions After Submit"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:297
+msgid "Add Action"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:327
+msgid "To"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:331
+msgid "Separate emails with commas"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:338
+msgid "Subject"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:340
+msgid "New message from "
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:350
+msgid "Use shortcode [all-fields] to see all fields, or use specific field ID like [field_id]"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:357
+msgid "From Name"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:366
+msgid "From Email"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:375
+msgid "Reply-To"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:377
+msgid "Email Field"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:389
+msgid "Form"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:397
+#: src/Modules/Widgets/Widgets/LoopGrid.php:166
+msgid "Column Gap"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:419
+#: src/Modules/Widgets/Widgets/LoopGrid.php:184
+msgid "Row Gap"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:450
+#: src/Modules/Widgets/Widgets/Form.php:725
+#: src/Modules/Widgets/Widgets/Search.php:460
+#: src/Modules/Widgets/Widgets/SiteLogo.php:470
+msgid "Spacing"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:467
+#: src/Modules/Widgets/Widgets/Form.php:499
+#: src/Modules/Widgets/Widgets/Form.php:602
+#: src/Modules/Widgets/Widgets/Form.php:641
+#: src/Modules/Widgets/Widgets/LoopGrid.php:425
+#: src/Modules/Widgets/Widgets/LoopGrid.php:463
+#: src/Modules/Widgets/Widgets/LoopGrid.php:501
+#: src/Modules/Widgets/Widgets/NavMenu.php:288
+#: src/Modules/Widgets/Widgets/NavMenu.php:301
+#: src/Modules/Widgets/Widgets/NavMenu.php:314
+#: src/Modules/Widgets/Widgets/NavMenu.php:562
+#: src/Modules/Widgets/Widgets/NavMenu.php:575
+#: src/Modules/Widgets/Widgets/NavMenu.php:588
+#: src/Modules/Widgets/Widgets/NavMenu.php:649
+#: src/Modules/Widgets/Widgets/NavMenu.php:662
+#: src/Modules/Widgets/Widgets/NavMenu.php:675
+#: src/Modules/Widgets/Widgets/NavMenu.php:814
+#: src/Modules/Widgets/Widgets/NavMenu.php:827
+#: src/Modules/Widgets/Widgets/NavMenu.php:840
+#: src/Modules/Widgets/Widgets/Search.php:216
+#: src/Modules/Widgets/Widgets/Search.php:252
+#: src/Modules/Widgets/Widgets/Search.php:345
+#: src/Modules/Widgets/Widgets/Search.php:369
+#: src/Modules/Widgets/Widgets/SiteLogo.php:442
+msgid "Text Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:491
+msgid "Field"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:510
+#: src/Modules/Widgets/Widgets/Search.php:224
+msgid "Placeholder Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:529
+#: src/Modules/Widgets/Widgets/Form.php:613
+#: src/Modules/Widgets/Widgets/Form.php:652
+#: src/Modules/Widgets/Widgets/Form.php:847
+#: src/Modules/Widgets/Widgets/Form.php:895
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:446
+#: src/Modules/Widgets/Widgets/LoopGrid.php:436
+#: src/Modules/Widgets/Widgets/LoopGrid.php:474
+#: src/Modules/Widgets/Widgets/LoopGrid.php:512
+#: src/Modules/Widgets/Widgets/NavMenu.php:471
+#: src/Modules/Widgets/Widgets/Search.php:232
+#: src/Modules/Widgets/Widgets/Search.php:260
+#: src/Modules/Widgets/Widgets/Search.php:354
+#: src/Modules/Widgets/Widgets/Search.php:378
+#: src/Modules/Widgets/Widgets/Search.php:557
+#: src/Modules/Widgets/Widgets/Search.php:580
+#: src/Modules/Widgets/Widgets/Search.php:627
+#: src/Modules/Widgets/Widgets/SiteLogo.php:451
+msgid "Background Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:560
+#: src/Modules/Widgets/Widgets/Form.php:699
+#: src/Modules/Widgets/Widgets/Form.php:807
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:469
+#: src/Modules/Widgets/Widgets/LoopGrid.php:562
+#: src/Modules/Widgets/Widgets/NavMenu.php:963
+#: src/Modules/Widgets/Widgets/NavMenu.php:1048
+#: src/Modules/Widgets/Widgets/Search.php:290
+#: src/Modules/Widgets/Widgets/Search.php:418
+#: src/Modules/Widgets/Widgets/Search.php:607
+msgid "Padding"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:577
+msgid "Buttons"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:717
+msgid "Messages"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:753
+msgid "Border Type"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:758
+msgid "Solid"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:759
+msgid "Double"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:760
+msgid "Dotted"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:761
+msgid "Dashed"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:762
+msgid "Groove"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:772
+#: src/Modules/Widgets/Widgets/LoopGrid.php:537
+msgid "Border Width"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:828
+msgid "Success"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:835
+#: src/Modules/Widgets/Widgets/Form.php:883
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:435
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:557
+#: src/Modules/Widgets/Widgets/NavMenu.php:389
+#: src/Modules/Widgets/Widgets/NavMenu.php:908
+#: src/Modules/Widgets/Widgets/NavMenu.php:924
+#: src/Modules/Widgets/Widgets/NavMenu.php:1004
+#: src/Modules/Widgets/Widgets/NavMenu.php:1017
+#: src/Modules/Widgets/Widgets/Search.php:482
+#: src/Modules/Widgets/Widgets/Search.php:497
+#: src/Modules/Widgets/Widgets/Search.php:548
+#: src/Modules/Widgets/Widgets/Search.php:571
+msgid "Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Form.php:876
+msgid "Error"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:75
+#: src/Modules/Widgets/Widgets/LoopGrid.php:73
+msgid "Select Template"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:89
+#: src/Modules/Widgets/Widgets/LoopGrid.php:87
+msgid "Current Query"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:104
+#: src/Modules/Widgets/Widgets/LoopGrid.php:102
+#: src/Modules/Widgets/Widgets/NavMenu.php:75
+#: src/Modules/Widgets/Widgets/NavMenu.php:111
+msgid "Layout"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:112
+#: src/Modules/Widgets/Widgets/LoopGrid.php:110
+msgid "Choose Template"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:117
+#: src/Modules/Widgets/Widgets/LoopGrid.php:115
+msgid "Select a loop template from the Template Library."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:128
+#: src/Modules/Widgets/Widgets/LoopGrid.php:126
+msgid "No loop templates yet"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:129
+#: src/Modules/Widgets/Widgets/LoopGrid.php:127
+msgid "Create a loop template in the Template Library, then select it here."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:131
+#: src/Modules/Widgets/Widgets/LoopGrid.php:129
+msgid "Open Template Library →"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:141
+msgid "Slides Per View"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:159
+msgid "Slides to Scroll"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:177
+msgid "Equal Height"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:196
+#: src/Modules/Widgets/Widgets/LoopGrid.php:207
+msgid "Query"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:204
+#: src/Modules/Widgets/Widgets/LoopGrid.php:215
+#: src/Modules/Widgets/Widgets/SiteLogo.php:70
+msgid "Source"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:214
+msgid "Posts Count"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:226
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:540
+#: src/Modules/Widgets/Widgets/LoopGrid.php:237
+msgid "Offset"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:229
+#: src/Modules/Widgets/Widgets/LoopGrid.php:240
+msgid "Number of posts to skip. Note: Using an offset can break pagination."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:239
+#: src/Modules/Widgets/Widgets/LoopGrid.php:250
+msgid "Order By"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:243
+#: src/Modules/Widgets/Widgets/LoopGrid.php:254
+msgid "Date"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:244
+#: src/Modules/Widgets/Widgets/LoopGrid.php:255
+msgid "Title"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:245
+#: src/Modules/Widgets/Widgets/LoopGrid.php:256
+msgid "Menu Order"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:246
+#: src/Modules/Widgets/Widgets/LoopGrid.php:257
+msgid "Random"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:257
+#: src/Modules/Widgets/Widgets/LoopGrid.php:268
+msgid "Order"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:261
+#: src/Modules/Widgets/Widgets/LoopGrid.php:272
+msgid "ASC"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:262
+#: src/Modules/Widgets/Widgets/LoopGrid.php:273
+msgid "DESC"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:273
+#: src/Modules/Widgets/Widgets/LoopGrid.php:284
+msgid "Exclude Current Post"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:291
+msgid "Carousel Settings"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:299
+msgid "Autoplay"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:309
+msgid "Autoplay Speed"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:322
+msgid "Pause on Hover"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:335
+msgid "Infinite Loop"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:345
+msgid "Transition Speed (ms)"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:355
+msgid "Navigation"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:359
+msgid "Arrows and Pagination"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:360
+msgid "Arrows"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:361
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:486
+#: src/Modules/Widgets/Widgets/LoopGrid.php:302
+#: src/Modules/Widgets/Widgets/LoopGrid.php:310
+#: src/Modules/Widgets/Widgets/LoopGrid.php:344
+msgid "Pagination"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:376
+msgid "Carousel"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:384
+msgid "Space Between"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:407
+msgid "Navigation Arrows"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:418
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:497
+#: src/Modules/Widgets/Widgets/Search.php:110
+#: src/Modules/Widgets/Widgets/Search.php:521
+msgid "Size"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:568
+msgid "Active Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:606
+msgid "Please select a template for the Loop Carousel."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopCarousel.php:621
+#: src/Modules/Widgets/Widgets/LoopGrid.php:621
+msgid "No posts found matching the current query."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:139
+msgid "Columns"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:225
+msgid "Posts Per Page"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:315
+msgid "Numbers"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:316
+msgid "Previous/Next"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:317
+msgid "Numbers + Previous/Next"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:325
+msgid "AJAX Pagination"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:329
+msgid "Fetch the next page without reloading the entire page."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:378
+msgid "Top Spacing"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:395
+msgid "Items Gap"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:606
+msgid "Please select a template for the Loop Builder."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:696
+msgid "« Previous"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/LoopGrid.php:697
+msgid "Next »"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:24
+msgid "Nav Menu"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:83
+msgid "Menu"
+msgstr ""
+
+#. translators: 1: Link opening tag, 2: Link closing tag.
+#: src/Modules/Widgets/Widgets/NavMenu.php:90
+#, php-format
+msgid "Go to the %1$sMenus screen%2$s to manage your menus."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:99
+msgid "No menus found"
+msgstr ""
+
+#. translators: 1: Link opening tag, 2: Link closing tag.
+#: src/Modules/Widgets/Widgets/NavMenu.php:102
+#, php-format
+msgid "Go to the %1$sMenus screen%2$s to create one."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:115
+msgid "Horizontal"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:116
+msgid "Vertical"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:117
+msgid "Stacked (Full Width)"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:126
+#: src/Modules/Widgets/Widgets/NavMenu.php:223
+#: src/Modules/Widgets/Widgets/NavMenu.php:516
+#: src/Modules/Widgets/Widgets/Search.php:166
+#: src/Modules/Widgets/Widgets/SiteLogo.php:173
+#: src/Modules/Widgets/Widgets/SiteLogo.php:414
+msgid "Start"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:134
+#: src/Modules/Widgets/Widgets/NavMenu.php:231
+#: src/Modules/Widgets/Widgets/NavMenu.php:524
+#: src/Modules/Widgets/Widgets/Search.php:174
+#: src/Modules/Widgets/Widgets/SiteLogo.php:181
+#: src/Modules/Widgets/Widgets/SiteLogo.php:422
+msgid "End"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:138
+msgid "Justify"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:147
+msgid "Mobile Breakpoint"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:151
+msgid "None (always expanded)"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:153
+msgid "Tablet & below"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:159
+msgid "Overlay Type"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:163
+msgid "Fullscreen"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:164
+msgid "Slide from Right"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:165
+msgid "Slide from Left"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:171
+msgid "Panel Width"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:192
+msgid "Show Toggle Button"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:202
+msgid "Show Toggle Label"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:212
+msgid "Toggle Label"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:219
+#: src/Modules/Widgets/Widgets/Search.php:162
+msgid "Toggle Alignment"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:241
+msgid "Toggle Icon"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:250
+msgid "Close Icon"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:275
+msgid "Main Menu"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:328
+#: src/Modules/Widgets/Widgets/NavMenu.php:602
+#: src/Modules/Widgets/Widgets/NavMenu.php:854
+msgid "Item Gap"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:346
+#: src/Modules/Widgets/Widgets/NavMenu.php:616
+#: src/Modules/Widgets/Widgets/NavMenu.php:868
+msgid "Item Padding"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:370
+msgid "Pointer Indicator"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:381
+msgid "Underline"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:382
+msgid "Overline"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:383
+msgid "Double Line"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:384
+msgid "Framed"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:396
+msgid "Thickness"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:414
+msgid "Animation"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:418
+msgid "Slide"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:419
+msgid "Grow"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:426
+msgid "Duration (ms)"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:460
+msgid "Overlay Menu"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:466
+msgid "Overlay Box"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:477
+msgid "Backdrop Blur"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:494
+msgid "Overlay Padding"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:506
+msgid "Menu Items"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:512
+msgid "Horizontal Alignment"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:532
+msgid "Vertical Position"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:540
+msgid "Middle"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:567
+#: src/Modules/Widgets/Widgets/NavMenu.php:580
+#: src/Modules/Widgets/Widgets/NavMenu.php:593
+msgid "Item Background"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:628
+#: src/Modules/Widgets/Widgets/NavMenu.php:880
+msgid "Item Border Radius"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:635
+msgid "Sub-menu Items"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:689
+msgid "Sub-item Gap"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:703
+msgid "Sub-item Padding"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:721
+msgid "Dropdown"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:726
+msgid "Panel Min Width"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:739
+msgid "Panel Background"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:746
+msgid "Panel Padding"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:760
+msgid "Vertical Offset"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:790
+msgid "Show Dropdown Arrow"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:899
+msgid "Toggle Button"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:1179
+msgid "Open navigation menu"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/NavMenu.php:1196
+msgid "Close navigation menu"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:67
+msgid "Search Form"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:71
+msgid "Skin"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:75
+msgid "Classic"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:76
+msgid "Minimal"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:77
+msgid "Full Screen"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:86
+msgid "Search…"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:94
+msgid "Type to search…"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:100
+msgid "Scope by Post Type"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:106
+msgid "Leave empty to use the default WordPress search across all post types."
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:114
+msgid "Extra Small"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:115
+msgid "Small"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:116
+msgid "Medium"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:117
+msgid "Large"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:118
+msgid "Extra Large"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:124
+msgid "Button Type"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:137
+msgid "Button Text"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:198
+msgid "Input"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:248
+#: src/Modules/Widgets/Widgets/Search.php:493
+msgid "Focus"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:304
+msgid "Button"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:515
+msgid "Toggle"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:621
+#: src/Modules/Widgets/Widgets/SiteLogo.php:145
+msgid "Lightbox"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:636
+msgid "Input Text Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:652
+msgid "Close Button Color"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:662
+msgid "Close Button Size"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:743
+msgid "Close search"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/Search.php:785
+msgid "Open search"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:66
+msgid "Logo"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:74
+msgid "Custom Logo (Customizer)"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:75
+msgid "Custom Image"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:84
+msgid "Edit Site Identity →"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:91
+msgid "Choose Image"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:104
+#: src/Modules/Widgets/Widgets/SiteLogo.php:404
+msgid "Caption"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:109
+msgid "Attachment Caption"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:110
+#: src/Modules/Widgets/Widgets/SiteLogo.php:116
+msgid "Custom Caption"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:118
+msgid "Enter caption text"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:128
+msgid "Homepage"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:129
+msgid "Image File"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:130
+msgid "Custom URL"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:164
+msgid "Image"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:222
+msgid "Max Width"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:267
+msgid "Object Fit"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:272
+msgid "Fill"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:273
+msgid "Cover"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:274
+msgid "Contain"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:275
+msgid "Scale Down"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:284
+msgid "Object Position"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:291
+msgid "Center Center"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:292
+msgid "Center Left"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:293
+msgid "Center Right"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:294
+msgid "Top Center"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:297
+msgid "Bottom Center"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:317
+#: src/Modules/Widgets/Widgets/SiteLogo.php:339
+msgid "Opacity"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:357
+msgid "Transition Duration"
+msgstr ""
+
+#: src/Modules/Widgets/Widgets/SiteLogo.php:370
+msgid "Hover Animation"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:30
+msgctxt "post type general name"
+msgid "Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:31
+msgctxt "post type singular name"
+msgid "Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:32
+msgctxt "admin menu"
+msgid "Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:33
+msgctxt "add new on admin bar"
+msgid "Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:34
+msgctxt "library item"
+msgid "Add New"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:35
+msgid "Add New Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:36
+msgid "New Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:37
+msgid "Edit Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:38
+msgid "View Library Item"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:39
+msgid "All Library Items"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:40
+msgid "Search Library"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:41
+msgid "Parent Items:"
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:42
+msgid "No library items found."
+msgstr ""
+
+#: src/TemplateLibrary/LibraryPostType.php:43
+msgid "No library items found in Trash."
+msgstr ""

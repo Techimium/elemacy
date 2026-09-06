@@ -17,6 +17,19 @@ package.json
 package-lock.json
 yarn.lock
 
+# Internal docs (never ship to customers)
+docs/
+CONTRIBUTING.md
+
+# CI / release tooling
+.github/
+build/
+tests/
+
+# WP.org listing assets (deployed to SVN /assets, not /trunk)
+.wordpress-org/
+wp-assets/
+
 # Git
 .git/
 .gitignore

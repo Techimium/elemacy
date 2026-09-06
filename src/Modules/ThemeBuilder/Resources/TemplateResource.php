@@ -4,14 +4,14 @@ namespace Elemacy\Modules\ThemeBuilder\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Hooks;
+use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Resource;
 
 class TemplateResource extends Resource
 {
     public function to_array()
     {
-        $data = [
+        return [
             'id' => $this->id,
             'title' => $this->title,
             'type' => $this->type,
@@ -19,14 +19,7 @@ class TemplateResource extends Resource
             'author' => $this->author,
             'date' => $this->date,
             'edit_with_elementor' => admin_url('post.php?post=' . $this->id . '&action=elementor'),
-            'extras' => [],
+            'conditions' => ConditionRuleDTO::to_arrays($this->conditions ?? []),
         ];
-
-        return apply_filters(
-            Hooks::THEME_BUILDER_TEMPLATE_RESOURCE_FILTER,
-            $data,
-            $this->resource,
-            'single'
-        );
     }
 }

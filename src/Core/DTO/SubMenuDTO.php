@@ -45,4 +45,9 @@ class SubMenuDTO extends DTO
      * @var int|null
      */
     public $position = null;
+
+    /**
+     * @var string
+     */
+    public $external_url = '';
 }

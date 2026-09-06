@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { TemplateForm } from "./template-form";
 import { type Template, type UpdateTemplate } from "../schemas/template";
 import { useUpdateTemplateMutation } from "../services/template";
-import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
 interface EditTemplateModalProps {
@@ -19,29 +18,29 @@ export function EditTemplateModal({
   onOpenChange,
   onSuccess,
 }: EditTemplateModalProps) {
-  const { mutateAsync: updateTemplate, isPending } =
-    useUpdateTemplateMutation();
+  const { mutateAsync: updateTemplate } = useUpdateTemplateMutation();
 
   if (!template) return null;
 
   const onSubmit = async (values: UpdateTemplate) => {
-    updateTemplate(
-      {
-        id: template.id,
-        ...values,
-      },
-      {
-        onSuccess: (data) => {
-          onSuccess?.(data);
-          onOpenChange(false);
-        },
-      },
-    );
+    const data = await updateTemplate({ id: template.id, ...values });
+    onSuccess?.(data);
+    onOpenChange(false);
+  };
+
+  // Save the form first, then open the Elementor editor for this template.
+  const onSaveAndEdit = async (values: UpdateTemplate) => {
+    const data = await updateTemplate({ id: template.id, ...values });
+    onSuccess?.(data);
+    const editUrl = data?.edit_with_elementor || template.edit_with_elementor;
+    if (editUrl) {
+      window.open(editUrl, "_self");
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle asChild>
             <div className="text-lg font-semibold">
@@ -57,15 +56,10 @@ export function EditTemplateModal({
         <TemplateForm
           defaultValues={template}
           onSubmit={onSubmit}
-          isLoading={isPending}
+          onSaveAndEdit={onSaveAndEdit}
           submitLabel={__("Update Template", "elemacy")}
+          saveAndEditLabel={__("Save & Edit with Elementor", "elemacy")}
         />
-        <Button
-          onClick={() => window.open(template.edit_with_elementor, "_blank")}
-          className="w-full bg-[#93003F] hover:bg-[#7a0034] text-white"
-        >
-          {__("Edit with Elementor", "elemacy")}
-        </Button>
       </DialogContent>
     </Dialog>
   );

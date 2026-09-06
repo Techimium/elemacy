@@ -1,17 +1,18 @@
 import { useSyncExternalStore, useCallback, type ReactNode } from 'react';
 import { registry } from '@/lib/registry';
+import type { SlotName, SlotPropsMap } from '@/lib/slots';
 
-interface SlotProps<T extends Record<string, unknown>> {
-    name: string;
-    slotProps?: T;
+interface SlotProps<N extends SlotName> {
+    name: N;
+    slotProps?: SlotPropsMap[N];
     fallback?: ReactNode;
 }
 
-export function Slot<T extends Record<string, unknown>>({
+export function Slot<N extends SlotName>({
     name,
-    slotProps = {} as T,
+    slotProps,
     fallback = null,
-}: SlotProps<T>) {
+}: SlotProps<N>) {
     const subscribe = useCallback(
         (fn: () => void) => registry.subscribe(name, fn),
         [name]
@@ -23,7 +24,7 @@ export function Slot<T extends Record<string, unknown>>({
 
     return (
         <>
-            {fills.map((Fill, i) => <Fill key={i} {...slotProps} />)}
+            {fills.map((Fill, i) => <Fill key={i} {...(slotProps as SlotPropsMap[N])} />)}
         </>
     );
 }

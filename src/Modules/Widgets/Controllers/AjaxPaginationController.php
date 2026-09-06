@@ -6,9 +6,12 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Http\SiteRequest as Request;
+use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Modules\Widgets\Services\LoopItemStyles;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;
+use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Plugin;
-use WP_Query;
 
 class AjaxPaginationController
 {
@@ -26,92 +29,61 @@ class AjaxPaginationController
 
         $paged = max(1, $request->get_int('paged'));
 
-        $post_type = isset($settings['post_type']) ? sanitize_key((string) $settings['post_type']) : '';
-        $allowed_post_types = array_merge(['current_query'], get_post_types(['public' => true], 'names'));
+        $data_source_key = isset($settings['data_source']) ? sanitize_key((string) $settings['data_source']) : 'posts';
+        $source = LoopDataSourceRegistry::instance()->get($data_source_key);
 
-        if ($post_type === '' || !in_array($post_type, $allowed_post_types, true)) {
-            throw new ValidationException(esc_html__('Invalid post type.', 'elemacy'));
+        if (!$source) {
+            wp_send_json_error(esc_html__('The selected data source is not available.', 'elemacy'));
         }
 
-        $allowed_orderby = ['date', 'title', 'menu_order', 'rand'];
-        $orderby = isset($settings['orderby']) ? sanitize_key((string) $settings['orderby']) : 'date';
-        if (!in_array($orderby, $allowed_orderby, true)) {
-            $orderby = 'date';
-        }
+        $item_settings = $source->sanitize_ajax_settings($settings, $paged);
 
-        $order = isset($settings['order']) ? strtoupper(sanitize_text_field((string) $settings['order'])) : 'DESC';
-        if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'DESC';
-        }
+        $result = $source->get_items($item_settings);
 
-        $posts_per_page = isset($settings['posts_per_page']) ? (int) $settings['posts_per_page'] : 6;
-        $posts_per_page = max(1, min(100, $posts_per_page));
-
-        if ('current_query' === $post_type) {
-            $current_vars = isset($settings['current_query_vars']) && is_array($settings['current_query_vars'])
-                ? $settings['current_query_vars']
-                : [];
-
-            $query_args = array_merge($current_vars, ['paged' => $paged]);
-            $query_args['post_status'] = 'publish';
-        } else {
-            $query_args = [
-                'post_type' => $post_type,
-                'posts_per_page' => $posts_per_page,
-                'orderby' => $orderby,
-                'order' => $order,
-                'post_status' => 'publish',
-                'paged' => $paged,
-            ];
-
-            // Handling offset properly during pagination
-            if (!empty($settings['offset'])) {
-                $offset = (int) $settings['offset'];
-
-                // The first page has normal offset. Subsequent pages need offset + previous pages posts
-                $query_args['offset'] = $offset + (($paged - 1) * $posts_per_page);
-            }
-
-            if ('yes' === ($settings['exclude_current_post'] ?? '') && !empty($settings['current_post_id'])) {
-                $query_args['post__not_in'] = [intval($settings['current_post_id'])];
-            }
-        }
-
-        $query = new WP_Query($query_args);
-
-        // Fix logic for max_num_pages when custom offset is present, so pagination numbers render correctly
-        if (!empty($settings['offset']) && 'current_query' !== $post_type) {
-            $offset = (int) $settings['offset'];
-            $posts_per_page = isset($settings['posts_per_page']) ? (int) $settings['posts_per_page'] : 6;
-            $posts_per_page = max(1, min(100, $posts_per_page));
-            $total_posts = max(0, $query->found_posts - $offset);
-            $query->max_num_pages = ceil($total_posts / $posts_per_page);
-        }
-
-        if (!$query->have_posts()) {
+        if (empty($result->items)) {
             wp_send_json_error(esc_html__('No posts found.', 'elemacy'));
         }
 
         $template_id = isset($settings['template_id']) ? (int) $settings['template_id'] : 0;
 
-        ob_start();
-
-        while ($query->have_posts()) {
-            $query->the_post();
-
-            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            echo Plugin::instance()->frontend->get_builder_content_for_display($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo '</div>';
+        // The template id round-trips through the browser, so confirm it is a real
+        // library block item before handing it to Elementor to render — never an
+        // arbitrary (possibly private) post id.
+        if ($template_id <= 0 || !(new BlockTemplateService())->get($template_id)) {
+            throw new ValidationException(esc_html__('Invalid loop template.', 'elemacy'));
         }
 
-        wp_reset_postdata();
+        ob_start();
+
+        $loop_item_styles = new LoopItemStyles();
+        $loop_item_styles->print_base_css($template_id);
+
+        foreach ($result->items as $item) {
+            LoopContext::push($item);
+
+            try {
+                $item->enter();
+
+                try {
+                    $loop_item_styles->print_item_css($template_id, $item->get_identity());
+
+                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
+                    echo Plugin::instance()->frontend->get_builder_content_for_display($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo '</div>';
+                } finally {
+                    $item->exit();
+                }
+            } finally {
+                LoopContext::pop();
+            }
+        }
 
         $items_html = ob_get_clean();
 
         // Pagination HTML
         ob_start();
-        if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
-            LoopGrid::render_pagination_html($settings, $query, $paged);
+        if (!empty($settings['pagination_type']) && $result->max_num_pages > 1) {
+            LoopGrid::render_pagination_html($settings, $result->max_num_pages, $paged);
         }
         $pagination_html = ob_get_clean();
 

@@ -36,14 +36,18 @@ class AdminMenu
             );
         }
 
-        foreach (static::$submenus as $submenu) {
+        foreach (static::sorted_submenus() as $submenu) {
+            $slug = $submenu->external_url
+                ? $submenu->external_url
+                : $submenu->parent_slug . '#' . $submenu->menu_slug;
+
             add_submenu_page(
                 $submenu->parent_slug,
                 $submenu->page_title,
                 $submenu->menu_title,
                 $submenu->capability,
-                $submenu->parent_slug . '#' . $submenu->menu_slug,
-                $submenu->callback ? $submenu->callback : static::render(),
+                $slug,
+                $submenu->external_url ? null : ($submenu->callback ? $submenu->callback : static::render()),
                 $submenu->position
             );
         }
@@ -51,6 +55,22 @@ class AdminMenu
         foreach (static::$menus as $menu) {
             remove_submenu_page($menu->menu_slug, $menu->menu_slug);
         }
+    }
+
+    protected static function sorted_submenus(): array
+    {
+        $default_position = 100;
+        $decorated = [];
+        foreach (static::$submenus as $index => $submenu) {
+            $position = $submenu->position === null ? $default_position : $submenu->position;
+            $decorated[] = [$position, $index, $submenu];
+        }
+
+        usort($decorated, function ($a, $b) {
+            return $a[0] === $b[0] ? $a[1] <=> $b[1] : $a[0] <=> $b[0];
+        });
+
+        return array_column($decorated, 2);
     }
 
     protected static function render()

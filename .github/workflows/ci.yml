@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }} — lint, standards, unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 7.4 is the declared floor; 8.3 covers current hosts.
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+
+      - name: Syntax lint every PHP file
+        run: |
+          find . \( -name vendor -o -name node_modules \) -prune -o -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l > /dev/null
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Coding standards + PHP compatibility (PHPCS)
+        # One run is enough — testVersion 7.4- in phpcs.xml covers the range.
+        if: matrix.php == '8.3'
+        run: vendor/bin/phpcs -q
+
+      - name: Unit tests
+        run: php tests/php/run.php
+
+  admin-app:
+    name: Admin app — typecheck, lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src-react/package-lock.json
+
+      - name: Install, lint, build
+        working-directory: src-react
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+
+  e2e:
+    name: Popups engine — browser E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Setup Chromium
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run engine suite
+        working-directory: tests/e2e
+        env:
+          ELEMACY_CHROMIUM: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          npm ci
+          npm test

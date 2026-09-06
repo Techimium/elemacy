@@ -96,11 +96,19 @@
                         }, 500);
 
                     } else {
-                        console.error('Elemacy Loop AJAX Error:', response.data);
+                        if (elementorFrontend.isEditMode()) {
+                            console.error('Elemacy Loop AJAX Error:', response.data);
+                        } else {
+                            console.error('Elemacy: loop pagination failed.');
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error('Elemacy Loop AJAX Request Failed:', error);
+                    if (elementorFrontend.isEditMode()) {
+                        console.error('Elemacy Loop AJAX Request Failed:', error);
+                    } else {
+                        console.error('Elemacy: loop pagination request failed.');
+                    }
                 },
                 complete: function () {
                     $targetContainer.removeClass('elemacy-is-loading');

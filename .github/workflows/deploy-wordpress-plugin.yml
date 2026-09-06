@@ -1,0 +1,107 @@
+name: Deploy WordPress Plugin
+
+# Trigger only on new Git tags
+on:
+  push:
+    tags:
+      - 'v*'  # e.g., v1.0.0
+  workflow_dispatch: # This adds the "Manual Run" button
+
+jobs:
+  deploy:
+    name: Deploy to WordPress.org SVN
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- Build PHP autoloader (vendor/ is gitignored) ---
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+
+      - name: Install Composer dependencies (production only)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # --- Build the React admin app (outputs to assets/admin/) ---
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src-react/package-lock.json
+
+      - name: Build admin app
+        working-directory: src-react
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install SVN
+        run: sudo apt-get update && sudo apt-get install -y subversion rsync
+
+      - name: Deploy to WordPress.org SVN
+        env:
+          WPORG_USERNAME: ${{ secrets.WPORG_USERNAME }}
+          WPORG_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
+          SVN_URL: https://plugins.svn.wordpress.org/elemacy
+          ASSETS_DIR: .wordpress-org   # banner/icon/screenshots (SVN /assets), optional
+          DRY_RUN: false               # set to true to test without committing
+        run: |
+          set -e
+
+          echo "Deploying WordPress plugin to SVN..."
+
+          # Temporary directory
+          TMP_DIR=$(mktemp -d)
+          echo "Checking out SVN into $TMP_DIR"
+          svn checkout $SVN_URL $TMP_DIR --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive --trust-server-cert
+
+          # Copy plugin files to trunk (.distignore is the single source of truth)
+          echo "Copying plugin files to trunk..."
+          rsync -av --delete ./ $TMP_DIR/trunk \
+            --exclude-from=.distignore \
+            --exclude .distignore \
+            --exclude .git \
+            --exclude "$ASSETS_DIR"
+
+          # Update SVN assets folder (banner, icon, screenshots) if present
+          if [ -d "./$ASSETS_DIR" ]; then
+            echo "Updating assets folder from ./$ASSETS_DIR ..."
+            mkdir -p $TMP_DIR/assets
+            rsync -av --delete ./$ASSETS_DIR/ $TMP_DIR/assets/
+          elif [ -d "./wp-assets" ]; then
+            echo "Updating assets folder from ./wp-assets ..."
+            mkdir -p $TMP_DIR/assets
+            rsync -av --delete ./wp-assets/ $TMP_DIR/assets/
+          fi
+
+          # Determine plugin version from readme.txt stable tag
+          PLUGIN_VERSION=$(grep -i "^Stable tag:" readme.txt | awk '{print $3}')
+          echo "Plugin version detected: $PLUGIN_VERSION"
+
+          # Copy trunk to tag
+          if [ ! -z "$PLUGIN_VERSION" ]; then
+            echo "Creating tag $PLUGIN_VERSION..."
+            mkdir -p $TMP_DIR/tags/$PLUGIN_VERSION
+            rsync -av --delete $TMP_DIR/trunk/ $TMP_DIR/tags/$PLUGIN_VERSION/
+          fi
+
+          # Add new files and remove deleted files
+          cd $TMP_DIR
+          svn status | grep '^?' | sed 's/^?[[:space:]]*//' | while IFS= read -r path; do svn add "$path" --force; done || true
+          svn status | grep '^!' | sed 's/^![[:space:]]*//' | while IFS= read -r path; do svn delete "$path"; done || true
+
+          # Dry run mode
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run mode ON. No commit will be made."
+            svn status
+            exit 0
+          fi
+
+          # Commit changes
+          echo "Committing to WordPress SVN..."
+          svn commit -m "Deploy version $PLUGIN_VERSION" --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive

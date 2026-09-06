@@ -2,142 +2,81 @@
 
 namespace Elemacy\Core;
 
-use ReflectionMethod;
-use ReflectionNamedType;
-
 defined('ABSPATH') || exit;
 
-use WP_Error;
 use Closure;
 use Exception;
+use ReflectionMethod;
+use ReflectionNamedType;
+use WP_Error;
 use Elemacy\Core\Http\Request;
-use Elemacy\Core\Exceptions\AuthorizationException;
-use Elemacy\Core\Exceptions\InvalidRoutActionException;
 use Elemacy\Core\Http\Response;
+use Elemacy\Core\Exceptions\AuthorizationException;
+use Elemacy\Core\Exceptions\InvalidRouteActionException;
 
 /**
- * Handles route registration and middleware for the elemacy REST API.
- *
- * @since 1.0.0
- *
- * @package Elemacy\Core
+ * Laravel-style facade over register_rest_route for the `elemacy` REST API.
+ * Controllers are resolved through the Container and a controller method's first
+ * typed parameter is hydrated from the request. A route with no ->middleware()
+ * is public by design — the framework does not fail closed.
  */
 class Route
 {
-    /**
-     * REST API namespace.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    protected static $namespace_name = '';
+    protected static string $namespace_name = '';
+
+    /** @var Route[] */
+    protected static array $routes = [];
+
+    protected static array $group_stack = [];
+
+    protected string $method = '';
+    protected string $endpoint = '';
+
+    /** @var array{0: class-string, 1: string} */
+    protected array $action = [];
+    protected array $middleware = [];
+    protected array $patterns = [];
+
+    protected Container $container;
 
     /**
-     * Array of registered routes.
-     *
-     * @since 1.0.0
-     * @var array
+     * Resolves the shared Container used to auto-wire controllers.
      */
-    protected static $routes = [];
+    public function __construct()
+    {
+        $this->container = Container::instance();
+    }
 
     /**
-     * Group stack to hold the group options.
+     * Sets the REST namespace shared by every route registered afterward.
      *
-     * @since 1.0.0
-     * @var array
-     */
-    protected static $group_stack = [];
-
-    /**
-     * HTTP method for the route.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    protected $method;
-
-    /**
-     * The endpoint path for the route.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    protected $endpoint;
-
-    /**
-     * Controller class and method for handling the route.
-     *
-     * @since 1.0.0
-     * @var array
-     */
-    protected $action;
-
-    /**
-     * Array of middleware classes.
-     *
-     * @since 1.0.0
-     * @var array
-     */
-    protected $middleware = [];
-
-    /**
-     * Regex patterns.
-     *
-     * @since 1.0.0
-     * @var array
-     */
-    protected $patterns = [];
-
-    /**
-     * Array of class instances.
-     *
-     * @since 1.0.0
-     * @var array
-     */
-    protected static $instances = [];
-
-    /**
-     * Set the API namespace for all registered routes.
-     *
-     * @since 1.0.0
-     *
-     * @param string $namespace The namespace for REST API routes.
+     * @param string $namespace_name The REST namespace, e.g. `elemacy`.
      * @return void
      */
-    public static function set_namespace(string $namespace_name)
+    public static function set_namespace(string $namespace_name): void
     {
         static::$namespace_name = $namespace_name;
     }
 
     /**
-     * Attach middleware to the current route.
+     * Attaches one or more middleware classes to this route.
      *
-     * @since 1.0.0
-     *
-     * @param string|array $middleware The fully qualified class name of the middleware.
+     * @param string|string[] $middleware Fully-qualified middleware class name(s).
      * @return $this
      */
     public function middleware($middleware)
     {
-        if (is_array($middleware)) {
-            $this->middleware = array_merge($this->middleware, $middleware);
-
-            return $this;
-        }
-
-        $this->middleware[] = $middleware;
+        $this->middleware = array_merge($this->middleware, (array) $middleware);
 
         return $this;
     }
 
     /**
-     * Set a regex pattern for the specific route param.
+     * Constrains a `{param}` in the endpoint to a regex pattern.
      *
-     * @since 1.0.0
-     *
-     * @param string $name
-     * @param string $regex
-     * @return static
+     * @param string $name  The route parameter name.
+     * @param string $regex The regex pattern the parameter must match.
+     * @return $this
      */
     public function where(string $name, string $regex)
     {
@@ -147,149 +86,94 @@ class Route
     }
 
     /**
-     * Get the endpoint in proper format that register_rest_route() expects.
+     * Registers a GET route.
      *
-     * @return void
+     * @param string $endpoint The route endpoint, e.g. `/popups/{id}`.
+     * @param array  $action   The controller and method, e.g. `[PopupController::class, 'show']`.
+     * @return self
      */
-    protected function get_formatted_endpoint()
+    public static function get(string $endpoint, array $action): self
     {
-        return preg_replace_callback('/\{(\w+)\}/', function ($matches) {
-            $param = $matches[1];
-            $pattern = isset($this->patterns[$param]) ? $this->patterns[$param] : '[^/]+';
-            return '(?P<' . $param . '>' . $pattern . ')';
-        }, $this->endpoint);
+        return static::register_route('get', $endpoint, $action);
     }
 
     /**
-     * Register a GET route.
+     * Registers a POST route.
      *
-     * @since 1.0.0
+     * @param string $endpoint The route endpoint.
+     * @param array  $action   The controller and method, e.g. `[PopupController::class, 'store']`.
+     * @return self
+     */
+    public static function post(string $endpoint, array $action): self
+    {
+        return static::register_route('post', $endpoint, $action);
+    }
+
+    /**
+     * Registers a PUT route.
+     *
+     * @param string $endpoint The route endpoint.
+     * @param array  $action   The controller and method, e.g. `[PopupController::class, 'update']`.
+     * @return self
+     */
+    public static function put(string $endpoint, array $action): self
+    {
+        return static::register_route('put', $endpoint, $action);
+    }
+
+    /**
+     * Registers a PATCH route.
      *
      * @param string $endpoint The route endpoint.
      * @param array  $action   The controller and method to handle the route.
-     * @return static
+     * @return self
      */
-    public static function get(string $endpoint, array $action)
+    public static function patch(string $endpoint, array $action): self
     {
-        $instance = new static();
-        $instance->method = 'get';
-        $instance->endpoint = $endpoint;
-        $instance->action = $action;
-
-        $instance->apply_group_options();
-
-        static::$routes[] = $instance;
-
-        return $instance;
+        return static::register_route('patch', $endpoint, $action);
     }
 
     /**
-     * Register a POST route.
+     * Registers a DELETE route.
      *
-     * @since 1.0.0
-     *
-     * @param string      $endpoint   The route endpoint.
-     * @param array       $action     The controller and method to handle the route.
-     * @return static
+     * @param string $endpoint The route endpoint.
+     * @param array  $action   The controller and method, e.g. `[PopupController::class, 'destroy']`.
+     * @return self
      */
-    public static function post(string $endpoint, array $action)
+    public static function delete(string $endpoint, array $action): self
     {
-        $instance = new static();
-        $instance->method = 'post';
-        $instance->endpoint = $endpoint;
-        $instance->action = $action;
-
-        $instance->apply_group_options();
-
-        static::$routes[] = $instance;
-
-        return $instance;
+        return static::register_route('delete', $endpoint, $action);
     }
 
     /**
-     * Register a PUT route.
+     * Shared factory behind the public HTTP-verb methods above.
      *
-     * @since 1.0.0
-     *
-     * @param string      $endpoint   The route endpoint.
-     * @param array       $action     The controller and method to handle the route.
-     * @return static
+     * @param string $method   The HTTP method, lowercase (e.g. `get`).
+     * @param string $endpoint The route endpoint.
+     * @param array  $action   The controller and method to handle the route.
+     * @return self
      */
-    public static function put(string $endpoint, array $action)
+    protected static function register_route(string $method, string $endpoint, array $action): self
     {
-        $instance = new static();
-        $instance->method = 'put';
-        $instance->endpoint = $endpoint;
-        $instance->action = $action;
+        $route = new static();
+        $route->method = $method;
+        $route->endpoint = $endpoint;
+        $route->action = $action;
+        $route->apply_group_options();
 
-        $instance->apply_group_options();
+        static::$routes[] = $route;
 
-        static::$routes[] = $instance;
-
-        return $instance;
+        return $route;
     }
 
     /**
-     * Register a PATCH route.
+     * Registers a group of routes sharing a prefix and/or middleware.
      *
-     * @since 1.0.0
-     *
-     * @param string      $endpoint   The route endpoint.
-     * @param array       $action     The controller and method to handle the route.
-     * @return static
-     */
-    public static function patch(string $endpoint, array $action)
-    {
-        $instance = new static();
-        $instance->method = 'patch';
-        $instance->endpoint = $endpoint;
-        $instance->action = $action;
-
-        $instance->apply_group_options();
-
-        static::$routes[] = $instance;
-
-        return $instance;
-    }
-
-    /**
-     * Register a DELETE route.
-     *
-     * @since 1.0.0
-     *
-     * @param string      $endpoint   The route endpoint.
-     * @param array       $action     The controller and method to handle the route.
-     * @return static
-     */
-    public static function delete(string $endpoint, array $action)
-    {
-        $instance = new static();
-        $instance->method = 'delete';
-        $instance->endpoint = $endpoint;
-        $instance->action = $action;
-
-        $instance->apply_group_options();
-
-        static::$routes[] = $instance;
-
-        return $instance;
-    }
-
-    /**
-     * Register a group of routes with shared options.
-     *
-     * This method allows grouping routes under common configuration options 
-     * like middleware, or prefix. The closure receives the context 
-     * of the group and defines the routes within it.
-     *
-     * @since 1.0.0
-     *
-     * @param array   $options  The shared configuration options for the group.
-     * @param \Closure $closure The callback that defines the grouped routes.
-     *
+     * @param array   $options Group options: `prefix` (string) and/or `middleware` (string|string[]).
+     * @param Closure $closure Defines the routes that belong to the group.
      * @return void
      */
-    public static function group(array $options, Closure $closure)
+    public static function group(array $options, Closure $closure): void
     {
         static::$group_stack[] = $options;
 
@@ -299,65 +183,58 @@ class Route
     }
 
     /**
-     * Get all registered routes.
+     * Returns every route registered so far.
      *
-     * @since 1.0.0
-     *
-     * @return array
+     * @return Route[]
      */
-    public static function get_routes()
+    public static function get_routes(): array
     {
         return static::$routes;
     }
 
     /**
-     * Apply route group options like prefix and middleware to the route.
-     *
-     * This method is typically called when a route is defined within a group,
-     * applying any shared prefix or middleware from the group stack.
-     * 
-     * @since 1.0.0
+     * Applies the innermost active group's prefix and middleware to this route.
      *
      * @return void
      */
-    public function apply_group_options()
+    protected function apply_group_options(): void
     {
-        if (!empty(static::$group_stack)) {
-            $group = end(static::$group_stack);
+        if (empty(static::$group_stack)) {
+            return;
+        }
 
-            if (!empty($group['prefix'])) {
-                $this->endpoint = rtrim($group['prefix'], '/') . '/' . ltrim($this->endpoint, '/');
-            }
+        $group = end(static::$group_stack);
 
-            if (!empty($group['middleware'])) {
-                $this->middleware($group['middleware']);
-            }
+        if (!empty($group['prefix'])) {
+            $this->endpoint = rtrim($group['prefix'], '/') . '/' . ltrim($this->endpoint, '/');
+        }
+
+        if (!empty($group['middleware'])) {
+            $this->middleware($group['middleware']);
         }
     }
 
     /**
-     * Register the route with WordPress.
-     *
-     * @since 1.0.0
+     * Registers this route with WordPress.
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         register_rest_route(static::$namespace_name, $this->get_formatted_endpoint(), [
             'methods' => strtoupper($this->method),
             'callback' => $this->resolve_route(),
-            'permission_callback' => [$this, 'check_permission']
+            'permission_callback' => [$this, 'check_permission'],
         ]);
     }
 
     /**
-     * Check permissions for the route.
+     * Runs the middleware pipeline. An AuthorizationException becomes a 403;
+     * anything unexpected returns a generic message — never the raw exception
+     * text, which can leak internals.
      *
-     * @since 1.0.0
-     *
-     * @param \WP_REST_Request $rest_request
-     * @return bool|\WP_Error
+     * @param \WP_REST_Request $rest_request The incoming REST request.
+     * @return bool|WP_Error True to allow the request, or a WP_Error to deny it.
      */
     public function check_permission($rest_request)
     {
@@ -380,125 +257,37 @@ class Route
         } catch (AuthorizationException $exception) {
             return new WP_Error('rest_forbidden', $exception->getMessage(), ['status' => Response::FORBIDDEN]);
         } catch (Exception $exception) {
-            return new WP_Error('rest_forbidden', $exception->getMessage(), ['status' => Response::INTERNAL_SERVER_ERROR]);
+            return new WP_Error('rest_error', esc_html__('Something went wrong. Please try again.', 'elemacy'), ['status' => Response::INTERNAL_SERVER_ERROR]);
         }
     }
 
     /**
-     * Cache a class instance.
+     * Converts `{param}` placeholders into the regex syntax register_rest_route() expects.
      *
-     * @since 1.0.0
-     *
-     * @param string $abstract The class name to bind
-     * @param object $instance The instance of the class
-     * @return void
+     * @return string The formatted endpoint pattern.
      */
-    protected function cache(string $abstract_name, $instance)
+    protected function get_formatted_endpoint(): string
     {
-        static::$instances[$abstract_name] = $instance;
+        return preg_replace_callback('/\{(\w+)\}/', function ($matches) {
+            $param = $matches[1];
+            $pattern = isset($this->patterns[$param]) ? $this->patterns[$param] : '[^/]+';
+
+            return '(?P<' . $param . '>' . $pattern . ')';
+        }, $this->endpoint);
     }
 
     /**
-     * Check if a class instance is cached.
+     * Builds the controller method's arguments: the first typed parameter is
+     * hydrated from the request (a typed Request subclass validates), the rest
+     * are resolved from the container or the raw request params.
      *
-     * @since 1.0.0
-     *
-     * @param string $abstract The class name to check
-     * @return bool
+     * @param object            $controller   The resolved controller instance.
+     * @param string            $method       The controller method being called.
+     * @param \WP_REST_Request  $rest_request The incoming REST request.
+     * @return mixed[] The arguments to pass to the controller method, in order.
+     * @throws Exception If a parameter has a built-in type with no request param to match it.
      */
-    protected function is_cached(string $abstract_name)
-    {
-        return isset(static::$instances[$abstract_name]);
-    }
-
-    /**
-     * Get a cached class instance.
-     *
-     * @since 1.0.0
-     *
-     * @param string $abstract The class name to get
-     * @return object
-     */
-    protected function get_cached(string $abstract_name)
-    {
-        return static::$instances[$abstract_name];
-    }
-
-    /**
-     * Resolve a class and its dependencies.
-     *
-     * @param string $abstract The class name to resolve
-     * @param array $resolving Stack of classes being resolved (for 
-     * circular dependency detection)
-     *
-     * @return object The resolved instance
-     * @throws Exception When class doesn't exist, has circular dependencies, or other resolution errors
-     *
-     * @example
-     * $instance = $this->make(MyClass::class);
-     */
-    protected function make(string $abstract_name, array $resolving = [])
-    {
-        if ($this->is_cached($abstract_name)) {
-            return $this->get_cached($abstract_name);
-        }
-
-        if (in_array($abstract_name, $resolving, true)) {
-            /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Circular dependency detected for class %s.', 'elemacy'), esc_html($abstract_name)));
-        }
-
-        if (!class_exists($abstract_name)) {
-            /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s does not exist.', 'elemacy'), esc_html($abstract_name)));
-        }
-
-        $reflector = new \ReflectionClass($abstract_name);
-
-        if ($reflector->isAbstract()) {
-            /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s is abstract and cannot be instantiated.', 'elemacy'), esc_html($abstract_name)));
-        }
-
-        $constructor = $reflector->getConstructor();
-
-        if (!$constructor) {
-            return new $abstract_name();
-        }
-
-        if (!$constructor->isPublic()) {
-            /* translators: %s: Class name */
-            throw new Exception(sprintf(esc_html__('Class %s has a non-public constructor and cannot be instantiated.', 'elemacy'), esc_html($abstract_name)));
-        }
-
-        $dependencies = [];
-        $resolving[] = $abstract_name;
-
-        foreach ($constructor->getParameters() as $parameter) {
-            $type = $parameter->getType();
-
-            if (!$type instanceof ReflectionNamedType) {
-                /* translators: %s: Parameter name */
-                throw new Exception(sprintf(esc_html__('Parameter %s must have a single class type hint. Union or intersection types are not supported.', 'elemacy'), esc_html($parameter->getName())));
-            }
-
-            if ($type->isBuiltin()) {
-                /* translators: %s: Parameter name */
-                throw new Exception(sprintf(esc_html__('Parameter %s must be a class type, not a built-in type. Please specify a valid class dependency.', 'elemacy'), esc_html($parameter->getName())));
-            }
-
-            $dependencies[] = $this->is_cached($type->getName())
-                ? $this->get_cached($type->getName())
-                : $this->make($type->getName(), $resolving);
-        }
-
-        $instance = $reflector->newInstanceArgs($dependencies);
-        $this->cache($abstract_name, $instance);
-
-        return $instance;
-    }
-
-    protected function resolve_dependencies($controller, $method, $rest_request)
+    protected function resolve_dependencies($controller, string $method, $rest_request): array
     {
         $reflector = new ReflectionMethod($controller, $method);
         $parameters = $reflector->getParameters();
@@ -512,7 +301,7 @@ class Route
 
         $dependencies = [];
 
-        if (is_subclass_of($request_class, Request::class) || $request_class === Request::class) {
+        if ($request_class === Request::class || is_subclass_of($request_class, Request::class)) {
             $request = $request_class::from_wp_rest_request($rest_request);
             $request->clean();
             $dependencies[] = $request;
@@ -526,56 +315,45 @@ class Route
                 throw new Exception(sprintf(esc_html__('Parameter %s must not be a built-in type.', 'elemacy'), esc_html($parameter->getName())));
             }
 
-            if (!$type) {
-                $dependencies[] = $rest_request->get_param($parameter->getName()) ?? null;
-            } else {
-                $dependencies[] = $this->is_cached($type->getName())
-                    ? $this->get_cached($type->getName())
-                    : $this->make($type->getName());
-            }
+            $dependencies[] = $type
+                ? $this->container->make($type->getName())
+                : ($rest_request->get_param($parameter->getName()) ?? null);
         }
 
         return $dependencies;
     }
 
     /**
-     * Resolve the route handler.
+     * Builds the REST callback: resolves the controller, hydrates its
+     * arguments, and turns any thrown exception into a JSON response.
      *
-     * @since 1.0.0
-     *
-     * @return callable
-     * @throws InvalidRoutActionException
+     * @return Closure The `register_rest_route()` callback.
      */
-    protected function resolve_route()
+    protected function resolve_route(): Closure
     {
         return function ($rest_request) {
-
-            if (!is_array($this->action)) {
+            if (!is_array($this->action) || count($this->action) !== 2) {
                 /* translators: %s: Route endpoint */
-                throw new InvalidRoutActionException(sprintf(esc_html__('Invalid method registered for the route %s', 'elemacy'), esc_html($this->endpoint)));
-            }
-
-            if (count($this->action) !== 2) {
-                /* translators: %s: Route endpoint */
-                throw new InvalidRoutActionException(sprintf(esc_html__('Invalid controller syntax for the route %s', 'elemacy'), esc_html($this->endpoint)));
+                throw new InvalidRouteActionException(sprintf(esc_html__('Invalid controller action for the route %s', 'elemacy'), esc_html($this->endpoint)));
             }
 
             list($controller, $method) = $this->action;
 
             if (!class_exists($controller)) {
                 /* translators: %s: Controller class */
-                throw new InvalidRoutActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
+                throw new InvalidRouteActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
             }
 
-            $controller_instance = $this->make($controller);
+            $controller_instance = $this->container->make($controller);
 
             if (!method_exists($controller_instance, $method)) {
                 /* translators: 1: Method name, 2: Controller class */
-                throw new InvalidRoutActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
+                throw new InvalidRouteActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
             }
 
             try {
                 $dependencies = $this->resolve_dependencies($controller_instance, $method, $rest_request);
+
                 return $controller_instance->$method(...$dependencies);
             } catch (Exception $exception) {
                 return ApiExceptionHandler::get_response($exception);

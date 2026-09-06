@@ -9,18 +9,36 @@ if (!defined('ABSPATH')) {
 use Elemacy\Core\Elemacy;
 use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 class AdminScripts
 {
     public function __construct()
     {
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_global_assets']);
+
         if (!Utils::is_plugin_page()) {
             return;
         }
 
         add_action('admin_enqueue_scripts', [$this, 'enqueue']);
         add_action('script_loader_tag', [$this, 'update_script_type'], 10, 3);
+    }
+
+    public function enqueue_global_assets()
+    {
+        wp_enqueue_style(
+            'elemacy-admin-global',
+            ELEMACY_URL . 'assets/admin/styles/admin-global.css',
+            [],
+            ELEMACY_VERSION
+        );
+        wp_enqueue_script(
+            'elemacy-admin-global',
+            ELEMACY_URL . 'assets/admin/scripts/admin-global.js',
+            [],
+            ELEMACY_VERSION,
+            true
+        );
     }
 
     public function enqueue()
@@ -37,7 +55,6 @@ class AdminScripts
             'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
-            'templateTypes' => ThemeBuilderManager::instance()->get_available_template_types(),
             'modules' => Elemacy::get_instance()->get_module_manager()->to_array(),
         ]);
 
@@ -52,7 +69,7 @@ class AdminScripts
     {
         wp_register_script(
             'elemacy-admin-sidebar-sync',
-            ELEMACY_URL . 'assets/admin-extras/sidebar-sync.js',
+            ELEMACY_URL . 'assets/admin/scripts/sidebar-sync.js',
             [],
             ELEMACY_VERSION,
             true
@@ -72,33 +89,40 @@ class AdminScripts
 
     public function enqueue_dev_scripts()
     {
+        $dev_server = defined('ELEMACY_VITE_DEV_SERVER')
+            ? untrailingslashit(ELEMACY_VITE_DEV_SERVER)
+            : 'http://localhost:5173';
+
         // Vite client (HMR websocket)
         wp_enqueue_script(
             'elemacy-vite-client',
-            'http://localhost:5173/@vite/client',
+            $dev_server . '/@vite/client',
             [],
-            null,
+            null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
         );
 
         // App entry (e.g. main.jsx)
         wp_enqueue_script(
             'elemacy-admin-app',
-            'http://localhost:5173/src/main.tsx',
+            $dev_server . '/src/main.tsx',
             ['elemacy-vite-client', 'wp-i18n'],
-            null,
+            null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- dev-server URL, version meaningless.
             true
         );
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
 
         // React Refresh preamble as inline module
-        $preamble = '
-            import RefreshRuntime from "http://localhost:5173/@react-refresh";
+        $preamble = sprintf(
+            '
+            import RefreshRuntime from "%s/@react-refresh";
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
-        ';
+        ',
+            esc_url_raw($dev_server)
+        );
 
         wp_add_inline_script('elemacy-admin-app', $preamble, 'before');
     }

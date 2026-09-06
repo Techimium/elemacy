@@ -2,11 +2,14 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Bridges\ThemeBuilderBridge;
+use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Modules\Widgets\Services\LoopItemStyles;
+use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
+use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Group_Control_Typography;
-use WP_Query;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -52,30 +55,27 @@ class LoopGrid extends BaseWidget
         $this->register_pagination_style_section();
     }
 
+    private $loop_templates;
+
+    protected function get_loop_templates()
+    {
+        if ($this->loop_templates === null) {
+            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
+                BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
+            );
+        }
+
+        return $this->loop_templates;
+    }
+
     protected function get_elementor_templates()
     {
-        $templates = ThemeBuilderBridge::get_instance()->get_templates('loop');
-
         $options = [
             '' => esc_html__('Select Template', 'elemacy'),
         ];
 
-        foreach ($templates as $template) {
+        foreach ($this->get_loop_templates() as $template) {
             $options[$template->id] = $template->title;
-        }
-
-        return $options;
-    }
-
-    protected function get_public_post_types()
-    {
-        $post_types = get_post_types(['public' => true], 'objects');
-        $options = [
-            'current_query' => esc_html__('Current Query', 'elemacy'),
-        ];
-
-        foreach ($post_types as $post_type) {
-            $options[$post_type->name] = $post_type->label;
         }
 
         return $options;
@@ -99,9 +99,26 @@ class LoopGrid extends BaseWidget
                 'label_block' => true,
                 'options' => $this->get_elementor_templates(),
                 'default' => '',
-                'description' => esc_html__('Select an Elementor template (e.g., Section or Container) to design the loop item.', 'elemacy'),
+                'description' => esc_html__('Select a loop template from the Template Library.', 'elemacy'),
             ]
         );
+
+        if (empty($this->get_loop_templates())) {
+            $this->add_control(
+                'no_templates_notice',
+                [
+                    'type' => Controls_Manager::RAW_HTML,
+                    'raw' => sprintf(
+                        '<strong>%s</strong><br>%s <a href="%s" target="_blank" rel="noopener">%s</a>',
+                        esc_html__('No loop templates yet', 'elemacy'),
+                        esc_html__('Create a loop template in the Template Library, then select it here.', 'elemacy'),
+                        esc_url(admin_url('admin.php?page=elemacy#/library')),
+                        esc_html__('Open Template Library →', 'elemacy')
+                    ),
+                    'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
+                ]
+            );
+        }
 
         $this->add_responsive_control(
             'columns',
@@ -179,87 +196,29 @@ class LoopGrid extends BaseWidget
             ]
         );
 
+        $registry = LoopDataSourceRegistry::instance();
+
+        $options = [];
+        foreach ($registry->all() as $key => $source) {
+            $options[$key] = $source->get_label();
+        }
+
         $this->add_control(
-            'post_type',
+            'data_source',
             [
-                'label' => esc_html__('Source', 'elemacy'),
+                'label' => esc_html__('Data Source', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'options' => $this->get_public_post_types(),
-                'default' => 'post',
+                'options' => $options,
+                'default' => 'posts',
             ]
         );
 
-        $this->add_control(
-            'posts_per_page',
-            [
-                'label' => esc_html__('Posts Per Page', 'elemacy'),
-                'type' => Controls_Manager::NUMBER,
-                'default' => 6,
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'offset',
-            [
-                'label' => esc_html__('Offset', 'elemacy'),
-                'type' => Controls_Manager::NUMBER,
-                'default' => 0,
-                'description' => esc_html__('Number of posts to skip. Note: Using an offset can break pagination.', 'elemacy'),
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'orderby',
-            [
-                'label' => esc_html__('Order By', 'elemacy'),
-                'type' => Controls_Manager::SELECT,
-                'default' => 'date',
-                'options' => [
-                    'date' => esc_html__('Date', 'elemacy'),
-                    'title' => esc_html__('Title', 'elemacy'),
-                    'menu_order' => esc_html__('Menu Order', 'elemacy'),
-                    'rand' => esc_html__('Random', 'elemacy'),
-                ],
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'order',
-            [
-                'label' => esc_html__('Order', 'elemacy'),
-                'type' => Controls_Manager::SELECT,
-                'default' => 'DESC',
-                'options' => [
-                    'ASC' => esc_html__('ASC', 'elemacy'),
-                    'DESC' => esc_html__('DESC', 'elemacy'),
-                ],
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'exclude_current_post',
-            [
-                'label' => esc_html__('Exclude Current Post', 'elemacy'),
-                'type' => Controls_Manager::SWITCHER,
-                'return_value' => 'yes',
-                'default' => 'yes',
-                'condition' => [
-                    'post_type!' => 'current_query',
-                ],
-            ]
-        );
+        // Every registered source's controls are always registered; each
+        // scopes its own visibility with a `data_source` condition, the
+        // same way `post_type!` conditions already worked before this.
+        foreach ($registry->all() as $source) {
+            $source->register_controls($this);
+        }
 
         $this->end_controls_section();
     }
@@ -541,33 +500,6 @@ class LoopGrid extends BaseWidget
         $this->end_controls_section();
     }
 
-    protected function build_query_args($settings)
-    {
-        $args = [
-            'post_type' => $settings['post_type'],
-            'posts_per_page' => $settings['posts_per_page'],
-            'orderby' => $settings['orderby'],
-            'order' => $settings['order'],
-            'post_status' => 'publish',
-        ];
-
-        if (!empty($settings['offset'])) {
-            $args['offset'] = $settings['offset'];
-        }
-
-        if ('yes' === $settings['exclude_current_post'] && is_singular()) {
-            $args['post__not_in'] = [get_the_ID()];
-        }
-
-        // Handle pagination correctly in WP_Query
-        if (!empty($settings['pagination_type']) && empty($settings['offset'])) {
-            $paged = get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1);
-            $args['paged'] = $paged;
-        }
-
-        return $args;
-    }
-
     protected function render()
     {
         $settings = $this->get_settings_for_display();
@@ -579,22 +511,23 @@ class LoopGrid extends BaseWidget
             return;
         }
 
-        if ($settings['post_type'] === 'current_query') {
-            global $wp_query;
-            $query = $wp_query;
-        } else {
-            $query_args = $this->build_query_args($settings);
-            $query = new WP_Query($query_args);
+        $source = LoopDataSourceRegistry::instance()->get($settings['data_source'] ?? 'posts');
+
+        if (!$source) {
+            if (Plugin::instance()->editor->is_edit_mode()) {
+                echo '<div class="elemacy-alert elemacy-alert-warning">' . esc_html__('The selected data source for this Loop Builder is not available.', 'elemacy') . '</div>';
+            }
+            return;
         }
 
-        if (!$query->have_posts()) {
+        $result = $source->get_items($settings);
+
+        if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
                 echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
             }
             return;
         }
-
-        global $post;
 
         $wrapper_classes = 'elemacy-loop-builder-grid';
         $wrapper_attrs = '';
@@ -602,23 +535,15 @@ class LoopGrid extends BaseWidget
         if (!empty($settings['pagination_ajax']) && $settings['pagination_ajax'] === 'yes') {
             $wrapper_classes .= ' elemacy-ajax-pagination';
 
-            $ajax_settings = [
-                'post_type' => $settings['post_type'],
-                'posts_per_page' => $settings['posts_per_page'],
-                'orderby' => $settings['orderby'],
-                'order' => $settings['order'],
-                'offset' => $settings['offset'],
-                'exclude_current_post' => $settings['exclude_current_post'],
-                'template_id' => $settings['template_id'],
-                'pagination_type' => $settings['pagination_type'],
-                'current_post_id' => get_the_ID(),
-                'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
-            ];
-
-            if ($settings['post_type'] === 'current_query') {
-                global $wp_query;
-                $ajax_settings['current_query_vars'] = $wp_query->query_vars;
-            }
+            $ajax_settings = array_merge(
+                [
+                    'data_source' => $settings['data_source'] ?? 'posts',
+                    'template_id' => $settings['template_id'],
+                    'pagination_type' => $settings['pagination_type'],
+                    'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
+                ],
+                $source->get_ajax_payload($settings)
+            );
 
             $settings_json = wp_json_encode($ajax_settings);
 
@@ -631,35 +556,39 @@ class LoopGrid extends BaseWidget
         echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr(); remaining HTML structure is hardcoded
         echo '<div class="elemacy-loop-grid">';
 
-        // WP 6.9+ rejects styles whose dependencies aren't yet registered (elementor-post-{id}
-        // depends on elementor-frontend). register_styles() is normally on wp_enqueue_scripts
-        // but may not have run yet in non-Elementor host pages or AJAX contexts.
-        if (!wp_style_is('elementor-frontend', 'registered')) {
-            Plugin::instance()->frontend->register_styles();
+        $loop_item_styles = new LoopItemStyles();
+        $loop_item_styles->print_base_css($settings['template_id']);
+
+        foreach ($result->items as $item) {
+            LoopContext::push($item);
+
+            try {
+                $item->enter();
+
+                try {
+                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
+
+                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
+                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
+                    echo '</div>';
+                } finally {
+                    $item->exit();
+                }
+            } finally {
+                LoopContext::pop();
+            }
         }
 
-        while ($query->have_posts()) {
-            $query->the_post();
+        echo '</div>';
 
-            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr(get_the_ID()) . '">';
-            echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-            echo '</div>';
-        }
-
-        // Restore global post data
-        wp_reset_postdata();
-
-        echo '</div>'; // End elementor-loop-grid
-
-        // Pagination
-        if (!empty($settings['pagination_type']) && $query->max_num_pages > 1) {
-            static::render_pagination_html($settings, $query);
+        if (!empty($settings['pagination_type']) && $result->max_num_pages > 1) {
+            static::render_pagination_html($settings, $result->max_num_pages);
         }
 
         echo '</div>'; // End elemacy-loop-builder-grid
     }
 
-    public static function render_pagination_html($settings, $query, $current_page = null)
+    public static function render_pagination_html($settings, $max_num_pages, $current_page = null)
     {
         if ($current_page === null) {
             $current_page = max(1, get_query_var('paged'), get_query_var('page'));
@@ -684,28 +613,37 @@ class LoopGrid extends BaseWidget
         }
 
         $paginate_args = [
-            'total' => $query->max_num_pages,
+            'total' => $max_num_pages,
             'current' => $current_page,
             'prev_next' => $prev_next,
             'prev_text' => $prev_text,
             'next_text' => $next_text,
             'show_all' => $show_all,
-            'type' => 'plain',
+            'type' => 'array',
         ];
 
         if (!empty($settings['paginate_base'])) {
             $paginate_args['base'] = $settings['paginate_base'];
         }
 
-        if (!$show_numbers && $prev_next) {
-            $paginate_args['prev_next'] = true;
-        }
-
         $links = paginate_links($paginate_args);
 
-        if ($links) {
+        if (!is_array($links)) {
+            return;
+        }
+
+        // paginate_links() has no way to suppress the number list, so the
+        // Previous/Next-only mode keeps just the prev/next anchors.
+        if (!$show_numbers) {
+            $links = array_filter($links, static function ($link) {
+                return strpos($link, 'prev page-numbers') !== false
+                    || strpos($link, 'next page-numbers') !== false;
+            });
+        }
+
+        if (!empty($links)) {
             echo '<nav class="elemacy-pagination" role="navigation">';
-            echo wp_kses_post($links);
+            echo wp_kses_post(implode("\n", $links));
             echo '</nav>';
         }
     }

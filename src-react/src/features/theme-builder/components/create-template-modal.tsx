@@ -18,15 +18,21 @@ interface CreateTemplateModalProps {
 }
 
 export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = false, onOpenChange }: CreateTemplateModalProps) {
-    const { mutateAsync: createTemplate, isPending } = useCreateTemplateMutation();
+    const { mutateAsync: createTemplate } = useCreateTemplateMutation();
 
     const onSubmit = async (template: CreateTemplate) => {
-        createTemplate(template, {
-            onSuccess: (data) => {
-                onSuccess?.(data);
-                onOpenChange?.(false);
-            }
-        });
+        const data = await createTemplate(template);
+        onSuccess?.(data);
+        onOpenChange?.(false);
+    }
+
+    // Create the template, then hand off to the Elementor editor for the new post.
+    const onSaveAndEdit = async (template: CreateTemplate) => {
+        const data = await createTemplate(template);
+        onSuccess?.(data);
+        if (data?.edit_with_elementor) {
+            window.open(data.edit_with_elementor, '_self');
+        }
     }
 
     return (
@@ -40,7 +46,7 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
                 {__('Create New Template', 'elemacy')}
             </Button>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle asChild><div className="text-lg font-semibold">{__('Create New Template', 'elemacy')}</div></DialogTitle>
                         <DialogDescription asChild>
@@ -49,7 +55,13 @@ export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = fa
                         </div>
                         </DialogDescription>
                     </DialogHeader>
-                    <TemplateForm onSubmit={onSubmit} isLoading={isPending} />
+                    {isOpen && (
+                        <TemplateForm
+                            onSubmit={onSubmit}
+                            onSaveAndEdit={onSaveAndEdit}
+                            saveAndEditLabel={__('Create & Edit with Elementor', 'elemacy')}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
         </>

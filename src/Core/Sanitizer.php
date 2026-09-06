@@ -134,6 +134,15 @@ class Sanitizer
     const ARRAY = 'array';
 
     /**
+     * Sanitize the value as an array, recursively cleaning every string leaf
+     * with sanitize_text_field() while leaving non-string leaves (numbers,
+     * bools, nested arrays with array-valued params like checkbox lists) untouched.
+     *
+     * @var string
+     */
+    const ARRAY_DEEP = 'array-deep';
+
+    /**
      * Sanitize the value as date.
      *
      * @var string
@@ -363,13 +372,8 @@ class Sanitizer
                     break;
                 }
 
-                if (is_valid_json($value)) {
+                if (static::is_valid_json($value)) {
                     $value = json_decode($value, true);
-                    break;
-                }
-
-                if (is_serialized($value)) {
-                    $value = maybe_unserialize($value);
                     break;
                 }
 
@@ -378,22 +382,42 @@ class Sanitizer
                     break;
                 }
 
-                // For anything else (int, bool, etc.) cast to array directly
+                // Anything else (a plain string, int, bool, …) is wrapped as a
+                // single-element array. PHP-serialized strings are intentionally
+                // NOT unserialized here: this rule runs on untrusted request
+                // input (including guest endpoints), and unserialize() on
+                // attacker-controlled data is a PHP object-injection vector.
+                // Real clients send JSON or an actual array; nothing legitimate
+                // arrives PHP-serialized.
                 $value = [$value];
                 break;
+            case static::ARRAY_DEEP:
+                $value = static::apply_rule($value, static::ARRAY, $data);
+                $value = map_deep(
+                    $value,
+                    static function ($leaf) {
+                        return is_string($leaf) ? sanitize_text_field($leaf) : $leaf;
+                    }
+                );
+                break;
+            case static::MONEY:
+                $value = round((float) preg_replace('/[^0-9.\-]/', '', (string) $value), 2);
+                break;
             case static::DATE:
-                if (empty($value) || strtotime($value) === false) {
+                // Only scalars can hold a date string; an array/object here is
+                // malformed input (and would fatal strtotime() on PHP 8).
+                if (!is_scalar($value) || empty($value) || strtotime((string) $value) === false) {
                     return null;
                 }
 
-                $value = Date::sql_safe($value, true);
+                $value = gmdate('Y-m-d', strtotime((string) $value));
                 break;
             case static::DATETIME:
-                if (empty($value) || strtotime($value) === false) {
+                if (!is_scalar($value) || empty($value) || strtotime((string) $value) === false) {
                     return null;
                 }
 
-                $value = Date::sql_safe($value);
+                $value = gmdate('Y-m-d H:i:s', strtotime((string) $value));
                 break;
             default:
                 if (is_callable($type)) {

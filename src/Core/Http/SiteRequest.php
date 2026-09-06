@@ -39,7 +39,8 @@ class SiteRequest implements Request
 
     public function get_headers()
     {
-        $this->headers = getallheaders();
+        // getallheaders() is missing on some SAPIs (e.g. CLI); never fatal there.
+        $this->headers = function_exists('getallheaders') ? getallheaders() : [];
 
         return $this->headers;
     }
@@ -51,7 +52,7 @@ class SiteRequest implements Request
 
     public function clean()
     {
-        //@todo: decide whether to use this for site request or not
+        // Attributes are set internally; raw input is sanitized per-field in input().
         return $this->all();
     }
 

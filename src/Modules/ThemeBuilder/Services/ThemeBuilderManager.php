@@ -7,7 +7,12 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Hooks;
+use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
+use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\TemplateResolver;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Plugin;
 
 class ThemeBuilderManager
@@ -16,7 +21,6 @@ class ThemeBuilderManager
      * @var ThemeBuilderManager
      */
     protected static $instance = null;
-    protected static $template_registry = [];
 
     public static function instance()
     {
@@ -33,8 +37,26 @@ class ThemeBuilderManager
     public function register_hooks()
     {
         add_filter('template_include', [$this, 'override_template'], 99);
+        add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, [$this, 'register_template_assets']);
 
         CompatibilityManager::instance()->register_hooks();
+    }
+
+    /**
+     * Informs the shared template-assets registrar about the header, footer,
+     * and current location template, so their classic and atomic Elementor
+     * CSS is generated for this request.
+     *
+     * @param TemplateAssetsRegistrar $registrar
+     * @return void
+     */
+    public function register_template_assets(TemplateAssetsRegistrar $registrar): void
+    {
+        $ids = [$this->get_header_id(), $this->get_footer_id(), $this->get_location_template_id()];
+
+        foreach (array_filter($ids) as $id) {
+            $registrar->register((int) $id);
+        }
     }
 
     /**
@@ -49,6 +71,12 @@ class ThemeBuilderManager
             return $template;
         }
 
+        // A library post viewed directly (template/popup preview) is not site
+        // content to wrap in a theme template.
+        if (is_singular(LibraryPostType::POST_TYPE)) {
+            return $template;
+        }
+
         $location_template = $this->get_location_template_id();
 
         if ($location_template) {
@@ -59,67 +87,15 @@ class ThemeBuilderManager
     }
 
     /**
-     * Get the ID of the template for the current content location (Single/Archive).
+     * Get the ID of the template for the current content location (Single/Archive/…).
      *
      * @return int|null
      */
     public function get_location_template_id()
     {
-        if (is_singular()) {
-            $post_type = get_post_type();
+        $type = LocationRegistry::instance()->current_type();
 
-            $cpt_template = $this->find_template_id("single_{$post_type}");
-
-            if ($cpt_template) {
-                return $cpt_template;
-            }
-
-            return $this->find_template_id('single');
-        }
-
-        if (is_archive() || is_home()) {
-            if (function_exists('is_shop') && is_shop()) {
-                $product_archive_template = $this->find_template_id('archive_product');
-
-                if ($product_archive_template) {
-                    return $product_archive_template;
-                }
-            }
-
-            if (is_post_type_archive()) {
-                $post_type = get_post_type();
-
-                if (is_array($post_type)) {
-                    $post_type = reset($post_type);
-                }
-
-                $cpt_archive_template = $this->find_template_id("archive_{$post_type}");
-
-                if ($cpt_archive_template) {
-                    return $cpt_archive_template;
-                }
-            }
-
-            if (is_home() || (is_archive() && 'post' === get_post_type())) {
-                $post_archive_template = $this->find_template_id('archive_post');
-
-                if ($post_archive_template) {
-                    return $post_archive_template;
-                }
-            }
-
-            return $this->find_template_id('archive');
-        }
-
-        if (is_search()) {
-            return $this->find_template_id('search');
-        }
-
-        if (is_404()) {
-            return $this->find_template_id('404');
-        }
-
-        return null;
+        return $type ? TemplateResolver::instance()->resolve($type) : null;
     }
 
     /**
@@ -129,7 +105,7 @@ class ThemeBuilderManager
      */
     public function get_header_id()
     {
-        return $this->find_template_id('header');
+        return TemplateResolver::instance()->resolve('header');
     }
 
     /**
@@ -139,38 +115,7 @@ class ThemeBuilderManager
      */
     public function get_footer_id()
     {
-        return $this->find_template_id('footer');
-    }
-
-    /**
-     * Helper to find a template by type.
-     * In the future, this will handle conditions.
-     *
-     * @param string $type
-     * @return int|null
-     */
-    protected function find_template_id($type)
-    {
-        if (isset(static::$template_registry[$type])) {
-            return static::$template_registry[$type]->id ?? null;
-        }
-
-        static::$template_registry[$type] = $this->find_template($type);
-
-        return static::$template_registry[$type]->id ?? null;
-    }
-
-    protected function find_template($type)
-    {
-        $template = null;
-        $template_service = new TemplateService();
-        $templates = $template_service->get_by_type($type);
-
-        if ($templates) {
-            $template = $templates[0];
-        }
-
-        return apply_filters(Hooks::THEME_BUILDER_RESOLVE_TEMPLATE_FILTER, $template, $type);
+        return TemplateResolver::instance()->resolve('footer');
     }
 
     /**
@@ -180,9 +125,7 @@ class ThemeBuilderManager
      */
     public function get_template_content($post_id)
     {
-        $elementor = Plugin::instance();
-
-        return $elementor->frontend->get_builder_content_for_display($post_id);
+        return (new TemplateRenderer())->render((int) $post_id);
     }
 
     /**
@@ -233,71 +176,13 @@ class ThemeBuilderManager
      */
     public function get_available_template_types()
     {
-        $types = [
-            [
-                'value' => 'header',
-                'label' => __('Header', 'elemacy'),
+        $types = array_map(
+            static fn ($definition): array => [
+                'value' => $definition->name,
+                'label' => $definition->label,
             ],
-            [
-                'value' => 'footer',
-                'label' => __('Footer', 'elemacy'),
-            ],
-            [
-                'value' => 'single',
-                'label' => __('Single', 'elemacy'),
-            ],
-            [
-                'value' => 'archive',
-                'label' => __('Archive', 'elemacy'),
-            ],
-            [
-                'value' => 'archive_post',
-                'label' => __('Post Archive', 'elemacy'),
-            ],
-            [
-                'value' => '404',
-                'label' => __('404 Page', 'elemacy'),
-            ],
-            [
-                'value' => 'search',
-                'label' => __('Search Results', 'elemacy'),
-            ],
-            [
-                'value' => 'loop',
-                'label' => __('Loop', 'elemacy'),
-            ],
-        ];
-
-        $post_types = get_post_types(['public' => true], 'objects');
-
-        $exclude_post_types = [
-            'elementor_library',
-            'e-floating-buttons',
-            'elemacy_template',
-            'attachment'
-        ];
-
-        foreach ($post_types as $post_type) {
-            if (in_array($post_type->name, $exclude_post_types, true)) {
-                continue;
-            }
-
-            $singular_name = $post_type->labels->singular_name ?? $post_type->label;
-
-            $types[] = [
-                'value' => "single_{$post_type->name}",
-                /* translators: %s: Post type singular name */
-                'label' => sprintf(__('Single %s', 'elemacy'), $singular_name)
-            ];
-
-            if ($post_type->has_archive) {
-                $types[] = [
-                    'value' => "archive_{$post_type->name}",
-                    /* translators: %s: Post type singular name */
-                    'label' => sprintf(__('%s Archive', 'elemacy'), $singular_name)
-                ];
-            }
-        }
+            TypeRegistry::instance()->by_group('theme')
+        );
 
         return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
     }

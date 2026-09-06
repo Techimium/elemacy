@@ -169,9 +169,18 @@ class SiteLogo extends BaseWidget
             'label'                => esc_html__('Alignment', 'elemacy'),
             'type'                 => Controls_Manager::CHOOSE,
             'options'              => [
-                'start'  => ['title' => esc_html__('Start', 'elemacy'),  'icon' => 'eicon-text-align-left'],
-                'center' => ['title' => esc_html__('Center', 'elemacy'), 'icon' => 'eicon-text-align-center'],
-                'end'    => ['title' => esc_html__('End', 'elemacy'),    'icon' => 'eicon-text-align-right'],
+                'start'  => [
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-text-align-left'
+                ],
+                'center' => [
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-text-align-center'
+                ],
+                'end'    => [
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-text-align-right'
+                ],
             ],
             'classes'              => 'elementor-control-start-end',
             'selectors_dictionary' => [
@@ -191,9 +200,18 @@ class SiteLogo extends BaseWidget
             'mobile_default' => ['unit' => '%'],
             'size_units'     => ['px', '%', 'em', 'rem', 'vw', 'custom'],
             'range'          => [
-                '%'  => ['min' => 1, 'max' => 100],
-                'px' => ['min' => 1, 'max' => 1000],
-                'vw' => ['min' => 1, 'max' => 100],
+                '%'  => [
+                    'min' => 1,
+                    'max' => 100
+                ],
+                'px' => [
+                    'min' => 1,
+                    'max' => 1000
+                ],
+                'vw' => [
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'      => [
                 '{{WRAPPER}} img' => 'width: {{SIZE}}{{UNIT}};',
@@ -208,9 +226,18 @@ class SiteLogo extends BaseWidget
             'mobile_default' => ['unit' => '%'],
             'size_units'     => ['px', '%', 'em', 'rem', 'vw', 'custom'],
             'range'          => [
-                '%'  => ['min' => 1, 'max' => 100],
-                'px' => ['min' => 1, 'max' => 1000],
-                'vw' => ['min' => 1, 'max' => 100],
+                '%'  => [
+                    'min' => 1,
+                    'max' => 100
+                ],
+                'px' => [
+                    'min' => 1,
+                    'max' => 1000
+                ],
+                'vw' => [
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'      => [
                 '{{WRAPPER}} img' => 'max-width: {{SIZE}}{{UNIT}};',
@@ -222,8 +249,14 @@ class SiteLogo extends BaseWidget
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', '%', 'em', 'rem', 'vh', 'custom'],
             'range'      => [
-                'px' => ['min' => 1, 'max' => 500],
-                'vh' => ['min' => 1, 'max' => 100],
+                'px' => [
+                    'min' => 1,
+                    'max' => 500
+                ],
+                'vh' => [
+                    'min' => 1,
+                    'max' => 100
+                ],
             ],
             'selectors'  => [
                 '{{WRAPPER}} img' => 'height: {{SIZE}}{{UNIT}};',
@@ -283,7 +316,13 @@ class SiteLogo extends BaseWidget
         $this->add_control('opacity', [
             'label'     => esc_html__('Opacity', 'elemacy'),
             'type'      => Controls_Manager::SLIDER,
-            'range'     => ['px' => ['max' => 1, 'min' => 0.10, 'step' => 0.01]],
+            'range'     => [
+                'px' => [
+                    'max' => 1,
+                    'min' => 0.10,
+                    'step' => 0.01
+                ],
+            ],
             'selectors' => ['{{WRAPPER}} img' => 'opacity: {{SIZE}};'],
         ]);
 
@@ -299,7 +338,13 @@ class SiteLogo extends BaseWidget
         $this->add_control('opacity_hover', [
             'label'     => esc_html__('Opacity', 'elemacy'),
             'type'      => Controls_Manager::SLIDER,
-            'range'     => ['px' => ['max' => 1, 'min' => 0.10, 'step' => 0.01]],
+            'range'     => [
+                'px' => [
+                    'max' => 1,
+                    'min' => 0.10,
+                    'step' => 0.01
+                ],
+            ],
             'selectors' => ['{{WRAPPER}}:hover img' => 'opacity: {{SIZE}};'],
         ]);
 
@@ -311,7 +356,13 @@ class SiteLogo extends BaseWidget
         $this->add_control('background_hover_transition', [
             'label'     => esc_html__('Transition Duration', 'elemacy') . ' (s)',
             'type'      => Controls_Manager::SLIDER,
-            'range'     => ['px' => ['min' => 0, 'max' => 3, 'step' => 0.1]],
+            'range'     => [
+                'px' => [
+                    'min' => 0,
+                    'max' => 3,
+                    'step' => 0.1
+                ],
+            ],
             'selectors' => ['{{WRAPPER}} img' => 'transition-duration: {{SIZE}}s'],
         ]);
 
@@ -359,10 +410,22 @@ class SiteLogo extends BaseWidget
             'label'                => esc_html__('Alignment', 'elemacy'),
             'type'                 => Controls_Manager::CHOOSE,
             'options'              => [
-                'start'   => ['title' => esc_html__('Start', 'elemacy'),     'icon' => 'eicon-text-align-left'],
-                'center'  => ['title' => esc_html__('Center', 'elemacy'),    'icon' => 'eicon-text-align-center'],
-                'end'     => ['title' => esc_html__('End', 'elemacy'),       'icon' => 'eicon-text-align-right'],
-                'justify' => ['title' => esc_html__('Justified', 'elemacy'), 'icon' => 'eicon-text-align-justify'],
+                'start'   => [
+                    'title' => esc_html__('Start', 'elemacy'),
+                    'icon' => 'eicon-text-align-left'
+                ],
+                'center'  => [
+                    'title' => esc_html__('Center', 'elemacy'),
+                    'icon' => 'eicon-text-align-center'
+                ],
+                'end'     => [
+                    'title' => esc_html__('End', 'elemacy'),
+                    'icon' => 'eicon-text-align-right'
+                ],
+                'justify' => [
+                    'title' => esc_html__('Justified', 'elemacy'),
+                    'icon' => 'eicon-text-align-justify'
+                ],
             ],
             'classes'              => 'elementor-control-start-end',
             'selectors_dictionary' => [
@@ -409,8 +472,14 @@ class SiteLogo extends BaseWidget
             'size_units' => ['px', 'em', 'rem', 'custom'],
             'range'      => [
                 'px'  => ['max' => 100],
-                'em'  => ['min' => 0, 'max' => 10],
-                'rem' => ['min' => 0, 'max' => 10],
+                'em'  => [
+                    'min' => 0,
+                    'max' => 10
+                ],
+                'rem' => [
+                    'min' => 0,
+                    'max' => 10
+                ],
             ],
             'selectors'  => [
                 '{{WRAPPER}} .elemacy-site-logo__caption' => 'margin-block-start: {{SIZE}}{{UNIT}};',
@@ -518,7 +587,10 @@ class SiteLogo extends BaseWidget
 
     // ─── Private Helpers ─────────────────────────────────────────────────────
 
-    private function resolve_image_size(array $settings): string|array
+    /**
+     * @return string|array
+     */
+    private function resolve_image_size(array $settings)
     {
         $size = $settings['image_size'] ?? 'full';
 
@@ -532,7 +604,10 @@ class SiteLogo extends BaseWidget
         return $size;
     }
 
-    private function get_attachment_image_html(int $attachment_id, string|array $size, array $settings): string
+    /**
+     * @param string|array $size
+     */
+    private function get_attachment_image_html(int $attachment_id, $size, array $settings): string
     {
         $hover_class  = $settings['hover_animation']
             ? 'elementor-animation-' . $settings['hover_animation']

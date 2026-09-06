@@ -23,6 +23,10 @@
 <rule ref="WordPress-Docs"/>
 <rule ref="WordPress-Extra"/>
 
+<!-- PHP version floor: flag any syntax/functions newer than the minimum supported PHP. -->
+<config name="testVersion" value="7.4-"/>
+<rule ref="PHPCompatibilityWP"/>
+
 <!-- Enforce proper i18n with the plugin's text domain -->
 <rule ref="WordPress.WP.I18n">
     <properties>

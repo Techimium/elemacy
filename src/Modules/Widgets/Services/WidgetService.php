@@ -4,14 +4,15 @@ namespace Elemacy\Modules\Widgets\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\Widgets\DTO\WidgetDTO;
 use Elemacy\Support\Utils;
-use Exception;
 
 class WidgetService
 {
     /**
-     * Get the list of widgets with their current status
+     * Gets the list of widgets with their current status.
      *
      * @return WidgetDTO[]
      */
@@ -33,12 +34,14 @@ class WidgetService
      * Return only widgets whose runtime requirements (e.g. ACF) are satisfied.
      * Used as the single source of truth for both Elementor registration and
      * the admin toggle list, so unavailable widgets stay hidden everywhere.
+     * Add-ons extend the catalog via Hooks::WIDGETS_REGISTER_FILTER.
      *
      * @return array<int, array<string, mixed>>
      */
     public function get_available_widgets(): array
     {
         $widgets_config = require Utils::get_plugin_path('src/Modules/Widgets/Config/widgets.php');
+        $widgets_config = (array) apply_filters(Hooks::WIDGETS_REGISTER_FILTER, $widgets_config);
 
         return array_values(array_filter(
             $widgets_config,
@@ -46,6 +49,12 @@ class WidgetService
         ));
     }
 
+    /**
+     * Whether a widget's runtime requirements (e.g. ACF) are currently satisfied.
+     *
+     * @param array<string, mixed> $widget The widget config entry.
+     * @return bool
+     */
     private function meets_requirements(array $widget): bool
     {
         $requires = $widget['requires'] ?? null;
@@ -58,10 +67,10 @@ class WidgetService
     }
 
     /**
-     * Format widget data for API response.
+     * Formats a single widget's config into a DTO for the API response.
      *
-     * @param array $widget
-     * @param array $statuses
+     * @param array<string, mixed>  $widget   The widget config entry.
+     * @param array<string, mixed>  $statuses The stored `name => is_enabled` status map.
      * @return WidgetDTO
      */
     protected function create_dto($widget, $statuses)
@@ -77,9 +86,10 @@ class WidgetService
     }
 
     /**
-     * Get array of widget statuses (name => is_enabled) for registration
+     * Gets the `name => is_enabled` status map for every available widget,
+     * for Elementor registration.
      *
-     * @return array
+     * @return array<string, bool>
      */
     public function get_registered_widgets_status()
     {
@@ -97,12 +107,12 @@ class WidgetService
     }
 
     /**
-     * Toggle a widget's status
+     * Toggles a widget's enabled status.
      *
-     * @param string $name
-     * @param string $action
+     * @param string $name   The widget slug.
+     * @param string $action Either `enable` or `disable`.
      * @return bool
-     * @throws Exception
+     * @throws NotFoundException If no available widget matches `$name`.
      */
     public function toggle_widget(string $name, string $action)
     {
@@ -117,24 +127,26 @@ class WidgetService
         }
 
         if (!$widget_exists) {
-            throw new Exception(esc_html__('Widget not found', 'elemacy'));
+            throw new NotFoundException(esc_html__('Widget not found', 'elemacy'));
         }
 
         $statuses = $this->get_widget_statuses();
         $statuses[$name] = ($action === 'enable');
 
-        update_option(Utils::with_prefix('widgets'), $statuses);
+        // Autoload: the status map gates frontend widget registration on every Elementor page.
+        update_option(Utils::with_prefix('widgets'), $statuses, true);
 
         return true;
     }
 
     /**
-     * Get array of widget statuses (name => is_enabled)
-     * 
-     * @return array
+     * Gets the stored `name => is_enabled` status map (only widgets the user
+     * has explicitly toggled; available widgets default to enabled).
+     *
+     * @return array<string, bool>
      */
     protected function get_widget_statuses()
     {
-        return get_option(Utils::with_prefix('widgets'), []);
+        return (array) get_option(Utils::with_prefix('widgets'), []);
     }
 }

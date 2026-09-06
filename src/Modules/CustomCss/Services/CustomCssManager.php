@@ -2,6 +2,7 @@
 
 namespace Elemacy\Modules\CustomCss\Services;
 
+use Elemacy\Support\Brand;
 use Elementor\Controls_Manager;
 
 if (!defined('ABSPATH')) {
@@ -16,7 +17,6 @@ class CustomCssManager
     public function __construct()
     {
         add_action('elementor/element/after_section_end', [$this, 'register_controls'], 10, 2);
-
         add_action('elementor/element/parse_css', [$this, 'add_element_custom_css'], 10, 2);
         add_action('elementor/css-file/post/parse', [$this, 'add_page_settings_css']);
     }
@@ -48,7 +48,7 @@ class CustomCssManager
         $element->start_controls_section(
             'elemacy_section_custom_css',
             [
-                'label' => esc_html__('Custom CSS (Elemacy)', 'elemacy'),
+                'label' => esc_html__('Custom CSS', 'elemacy') . Brand::inline_mark(),
                 'tab' => Controls_Manager::TAB_ADVANCED,
             ]
         );
@@ -100,7 +100,7 @@ class CustomCssManager
         // Add a css comment for better debugging in the generated CSS
         $css = sprintf('/* Start Elemacy Custom CSS for %s */', $element->get_name()) . $css . '/* End Elemacy Custom CSS */';
 
-        $post_css->get_stylesheet()->add_raw_css($css);
+        $post_css->get_stylesheet()->add_raw_css($this->sanitize_css($css));
     }
 
     /**
@@ -134,6 +134,16 @@ class CustomCssManager
         // Add a css comment
         $custom_css = '/* Start Elemacy Page Custom CSS */' . $custom_css . '/* End Elemacy Page Custom CSS */';
 
-        $post_css->get_stylesheet()->add_raw_css($custom_css);
+        $post_css->get_stylesheet()->add_raw_css($this->sanitize_css($custom_css));
+    }
+
+    /**
+     * Strip sequences that could break out of an inline <style> block. Elementor
+     * may print this CSS inline (when file writing is disabled) rather than to a
+     * .css file, where a literal </style> would escape into HTML.
+     */
+    protected function sanitize_css(string $css): string
+    {
+        return (string) preg_replace('#</?\s*(?:style|script)\b#i', '', $css);
     }
 }

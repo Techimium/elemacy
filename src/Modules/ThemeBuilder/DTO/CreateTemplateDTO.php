@@ -20,4 +20,8 @@ class CreateTemplateDTO extends DTO
      * @var string
      */
     public $status;
+    /**
+     * @var array
+     */
+    public $conditions;
 }

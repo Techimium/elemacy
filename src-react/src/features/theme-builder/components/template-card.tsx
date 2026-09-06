@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisIcon } from "lucide-react";
 import type { Template } from "@/features/theme-builder/schemas/template";
-import { TEMPLATE_TYPES } from "../constants/templates";
+import { useTemplateTypes } from "@/features/theme-builder/services/template";
 
 interface TemplateCardProps {
   template: Template;
@@ -21,6 +21,7 @@ interface TemplateCardProps {
 }
 
 function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithElementor }: TemplateCardProps) {
+  const { data: templateTypes = [] } = useTemplateTypes();
   return (
     <Card>
       <div className="px-6">
@@ -30,7 +31,7 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithEleme
             <span className="font-semibold text-gray-900">{template.title}</span>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
+            <DropdownMenuTrigger aria-label={__('Actions', 'elemacy')}><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>{__('Actions', 'elemacy')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -45,7 +46,7 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithEleme
           {template.type ? template.type.charAt(0) : 'T'}
         </div>
         <div className="text-xs text-gray-500">
-          {TEMPLATE_TYPES.find((t) => t.value === template.type)?.label || __('Unknown', 'elemacy')}
+          {templateTypes.find((t) => t.value === template.type)?.label || __('Unknown', 'elemacy')}
         </div>
       </div>
     </Card>

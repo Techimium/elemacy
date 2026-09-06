@@ -5,12 +5,21 @@ namespace Elemacy\Modules\Widgets\Controllers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Http\Response;
 use Elemacy\Core\Http\SiteRequest as Request;
 use Elemacy\Core\Http\SiteResponse;
+use Elemacy\Support\Utils;
 use Elementor\Plugin;
 
 class AjaxFormController
 {
+    /**
+     * Per-IP submission cap: the endpoint is guest-reachable and sends mail
+     * synchronously, so unthrottled bursts are an abuse surface.
+     */
+    protected const THROTTLE_MAX_SUBMISSIONS = 5;
+    protected const THROTTLE_WINDOW_SECONDS = 60;
+
     public function index(Request $request)
     {
         $widget_id = $request->get_string('widget_id');
@@ -18,32 +27,41 @@ class AjaxFormController
         $form_data = $request->get_array('form_field');
         $honeypot = $request->get_string('elemacy_honeypot');
 
-        // Simple Honeypot check
         if (!empty($honeypot)) {
             SiteResponse::instance()->success([
                 'message' => esc_html__('Form submitted successfully!', 'elemacy'),
             ]);
         }
 
+        $this->assert_not_throttled();
+
         if (empty($widget_id) || empty($post_id)) {
             throw new ValidationException(esc_html__('Missing required parameters.', 'elemacy'));
         }
 
-        // Get Elementor document
+        // Only published content renders on the frontend, so a form can only be
+        // legitimately submitted from a published document (page, template, or
+        // popup). Private posts are allowed for users who can actually read them.
+        $post_status = get_post_status($post_id);
+        $is_visible = 'publish' === $post_status
+            || ('private' === $post_status && current_user_can('read_post', $post_id));
+
+        if (!$is_visible) {
+            throw new ValidationException(esc_html__('Invalid post ID.', 'elemacy'));
+        }
+
         $document = Plugin::$instance->documents->get($post_id);
 
         if (!$document) {
             throw new ValidationException(esc_html__('Invalid post ID.', 'elemacy'));
         }
 
-        // Find widget data
         $element_data = $this->find_element($document->get_elements_data(), $widget_id);
 
         if (!$element_data) {
             throw new ValidationException(esc_html__('Widget not found.', 'elemacy'));
         }
 
-        // Create widget instance to get settings with defaults
         $widget = Plugin::$instance->elements_manager->create_element_instance($element_data);
 
         if (!$widget) {
@@ -52,7 +70,8 @@ class AjaxFormController
 
         $settings = $widget->get_settings();
 
-        // Process actions
+        $this->validate_submission($settings['form_fields'] ?? [], $form_data);
+
         $actions = $settings['submit_actions'] ?? [];
 
         if (in_array('email', $actions, true)) {
@@ -68,6 +87,69 @@ class AjaxFormController
         SiteResponse::instance()->success([
             'message' => esc_html__('Form submitted successfully!', 'elemacy'),
         ]);
+    }
+
+    /**
+     * Per-IP transient throttle. Honeypot-caught bots never reach this, so only
+     * real submissions consume the bucket. REMOTE_ADDR only — forwarded headers
+     * are attacker-controlled.
+     */
+    protected function assert_not_throttled(): void
+    {
+        $visitor_ip = isset($_SERVER['REMOTE_ADDR'])
+            ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']))
+            : '';
+
+        $transient = Utils::with_prefix('form_throttle_' . md5($visitor_ip));
+        $count = (int) get_transient($transient);
+
+        if ($count >= self::THROTTLE_MAX_SUBMISSIONS) {
+            SiteResponse::instance()->error([
+                'message' => esc_html__('Too many submissions. Please try again in a minute.', 'elemacy'),
+            ], Response::TOO_MANY_REQUESTS);
+        }
+
+        set_transient($transient, $count + 1, self::THROTTLE_WINDOW_SECONDS);
+    }
+
+    /**
+     * Re-validate required fields and email formats server-side. The browser
+     * enforces these too, but a direct POST (or a client with scripting disabled)
+     * must not be able to trigger form actions with missing or malformed data.
+     *
+     * @param array<int,array<string,mixed>> $form_fields
+     * @param array<int,mixed>               $form_data
+     */
+    protected function validate_submission(array $form_fields, array $form_data): void
+    {
+        $errors = [];
+
+        foreach ($form_fields as $index => $field) {
+            $value    = $form_data[$index] ?? '';
+            $is_empty = is_array($value) ? empty($value) : ('' === trim((string) $value));
+
+            if (!empty($field['required']) && $is_empty) {
+                $label = isset($field['label']) ? (string) $field['label'] : '';
+
+                if ('' !== $label) {
+                    /* translators: %s: form field label. */
+                    $errors[(string) $index] = sprintf(esc_html__('%s is required.', 'elemacy'), esc_html($label));
+                } else {
+                    $errors[(string) $index] = esc_html__('This field is required.', 'elemacy');
+                }
+
+                continue;
+            }
+
+            if (!$is_empty && isset($field['type']) && 'email' === $field['type'] && !is_email((string) $value)) {
+                $errors[(string) $index] = esc_html__('Please enter a valid email address.', 'elemacy');
+            }
+        }
+
+        if (!empty($errors)) {
+            // $errors values are individually escaped above.
+            throw ValidationException::with_errors($errors, esc_html__('Please correct the highlighted fields.', 'elemacy')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+        }
     }
 
     protected function find_element($elements, $widget_id)
@@ -106,7 +188,9 @@ class AjaxFormController
 
         $content = !empty($settings['email_content']) ? $settings['email_content'] : '[all-fields]';
         $from_name = !empty($settings['email_from_name']) ? $settings['email_from_name'] : get_bloginfo('name');
-        $from_name = sanitize_text_field(str_replace(["\r", "\n"], '', wp_strip_all_tags((string) $from_name)));
+        // Strip CR/LF (header injection) and angle brackets (which would break the
+        // structured "From: Name <email>" header) from the display name.
+        $from_name = sanitize_text_field(str_replace(["\r", "\n", '<', '>'], '', wp_strip_all_tags((string) $from_name)));
 
         $from_email = !empty($settings['email_from']) ? $settings['email_from'] : get_option('admin_email');
         $from_email = sanitize_email((string) $from_email);
@@ -115,21 +199,23 @@ class AjaxFormController
         }
         $reply_to = '';
 
+        $form_fields = isset($settings['form_fields']) && is_array($settings['form_fields']) ? $settings['form_fields'] : [];
+
         // Handle [all-fields] and specific field shortcodes
         if (strpos($content, '[all-fields]') !== false) {
             $all_fields_text = '';
-            foreach ($settings['form_fields'] as $index => $field) {
+            foreach ($form_fields as $index => $field) {
                 $val = isset($form_data[$index]) ? $form_data[$index] : '';
                 if (is_array($val)) {
                     $val = implode(', ', $val);
                 }
-                $all_fields_text .= '<strong>' . esc_html($field['label']) . ':</strong> ' . esc_html($val) . '<br>';
+                $all_fields_text .= '<strong>' . esc_html($field['label'] ?? '') . ':</strong> ' . esc_html($val) . '<br>';
             }
             $content = str_replace('[all-fields]', $all_fields_text, $content);
         }
 
         // Handle specific field shortcodes
-        foreach ($settings['form_fields'] as $index => $field) {
+        foreach ($form_fields as $index => $field) {
             $val = isset($form_data[$index]) ? $form_data[$index] : '';
             if (is_array($val)) {
                 $val = implode(', ', $val);
@@ -149,8 +235,8 @@ class AjaxFormController
         // Also handle Reply-To if it's a field ID or email
         if (!empty($settings['email_reply_to'])) {
             // If reply_to is an index of form_fields
-            foreach ($settings['form_fields'] as $index => $field) {
-                if ($field['label'] === $settings['email_reply_to'] || 
+            foreach ($form_fields as $index => $field) {
+                if (($field['label'] ?? '') === $settings['email_reply_to'] ||
                     (string) $index === (string) $settings['email_reply_to'] || 
                     (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])) {
                     $reply_to = isset($form_data[$index]) ? sanitize_email((string) $form_data[$index]) : '';

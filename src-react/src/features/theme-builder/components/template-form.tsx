@@ -1,5 +1,7 @@
+import { useState } from "react"
 import { __ } from "@wordpress/i18n"
 import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -17,33 +19,70 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Slot } from "@/components/slot"
-import { Slots, type SlotPropsMap } from "@/lib/slots"
-import { DisplayConditionsLocked } from "@/features/theme-builder/components/mock/display-conditions-locked"
-import type { CreateTemplate, UpdateTemplate } from "@/features/theme-builder/schemas/template"
-import { TEMPLATE_TYPES } from "@/features/theme-builder/constants/templates"
+import { ConditionsField } from "@/components/conditions/conditions-field"
+import { CreateTemplateSchema, type CreateTemplate, type UpdateTemplate } from "@/features/theme-builder/schemas/template"
+import { useTemplateTypes } from "@/features/theme-builder/services/template"
 
 interface TemplateFormProps {
     defaultValues?: CreateTemplate
+    /** Primary save action (e.g. create / update, then close). */
     onSubmit: (values: CreateTemplate | UpdateTemplate) => Promise<void>
-    isLoading?: boolean
+    /**
+     * Optional secondary action that saves the form, then opens the Elementor
+     * editor. When provided, a "Save & Edit with Elementor" button is shown.
+     */
+    onSaveAndEdit?: (values: CreateTemplate | UpdateTemplate) => Promise<void>
     submitLabel?: string
+    saveAndEditLabel?: string
 }
 
-export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }: TemplateFormProps) {
+export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLabel, saveAndEditLabel }: TemplateFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Template', 'elemacy');
+    const displaySaveAndEditLabel = saveAndEditLabel || __('Save & Edit with Elementor', 'elemacy');
+    const { data: templateTypes = [], isLoading: isLoadingTypes } = useTemplateTypes();
+
+    // Tracks which button triggered the in-flight request so each shows its own
+    // loading label while both stay disabled.
+    const [pending, setPending] = useState<null | 'save' | 'edit'>(null);
+    const busy = pending !== null;
+
     const form = useForm<CreateTemplate>({
+        resolver: zodResolver(CreateTemplateSchema),
         defaultValues: defaultValues || {
             title: "",
             type: "header",
             status: "publish",
-            extras: {},
+            conditions: [],
         }
     })
 
+    const runSave = form.handleSubmit(async (values) => {
+        setPending('save');
+        try {
+            await onSubmit(values);
+        } catch {
+            // Surfacing is handled by the mutation layer; keep the modal open.
+        } finally {
+            setPending(null);
+        }
+    });
+
+    const runSaveAndEdit = onSaveAndEdit
+        ? form.handleSubmit(async (values) => {
+            setPending('edit');
+            try {
+                await onSaveAndEdit(values);
+            } catch {
+                setPending(null);
+            }
+            // On success we navigate away to the editor, so leave `pending`
+            // set to keep the buttons disabled until the page unloads.
+        })
+        : undefined;
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={runSave} className="space-y-6">
                 <FormField
                     control={form.control}
                     name="title"
@@ -65,12 +104,12 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
                             <FormLabel>{__('Type', 'elemacy')}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full" disabled={isLoadingTypes}>
                                         <SelectValue placeholder={__('Select a template type', 'elemacy')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {TEMPLATE_TYPES.map((type) => (
+                                    {templateTypes.map((type) => (
                                         <SelectItem key={type.value} value={type.value}>
                                             {type.label}
                                         </SelectItem>
@@ -104,21 +143,31 @@ export function TemplateForm({ defaultValues, onSubmit, isLoading, submitLabel }
                 />
                 <Controller
                     control={form.control}
-                    name="extras"
+                    name="conditions"
                     render={({ field }) => (
-                        <Slot<SlotPropsMap[typeof Slots.TEMPLATE_EXTRAS]>
-                            name={Slots.TEMPLATE_EXTRAS}
-                            slotProps={{
-                                value: (field.value ?? {}) as Record<string, unknown>,
-                                onChange: field.onChange,
-                            }}
-                            fallback={<DisplayConditionsLocked />}
+                        <ConditionsField
+                            value={field.value ?? []}
+                            onChange={field.onChange}
+                            templateType={form.watch('type')}
                         />
                     )}
                 />
-                <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? __('Saving...', 'elemacy') : displaySubmitLabel}
-                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button type="submit" disabled={busy} className="flex-1">
+                        {pending === 'save' ? __('Saving...', 'elemacy') : displaySubmitLabel}
+                    </Button>
+                    {runSaveAndEdit && (
+                        <Button
+                            type="button"
+                            variant="elementor"
+                            onClick={runSaveAndEdit}
+                            disabled={busy}
+                            className="flex-1"
+                        >
+                            {pending === 'edit' ? __('Saving...', 'elemacy') : displaySaveAndEditLabel}
+                        </Button>
+                    )}
+                </div>
             </form>
         </Form>
     )

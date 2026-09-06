@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import ModuleSwitch from "@/components/module-switch";
 import { type Module } from "@/schemas/module";
 import { Badge } from "@/components/ui/badge";
+import { ProBadge } from "@/components/pro-badge";
 import { Button } from "@/components/ui/button";
 import DynamicIcon from "@/components/dynamic-icon";
 import { Lock } from "lucide-react";
@@ -23,9 +24,12 @@ export function ModuleCard({ module }: ModuleCardProps) {
                         <div className="inline-flex p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
                             <DynamicIcon name={module.icon} className="w-6 h-6" />
                         </div>
-                        {module.badge && (
-                            <Badge variant="default">{module.badge}</Badge>
-                        )}
+                        {module.badge &&
+                            (module.is_mock ? (
+                                <ProBadge label={module.badge} />
+                            ) : (
+                                <Badge variant="default">{module.badge}</Badge>
+                            ))}
                     </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
@@ -38,7 +42,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                 </CardContent>
             </div>
             <CardFooter className="flex items-center justify-between">
-                {module.is_placeholder ? (
+                {module.is_mock ? (
                    <Button
                     className="cursor-pointer"
                     variant={'outline'}
@@ -52,7 +56,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
                     <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-4">
                         {__('Status', 'elemacy')}
                     </div>
-                    {module.is_placeholder ? (
+                    {module.is_mock ? (
                         <Lock
                             className="w-5 h-5 text-gray-400"
                             aria-label={__('Not available yet', 'elemacy')}

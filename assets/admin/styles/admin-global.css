@@ -1,0 +1,20 @@
+#adminmenu .elemacy-external-menu-link {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+#adminmenu a:hover .elemacy-external-menu-link,
+#adminmenu a:focus .elemacy-external-menu-link {
+    color: #fbbf24;
+}
+
+.elemacy-plugin-gopro {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.elemacy-plugin-gopro:hover,
+.elemacy-plugin-gopro:focus {
+    color: #d97706;
+}
+

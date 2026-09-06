@@ -20,4 +20,12 @@ class TemplateListFilterDTO extends DTO
      * @var string|null
      */
     public $status;
+    /**
+     * @var int|string|null
+     */
+    public $page;
+    /**
+     * @var int|string|null
+     */
+    public $per_page;
 }

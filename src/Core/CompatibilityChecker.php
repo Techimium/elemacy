@@ -21,8 +21,7 @@ class CompatibilityChecker
     public function check()
     {
         if (!did_action('elementor/loaded')) {
-            add_action('admin_notices', [$this, 'admin_notice_missing_main_plugin']);
-            add_action('admin_init', [$this, 'plugin_deactivate']);
+            (new DependencyNotice('elementor', 'elementor/elementor.php', 'Elementor'))->register();
             return false;
         }
 
@@ -38,17 +37,6 @@ class CompatibilityChecker
     public function plugin_deactivate()
     {
         deactivate_plugins(ELEMACY_PLUGIN_BASE);
-    }
-
-    public function admin_notice_missing_main_plugin()
-    {
-        $message = sprintf(
-            /* translators: %s: Elementor */
-            __('Elemacy requires %s to be installed and activated.', 'elemacy'),
-            '<strong>' . __('Elementor', 'elemacy') . '</strong>'
-        );
-
-        printf('<div class="notice notice-error"><p>%s</p></div>', wp_kses_post($message));
     }
 
     public function admin_notice_missing_php_version()

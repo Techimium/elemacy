@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Contracts\Support\Arrayable;
 use Elemacy\Core\Contracts\Support\Jsonable;
 
+// phpcs:ignore PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.resourceFound -- soft-reserved only; never hard-reserved through PHP 8.x.
 abstract class Resource implements Arrayable, Jsonable
 {
     protected $resource;

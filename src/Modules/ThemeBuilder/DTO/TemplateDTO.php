@@ -14,4 +14,7 @@ class TemplateDTO extends DTO
     public $status;
     public $author;
     public $date;
+
+    /** @var ConditionRuleDTO[] */
+    public $conditions = [];
 }

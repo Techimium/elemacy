@@ -24,4 +24,23 @@ dist-ssr
 *.sw?
 
 vendor
-assets/admin/
+
+# Production package output (npm run build:zip)
+build
+
+# React build output (Vite — src-react/vite.config). Ignore everything the
+# build generates under assets/admin/, but keep the hand-authored admin assets.
+assets/admin/*
+!assets/admin/scripts/
+!assets/admin/styles/
+assets/admin/scripts/*
+!assets/admin/scripts/admin-global.js
+!assets/admin/scripts/sidebar-sync.js
+assets/admin/styles/*
+!assets/admin/styles/admin-global.css
+!assets/admin/styles/dependency-notice.css
+
+# E2E test runtime artifacts (copied from src at run time)
+tests/e2e/node_modules
+tests/e2e/engine.js
+tests/e2e/popups.css
