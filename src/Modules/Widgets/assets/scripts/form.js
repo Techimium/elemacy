@@ -38,9 +38,8 @@
             e.preventDefault();
 
             clearFieldErrors();
-            $messageContainer.fadeOut(200, function() {
-                $(this).empty().show();
-            });
+            // Clear synchronously: a delayed animation callback can erase a fast AJAX response.
+            $messageContainer.stop(true, true).empty().show();
             $submitButton.attr('disabled', 'disabled').addClass('loading');
 
             const formData = new FormData(this);

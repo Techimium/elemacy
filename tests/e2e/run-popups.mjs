@@ -7,7 +7,13 @@
  * Covers: template hydration, page_load + click triggers, the frequency_cap
  * rule across page loads, explicit open/close controls, overlay-click and ESC
  * behavior, the modal focus trap (both directions), body scroll lock, ARIA
- * state, storage bookkeeping, and the shown/closed lifecycle events.
+ * state, storage bookkeeping, the shown/closed/destroyed lifecycle events,
+ * and (task 3.6) the explicit closed/opening/open/closing/destroyed state
+ * machine — open-during-close, close-during-open, repeated destroy and
+ * stale callback cancellation — plus (task 3.7) the modal stack: opening
+ * order for z-index, out-of-order closes sharing one scroll lock, two
+ * remaining modals, disconnected-opener focus fallback and nonmodal
+ * topbar independence.
  *
  * Usage:  npm install && npm test        (from tests/e2e)
  * Chromium is resolved by playwright-core; set ELEMACY_CHROMIUM to point at an
@@ -74,6 +80,10 @@ const state = (id) => page.evaluate((pid) => {
     hasClose: !!root.querySelector('.elemacy-popup__close'),
     bodyOverflow: document.body.style.overflow,
   };
+}, id);
+const zIndex = (id) => page.evaluate((pid) => {
+  const root = document.querySelector(`[data-elemacy-popup-id="${pid}"]`);
+  return parseInt(getComputedStyle(root).zIndex, 10);
 }, id);
 const store = (key) => page.evaluate((k) => ({
   local: JSON.parse(window.localStorage.getItem(k) || 'null'),
@@ -180,6 +190,197 @@ await check('101 blocked on 3rd load (cap reached), count stays 2', async () => 
   return !s.open && st.local.shown_count === 2;
 });
 await check('103 still opens on 3rd load (no rules)', async () => (await state(103)).open);
+
+/* ── Task 3.6: explicit closed/opening/open/closing/destroyed state
+   machine — open-during-close, close-during-open, repeated destroy and
+   stale callback cancellation. Popup 104 is animated (0.35s fade), giving
+   a real window to interrupt a transition before it settles; 101-103 all
+   use animation:none and so resolve every transition synchronously. ── */
+await page.click('.open-d');
+await page.waitForTimeout(450); // past the 0.35s open animation
+await check('104 open settles (fade-in animation complete)', async () => (await state(104)).open);
+
+await page.evaluate(() => { window.__events.length = 0; });
+await page.evaluate(() => {
+  window.ElemacyPopups.close(104);
+  window.ElemacyPopups.open(104); // interrupts the close before it settles
+});
+await page.waitForTimeout(450); // past where the interrupted close would have settled
+await check('open-during-close: popup ends up open, not stuck closed by the interrupted close', async () => {
+  const s = await state(104);
+  return s.open && !s.hidden;
+});
+await check('open-during-close: the interrupted close never fired its own closed event', () =>
+  page.evaluate(() => window.__events.filter((e) => e[0] === 'closed' && e[1] === 104).length === 0));
+
+// Close-during-open: settle closed first, then open and immediately close
+// again before the open animation settles.
+await page.evaluate(() => window.ElemacyPopups.close(104));
+await page.waitForTimeout(450);
+await page.evaluate(() => { window.__events.length = 0; });
+await page.evaluate(() => {
+  window.ElemacyPopups.open(104);
+  window.ElemacyPopups.close(104); // interrupts the open before it settles
+});
+await page.waitForTimeout(450);
+await check('close-during-open: popup ends up closed, not stuck open by the interrupted open', async () => {
+  const s = await state(104);
+  return !s.open && s.hidden;
+});
+await check('close-during-open: the interrupted open never fired its own shown event', () =>
+  page.evaluate(() => window.__events.filter((e) => e[0] === 'shown' && e[1] === 104).length === 0));
+await check('close-during-open: exactly one closed event fired (from the close that won, not a stale duplicate)', () =>
+  page.evaluate(() => window.__events.filter((e) => e[0] === 'closed' && e[1] === 104).length === 1));
+
+// Stale callback cancellation, explicit: rapid open -> close -> open in
+// immediate succession must settle on the LAST requested state (open) with
+// exactly one shown event — not two, which a stale timer/listener from the
+// discarded middle transition would otherwise produce.
+await page.evaluate(() => { window.__events.length = 0; });
+await page.evaluate(() => {
+  window.ElemacyPopups.open(104);
+  window.ElemacyPopups.close(104);
+  window.ElemacyPopups.open(104);
+});
+await page.waitForTimeout(450);
+await check('stale callback cancellation: rapid open/close/open settles open with exactly one shown event', async () => {
+  const s = await state(104);
+  const shown = await page.evaluate(() => window.__events.filter((e) => e[0] === 'shown' && e[1] === 104).length);
+  return s.open && shown === 1;
+});
+
+// Repeated destroy: idempotent (no throw), fires the destroyed event
+// exactly once, and a destroyed popup can never be reopened.
+await page.evaluate(() => { window.__events.length = 0; });
+await page.evaluate(() => {
+  window.ElemacyPopups.destroy(104);
+  window.ElemacyPopups.destroy(104);
+});
+await check('repeated destroy is idempotent (no throw) and fires destroyed exactly once', () =>
+  page.evaluate(() => window.__events.filter((e) => e[0] === 'destroyed' && e[1] === 104).length === 1));
+await check('destroy hides the popup', async () => {
+  const s = await state(104);
+  return !s.open && s.hidden;
+});
+await check('a destroyed popup cannot be reopened', async () => {
+  await page.evaluate(() => window.ElemacyPopups.open(104));
+  await page.waitForTimeout(450);
+  return !(await state(104)).open;
+});
+
+/* ── Task 3.7: modal stack — opening order (z-index), shared scroll lock
+   across out-of-order closes, two remaining modals, disconnected openers
+   and nonmodal topbar independence. Popups 105-107 share one authored
+   z_index and all request the scroll lock; animation:none keeps their
+   transitions synchronous so the stack itself, not timing, is tested. ── */
+
+await page.evaluate(() => document.querySelector('.open-e').click());
+await page.waitForTimeout(50);
+await page.evaluate(() => document.querySelector('.open-f').click());
+await page.waitForTimeout(50);
+await check('105 and 106 are both open simultaneously', async () =>
+  (await state(105)).open && (await state(106)).open);
+await check('opening order: 106 (opened after 105) gets a higher z-index despite an equal authored z_index', async () =>
+  (await zIndex(106)) > (await zIndex(105)));
+await check('shared scroll lock: locked with two modals open', async () =>
+  (await state(105)).bodyOverflow === 'hidden');
+
+// Out-of-order close: close 105 (opened FIRST, not the topmost) while 106
+// is still open.
+await page.evaluate(() => document.querySelector('.elemacy-popup-105 .elemacy-popup__close').click());
+await page.waitForTimeout(100);
+await check('out-of-order close: 105 closes', async () => !(await state(105)).open);
+await check('...but the shared scroll lock stays held (106 still open)', async () =>
+  (await state(106)).bodyOverflow === 'hidden');
+
+await page.evaluate(() => document.querySelector('.elemacy-popup-106 .elemacy-popup__close').click());
+await page.waitForTimeout(100);
+await check('the shared scroll lock finally releases once the LAST locking modal (106) closes', async () =>
+  (await state(106)).bodyOverflow === '');
+
+// Two remaining modals: open three, close the middle one out of order —
+// the other two stay open, the lock stays held, and Escape still finds the
+// real topmost remaining modal rather than whichever opened first.
+await page.evaluate(() => document.querySelector('.open-e').click());
+await page.waitForTimeout(50);
+await page.evaluate(() => document.querySelector('.open-f').click());
+await page.waitForTimeout(50);
+await page.evaluate(() => document.querySelector('.open-g').click());
+await page.waitForTimeout(50);
+await page.evaluate(() => document.querySelector('.elemacy-popup-106 .elemacy-popup__close').click()); // middle
+await page.waitForTimeout(100);
+await check('two remaining modals: 105 and 107 stay open after the middle one (106) closes', async () =>
+  (await state(105)).open && !(await state(106)).open && (await state(107)).open);
+await check('two remaining modals: scroll stays locked (two lockers remain)', async () =>
+  (await state(107)).bodyOverflow === 'hidden');
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(100);
+await check('Escape closes the actual topmost remaining modal (107, opened last), not 105', async () => {
+  const s105 = await state(105);
+  const s107 = await state(107);
+  return s105.open && !s107.open;
+});
+await page.keyboard.press('Escape');
+await page.waitForTimeout(100);
+await check('a second Escape then closes 105, and the lock fully releases', async () => {
+  const s105 = await state(105);
+  return !s105.open && s105.bodyOverflow === '';
+});
+
+// Disconnected opener: the element that opened a modal is removed from the
+// DOM while that modal is still open. Closing it afterwards must not
+// throw, and restores focus into the modal still open (106) rather than
+// silently dropping it.
+await page.evaluate(() => {
+  const opener = document.createElement('button');
+  opener.type = 'button';
+  opener.id = 'disconnected-opener';
+  document.body.appendChild(opener);
+  opener.focus();
+  window.ElemacyPopups.open(105);
+});
+await page.waitForTimeout(100);
+await page.evaluate(() => document.querySelector('.open-f').click());
+await page.waitForTimeout(100);
+await check('106 opened on top of 105 (both open)', async () =>
+  (await state(105)).open && (await state(106)).open);
+
+await page.evaluate(() => document.getElementById('disconnected-opener').remove());
+await check('no page errors from removing the opener while its modal is still open', async () => errors.length === 0);
+
+await page.evaluate(() => document.querySelector('.elemacy-popup-105 .elemacy-popup__close').click());
+await page.waitForTimeout(100);
+await check('closing a modal whose opener was removed does not throw', async () => errors.length === 0);
+await check('disconnected opener: focus falls back to the still-open modal (106), not the removed opener', () =>
+  page.evaluate(() => {
+    const box106 = document.querySelector('.elemacy-popup-106 .elemacy-popup__box');
+    return box106 ? box106.contains(document.activeElement) : false;
+  }));
+
+/* ── Nonmodal topbars never join the stack: opening one alongside an open
+   modal must not touch the shared scroll lock or the modal's own Escape
+   targeting. ── */
+await page.evaluate(() => window.ElemacyPopups.open(103));
+await page.waitForTimeout(50);
+await check('topbar 103 opens alongside the open modal without becoming modal chrome itself', async () => {
+  const s103 = await state(103);
+  return s103.open && !s103.hasOverlay;
+});
+await check('the still-open modal (106) keeps the scroll lock regardless of the topbar', async () =>
+  (await state(106)).bodyOverflow === 'hidden');
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(100);
+await check('Escape closes the topmost modal (106); the non-modal, on_esc:false topbar is unaffected', async () => {
+  const s103 = await state(103);
+  const s106 = await state(106);
+  return s103.open && !s106.open;
+});
+await check('scroll lock fully releases once the last modal from this block closes', async () =>
+  (await state(106)).bodyOverflow === '');
+
+await page.evaluate(() => window.ElemacyPopups.close(103));
 
 await check('no page errors across all loads', async () => errors.length === 0);
 

@@ -26,6 +26,10 @@ class ConditionRepository
 
     /**
      * @param array $rules ConditionRuleDTOs and/or their array form.
+     * @throws \Elemacy\Core\Exceptions\ValidationException Unsupported input
+     *   (neither a ConditionRuleDTO nor an array) rejects the whole write —
+     *   the previously stored targeting is left untouched, never partially
+     *   overwritten with the supported entries alone.
      */
     public function save(int $post_id, array $rules): void
     {
@@ -34,11 +38,10 @@ class ConditionRepository
 
     protected function normalize(array $rules): array
     {
-        return array_values(array_map(function ($rule): array {
-            $dto = ConditionRuleDTO::from_array(is_array($rule) ? $rule : []);
+        return array_map(function (ConditionRuleDTO $dto): array {
             $dto->id = $dto->id !== '' ? $dto->id : wp_generate_uuid4();
 
             return $dto->to_array();
-        }, $rules));
+        }, ConditionRuleDTO::collection_or_fail($rules));
     }
 }

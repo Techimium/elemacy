@@ -11,13 +11,35 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * (registered in PopupDocument::register_controls) and maps them into the
  * engine.js `display` config shape.
  *
- * Only behavior + overlay appearance live here; width/z-index are
- * handled by the document's generated post CSS and are intentionally omitted.
+ * Only behavior + overlay appearance live here; width is handled by the
+ * document's generated post CSS and is intentionally omitted (z-index is
+ * needed for the modal-stack's own JS ordering, so it is included below).
  */
 class DocumentDisplay
 {
     /** @var array<int, array> Per-request cache, keyed by popup id. */
     protected static $cache = [];
+
+    /**
+     * Drops one popup's memoized display config (task 11.3) — used when its
+     * settings change within the same request (e.g. a resolve-then-edit
+     * sequence) or the acting site changes mid-request, so a later call for
+     * the same id re-reads the document instead of returning stale settings.
+     */
+    public static function forget(int $id): void
+    {
+        unset(static::$cache[$id]);
+    }
+
+    /**
+     * Drops every popup's memoized display config (task 11.2) — used on a
+     * site switch, since a popup id from the previous site could otherwise
+     * collide with one on the new site.
+     */
+    public static function reset(): void
+    {
+        static::$cache = [];
+    }
 
     /**
      * Build the engine `display` config for a popup from its Elementor
@@ -71,7 +93,9 @@ class DocumentDisplay
             'position'  => isset($settings[DisplayKeys::POSITION]) && '' !== $settings[DisplayKeys::POSITION]
                 ? $settings[DisplayKeys::POSITION]
                 : $def['position'],
-            'sticky'    => 'yes' === ($settings[DisplayKeys::STICKY] ?? ''),
+            'sticky'    => isset($settings[DisplayKeys::STICKY])
+                ? ('yes' === $settings[DisplayKeys::STICKY])
+                : (bool) ($def['sticky'] ?? false),
             'overlay'   => [
                 'enabled' => $is_modal,
                 'color'   => $overlay_color,
@@ -92,11 +116,17 @@ class DocumentDisplay
                     : $def['close']['button'],
                 'auto_close_s'     => isset($settings[DisplayKeys::AUTO_CLOSE])
                     ? (int) $settings[DisplayKeys::AUTO_CLOSE]
-                    : 0,
-                'on_overlay_click' => $is_modal && 'yes' === ($settings[DisplayKeys::CLOSE_ON_OVERLAY] ?? ''),
-                'on_esc'           => $is_modal && 'yes' === ($settings[DisplayKeys::CLOSE_ON_ESC] ?? ''),
+                    : (int) $def['close']['auto_close_s'],
+                'on_overlay_click' => $is_modal && (isset($settings[DisplayKeys::CLOSE_ON_OVERLAY])
+                    ? ('yes' === $settings[DisplayKeys::CLOSE_ON_OVERLAY])
+                    : (bool) $def['close']['on_overlay_click']),
+                'on_esc'           => $is_modal && (isset($settings[DisplayKeys::CLOSE_ON_ESC])
+                    ? ('yes' === $settings[DisplayKeys::CLOSE_ON_ESC])
+                    : (bool) $def['close']['on_esc']),
             ],
-            'prevent_body_scroll' => $is_modal && 'yes' === ($settings[DisplayKeys::PREVENT_SCROLL] ?? ''),
+            'prevent_body_scroll' => $is_modal && (isset($settings[DisplayKeys::PREVENT_SCROLL])
+                ? ('yes' === $settings[DisplayKeys::PREVENT_SCROLL])
+                : (bool) $def['prevent_body_scroll']),
             'z_index'             => isset($settings[DisplayKeys::Z_INDEX]) && '' !== $settings[DisplayKeys::Z_INDEX]
                 ? (int) $settings[DisplayKeys::Z_INDEX]
                 : (int) $def['z_index'],

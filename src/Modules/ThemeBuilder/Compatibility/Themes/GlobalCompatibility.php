@@ -12,8 +12,14 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
  * Global compatibility.
  *
  * - Inject header via wp_body_open (best-effort across themes).
- * - Inject footer via wp_footer.
- * - Adds minimal CSS to hide common theme header/footer wrappers and force full width.
+ * - Inject footer from get_footer(), before footer.php's own wp_footer()
+ *   call — so it lands before the footer script-printing deadline instead
+ *   of mixed among wp_footer's own late-priority script output.
+ * - Adds minimal CSS to hide common theme header/footer wrappers, scoped to
+ *   the document's own near-root structure (body/#page's direct children)
+ *   so it can never match content authored inside Elementor/Elemacy
+ *   (popup, loop item, or any other builder content is always nested many
+ *   levels deeper than that).
  *
  * This is intended as a safe fallback when we don't have a theme-specific adapter.
  */
@@ -61,7 +67,10 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
         }
 
         if ($has_footer) {
-            add_action('wp_footer', [$manager, 'render_footer'], 50);
+            // Fires before locate_template() loads footer.php (and so
+            // before its own wp_footer() call), landing Elemacy's footer
+            // ahead of the script-printing deadline rather than inside it.
+            add_action('get_footer', [$manager, 'render_footer'], 5);
         }
 
         if ($has_header || $has_footer) {
@@ -72,6 +81,13 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
                 }
                 wp_enqueue_style($handle);
 
+                // Scoped to the document's own near-root structure (direct
+                // children of <body>, an optional single wrapper div, or a
+                // #page wrapper) so these rules can never reach into
+                // Elementor/Elemacy content, which is always nested far
+                // deeper than that. Real themes vary in wrapper depth; this
+                // covers the common shapes without matching builder markup.
+                $native_root = ':is(body, body > div, #page, .hfeed)';
                 $css = '
                 .elemacy-force-stretched-header {
                     width: 100vw;
@@ -84,8 +100,8 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
                     // #page > hr:first-of-type is the deprecated theme-compat
                     // header.php's own trailing divider, immediately after #header.
                     $css .= '
-                    header#masthead,
-                    .site-header,
+                    ' . $native_root . ' > header#masthead,
+                    ' . $native_root . ' > .site-header,
                     #page > #header,
                     #page > hr:first-of-type {
                         display: none;
@@ -96,8 +112,8 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
                     // #page > hr:last-of-type is the deprecated theme-compat
                     // footer.php's own leading divider, immediately before #footer.
                     $css .= '
-                    footer#colophon,
-                    .site-footer,
+                    ' . $native_root . ' > footer#colophon,
+                    ' . $native_root . ' > .site-footer,
                     #page > #footer,
                     #page > hr:last-of-type {
                         display: none;

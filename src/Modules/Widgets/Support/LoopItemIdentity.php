@@ -4,18 +4,15 @@ namespace Elemacy\Modules\Widgets\Support;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Loop\Support\LoopItemIdentity as CanonicalLoopItemIdentity;
+
 /**
- * Sanitizes a LoopItemInterface::get_identity() value down to characters
- * safe to interpolate into a CSS class name and an HTML id attribute — the
- * one place every item class should route its identity through, so a
- * future non-post source (a repeater row key, a term ID, an API item's own
- * id field) can never leak unsafe characters into generated markup or CSS
- * (design.md D4, Risks).
+ * Moved to Elemacy\Loop\Support\LoopItemIdentity (design.md D7). This alias
+ * is a real class_exists()/instanceof-compatible identity, not a copy. Kept
+ * at this path for the first supported Free/Pro compatibility window so any
+ * code still importing it from here (in either plugin) is unaffected. New
+ * code should import the canonical namespace instead.
+ *
+ * @deprecated Use Elemacy\Loop\Support\LoopItemIdentity.
  */
-final class LoopItemIdentity
-{
-    public static function sanitize(string $raw): string
-    {
-        return preg_replace('/[^A-Za-z0-9_-]/', '', $raw);
-    }
-}
+class_alias(CanonicalLoopItemIdentity::class, __NAMESPACE__ . '\LoopItemIdentity');

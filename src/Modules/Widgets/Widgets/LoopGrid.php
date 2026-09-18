@@ -2,11 +2,20 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Services\LoopContext;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\LoopItemStyles;
+use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Loop\DTO\LoopResultDTO;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
+use Elemacy\Loop\Pagination\PaginationContextSigner;
+use Elemacy\Loop\Pagination\PaginationRenderer;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\Rendering\LoopRenderer;
+use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Group_Control_Typography;
@@ -520,7 +529,7 @@ class LoopGrid extends BaseWidget
             return;
         }
 
-        $result = $source->get_items($settings);
+        $result = $this->items_for_display($settings, $source);
 
         if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
@@ -534,117 +543,112 @@ class LoopGrid extends BaseWidget
 
         if (!empty($settings['pagination_ajax']) && $settings['pagination_ajax'] === 'yes') {
             $wrapper_classes .= ' elemacy-ajax-pagination';
-
-            $ajax_settings = array_merge(
-                [
-                    'data_source' => $settings['data_source'] ?? 'posts',
-                    'template_id' => $settings['template_id'],
-                    'pagination_type' => $settings['pagination_type'],
-                    'paginate_base' => str_replace('999999999', '%#%', get_pagenum_link(999999999, false)),
-                ],
-                $source->get_ajax_payload($settings)
-            );
-
-            $settings_json = wp_json_encode($ajax_settings);
-
-            $wrapper_attrs = sprintf(
-                ' data-elemacy-loop-settings="%s"',
-                esc_attr($settings_json)
-            );
+            $wrapper_attrs .= $this->ajax_request_attrs();
         }
 
         echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr(); remaining HTML structure is hardcoded
         echo '<div class="elemacy-loop-grid">';
 
-        $loop_item_styles = new LoopItemStyles();
-        $loop_item_styles->print_base_css($settings['template_id']);
-
-        foreach ($result->items as $item) {
-            LoopContext::push($item);
-
-            try {
-                $item->enter();
-
-                try {
-                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
-
-                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
-                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-                    echo '</div>';
-                } finally {
-                    $item->exit();
-                }
-            } finally {
-                LoopContext::pop();
-            }
+        $renderer = new LoopRenderer();
+        $placement = $this->current_owner_id() . '-' . $this->get_id();
+        $data_source_key = $settings['data_source'] ?? 'posts';
+        foreach ($result->items as $occurrence => $item) {
+            $renderer->render_item((int) $settings['template_id'], $item, $placement, $data_source_key, $occurrence);
         }
 
         echo '</div>';
 
         if (!empty($settings['pagination_type']) && $result->max_num_pages > 1) {
-            static::render_pagination_html($settings, $result->max_num_pages);
+            (new PaginationRenderer())->render($settings, $result->max_num_pages);
         }
 
         echo '</div>'; // End elemacy-loop-builder-grid
     }
 
-    public static function render_pagination_html($settings, $max_num_pages, $current_page = null)
+    /**
+     * The document actually rendering this widget right now — a Theme
+     * Builder header/footer, popup, or loop template document Elementor has
+     * switched to, not the viewed page (get_the_ID()), when this widget
+     * lives in one of those.
+     */
+    private function current_owner_id(): int
     {
-        if ($current_page === null) {
-            $current_page = max(1, get_query_var('paged'), get_query_var('page'));
-        }
-        $show_all = false;
-        $prev_next = false;
-        $prev_text = esc_html__('« Previous', 'elemacy');
-        $next_text = esc_html__('Next »', 'elemacy');
-        $show_numbers = false;
+        $document = Plugin::$instance->documents->get_current();
 
-        switch ($settings['pagination_type']) {
-            case 'numbers':
-                $show_numbers = true;
-                break;
-            case 'prev_next':
-                $prev_next = true;
-                break;
-            case 'numbers_and_prev_next':
-                $show_numbers = true;
-                $prev_next = true;
-                break;
-        }
+        return $document ? (int) $document->get_main_id() : (int) get_the_ID();
+    }
 
-        $paginate_args = [
-            'total' => $max_num_pages,
-            'current' => $current_page,
-            'prev_next' => $prev_next,
-            'prev_text' => $prev_text,
-            'next_text' => $next_text,
-            'show_all' => $show_all,
-            'type' => 'array',
-        ];
-
-        if (!empty($settings['paginate_base'])) {
-            $paginate_args['base'] = $settings['paginate_base'];
+    /**
+     * Applies the same public eligibility policy the AJAX endpoint enforces
+     * to this widget's own classic first-page output (design.md D1), so an
+     * authored template/source that has since become inaccessible cannot
+     * appear there either. Skipped for an authorized editor preview, where
+     * the author's own saved settings render directly and unfiltered.
+     *
+     * @param array                   $settings
+     * @param LoopDataSourceInterface $source
+     * @return LoopResultDTO
+     */
+    private function items_for_display(array $settings, LoopDataSourceInterface $source): LoopResultDTO
+    {
+        if (Plugin::instance()->editor->is_edit_mode()) {
+            return $source->get_items($settings);
         }
 
-        $links = paginate_links($paginate_args);
+        try {
+            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
 
-        if (!is_array($links)) {
-            return;
+            return $policy->eligible_items($settings, $this->current_owner_id());
+        } catch (ValidationException $error) {
+            return new LoopResultDTO([], 0, 0, false);
+        }
+    }
+
+    /**
+     * The signed request envelope subsequent AJAX pages replay (design.md
+     * D1): owner/widget identity and definition revision, resolved and
+     * signed the same way PublishedLoopDefinitionResolver/PaginationContextSigner
+     * verify them, plus an independently-verified host-context token when a
+     * contributed placement resolver recognizes the current request. Omitted
+     * entirely — falling back to plain classic markup with no AJAX attribute
+     * — when this widget's own document isn't independently resolvable right
+     * now (e.g. an editor preview of an inaccessible draft): the frontend
+     * must never be handed a request it cannot itself authorize.
+     */
+    private function ajax_request_attrs(): string
+    {
+        try {
+            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
+            $definition = (new PublishedLoopDefinitionResolver($policy))->find($this->current_owner_id(), $this->get_id());
+
+            $context = '';
+            $placement = PlacementResolverRegistry::instance()->resolve_current($definition->owner_id());
+            if (null !== $placement) {
+                $context = (new PaginationContextSigner())->sign(
+                    $definition->owner_id(),
+                    $definition->widget_id(),
+                    $definition->fingerprint(),
+                    $placement['type'],
+                    $placement['facts']
+                );
+            }
+
+            $payload = wp_json_encode([
+                'version' => PublicLoopRequest::VERSION,
+                'owner_id' => $definition->owner_id(),
+                'widget_id' => $definition->widget_id(),
+                'page' => 1,
+                'fingerprint' => $definition->fingerprint(),
+                'context' => $context,
+            ]);
+        } catch (ValidationException $error) {
+            return '';
         }
 
-        // paginate_links() has no way to suppress the number list, so the
-        // Previous/Next-only mode keeps just the prev/next anchors.
-        if (!$show_numbers) {
-            $links = array_filter($links, static function ($link) {
-                return strpos($link, 'prev page-numbers') !== false
-                    || strpos($link, 'next page-numbers') !== false;
-            });
-        }
-
-        if (!empty($links)) {
-            echo '<nav class="elemacy-pagination" role="navigation">';
-            echo wp_kses_post(implode("\n", $links));
-            echo '</nav>';
-        }
+        return sprintf(
+            ' data-elemacy-loop-request="%s" data-elemacy-loop-base="%s"',
+            esc_attr($payload),
+            esc_attr(str_replace('999999999', '%#%', get_pagenum_link(999999999, false)))
+        );
     }
 }

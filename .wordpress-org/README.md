@@ -2,7 +2,9 @@
 
 This directory is deployed to the plugin's SVN `/assets` folder (see
 `.github/workflows/deploy-wordpress-plugin.yml`, `ASSETS_DIR`). It is excluded
-from the plugin zip/trunk via `.distignore`.
+from the plugin zip/trunk because `src-react/scripts/package-manifest.json`
+only stages `src/`, `assets/` and `languages/` — this directory is simply
+never in the manifest.
 
 Required files (PNG or JPG; PNG recommended):
 

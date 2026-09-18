@@ -28,14 +28,20 @@ export function ConditionBuilder({ value, onChange, context, templateType }: Con
 
     // Drop rules whose `type` is no longer offered for the current context /
     // template type (e.g. user changed a Header → Single, archive rules don't
-    // apply anymore). Mock entries don't count — they were never selectable.
+    // apply anymore). A rule the server reports as unavailable (unknown, or a
+    // non-functional mock stand-in) is never auto-removed here even when it
+    // isn't in this context's list: D5 requires preserving it for repair,
+    // not converting it into an empty/match-all definition just because this
+    // screen loaded or an unrelated field was edited.
     useEffect(() => {
         if (!isSuccess) return;
-        const selectable = new Set(
-            groups.flatMap((g) => g.conditions.filter((c) => !c.is_mock).map((c) => c.value))
-        );
+        const applicable = new Set(groups.flatMap((g) => g.conditions.map((c) => c.value)));
         const current = valueRef.current;
-        const kept = current.filter((r) => r.type === '' || selectable.has(r.type));
+        const kept = current.filter((r) => {
+            if (r.type === '') return true;
+            if (r.availability && !r.availability.available) return true;
+            return applicable.has(r.type);
+        });
         const removed = current.length - kept.length;
         if (removed > 0) {
             onChangeRef.current(kept);

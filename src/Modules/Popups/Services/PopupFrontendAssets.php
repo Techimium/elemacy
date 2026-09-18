@@ -23,7 +23,7 @@ class PopupFrontendAssets
         wp_register_script(
             'elemacy-popups-engine',
             Utils::get_plugin_url('src/Modules/Popups/assets/scripts/engine.js'),
-            ['jquery', 'elemacy-frontend'],
+            ['jquery', 'elemacy-frontend', 'elemacy-elementor-lifecycle'],
             ELEMACY_VERSION,
             true
         );

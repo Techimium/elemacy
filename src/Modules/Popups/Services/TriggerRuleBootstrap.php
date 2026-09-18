@@ -23,6 +23,15 @@ use Elemacy\Support\Utils;
  */
 class TriggerRuleBootstrap
 {
+    protected TriggerManager $triggers;
+    protected RuleManager $rules;
+
+    public function __construct(?TriggerManager $triggers = null, ?RuleManager $rules = null)
+    {
+        $this->triggers = $triggers ?? TriggerManager::instance();
+        $this->rules = $rules ?? RuleManager::instance();
+    }
+
     public function register(): void
     {
         add_action('init', function () {
@@ -33,7 +42,7 @@ class TriggerRuleBootstrap
 
     protected function register_triggers(): void
     {
-        $manager = TriggerManager::instance();
+        $manager = $this->triggers;
 
         foreach (require Utils::get_plugin_path('src/Modules/Popups/Config/triggers.php') as $entry) {
             $trigger = is_string($entry) ? new $entry() : $entry;
@@ -48,7 +57,7 @@ class TriggerRuleBootstrap
 
     protected function register_rules(): void
     {
-        $manager = RuleManager::instance();
+        $manager = $this->rules;
 
         foreach (require Utils::get_plugin_path('src/Modules/Popups/Config/rules.php') as $entry) {
             $rule = is_string($entry) ? new $entry() : $entry;

@@ -16,6 +16,13 @@ use Elemacy\Modules\Popups\Support\PopupTypes;
  */
 class PopupRenderer
 {
+    protected TemplateRenderer $renderer;
+
+    public function __construct(?TemplateRenderer $renderer = null)
+    {
+        $this->renderer = $renderer ?? new TemplateRenderer();
+    }
+
     /**
      * Echoes the popup's markup.
      *
@@ -39,7 +46,20 @@ class PopupRenderer
         $id   = (int) $popup->id;
         $type = (string) $popup->type;
 
-        $content = (new TemplateRenderer())->render($id);
+        $renderer = $this->renderer;
+        $placement = (string) $id;
+
+        // PopupManager::register_template_assets() already prepared this
+        // exact document/context/placement early, on wp_enqueue_scripts,
+        // specifically so widget dependencies discovered during that one
+        // render are queued before this deadline (wp_body_open for top bars,
+        // wp_footer for everything else). Rendering again here would not
+        // only be redundant but could miss those already-queued handles
+        // being the ones actually delivered. A direct prepare() fallback
+        // only runs if that invariant was somehow never satisfied, so a
+        // popup is never left with no content instead of unprepared content.
+        $content = $renderer->get_prepared($id, PopupManager::ASSET_CONTEXT, $placement)
+            ?? $renderer->prepare($id, PopupManager::ASSET_CONTEXT, $placement);
 
         $classes = sprintf(
             'elemacy-popup elemacy-popup-%1$d elemacy-popup--%2$s',

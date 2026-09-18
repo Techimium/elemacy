@@ -9,9 +9,12 @@ use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
-use Elemacy\Modules\ThemeBuilder\Documents\DocumentManager;
+use Elemacy\Modules\ThemeBuilder\Documents\ArchiveDocument;
+use Elemacy\Modules\ThemeBuilder\Documents\SearchDocument;
+use Elemacy\Modules\ThemeBuilder\Documents\SingleDocument;
 use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver;
+use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -38,19 +41,40 @@ class ThemeBuilder extends Module
         return __('Design headers, footers, archives and other site-wide templates that apply across your theme.', 'elemacy');
     }
 
+    public function get_providers(): array
+    {
+        return [new ThemeBuilderServiceProvider()];
+    }
+
     public function init(): void
     {
         $this->register_admin_menu();
         $this->register_types();
         $this->register_locations();
-        new DocumentManager();
-        ThemeBuilderManager::instance()->register_hooks();
+        $this->register_placement_resolver();
+    }
+
+    /**
+     * Contributes the Theme Builder placement resolver into Widgets' public
+     * pagination registry, mirroring how register_locations() below
+     * contributes to Widgets' own THEME_BUILDER_LOCATIONS_REGISTER_ACTION
+     * consumers. Registering the listener here is safe regardless of module
+     * boot order: Widgets only fires the action later, on the `init` hook.
+     */
+    protected function register_placement_resolver(): void
+    {
+        add_action(Hooks::LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION, static function (PlacementResolverRegistry $registry) {
+            $registry->register(new ThemeBuilderPlacementResolver());
+        });
     }
 
     /**
      * The template types this module owns. The CPT itself is registered by Core.
      * Hooked on `init` because the labels are translated — calling __() before
-     * `init` trips WP 6.7's "translation loaded too early" notice.
+     * `init` trips WP 6.7's "translation loaded too early" notice. Single/
+     * Archive/Search each carry their own Elementor document (real-data
+     * Preview Settings); the rest have none, so TypeDefinition::get_document_type()
+     * falls back to Elementor's built-in page document for them.
      */
     protected function register_types(): void
     {
@@ -58,16 +82,16 @@ class ThemeBuilder extends Module
             $registry = TypeRegistry::instance();
 
             $types = [
-                'header'  => __('Header', 'elemacy'),
-                'footer'  => __('Footer', 'elemacy'),
-                'single'  => __('Single', 'elemacy'),
-                'archive' => __('Archive', 'elemacy'),
-                '404'     => __('404 Page', 'elemacy'),
-                'search'  => __('Search Results', 'elemacy'),
+                'header'  => [__('Header', 'elemacy'), null],
+                'footer'  => [__('Footer', 'elemacy'), null],
+                'single'  => [__('Single', 'elemacy'), SingleDocument::class],
+                'archive' => [__('Archive', 'elemacy'), ArchiveDocument::class],
+                '404'     => [__('404 Page', 'elemacy'), null],
+                'search'  => [__('Search Results', 'elemacy'), SearchDocument::class],
             ];
 
-            foreach ($types as $name => $label) {
-                $registry->register(new TypeDefinition($name, $label, 'theme', $this->get_name()));
+            foreach ($types as $name => [$label, $document_class]) {
+                $registry->register(new TypeDefinition($name, $label, 'theme', $this->get_name(), $document_class));
             }
         });
     }

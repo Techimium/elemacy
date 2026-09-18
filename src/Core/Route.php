@@ -6,19 +6,21 @@ defined('ABSPATH') || exit;
 
 use Closure;
 use Exception;
+use Throwable;
 use ReflectionMethod;
 use ReflectionNamedType;
 use WP_Error;
 use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
 use Elemacy\Core\Exceptions\AuthorizationException;
+use Elemacy\Core\Exceptions\HttpException;
+use Elemacy\Core\Exceptions\ValidationException;
 use Elemacy\Core\Exceptions\InvalidRouteActionException;
 
 /**
  * Laravel-style facade over register_rest_route for the `elemacy` REST API.
  * Controllers are resolved through the Container and a controller method's first
- * typed parameter is hydrated from the request. A route with no ->middleware()
- * is public by design — the framework does not fail closed.
+ * typed parameter is hydrated from the request. Every route requires an explicit access policy.
  */
 class Route
 {
@@ -29,6 +31,8 @@ class Route
 
     protected static array $group_stack = [];
 
+    protected string $namespace = '';
+    protected array $access = [];
     protected string $method = '';
     protected string $endpoint = '';
 
@@ -45,6 +49,7 @@ class Route
     public function __construct()
     {
         $this->container = Container::instance();
+        $this->namespace = static::$namespace_name;
     }
 
     /**
@@ -68,6 +73,23 @@ class Route
     {
         $this->middleware = array_merge($this->middleware, (array) $middleware);
 
+        return $this;
+    }
+
+    /** Declare intentional public access; inherited capability checks still apply. */
+    public function public_access(): self
+    {
+        $this->access[] = 'public';
+        return $this;
+    }
+
+    /** Require a native WordPress capability before resolving application services. */
+    public function require_capability(string $capability): self
+    {
+        if ($capability === '' || $capability === 'public') {
+            throw new \InvalidArgumentException('A nonempty capability is required.');
+        }
+        $this->access[] = $capability;
         return $this;
     }
 
@@ -169,7 +191,7 @@ class Route
     /**
      * Registers a group of routes sharing a prefix and/or middleware.
      *
-     * @param array   $options Group options: `prefix` (string) and/or `middleware` (string|string[]).
+     * @param array   $options Group options: `prefix`, `middleware`, and `access` (public or capability).
      * @param Closure $closure Defines the routes that belong to the group.
      * @return void
      */
@@ -177,9 +199,11 @@ class Route
     {
         static::$group_stack[] = $options;
 
-        $closure();
-
-        array_pop(static::$group_stack);
+        try {
+            $closure();
+        } finally {
+            array_pop(static::$group_stack);
+        }
     }
 
     /**
@@ -193,24 +217,30 @@ class Route
     }
 
     /**
-     * Applies the innermost active group's prefix and middleware to this route.
+     * Composes every ancestor's prefix, middleware and access policy.
      *
      * @return void
      */
     protected function apply_group_options(): void
     {
-        if (empty(static::$group_stack)) {
-            return;
+        $prefixes = [];
+        foreach (static::$group_stack as $group) {
+            if (!empty($group['prefix'])) {
+                $prefixes[] = trim($group['prefix'], '/');
+            }
+            if (!empty($group['middleware'])) {
+                $this->middleware($group['middleware']);
+            }
+            if (isset($group['access'])) {
+                if ($group['access'] === 'public') {
+                    $this->public_access();
+                } else {
+                    $this->require_capability($group['access']);
+                }
+            }
         }
-
-        $group = end(static::$group_stack);
-
-        if (!empty($group['prefix'])) {
-            $this->endpoint = rtrim($group['prefix'], '/') . '/' . ltrim($this->endpoint, '/');
-        }
-
-        if (!empty($group['middleware'])) {
-            $this->middleware($group['middleware']);
+        if ($prefixes) {
+            $this->endpoint = '/' . implode('/', $prefixes) . '/' . ltrim($this->endpoint, '/');
         }
     }
 
@@ -221,7 +251,11 @@ class Route
      */
     public function register(): void
     {
-        register_rest_route(static::$namespace_name, $this->get_formatted_endpoint(), [
+        if (!$this->access) {
+            _doing_it_wrong(__METHOD__, esc_html__('REST routes require an explicit access policy.', 'elemacy'), '1.0.0');
+            return;
+        }
+        register_rest_route($this->namespace, $this->get_formatted_endpoint(), [
             'methods' => strtoupper($this->method),
             'callback' => $this->resolve_route(),
             'permission_callback' => [$this, 'check_permission'],
@@ -238,9 +272,16 @@ class Route
      */
     public function check_permission($rest_request)
     {
-        $request = Request::from_wp_rest_request($rest_request);
-
         try {
+            if (!$this->access) {
+                return new WP_Error('rest_forbidden', esc_html__('Access policy is missing.', 'elemacy'), ['status' => 403]);
+            }
+            foreach ($this->access as $policy) {
+                if ($policy !== 'public' && !current_user_can($policy)) {
+                    return new WP_Error('rest_forbidden', esc_html__('You do not have permission for this action.', 'elemacy'), ['status' => 403]);
+                }
+            }
+            $request = Request::from_wp_rest_request($rest_request);
             $pipeline = array_reduce(
                 array_reverse($this->middleware),
                 function ($next, $middleware) {
@@ -256,7 +297,15 @@ class Route
             return $pipeline($request);
         } catch (AuthorizationException $exception) {
             return new WP_Error('rest_forbidden', $exception->getMessage(), ['status' => Response::FORBIDDEN]);
-        } catch (Exception $exception) {
+        } catch (ValidationException $exception) {
+            return new WP_Error('rest_invalid_request', $exception->getMessage(), [
+                'status' => Response::UNPROCESSABLE_ENTITY,
+                'errors' => $exception->get_errors()
+            ]);
+        } catch (HttpException $exception) {
+            $status = (int) $exception->getCode();
+            return new WP_Error('rest_request_rejected', $exception->getMessage(), ['status' => $status >= 400 && $status <= 599 ? $status : Response::INTERNAL_SERVER_ERROR]);
+        } catch (Throwable $exception) {
             return new WP_Error('rest_error', esc_html__('Something went wrong. Please try again.', 'elemacy'), ['status' => Response::INTERNAL_SERVER_ERROR]);
         }
     }
@@ -332,30 +381,30 @@ class Route
     protected function resolve_route(): Closure
     {
         return function ($rest_request) {
-            if (!is_array($this->action) || count($this->action) !== 2) {
-                /* translators: %s: Route endpoint */
-                throw new InvalidRouteActionException(sprintf(esc_html__('Invalid controller action for the route %s', 'elemacy'), esc_html($this->endpoint)));
-            }
-
-            list($controller, $method) = $this->action;
-
-            if (!class_exists($controller)) {
-                /* translators: %s: Controller class */
-                throw new InvalidRouteActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
-            }
-
-            $controller_instance = $this->container->make($controller);
-
-            if (!method_exists($controller_instance, $method)) {
-                /* translators: 1: Method name, 2: Controller class */
-                throw new InvalidRouteActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
-            }
-
             try {
+                if (!is_array($this->action) || count($this->action) !== 2) {
+                    /* translators: %s: Route endpoint */
+                    throw new InvalidRouteActionException(sprintf(esc_html__('Invalid controller action for the route %s', 'elemacy'), esc_html($this->endpoint)));
+                }
+
+                list($controller, $method) = $this->action;
+
+                if (!class_exists($controller)) {
+                    /* translators: %s: Controller class */
+                    throw new InvalidRouteActionException(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($controller)));
+                }
+
+                $controller_instance = $this->container->make($controller);
+
+                if (!method_exists($controller_instance, $method)) {
+                    /* translators: 1: Method name, 2: Controller class */
+                    throw new InvalidRouteActionException(sprintf(esc_html__('The method %1$s is missing in the controller %2$s', 'elemacy'), esc_html($method), esc_html($controller)));
+                }
+
                 $dependencies = $this->resolve_dependencies($controller_instance, $method, $rest_request);
 
                 return $controller_instance->$method(...$dependencies);
-            } catch (Exception $exception) {
+            } catch (Throwable $exception) {
                 return ApiExceptionHandler::get_response($exception);
             }
         };

@@ -4,8 +4,9 @@ namespace Elemacy\Core\Preview;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Contracts\PreviewContextProviderInterface;
 use Elemacy\Core\Documents\PreviewablePageBase;
-use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
 use Elementor\Plugin;
 use WP_Query;
 
@@ -27,21 +28,48 @@ use WP_Query;
  *
  * A document previews a single post (Single → switch_to_post), a query (Archive,
  * Search → switch_to_query), or one data-source-provided loop item (Loop Item →
- * LoopContext::push() + item->enter(), the same seam Loop Grid/Carousel rendering
- * already uses), decided by get_preview_query_args()/get_preview_post_id()/
- * get_preview_item(). Scoped to previewable documents, so normal pages and the
- * frontend are untouched.
+ * $loop_provider->enter(), the same LoopContext::push() + item->enter() seam Loop
+ * Grid/Carousel rendering already uses, just behind PreviewContextProviderInterface
+ * so this class itself never imports a concrete Loop class — design.md D7),
+ * decided by get_preview_query_args()/get_preview_post_id()/get_preview_item().
+ * Scoped to previewable documents, so normal pages and the frontend are untouched.
  */
 class PreviewManager
 {
-    /** @var array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} */
+    /** @var array{kind: string, context?: mixed} */
     protected array $tags_context = ['kind' => ''];
 
-    /** @var array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} */
+    /** @var array{kind: string, context?: mixed} */
     protected array $config_context = ['kind' => ''];
 
-    public function __construct()
+    protected bool $registered = false;
+
+    protected PreviewContextProviderInterface $loop_provider;
+
+    /**
+     * @param PreviewContextProviderInterface|null $loop_provider Defaults to
+     *        the Loop-owned implementation — this class itself never
+     *        imports a concrete Loop class, only this Core-owned contract
+     *        (design.md D7).
+     */
+    public function __construct(?PreviewContextProviderInterface $loop_provider = null)
     {
+        $this->loop_provider = $loop_provider ?? new LoopItemPreviewContextProvider();
+    }
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead).
+     */
+    public function register_hooks(): void
+    {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
+
         add_action('elementor/editor/before_enqueue_scripts', [$this, 'before_editor_config']);
         add_action('elementor/editor/after_enqueue_scripts', [$this, 'after_editor_config']);
         add_action('elementor/dynamic_tags/before_render', [$this, 'before_tags_render']);
@@ -110,11 +138,12 @@ class PreviewManager
     /**
      * Swap the global post/query/loop-item for the document's preview context.
      * Returns the context leave_preview() rolls back — its 'kind' is
-     * 'post' | 'query' | 'item' | '', with the resolved item attached when
-     * 'item' (LoopContext's stack has no "peek without popping" accessor, so
-     * the item is carried here rather than re-fetched in leave_preview()).
+     * 'post' | 'query' | 'item' | '', with the loop provider's own opaque
+     * token attached when 'item' (Core has no idea what that token is —
+     * only the provider that produced it in enter() knows how to consume it
+     * in leave()).
      *
-     * @return array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface}
+     * @return array{kind: string, context?: mixed}
      */
     protected function enter_preview(int $document_post_id): array
     {
@@ -143,12 +172,9 @@ class PreviewManager
         $item = $document->get_preview_item();
 
         if ($item) {
-            $item->enter();
-            LoopContext::push($item);
-
             return [
                 'kind' => 'item',
-                'item' => $item,
+                'context' => $this->loop_provider->enter($item),
             ];
         }
 
@@ -156,7 +182,7 @@ class PreviewManager
     }
 
     /**
-     * @param array{kind: string, item?: \Elemacy\Modules\Widgets\Contracts\LoopItemInterface} $context
+     * @param array{kind: string, context?: mixed} $context
      */
     protected function leave_preview(array $context): void
     {
@@ -165,8 +191,7 @@ class PreviewManager
         } elseif ('post' === $context['kind']) {
             Plugin::instance()->db->restore_current_post();
         } elseif ('item' === $context['kind']) {
-            LoopContext::pop();
-            $context['item']->exit();
+            $this->loop_provider->leave($context['context']);
         }
     }
 

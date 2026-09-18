@@ -4,8 +4,8 @@ namespace Elemacy\Modules\DynamicTags\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\LoopItems\UserLoopItem;
-use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Loop\Contracts\NativeUserItemInterface;
+use Elemacy\Loop\LoopContext;
 use WP_User;
 
 /**
@@ -15,7 +15,9 @@ use WP_User;
  * when there is no active loop item. Mirrors Taxonomy::get_current_term() —
  * users have no "current user in a content loop" WordPress global the way
  * posts do (global $post), which is why UserLoopItem::enter()/exit() are
- * no-ops and this resolver exists instead (design.md D4).
+ * no-ops and this resolver exists instead (design.md D4). Checks the
+ * optional NativeUserItemInterface capability rather than a concrete
+ * Widgets/Loop item class (design.md D7).
  *
  * Deliberately not reused by the existing Author/* tags: those stay scoped
  * to the current post's author (get_post()->post_author), per the
@@ -28,7 +30,7 @@ class User
     {
         $item = LoopContext::current();
 
-        if ($item instanceof UserLoopItem) {
+        if ($item instanceof NativeUserItemInterface) {
             return $item->get_user();
         }
 

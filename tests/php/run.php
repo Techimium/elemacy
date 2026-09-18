@@ -12,26 +12,88 @@ require __DIR__ . '/dynamic-tag-stubs.php';
 use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionEvaluator;
+use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Conditions\MockCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
+use Elemacy\Core\AdminScripts;
+use Elemacy\Core\Cache\PageCachePurger;
+use Elemacy\Core\Capabilities\FeatureAvailability;
+use Elemacy\Core\CompatibilityChecker;
+use Elemacy\Core\Container;
+use Elemacy\Core\Contracts\ServiceProviderInterface;
+use Elemacy\Core\Controls\Query\QueryControlManager;
+use Elemacy\Core\Elemacy;
+use Elemacy\Core\FrontendScripts;
+use Elemacy\Core\Module;
+use Elemacy\Core\ModuleManager;
+use Elemacy\Core\PluginLinks;
+use Elemacy\Core\Preview\PreviewAssets;
+use Elemacy\Core\Preview\PreviewManager;
+use Elemacy\Core\Providers\CoreServiceProvider;
+use Elemacy\TemplateLibrary\LibraryBootstrap;
+use Elemacy\TemplateLibrary\TypeDefinition;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Hooks;
+use Elemacy\Core\Integrations\Elementor\AtomicElementsAdapter;
+use Elemacy\Core\Integrations\Elementor\Capabilities;
+use Elemacy\Core\Integrations\Elementor\ElementTreeWalker;
+use Elemacy\Core\Integrations\Elementor\StylesRendererAdapter;
+use Elemacy\Core\Migrations\BatchCursor;
 use Elemacy\Core\Migrator;
+use Elemacy\Core\Multisite\SiteBatchIterator;
 use Elemacy\Core\Rendering\AtomicStylesRenderer;
 use Elemacy\Core\Rendering\ClassicCssRenderer;
 use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Core\Rendering\TemplateRenderer;
 use Elemacy\Core\Sanitizer;
 use Elemacy\Modules\DynamicTags\Tags\Base\PostContent;
+use Elemacy\Modules\Popups\DTO\RuleDTO;
+use Elemacy\Modules\Popups\DTO\TriggerDTO;
+use Elemacy\Modules\Popups\Rules\BaseRule;
+use Elemacy\Modules\Popups\Rules\MockRule;
 use Elemacy\Modules\Popups\Services\EditorPreview;
+use Elemacy\Modules\Popups\Services\RuleManager;
+use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\Modules\Popups\Support\DisplayDefaults;
 use Elemacy\Modules\Popups\Support\PopupTypes;
+use Elemacy\Modules\Popups\Support\RuleTriggerParams;
+use Elemacy\Modules\Popups\DTO\PopupDTO;
+use Elemacy\Modules\Popups\Resources\PopupConfigResource;
+use Elemacy\Modules\Popups\Resources\RuleTypeResource;
+use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
+use Elemacy\Conditions\Resources\ConditionTypeResource;
+use Elemacy\Modules\Popups\Triggers\BaseTrigger;
+use Elemacy\Modules\Popups\Triggers\MockTrigger;
+use Elemacy\Loop\Context\WordPressPostScope;
+use Elemacy\Loop\Rendering\LoopRenderContext;
+use Elemacy\Loop\Rendering\LoopRenderIdentity;
+use Elemacy\Loop\Rendering\TemplateRecursionException;
+use Elemacy\Loop\Rendering\TemplateRecursionGuard;
+use Elemacy\Loop\Contracts\LoopSourceControlsInterface;
+use Elemacy\Loop\DataSources\PostsQuery;
+use Elemacy\Loop\DataSources\TermsQuery;
+use Elemacy\Loop\DataSources\UsersQuery;
+use Elemacy\Loop\Pagination\Policies\PostsPolicy;
+use Elemacy\Loop\Pagination\Policies\TermsPolicy;
+use Elemacy\Loop\Pagination\Policies\UsersPolicy;
+use Elemacy\Modules\DynamicTags\Services\Taxonomy;
+use Elemacy\Modules\DynamicTags\Services\User;
+use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
+use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
+use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
+use Elemacy\Loop\Contracts\LoopSourcePreviewInterface;
+use Elemacy\Loop\Contracts\LoopSourceQueryInterface;
+use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface as CanonicalPublicLoopSourcePolicyInterface;
+use Elemacy\Loop\SourceDefinition;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
 use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
 use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
 use Elemacy\Modules\Widgets\LoopItems\PostLoopItem;
+use Elemacy\Modules\Widgets\LoopItems\TermLoopItem;
+use Elemacy\Modules\Widgets\LoopItems\UserLoopItem;
 use Elemacy\Modules\Widgets\Services\LoopContext;
 use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
 use Elemacy\Modules\Widgets\Support\LoopItemIdentity;
@@ -92,11 +154,109 @@ final class FixedMockCondition extends MockCondition
     }
 }
 
+final class FixedRule extends BaseRule
+{
+    public function get_name(): string
+    {
+        return 'test/rule';
+    }
+
+    public function get_label(): string
+    {
+        return 'Test rule';
+    }
+}
+
+final class FixedMockRule extends MockRule
+{
+    public function get_name(): string
+    {
+        return 'mock/rule';
+    }
+
+    public function get_label(): string
+    {
+        return 'Locked rule';
+    }
+}
+
+final class FixedTrigger extends BaseTrigger
+{
+    public function get_name(): string
+    {
+        return 'test/trigger';
+    }
+
+    public function get_label(): string
+    {
+        return 'Test trigger';
+    }
+}
+
+final class FixedMockTrigger extends MockTrigger
+{
+    public function get_name(): string
+    {
+        return 'mock/trigger';
+    }
+
+    public function get_label(): string
+    {
+        return 'Locked trigger';
+    }
+}
+
+/**
+ * Pairs a boolean predicate with an explicit availability status, standing
+ * in for what a condition/rule/trigger reports once
+ * {@see FeatureAvailability} is wired into a real registry (tasks 4.2/4.3).
+ */
+final class FixtureCapability
+{
+    /** @var callable */
+    private $truth;
+    private FeatureAvailability $availability;
+
+    public function __construct(callable $truth, FeatureAvailability $availability)
+    {
+        $this->truth       = $truth;
+        $this->availability = $availability;
+    }
+
+    public function check(): bool
+    {
+        return ($this->truth)();
+    }
+
+    public function availability(): FeatureAvailability
+    {
+        return $this->availability;
+    }
+}
+
 /**
  * Migrator with an injectable, deliberately unsorted migration map that logs
  * each execution.
  */
-final class RecordingMigrator extends Migrator
+// These fast fixtures isolate schema sequencing. Database lease races are tested
+// with independent native WordPress processes in integration/migration-leases.php.
+class SchemaFlowMigrator extends Migrator
+{
+    protected function acquire_lock(): bool { return true; }
+    protected function release_lock(): void {}
+    protected function current_schema_version(): string
+    {
+        return (string) get_option($this->option_key(), self::BASELINE_VERSION);
+    }
+}
+
+class SchemaFlowCursor extends BatchCursor
+{
+    public function acquire_lock(): bool { return true; }
+    public function release_lock(): void {}
+}
+
+final class RecordingMigrator extends SchemaFlowMigrator
 {
     /** @var array<int, array{string, string, string}> */
     public array $log = [];
@@ -138,6 +298,73 @@ final class TestableEditorPreview extends EditorPreview
     public function get_overlay_css(): string
     {
         return $this->overlay_css();
+    }
+}
+
+/* ── Core\Container fixtures ─────────────────────────────────────── */
+
+interface FixtureContainerContract
+{
+}
+
+final class FixtureContainerImplA implements FixtureContainerContract
+{
+    public string $id;
+
+    public function __construct()
+    {
+        $this->id = uniqid('a', true);
+    }
+}
+
+final class FixtureContainerImplB implements FixtureContainerContract
+{
+    public string $id;
+
+    public function __construct()
+    {
+        $this->id = uniqid('b', true);
+    }
+}
+
+final class FixtureContainerConsumer
+{
+    public FixtureContainerContract $contract;
+
+    public function __construct(FixtureContainerContract $contract)
+    {
+        $this->contract = $contract;
+    }
+}
+
+final class FixtureContainerDefaultScalar
+{
+    public string $label;
+
+    public function __construct(string $label = 'default-label')
+    {
+        $this->label = $label;
+    }
+}
+
+final class FixtureContainerRequiredScalar
+{
+    public function __construct(string $required)
+    {
+    }
+}
+
+final class FixtureContainerCycleA
+{
+    public function __construct(FixtureContainerCycleB $b)
+    {
+    }
+}
+
+final class FixtureContainerCycleB
+{
+    public function __construct(FixtureContainerCycleA $a)
+    {
     }
 }
 
@@ -195,6 +422,371 @@ check('popup preview supports prefixed and standard backdrop blur', static funct
         && false !== strpos($css, 'backdrop-filter:blur(var(--elemacy-ov-blur,0px))');
 });
 
+/* ── Core\Container ──────────────────────────────────────────────── */
+
+$container = Container::instance();
+
+check('Container: an unbound interface reports it has no registered binding', static function () use ($container) {
+    try {
+        $container->make(FixtureContainerContract::class);
+
+        return false;
+    } catch (\Exception $error) {
+        return false !== strpos($error->getMessage(), 'No binding is registered for contract');
+    }
+});
+
+check('Container: bind() + make()/singleton() resolve a contract through its registered factory', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplA());
+
+    return $container->make(FixtureContainerContract::class) instanceof FixtureContainerImplA
+        && $container->singleton(FixtureContainerContract::class) instanceof FixtureContainerImplA;
+});
+
+check('Container: a configured factory is actually invoked, not bypassed', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplB());
+
+    return $container->make(FixtureContainerContract::class) instanceof FixtureContainerImplB;
+});
+
+check('Container: a shared-bound contract keeps identity across calls, including as a nested dependency', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplA(), Container::SHARED);
+
+    $direct1 = $container->make(FixtureContainerContract::class);
+    $direct2 = $container->singleton(FixtureContainerContract::class);
+    $nested = $container->make(FixtureContainerConsumer::class)->contract;
+
+    return $direct1 === $direct2 && $direct1 === $nested;
+});
+
+check('Container: a fresh-bound contract is rebuilt every time, including as a nested dependency', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplA(), Container::FRESH);
+
+    $direct1 = $container->make(FixtureContainerContract::class);
+    $direct2 = $container->make(FixtureContainerContract::class);
+    $nested1 = $container->make(FixtureContainerConsumer::class)->contract;
+    $nested2 = $container->make(FixtureContainerConsumer::class)->contract;
+
+    return $direct1 !== $direct2 && $nested1 !== $nested2 && $direct1 !== $nested1;
+});
+
+check('Container: an unbound class resolved via singleton() keeps shared identity across calls', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplA());
+
+    $consumer1 = $container->singleton(FixtureContainerConsumer::class);
+    $consumer2 = $container->singleton(FixtureContainerConsumer::class);
+
+    return $consumer1 === $consumer2;
+});
+
+check('Container: make() on an unbound class still returns a fresh instance every call (pre-existing behavior preserved)', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn () => new FixtureContainerImplA());
+
+    return $container->make(FixtureContainerConsumer::class) !== $container->make(FixtureContainerConsumer::class);
+});
+
+check('Container: a builtin-typed constructor parameter with a default value is honored, not rejected', static function () use ($container) {
+    return $container->make(FixtureContainerDefaultScalar::class)->label === 'default-label';
+});
+
+check('Container: a required builtin-typed parameter with no default cannot be auto-wired and names bind() as the fix', static function () use ($container) {
+    try {
+        $container->make(FixtureContainerRequiredScalar::class);
+
+        return false;
+    } catch (\Exception $error) {
+        return false !== strpos($error->getMessage(), 'Register a Container::bind() factory');
+    }
+});
+
+check('Container: a constructor cycle is detected and reported', static function () use ($container) {
+    try {
+        $container->make(FixtureContainerCycleA::class);
+
+        return false;
+    } catch (\Exception $error) {
+        return false !== strpos($error->getMessage(), 'Circular dependency detected');
+    }
+});
+
+check('Container: a cycle reached through a bound factory calling back into the container is also detected', static function () use ($container) {
+    $container->bind(FixtureContainerContract::class, static fn (Container $c) => $c->make(FixtureContainerContract::class));
+
+    try {
+        $container->make(FixtureContainerContract::class);
+
+        return false;
+    } catch (\Exception $error) {
+        return false !== strpos($error->getMessage(), 'Circular dependency detected');
+    }
+});
+
+/* ── Core\Elemacy bootstrap: providers register-then-boot, idempotent ── */
+
+/**
+ * Logs, in call order, when register()/boot() run — proves the
+ * ServiceProviderInterface contract's own ordering guarantee end to end
+ * through Elemacy::init(), without reimplementing its orchestration.
+ */
+final class FixtureOrderTrackingProvider implements ServiceProviderInterface
+{
+    /** @var string[] */
+    public static array $log = [];
+
+    private string $name;
+    private bool $booted = false;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    public function register(Container $container): void
+    {
+        self::$log[] = "register:{$this->name}";
+    }
+
+    public function boot(): void
+    {
+        if ($this->booted) {
+            self::$log[] = "boot-skipped:{$this->name}";
+
+            return;
+        }
+
+        $this->booted = true;
+        self::$log[] = "boot:{$this->name}";
+    }
+}
+
+check('CoreServiceProvider::register() does no eager work (no hooks attached, no options changed)', static function () {
+    $actions_before = $GLOBALS['__wp_actions'];
+    $options_before = $GLOBALS['__wp_options'];
+
+    (new CoreServiceProvider())->register(Container::instance());
+
+    return $GLOBALS['__wp_actions'] === $actions_before && $GLOBALS['__wp_options'] === $options_before;
+});
+
+add_action(Hooks::REGISTER_PROVIDERS_ACTION, static function (Elemacy $elemacy) {
+    $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-a'));
+    $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-b'));
+});
+
+do_action('elementor/loaded'); // check_requirements() gates the whole bootstrap on this.
+$elemacy = Elemacy::get_instance();
+
+check('Elemacy::init(): first call registers every provider before booting any of them, then fires LOADED_ACTION and subscribes the native init-hook library-type registrations', static function () use ($elemacy) {
+    FixtureOrderTrackingProvider::$log = [];
+    $loaded_before = did_action(Hooks::LOADED_ACTION);
+    $init_p5_before = count($GLOBALS['__wp_actions']['init'][5] ?? []);
+    $init_p20_before = count($GLOBALS['__wp_actions']['init'][20] ?? []);
+
+    $elemacy->init();
+
+    return FixtureOrderTrackingProvider::$log === ['register:fixture-a', 'register:fixture-b', 'boot:fixture-a', 'boot:fixture-b']
+        && did_action(Hooks::LOADED_ACTION) === $loaded_before + 1
+        && count($GLOBALS['__wp_actions']['init'][5] ?? []) === $init_p5_before + 1
+        && count($GLOBALS['__wp_actions']['init'][20] ?? []) === $init_p20_before + 1;
+});
+
+check('Elemacy::init(): a second (duplicate) call attaches nothing a second time', static function () use ($elemacy) {
+    $admin_enqueue_before = count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []);
+    $loaded_before = did_action(Hooks::LOADED_ACTION);
+    FixtureOrderTrackingProvider::$log = [];
+
+    $elemacy->init();
+    $elemacy->init();
+
+    return FixtureOrderTrackingProvider::$log === []
+        && count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []) === $admin_enqueue_before
+        && did_action(Hooks::LOADED_ACTION) === $loaded_before;
+});
+
+/* ── Task 6.3: hook attachment moved out of constructors ───────────── */
+
+/**
+ * Every shared bootstrap/manager CoreServiceProvider::boot() constructs
+ * directly, now split into a hook-free constructor plus an idempotent
+ * register_hooks() (design.md D7).
+ */
+$fixture_63_classes = [
+    AdminScripts::class,
+    FrontendScripts::class,
+    PluginLinks::class,
+    ConditionsBootstrap::class,
+    LibraryBootstrap::class,
+    PreviewManager::class,
+    PreviewAssets::class,
+    QueryControlManager::class,
+    TemplateAssetsRegistrar::class,
+];
+
+check('constructing any of the task 6.3 bootstrap/manager services attaches no WordPress hooks', static function () use ($fixture_63_classes) {
+    foreach ($fixture_63_classes as $class) {
+        $before = $GLOBALS['__wp_actions'];
+
+        new $class();
+
+        if ($GLOBALS['__wp_actions'] !== $before) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('register_hooks() on each task 6.3 service attaches its hooks, and a second call on the same instance attaches nothing more', static function () use ($fixture_63_classes) {
+    foreach ($fixture_63_classes as $class) {
+        $instance = new $class();
+        $before = $GLOBALS['__wp_actions'];
+
+        $instance->register_hooks();
+        $after_first = $GLOBALS['__wp_actions'];
+
+        if ($after_first === $before) {
+            return false;
+        }
+
+        $instance->register_hooks();
+        $after_second = $GLOBALS['__wp_actions'];
+
+        if ($after_second !== $after_first) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('CoreServiceProvider::boot() wires every service\'s native hooks, and a second boot() call attaches nothing further', static function () {
+    $representative_hooks = [
+        'admin_enqueue_scripts',
+        'wp_enqueue_scripts',
+        'plugin_action_links_' . ELEMACY_PLUGIN_BASE,
+        'save_post',
+        'elementor/editor/before_enqueue_scripts',
+        'elementor/controls/register',
+        'elementor/document/related_posts',
+    ];
+
+    $counts_before = [];
+    foreach ($representative_hooks as $hook) {
+        $counts_before[$hook] = count(array_merge(...array_values($GLOBALS['__wp_actions'][$hook] ?? [[]])));
+    }
+
+    $init_before = count($GLOBALS['__wp_actions']['init'][99] ?? []);
+
+    $provider = new CoreServiceProvider();
+    $provider->boot();
+
+    foreach ($representative_hooks as $hook) {
+        $count_after = count(array_merge(...array_values($GLOBALS['__wp_actions'][$hook] ?? [[]])));
+
+        if ($count_after <= $counts_before[$hook]) {
+            return false;
+        }
+    }
+
+    if (count($GLOBALS['__wp_actions']['init'][99] ?? []) <= $init_before) {
+        return false;
+    }
+
+    $snapshot_after_first_boot = $GLOBALS['__wp_actions'];
+
+    $provider->boot();
+
+    return $GLOBALS['__wp_actions'] === $snapshot_after_first_boot;
+});
+
+/* ── Task 6.4: modules obtain collaborators through providers ──────── */
+
+/**
+ * A Module whose own get_providers()/init() are both directly controllable,
+ * so ModuleManager's own orchestration (not any real module's collaborators,
+ * which need real Elementor) can be exercised in isolation.
+ */
+final class FixtureTrackedModule extends Module
+{
+    /** @var string[] */
+    public static array $log = [];
+
+    private string $name;
+    private array $providers;
+
+    public function __construct(string $name, array $providers = [])
+    {
+        $this->name = $name;
+        $this->providers = $providers;
+    }
+
+    public function get_name(): string
+    {
+        return $this->name;
+    }
+
+    public function get_title(): string
+    {
+        return $this->name;
+    }
+
+    public function get_icon(): string
+    {
+        return '';
+    }
+
+    public function get_description(): string
+    {
+        return '';
+    }
+
+    public function get_providers(): array
+    {
+        return $this->providers;
+    }
+
+    public function init(): void
+    {
+        self::$log[] = "init:{$this->name}";
+    }
+}
+
+check('Module::get_providers() defaults to an empty array when a module declares none', static function () {
+    return [] === (new FixtureTrackedModule('fixture-no-providers'))->get_providers();
+});
+
+check('ModuleManager registers-then-boots each active module\'s own providers before calling its init(), and never touches an inactive module\'s providers', static function () {
+    FixtureOrderTrackingProvider::$log = [];
+    FixtureTrackedModule::$log = [];
+
+    $manager = new ModuleManager();
+    $manager->register(new FixtureTrackedModule('fixture-active', [
+        new FixtureOrderTrackingProvider('module-a'),
+        new FixtureOrderTrackingProvider('module-b'),
+    ]));
+    $manager->register(new FixtureTrackedModule('fixture-inactive', [
+        new FixtureOrderTrackingProvider('module-c'),
+    ]));
+
+    update_option(OptionKeys::ACTIVE_MODULES, ['fixture-active']);
+
+    $manager->init_modules();
+
+    return FixtureOrderTrackingProvider::$log === ['register:module-a', 'register:module-b', 'boot:module-a', 'boot:module-b']
+        && FixtureTrackedModule::$log === ['init:fixture-active']
+        && $manager->is_active('fixture-active')
+        && !$manager->is_active('fixture-inactive');
+});
+
+check('ModuleManager with no modules registered at all still resolves an empty active set without error (the "all-off" configuration)', static function () {
+    update_option(OptionKeys::ACTIVE_MODULES, []);
+
+    $manager = new ModuleManager();
+    $manager->init_modules();
+
+    return [] === $manager->get_active_modules();
+});
+
 /* ── Action hook stub semantics ─────────────────────────────────── */
 
 check('do_action stub fires callbacks in ascending priority order', static function () {
@@ -209,6 +801,49 @@ check('do_action stub fires callbacks in ascending priority order', static funct
     do_action('test/priority-order');
 
     return $order === ['nineteen', 'twenty'];
+});
+
+/* ── Core\CompatibilityChecker (task 9.6 — the evidence-based Elementor
+     version floor) ─────────────────────────────────────────────────── */
+
+check('CompatibilityChecker::MIN_ELEMENTOR_VERSION correctly gates 3.35.9 (tested minimum) and 4.2.3 (tested current) as compatible, and 3.35.8 as not', static function () {
+    return false === version_compare('3.35.9', CompatibilityChecker::MIN_ELEMENTOR_VERSION, '<')
+        && false === version_compare('4.2.3', CompatibilityChecker::MIN_ELEMENTOR_VERSION, '<')
+        && true === version_compare('3.35.8', CompatibilityChecker::MIN_ELEMENTOR_VERSION, '<');
+});
+
+check('CompatibilityChecker::check() does not fail the version gate when ELEMENTOR_VERSION is undefined (a stub/testing environment lacking it) — must run before this file ever defines that constant', static function () {
+    if (defined('ELEMENTOR_VERSION')) {
+        throw new \RuntimeException('ELEMENTOR_VERSION was already defined; this check can no longer prove anything about the undefined case.');
+    }
+
+    $GLOBALS['__wp_actions_fired']['elementor/loaded'] = 1;
+
+    return true === CompatibilityChecker::instance()->check();
+});
+
+// Only ever defined once, deliberately below the tested floor, so the
+// remaining checks below can exercise the "too old" branch — PHP constants
+// cannot be redefined, and the check above already proved the undefined case.
+define('ELEMENTOR_VERSION', '3.0.0');
+
+check('CompatibilityChecker::check() fails and schedules deactivation when the installed Elementor is older than the tested minimum', static function () {
+    $GLOBALS['__wp_actions_fired']['elementor/loaded'] = 1;
+    $GLOBALS['__wp_actions'] = [];
+
+    $result = CompatibilityChecker::instance()->check();
+
+    return false === $result && !empty($GLOBALS['__wp_actions']['admin_notices'])
+        && !empty($GLOBALS['__wp_actions']['admin_init']);
+});
+
+check('CompatibilityChecker::admin_notice_outdated_elementor_version() names both the required and the installed version', static function () {
+    ob_start();
+    CompatibilityChecker::instance()->admin_notice_outdated_elementor_version();
+    $output = ob_get_clean();
+
+    return false !== strpos($output, CompatibilityChecker::MIN_ELEMENTOR_VERSION)
+        && false !== strpos($output, '3.0.0');
 });
 
 /* ── Core\Rendering\TemplateRenderer (Elementor not yet loaded) ─── */
@@ -511,7 +1146,18 @@ check('ClassicCssRenderer::render_dynamic() degrades to empty string when Dynami
     return (new ClassicCssRenderer())->render_dynamic(101, 202, '.scope') === '';
 });
 
-check('ClassicCssRenderer::has_dynamic_settings() degrades to false when Elementor internals are unavailable', static function () {
+check('ClassicCssRenderer::has_dynamic_settings() degrades to false when the Dynamic Tags manager capability is absent (checked via an injected double, independent of this harness\'s own ambient stub state)', static function () {
+    $renderer = new ClassicCssRenderer(new class extends \Elemacy\Core\Integrations\Elementor\Capabilities {
+        public function dynamic_tags_manager(): bool
+        {
+            return false;
+        }
+    });
+
+    return $renderer->has_dynamic_settings(101) === false;
+});
+
+check('ClassicCssRenderer::has_dynamic_settings() returns false for a post with no registered Elementor document (this harness\'s Documents_Manager stub has no entry for post 101)', static function () {
     return (new ClassicCssRenderer())->has_dynamic_settings(101) === false;
 });
 
@@ -546,6 +1192,254 @@ check('ClassicCssRenderer::suppress_automatic_dynamic_css() hooks the filter onl
         && false === apply_filters($hook, true, 222);
 
     return $added <= 1 && $both_suppressed;
+});
+
+/* ── Core\Integrations\Elementor\Capabilities / AtomicElementsAdapter /
+     StylesRendererAdapter (task 9.2 — design.md D9) ─────────────────── */
+
+check('Capabilities reports the exact ambient state of this harness: \Elementor\Plugin, Core\DynamicTags\Manager and Atomic Dynamic_Prop_Type stubbed by elementor-stubs.php (required above) — the three genuinely core/faithfully-stubbed pieces — every genuinely optional Atomic Widgets internal still absent', static function () {
+    $capabilities = new Capabilities();
+
+    return true === $capabilities->plugin_loaded()
+        && true === $capabilities->dynamic_tags_manager()
+        && true === $capabilities->atomic_dynamic_prop_type()
+        && false === $capabilities->classic_css_files()
+        && false === $capabilities->dynamic_css()
+        && false === $capabilities->atomic_widgets()
+        && false === $capabilities->atomic_global_classes()
+        && false === $capabilities->atomic_styles_renderer();
+});
+
+/**
+ * A Capabilities double reporting every capability absent regardless of what
+ * classes actually happen to be loaded in this process — proves the two
+ * adapters' own degradation branches are driven by the injected Capabilities
+ * contract, not incidentally by this particular harness's ambient stub set
+ * (the tests above already cover that ambient case for the real Capabilities
+ * class itself).
+ */
+final class AllCapabilitiesAbsent extends Capabilities
+{
+    public function plugin_loaded(): bool
+    {
+        return false;
+    }
+
+    public function classic_css_files(): bool
+    {
+        return false;
+    }
+
+    public function dynamic_css(): bool
+    {
+        return false;
+    }
+
+    public function dynamic_tags_manager(): bool
+    {
+        return false;
+    }
+
+    public function atomic_widgets(): bool
+    {
+        return false;
+    }
+
+    public function atomic_global_classes(): bool
+    {
+        return false;
+    }
+
+    public function atomic_styles_renderer(): bool
+    {
+        return false;
+    }
+
+    public function atomic_dynamic_prop_type(): bool
+    {
+        return false;
+    }
+}
+
+check('AtomicElementsAdapter::available() is false when the injected Capabilities reports the Atomic capabilities absent', static function () {
+    return false === (new AtomicElementsAdapter(new AllCapabilitiesAbsent()))->available();
+});
+
+check('AtomicElementsAdapter::collect_element_styles() degrades to an empty array when unavailable, never calling into the (here, genuinely absent) Elementor classes', static function () {
+    return [] === (new AtomicElementsAdapter(new AllCapabilitiesAbsent()))->collect_element_styles(101);
+});
+
+check('ElementTreeWalker::walk() invokes its callback zero times when Elementor is not loaded', static function () {
+    $calls = 0;
+    (new ElementTreeWalker(new AllCapabilitiesAbsent()))->walk(101, static function () use (&$calls) {
+        $calls++;
+    });
+
+    return 0 === $calls;
+});
+
+check('ElementTreeWalker::walk() degrades to a no-op, not a fatal, when Plugin exists but its documents/db shape is incomplete', static function () {
+    // A bare stdClass in place of documents/db has neither get() nor
+    // iterate_data() — exactly the "test stub omits it" case this class's
+    // own docblock names, proven here without depending on ambient ordering
+    // in this file (a later section legitimately gives the stub Documents_
+    // Manager a real get()).
+    $plugin = \Elementor\Plugin::instance();
+    $previous_documents = $plugin->documents;
+    $previous_db = $plugin->db;
+    $plugin->documents = new stdClass();
+    $plugin->db = new stdClass();
+
+    $calls = 0;
+
+    try {
+        (new ElementTreeWalker())->walk(101, static function () use (&$calls) {
+            $calls++;
+        });
+    } finally {
+        $plugin->documents = $previous_documents;
+        $plugin->db = $previous_db;
+    }
+
+    return 0 === $calls;
+});
+
+check('ElementTreeWalker::walk() finds a real classic dynamic-tag-bound setting through Elementor\'s core Documents_Manager/Document/DB stubs, with no Atomic Widgets class involved — the exact scenario task 9.3 decouples has_dynamic_settings() to support', static function () {
+    $post_id = 9101;
+    $document = new \Elementor\Core\Base\Document($post_id);
+    $document->elements_data = [[
+        'id' => 'a',
+        'elType' => 'widget',
+        'settings' => ['title' => 'static'],
+        'elements' => [[
+            'id' => 'b',
+            'elType' => 'widget',
+            'settings' => [\Elementor\Core\DynamicTags\Manager::DYNAMIC_SETTING_KEY => ['title' => 'elemacy-post-title']],
+            'elements' => [],
+        ]],
+    ]];
+    \Elementor\Plugin::instance()->documents->by_id[$post_id] = $document;
+
+    $found_settings = [];
+    (new ElementTreeWalker())->walk($post_id, function (array $element_data) use (&$found_settings) {
+        $found_settings[] = $element_data['settings'];
+    });
+
+    $has_dynamic_binding = false;
+    foreach ($found_settings as $settings) {
+        if (!empty($settings[\Elementor\Core\DynamicTags\Manager::DYNAMIC_SETTING_KEY])) {
+            $has_dynamic_binding = true;
+        }
+    }
+
+    // Both elements (outer widget and its nested child) must have been
+    // visited — proves recursion into 'elements', not just the top level.
+    return 2 === count($found_settings) && true === $has_dynamic_binding;
+});
+
+check('ClassicCssRenderer::has_dynamic_settings() returns true for a real classic dynamic-tag binding found through the classic-owned ElementTreeWalker (no Atomic Widgets class exists anywhere in this process)', static function () {
+    $post_id = 9102;
+    $document = new \Elementor\Core\Base\Document($post_id);
+    $document->elements_data = [[
+        'id' => 'c',
+        'elType' => 'widget',
+        'settings' => [\Elementor\Core\DynamicTags\Manager::DYNAMIC_SETTING_KEY => ['heading' => 'elemacy-post-title']],
+        'elements' => [],
+    ]];
+    \Elementor\Plugin::instance()->documents->by_id[$post_id] = $document;
+
+    return true === (new ClassicCssRenderer())->has_dynamic_settings($post_id);
+});
+
+check('ClassicCssRenderer::has_dynamic_settings() returns false for a real classic document with no dynamic-tag binding anywhere', static function () {
+    $post_id = 9103;
+    $document = new \Elementor\Core\Base\Document($post_id);
+    $document->elements_data = [[
+        'id' => 'd',
+        'elType' => 'widget',
+        'settings' => ['heading' => 'plain static text'],
+        'elements' => [],
+    ]];
+    \Elementor\Plugin::instance()->documents->by_id[$post_id] = $document;
+
+    return false === (new ClassicCssRenderer())->has_dynamic_settings($post_id);
+});
+
+check('AtomicElementsAdapter::contains_dynamic_value() falls back to plain structural recursion (never a fatal) when the Dynamic_Prop_Type capability is absent', static function () {
+    $adapter = new AtomicElementsAdapter(new AllCapabilitiesAbsent());
+
+    // A value that WOULD be detected as dynamic by the real/stubbed
+    // Dynamic_Prop_Type::is_dynamic_prop_value() ($$type === 'dynamic') is
+    // invisible to the adapter once that capability is reported absent —
+    // proving the short-circuit is skipped entirely, not silently retried.
+    $would_be_dynamic_if_capability_present = ['$$type' => 'dynamic'];
+    $genuinely_static = ['color' => 'red'];
+
+    return false === $adapter->contains_dynamic_value($would_be_dynamic_if_capability_present)
+        && false === $adapter->contains_dynamic_value($genuinely_static);
+});
+
+check('StylesRendererAdapter::available() is false when the injected Capabilities reports the styles-renderer capability absent', static function () {
+    return false === (new StylesRendererAdapter(new AllCapabilitiesAbsent()))->available();
+});
+
+check('StylesRendererAdapter::render() degrades to an empty string when unavailable, for a non-empty styles array', static function () {
+    return '' === (new StylesRendererAdapter(new AllCapabilitiesAbsent()))->render(['some' => 'style'], '.scope');
+});
+
+check('Core/Rendering renderers no longer call the Elementor internal APIs Capabilities/AtomicElementsAdapter/StylesRendererAdapter now own directly — task 9.2\'s own verify clause', static function () {
+    // Each needle is the exact literal text a removed guard used to contain,
+    // written with real single backslashes exactly as it appears in the
+    // .php source files on disk (a single-quoted PHP string leaves \E, \C,
+    // etc. untouched — only \\ and \' are special).
+    $removed_guards = [
+        "class_exists('\Elementor\Plugin')",
+        "class_exists('\Elementor\Core\Files\CSS\Post')",
+        "class_exists('\Elementor\Core\DynamicTags\Dynamic_CSS')",
+        "class_exists('\Elementor\Core\DynamicTags\Manager')",
+        "class_exists('\Elementor\Modules\AtomicWidgets\Utils\Utils')",
+        "class_exists('\Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils')",
+        "class_exists('\Elementor\Modules\AtomicWidgets\Styles\Styles_Renderer')",
+        "class_exists('\Elementor\Modules\AtomicWidgets\DynamicTags\Dynamic_Prop_Type')",
+    ];
+
+    // ClassicCssRenderer.php still legitimately *uses* Dynamic_CSS/Files\CSS\Post
+    // as concrete return types/instances once its own Capabilities guard has
+    // already passed (that ownership does not move — only the existence
+    // *probe* does); this check targets the removed class_exists() guard
+    // pattern specifically, not every mention of the class name.
+    $files = [
+        dirname(__DIR__, 2) . '/src/Core/Rendering/TemplateRenderer.php',
+        dirname(__DIR__, 2) . '/src/Core/Rendering/TemplateAssetsRegistrar.php',
+        dirname(__DIR__, 2) . '/src/Core/Rendering/AtomicStylesRenderer.php',
+    ];
+
+    foreach ($files as $file) {
+        $contents = file_get_contents($file);
+
+        if (false === $contents) {
+            return false;
+        }
+
+        foreach ($removed_guards as $needle) {
+            if (false !== strpos($contents, $needle)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+});
+
+check('ClassicCssRenderer.php no longer references any Atomic Widgets class at all — task 9.3\'s own verify clause (design.md D9\'s "accidental dependency" fully removed, not merely re-guarded)', static function () {
+    $contents = file_get_contents(dirname(__DIR__, 2) . '/src/Core/Rendering/ClassicCssRenderer.php');
+
+    if (false === $contents) {
+        return false;
+    }
+
+    return false === strpos($contents, 'AtomicWidgets')
+        && false === strpos($contents, 'AtomicElementsAdapter');
 });
 
 /* ── Modules\Widgets\Services\LoopItemStyles ──────────────────────── */
@@ -718,13 +1612,13 @@ check('LoopItemStyles::print_item_css() is a no-op when the template has no dyna
     $atomic = new FakeAtomicStylesRenderer();
 
     ob_start();
-    (new LoopItemStyles($classic, $atomic))->print_item_css(9004, 55);
+    (new LoopItemStyles($classic, $atomic))->print_item_css(9004, 55, 'scoped-55');
     $output = ob_get_clean();
 
     return '' === $output && [] === $classic->dynamic_calls && [] === $atomic->render_dynamic_calls;
 });
 
-check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers when the template has dynamic content', static function () {
+check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers when the template has dynamic content, keyed by the RENDER selector, not the raw item identity', static function () {
     $classic = new FakeClassicCssRenderer();
     $classic->has_dynamic = true;
     $classic->dynamic_css = '.c{color:green;}';
@@ -732,12 +1626,16 @@ check('LoopItemStyles::print_item_css() prints scoped CSS from both renderers wh
     $atomic->dynamic_css = '.d{color:yellow;}';
 
     ob_start();
-    (new LoopItemStyles($classic, $atomic))->print_item_css(9005, 77);
+    // A deliberately DIFFERENT render selector than the raw item identity —
+    // proving the output (style id/selector) is scoped by render identity
+    // (design.md D8), while the raw item identity still reaches
+    // ClassicCssRenderer's own internal token-matching unchanged.
+    (new LoopItemStyles($classic, $atomic))->print_item_css(9005, 77, 'scoped-77');
     $output = ob_get_clean();
 
-    return $output === '<style id="elemacy-loop-item-77">.c{color:green;}.d{color:yellow;}</style>'
-        && $classic->dynamic_calls === [[9005, '77', '.elemacy-loop-item-77']]
-        && $atomic->render_dynamic_calls === [[9005, '.elemacy-loop-item-77']];
+    return $output === '<style id="elemacy-loop-item-scoped-77">.c{color:green;}.d{color:yellow;}</style>'
+        && $classic->dynamic_calls === [[9005, '77', '.elemacy-loop-item-scoped-77']]
+        && $atomic->render_dynamic_calls === [[9005, '.elemacy-loop-item-scoped-77']];
 });
 
 check('LoopItemStyles::print_base_css() suppresses Elementor\'s automatic dynamic CSS for the template before anything else runs', static function () {
@@ -763,9 +1661,9 @@ check('LoopItemStyles caches has_dynamic_content() per template id across multip
     $styles = new LoopItemStyles($classic, $atomic);
 
     ob_start();
-    $styles->print_item_css(9006, 1);
-    $styles->print_item_css(9006, 2);
-    $styles->print_item_css(9006, 3);
+    $styles->print_item_css(9006, 1, 'scoped-1');
+    $styles->print_item_css(9006, 2, 'scoped-2');
+    $styles->print_item_css(9006, 3, 'scoped-3');
     ob_get_clean();
 
     return 1 === $classic->has_dynamic_calls && 1 === $atomic->has_dynamic_calls;
@@ -782,7 +1680,7 @@ $theme_builder_wrapper_path = dirname(__DIR__, 2) . '/src/Modules/ThemeBuilder/V
 
 function reset_wrapper_hooks(): void
 {
-    unset($GLOBALS['__wp_actions']['get_header'], $GLOBALS['__wp_actions']['get_footer']);
+    unset($GLOBALS['__wp_actions']['get_header'], $GLOBALS['__wp_actions']['get_footer'], $GLOBALS['__locate_template_missing']);
     $GLOBALS['__wp_actions_fired']['wp_body_open'] = 0;
 }
 
@@ -872,6 +1770,108 @@ check('GlobalCompatibility does not render the configured header twice when the 
     return $manager->render_header_calls === 1 && did_action('wp_body_open') === 1;
 });
 
+/* ── Core\Capabilities\FeatureAvailability ──────────────────────── */
+
+check('available status carries no reason code or message', static function () {
+    $availability = FeatureAvailability::available();
+
+    return $availability->is_available()
+        && !$availability->is_unavailable()
+        && $availability->get_reason_code() === ''
+        && $availability->get_message() === '';
+});
+
+check('unknown identifier is unavailable and names the identifier', static function () {
+    $availability = FeatureAvailability::unknown_identifier('acme/removed');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER
+        && false !== strpos($availability->get_message(), 'acme/removed');
+});
+
+check('inactive extension is unavailable under its own, distinct reason code', static function () {
+    $availability = FeatureAvailability::inactive_extension('mock/locked');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::EXTENSION_INACTIVE
+        && $availability->get_reason_code() !== FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+check('missing client handler is unavailable under its own, distinct reason code', static function () {
+    $availability = FeatureAvailability::client_handler_missing('trigger/scroll');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::CLIENT_HANDLER_MISSING
+        && $availability->get_reason_code() !== FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+check('unavailable is distinguishable from a false predicate even when both evaluate false', static function () {
+    // Available, but this request's predicate genuinely does not match.
+    $false_predicate = new FixtureCapability(static fn() => false, FeatureAvailability::available());
+    // Cannot run at all — a different reason for the same boolean outcome.
+    $unavailable = new FixtureCapability(static fn() => false, FeatureAvailability::unknown_identifier('x'));
+
+    return $false_predicate->check() === false
+        && $unavailable->check() === false
+        && $false_predicate->availability()->is_available()
+        && $unavailable->availability()->is_unavailable();
+});
+
+check('an empty configured rule set has no unavailable entries', static function () {
+    /** @var FixtureCapability[] $rules */
+    $rules = [];
+
+    $unavailable = array_values(array_filter(
+        $rules,
+        static fn(FixtureCapability $c): bool => $c->availability()->is_unavailable()
+    ));
+
+    // Nothing configured is not the same as something configured-but-unavailable.
+    return $unavailable === [];
+});
+
+check('a configured-but-unavailable rule is reported, unlike an empty set', static function () {
+    $rules = [
+        new FixtureCapability(static fn() => false, FeatureAvailability::unknown_identifier('acme/removed')),
+    ];
+
+    $unavailable = array_values(array_filter(
+        $rules,
+        static fn(FixtureCapability $c): bool => $c->availability()->is_unavailable()
+    ));
+
+    return count($unavailable) === 1
+        && $unavailable[0]->availability()->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+/* ── Core\Cache\PageCachePurger ──────────────────────────────────── */
+
+if (!function_exists('rocket_clean_domain')) {
+    function rocket_clean_domain()
+    {
+        $GLOBALS['__fixture_rocket_clean_domain_calls'] = ($GLOBALS['__fixture_rocket_clean_domain_calls'] ?? 0) + 1;
+    }
+}
+
+$GLOBALS['__cache_purge_signals'] = [];
+add_action(Hooks::CACHE_PURGE_ACTION, static function () {
+    $GLOBALS['__cache_purge_signals'][] = true;
+});
+
+check('PageCachePurger::purge_all() fires the shared cache-purge action for other code to hook', static function () {
+    $GLOBALS['__cache_purge_signals'] = [];
+    PageCachePurger::purge_all();
+
+    return $GLOBALS['__cache_purge_signals'] === [true];
+});
+
+check('PageCachePurger::purge_all() calls a detected page-cache plugin\'s own purge function', static function () {
+    $GLOBALS['__fixture_rocket_clean_domain_calls'] = 0;
+    PageCachePurger::purge_all();
+
+    return $GLOBALS['__fixture_rocket_clean_domain_calls'] === 1;
+});
+
 /* ── ConditionEvaluator semantics ───────────────────────────────── */
 
 $manager = ConditionManager::instance();
@@ -884,6 +1884,23 @@ $evaluator = ConditionEvaluator::instance();
 $rule = static function (string $type, string $operator = 'include'): ConditionRuleDTO {
     return ConditionRuleDTO::from_array(['type' => $type, 'operator' => $operator]);
 };
+
+check('ConditionManager reports a real, registered condition as available', static fn() =>
+    $manager->get_availability('test/yes')->is_available());
+
+check('ConditionManager reports an unregistered identifier as unknown', static function () use ($manager) {
+    $availability = $manager->get_availability('test/unregistered');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+check('ConditionManager reports a mock stand-in as an inactive extension, not unknown', static function () use ($manager) {
+    $availability = $manager->get_availability('mock/locked');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::EXTENSION_INACTIVE;
+});
 
 check('no conditions → show everywhere', static fn() => $evaluator->evaluate([]) === true);
 
@@ -902,17 +1919,394 @@ check('matching exclude vetoes a matching include', static fn() =>
 check('non-matching exclude alone → show everywhere', static fn() =>
     $evaluator->evaluate([$rule('test/no', 'exclude')]) === true);
 
-check('unknown include type is skipped (→ show everywhere)', static fn() =>
-    $evaluator->evaluate([$rule('test/unregistered')]) === true);
+check('unknown-only include suspends rather than showing everywhere', static fn() =>
+    $evaluator->evaluate([$rule('test/unregistered')]) === false);
 
-check('unknown type skipped but real include still decides', static fn() =>
+check('unknown include suspends even though another real include would match', static fn() =>
+    $evaluator->evaluate([$rule('test/unregistered'), $rule('test/yes')]) === false);
+
+check('unknown include suspends the same as a real non-matching include', static fn() =>
     $evaluator->evaluate([$rule('test/unregistered'), $rule('test/no')]) === false);
 
-check('mock include fails closed (pro deactivated → template hidden)', static fn() =>
+check('mock (inactive extension) include suspends (pro deactivated → template hidden)', static fn() =>
     $evaluator->evaluate([$rule('mock/locked')]) === false);
 
-check('mock exclude never vetoes (check is false)', static fn() =>
-    $evaluator->evaluate([$rule('mock/locked', 'exclude'), $rule('test/yes')]) === true);
+check('mock (inactive extension) exclude suspends rather than failing to veto', static fn() =>
+    $evaluator->evaluate([$rule('mock/locked', 'exclude'), $rule('test/yes')]) === false);
+
+/* ── Popups\Services\RuleManager / TriggerManager availability ──── */
+
+$rule_manager = RuleManager::instance();
+$rule_manager->register(new FixedRule());
+$rule_manager->register(new FixedMockRule());
+
+check('RuleManager reports a real, registered rule as available', static fn() =>
+    $rule_manager->get_availability('test/rule')->is_available());
+
+check('RuleManager reports an unregistered rule identifier as unknown', static function () use ($rule_manager) {
+    $availability = $rule_manager->get_availability('test/unregistered-rule');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+check('RuleManager reports a mock rule as an inactive extension, not unknown', static function () use ($rule_manager) {
+    $availability = $rule_manager->get_availability('mock/rule');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+$trigger_manager = TriggerManager::instance();
+$trigger_manager->register(new FixedTrigger());
+$trigger_manager->register(new FixedMockTrigger());
+
+check('TriggerManager reports a real, registered trigger as available', static fn() =>
+    $trigger_manager->get_availability('test/trigger')->is_available());
+
+check('TriggerManager reports an unregistered trigger identifier as unknown', static function () use ($trigger_manager) {
+    $availability = $trigger_manager->get_availability('test/unregistered-trigger');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+check('TriggerManager reports a mock trigger as an inactive extension, not unknown', static function () use ($trigger_manager) {
+    $availability = $trigger_manager->get_availability('mock/trigger');
+
+    return $availability->is_unavailable()
+        && $availability->get_reason_code() === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+/* ── Task 10.1: RegistryIdentifierGuard — reserved/duplicate identifiers ── */
+/* Each check uses a fresh registry instance so it can never disturb the   */
+/* shared $manager/$rule_manager/$trigger_manager singletons above.        */
+
+final class NamedFixtureRule extends BaseRule
+{
+    private string $name;
+    private string $label;
+
+    public function __construct(string $name, string $label = 'Fixture rule')
+    {
+        $this->name  = $name;
+        $this->label = $label;
+    }
+
+    public function get_name(): string
+    {
+        return $this->name;
+    }
+
+    public function get_label(): string
+    {
+        return $this->label;
+    }
+}
+
+final class NamedFixtureTrigger extends BaseTrigger
+{
+    private string $name;
+    private string $label;
+
+    public function __construct(string $name, string $label = 'Fixture trigger')
+    {
+        $this->name  = $name;
+        $this->label = $label;
+    }
+
+    public function get_name(): string
+    {
+        return $this->name;
+    }
+
+    public function get_label(): string
+    {
+        return $this->label;
+    }
+}
+
+check('ConditionManager rejects registering the reserved identifier "type"', static function () {
+    try {
+        (new ConditionManager())->register(new FixedCondition('type', true));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('ConditionManager rejects two distinct non-mock conditions claiming the same name', static function () {
+    $registry = new ConditionManager();
+    $registry->register(new FixedCondition('dup/fixture-condition', true));
+
+    try {
+        // Same class, different content (matches=false vs true) — genuinely
+        // distinct registrations, not an idempotent re-declaration.
+        $registry->register(new FixedCondition('dup/fixture-condition', false));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('ConditionManager tolerates re-registering an identical condition under a name it already owns', static function () {
+    $registry = new ConditionManager();
+    $registry->register(new FixedCondition('idempotent/fixture-condition', true));
+    $registry->register(new FixedCondition('idempotent/fixture-condition', true));
+
+    return $registry->get('idempotent/fixture-condition') instanceof FixedCondition;
+});
+
+check('ConditionManager still allows a real condition to override a mock of the same name (extension activation)', static function () {
+    $registry = new ConditionManager();
+    $registry->register(new FixedMockCondition());
+    $registry->register(new FixedCondition('mock/locked', true));
+
+    return $registry->get('mock/locked') instanceof FixedCondition
+        && $registry->get_availability('mock/locked')->is_available();
+});
+
+check('RuleManager rejects registering the reserved identifier "id"', static function () {
+    try {
+        (new RuleManager())->register(new NamedFixtureRule('id'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleManager rejects two distinct non-mock rules claiming the same name', static function () {
+    $registry = new RuleManager();
+    $registry->register(new NamedFixtureRule('dup/fixture-rule', 'A'));
+
+    try {
+        $registry->register(new NamedFixtureRule('dup/fixture-rule', 'B'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleManager still allows a real rule to override a mock of the same name (extension activation)', static function () {
+    $registry = new RuleManager();
+    $registry->register(new FixedMockRule());
+    $registry->register(new NamedFixtureRule('mock/rule', 'Now real'));
+
+    return $registry->get('mock/rule') instanceof NamedFixtureRule
+        && $registry->get_availability('mock/rule')->is_available();
+});
+
+check('TriggerManager rejects registering the reserved identifier "unknown"', static function () {
+    try {
+        (new TriggerManager())->register(new NamedFixtureTrigger('unknown'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TriggerManager rejects two distinct non-mock triggers claiming the same name', static function () {
+    $registry = new TriggerManager();
+    $registry->register(new NamedFixtureTrigger('dup/fixture-trigger', 'A'));
+
+    try {
+        $registry->register(new NamedFixtureTrigger('dup/fixture-trigger', 'B'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TriggerManager still allows a real trigger to override a mock of the same name (extension activation)', static function () {
+    $registry = new TriggerManager();
+    $registry->register(new FixedMockTrigger());
+    $registry->register(new NamedFixtureTrigger('mock/trigger', 'Now real'));
+
+    return $registry->get('mock/trigger') instanceof NamedFixtureTrigger
+        && $registry->get_availability('mock/trigger')->is_available();
+});
+
+/* ── Task 10.2: RuleTriggerParams — discriminator/shape guard ──────── */
+
+check('RuleTriggerParams::assert_valid() refuses a params payload that tries to set "type"', static function () {
+    try {
+        RuleTriggerParams::assert_valid('rules', ['type' => 'frequency_cap', 'max' => 3]);
+    } catch (\Elemacy\Core\Exceptions\ValidationException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleTriggerParams::assert_valid() refuses a params payload that tries to set "id"', static function () {
+    try {
+        RuleTriggerParams::assert_valid('triggers', ['id' => 'forged', 'delay' => 30]);
+    } catch (\Elemacy\Core\Exceptions\ValidationException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleTriggerParams::assert_valid() refuses a nested-array/object parameter value', static function () {
+    try {
+        RuleTriggerParams::assert_valid('rules', ['roles' => [['nested' => 'array']]]);
+    } catch (\Elemacy\Core\Exceptions\ValidationException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleTriggerParams::assert_valid() accepts every currently registered schema shape (scalar and flat scalar-list)', static function () {
+    RuleTriggerParams::assert_valid('rules', ['max' => 3]);
+    RuleTriggerParams::assert_valid('rules', ['url' => 'https://example.com']);
+    RuleTriggerParams::assert_valid('rules', ['roles' => ['administrator', 'editor']]);
+    RuleTriggerParams::assert_valid('rules', ['start' => '', 'end' => '2030-01-01T00:00:00']);
+
+    return true; // No exception thrown for any legitimate shape above.
+});
+
+check('RuleDTO::collection_or_fail() rejects a rule whose params attempts to override "type"', static function () {
+    try {
+        RuleDTO::collection_or_fail([
+            ['id' => 'r1', 'type' => 'frequency_cap', 'params' => ['type' => 'logged_in', 'max' => 3]],
+        ]);
+    } catch (\Elemacy\Core\Exceptions\ValidationException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TriggerDTO::collection_or_fail() rejects a trigger whose params attempts to override "type"', static function () {
+    try {
+        TriggerDTO::collection_or_fail([
+            ['id' => 't1', 'type' => 'page_load', 'params' => ['type' => 'click']],
+        ]);
+    } catch (\Elemacy\Core\Exceptions\ValidationException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('RuleDTO::collection_or_fail() still accepts a normal, legitimate rule unchanged', static function () {
+    $rules = RuleDTO::collection_or_fail([
+        ['id' => 'r1', 'type' => 'frequency_cap', 'params' => ['max' => 5]],
+    ]);
+
+    return count($rules) === 1
+        && $rules[0]->type === 'frequency_cap'
+        && $rules[0]->params === ['max' => 5];
+});
+
+check('BaseRule::to_js_config() default implementation cannot be spoofed by a malicious params["type"] even if constructed directly (defense in depth, bypassing collection_or_fail())', static function () {
+    $rule = new NamedFixtureRule('real/rule');
+    $dto = new RuleDTO();
+    $dto->type = 'real/rule';
+    $dto->params = ['type' => 'attacker-controlled', 'note' => 'x'];
+
+    $config = $rule->to_js_config($dto);
+
+    return $config['type'] === 'real/rule' && $config['note'] === 'x';
+});
+
+check('BaseTrigger::to_js_config() default implementation cannot be spoofed by a malicious params["type"] even if constructed directly (defense in depth, bypassing collection_or_fail())', static function () {
+    $trigger = new NamedFixtureTrigger('real/trigger');
+    $dto = new TriggerDTO();
+    $dto->type = 'real/trigger';
+    $dto->params = ['type' => 'attacker-controlled'];
+
+    $config = $trigger->to_js_config($dto);
+
+    return $config['type'] === 'real/trigger';
+});
+
+check('BaseRule::to_js_config() still serializes a normal rule\'s params unchanged (no regression from the merge-order fix)', static function () {
+    $rule = new NamedFixtureRule('plain/rule');
+    $dto = new RuleDTO();
+    $dto->type = 'plain/rule';
+    $dto->params = ['max' => 7];
+
+    return $rule->to_js_config($dto) === ['max' => 7, 'type' => 'plain/rule'];
+});
+
+/* ── Task 10.3: type-list resources expose availability too ────────── */
+
+check('RuleTypeResource reports availability:available for a real, registered rule', static function () {
+    $data = (new RuleTypeResource(new NamedFixtureRule('real/rule')))->to_array();
+
+    return $data['availability']['available'] === true && $data['availability']['reason_code'] === '';
+});
+
+check('RuleTypeResource reports availability:unavailable (inactive_extension) for a Mock rule, without exposing it as an unknown identifier', static function () {
+    $data = (new RuleTypeResource(new FixedMockRule()))->to_array();
+
+    return $data['availability']['available'] === false
+        && $data['availability']['reason_code'] === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+check('TriggerTypeResource reports availability:available for a real, registered trigger', static function () {
+    $data = (new TriggerTypeResource(new NamedFixtureTrigger('real/trigger')))->to_array();
+
+    return $data['availability']['available'] === true;
+});
+
+check('TriggerTypeResource reports availability:unavailable (inactive_extension) for a Mock trigger', static function () {
+    $data = (new TriggerTypeResource(new FixedMockTrigger()))->to_array();
+
+    return $data['availability']['available'] === false
+        && $data['availability']['reason_code'] === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+check('ConditionTypeResource reports availability:available for a real, registered condition', static function () {
+    $data = (new ConditionTypeResource(new FixedCondition('real/condition', true)))->to_array();
+
+    return $data['availability']['available'] === true;
+});
+
+check('ConditionTypeResource reports availability:unavailable (inactive_extension) for a Mock condition', static function () {
+    $data = (new ConditionTypeResource(new FixedMockCondition()))->to_array();
+
+    return $data['availability']['available'] === false
+        && $data['availability']['reason_code'] === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+check('PopupConfigResource omits a trigger whose type is not registered instead of forwarding raw type/params (task 10.3: never expose an identifier/params pair the server does not recognize)', static function () {
+    TriggerManager::instance()->register(new NamedFixtureTrigger('elemacy_fixture/known_trigger'));
+
+    $popup = new PopupDTO();
+    $popup->id = 909001;
+    $popup->type = 'popup';
+    $popup->triggers = [
+        ['id' => 't1', 'type' => 'elemacy_fixture/known_trigger', 'params' => []],
+        ['id' => 't2', 'type' => 'elemacy_fixture/totally_unregistered_trigger', 'params' => ['evil' => true]],
+    ];
+
+    $config = (new PopupConfigResource($popup))->to_array();
+
+    return count($config['triggers']) === 1 && $config['triggers'][0]['type'] === 'elemacy_fixture/known_trigger';
+});
+
+check('PopupConfigResource omits a rule whose type is not registered instead of forwarding raw type/params', static function () {
+    $popup = new PopupDTO();
+    $popup->id = 909002;
+    $popup->type = 'popup';
+    $popup->rules = [
+        ['id' => 'r1', 'type' => 'elemacy_fixture/totally_unregistered_rule', 'params' => ['evil' => true]],
+    ];
+
+    $config = (new PopupConfigResource($popup))->to_array();
+
+    return $config['rules'] === [];
+});
 
 /* ── Migrator ordering, range and stamping ──────────────────────── */
 
@@ -924,12 +2318,13 @@ check('runs due migrations in ascending version order', static function () {
     return $versions === ['1.0.5', '1.2.0', '1.10.0'];
 });
 
-check('stamps DB version after the last completed step', static function () {
-    update_option(OptionKeys::DB_VERSION, '1.0.0');
+check('stamps SCHEMA version (not DB_VERSION/release version) after the last completed step', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
     $migrator = new RecordingMigrator();
     $migrator->run('1.0.0', '2.0.0');
 
-    return get_option(OptionKeys::DB_VERSION) === '1.10.0';
+    return get_option(OptionKeys::SCHEMA_VERSION) === '1.10.0'
+        && get_option(OptionKeys::DB_VERSION) === false;
 });
 
 check('skips migrations at or below the installed version', static function () {
@@ -959,6 +2354,400 @@ check('callbacks receive (from, to)', static function () {
 
     return $migrator->log[0][1] === '1.0.0' && $migrator->log[0][2] === '2.0.0';
 });
+
+/* ── Task 11.5: Migrator::sync() — schema version separate from release ── */
+
+final class EmptyMigrator extends SchemaFlowMigrator
+{
+    protected function migrations(): array
+    {
+        return [];
+    }
+}
+
+final class FailingStepMigrator extends SchemaFlowMigrator
+{
+    public array $log = [];
+
+    protected function migrations(): array
+    {
+        return [
+            '1.0.0' => function ($from, $to) {
+                $this->log[] = '1.0.0';
+            },
+            '2.0.0' => function ($from, $to) {
+                throw new \RuntimeException('simulated failure');
+            },
+            '3.0.0' => function ($from, $to) {
+                $this->log[] = '3.0.0';
+            },
+        ];
+    }
+}
+
+check('EmptyMigrator::latest_version() is the baseline sentinel when no migrations are registered', static function () {
+    return (new EmptyMigrator())->latest_version() === Migrator::BASELINE_VERSION;
+});
+
+check('RecordingMigrator::latest_version() returns the highest registered version, not lexicographic order', static function () {
+    // '1.10.0' > '1.2.0' by version_compare(); lexicographic string sort would get this wrong.
+    return (new RecordingMigrator())->latest_version() === '1.10.0';
+});
+
+check('sync() on a clean/fresh install seeds straight to latest_version() and runs nothing', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
+    $migrator = new RecordingMigrator();
+    $migrator->sync(true);
+
+    return $migrator->log === []
+        && get_option(OptionKeys::SCHEMA_VERSION) === '1.10.0';
+});
+
+check('sync() on an existing (non-fresh) install with no prior schema marker seeds at BASELINE and runs every migration', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
+    $migrator = new RecordingMigrator();
+    $migrator->sync(false);
+
+    return array_column($migrator->log, 0) === ['1.0.5', '1.2.0', '1.10.0']
+        && get_option(OptionKeys::SCHEMA_VERSION) === '1.10.0';
+});
+
+check('a repeated sync() call never replays already-completed migrations', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
+    $migrator = new RecordingMigrator();
+    $migrator->sync(false);
+    $first_run_count = count($migrator->log);
+
+    $migrator->sync(false); // same site, same request-independent call, nothing new to do.
+
+    return $first_run_count === 3 && count($migrator->log) === 3;
+});
+
+check('a failed migration step does not advance the schema marker past it, and a later sync() resumes from there rather than replaying the completed step', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
+    $migrator = new FailingStepMigrator();
+
+    try {
+        $migrator->sync(false);
+        return false; // the simulated failure must propagate.
+    } catch (\RuntimeException $e) {
+        // Marker must sit at the last *successful* step, not the one that threw.
+        if (get_option(OptionKeys::SCHEMA_VERSION) !== '1.0.0') {
+            return false;
+        }
+    }
+
+    // A later attempt (e.g. the next request) must not replay 1.0.0's already-applied step.
+    $migrator2 = new FailingStepMigrator();
+    try {
+        $migrator2->sync(false);
+        return false;
+    } catch (\RuntimeException $e) {
+        return $migrator2->log === []; // 1.0.0 never re-ran; it failed again at 2.0.0 before reaching 3.0.0's log entry.
+    }
+});
+
+check('sync() never lowers a newer schema version on a downgrade (older code registers fewer migrations)', static function () {
+    update_option(OptionKeys::SCHEMA_VERSION, '5.0.0'); // simulates a newer release's already-completed schema state.
+    $migrator = new RecordingMigrator(); // this "older" build's own ceiling (1.10.0) is below the stored marker.
+    $migrator->sync(false);
+
+    return $migrator->log === []
+        && get_option(OptionKeys::SCHEMA_VERSION) === '5.0.0';
+});
+
+/* ── Task 11.6: BatchCursor — resumable offset + expiring lock ─────── */
+
+check('BatchCursor::get_offset() defaults to 0 for a never-used name', static function () {
+    return (new BatchCursor('fixture_batch_' . uniqid()))->get_offset() === 0;
+});
+
+check('BatchCursor::advance() persists the offset for a later cursor instance of the same name', static function () {
+    $name = 'fixture_batch_' . uniqid();
+    (new BatchCursor($name))->advance(150);
+
+    return (new BatchCursor($name))->get_offset() === 150;
+});
+
+check('BatchCursor::complete() resets the offset back to 0', static function () {
+    $name = 'fixture_batch_' . uniqid();
+    $cursor = new BatchCursor($name);
+    $cursor->advance(200);
+    $cursor->complete();
+
+    return $cursor->get_offset() === 0;
+});
+
+/* ── Task 11.6: resumable multi-batch migration + concurrency lock ── */
+
+/**
+ * A migration whose single step processes one fixed-size batch per call via
+ * a real BatchCursor, returning false (not yet complete) until every batch
+ * is done — proving Migrator::run()'s "false means not yet complete, don't
+ * advance the marker, try again on a later sync()" contract end to end,
+ * exactly the shape task 14.2's real counter-consolidation migration will
+ * use.
+ */
+final class ResumableBatchMigrator extends SchemaFlowMigrator
+{
+    public const TOTAL_ITEMS = 25;
+    public const BATCH_SIZE = 10;
+
+    public array $processed = [];
+
+    protected string $cursor_name;
+
+    public function __construct()
+    {
+        // A fresh, non-recyclable name per instance — spl_object_id() can be
+        // reused after garbage collection within one long-running script.
+        $this->cursor_name = 'fixture_resumable_' . uniqid('', true);
+    }
+
+    protected function migrations(): array
+    {
+        return [
+            '1' => [$this, 'consolidate'],
+        ];
+    }
+
+    public function consolidate($from, $to)
+    {
+        $cursor = new SchemaFlowCursor($this->cursor_name);
+
+        if (!$cursor->acquire_lock()) {
+            return false;
+        }
+
+        try {
+            $offset = $cursor->get_offset();
+            $remaining = self::TOTAL_ITEMS - $offset;
+
+            if ($remaining <= 0) {
+                $cursor->complete();
+                return true;
+            }
+
+            $batch = min(self::BATCH_SIZE, $remaining);
+            for ($i = 0; $i < $batch; $i++) {
+                $this->processed[] = $offset + $i;
+            }
+            $cursor->advance($offset + $batch);
+
+            return $offset + $batch >= self::TOTAL_ITEMS ? true : false;
+        } finally {
+            $cursor->release_lock();
+        }
+    }
+}
+
+check('a migration returning false does not advance the schema marker, and interruption resumes from the last successful batch rather than restarting', static function () {
+    delete_option(OptionKeys::SCHEMA_VERSION);
+    $migrator = new ResumableBatchMigrator();
+
+    // 25 items / batches of 10 = 3 sync() calls to finish (10, 10, 5).
+    $migrator->sync(false);
+    $after_first = [$migrator->processed, get_option(OptionKeys::SCHEMA_VERSION)];
+
+    $migrator->sync(false);
+    $after_second = [$migrator->processed, get_option(OptionKeys::SCHEMA_VERSION)];
+
+    $migrator->sync(false);
+    $after_third = [$migrator->processed, get_option(OptionKeys::SCHEMA_VERSION)];
+
+    // sync() seeds the marker at Migrator::BASELINE_VERSION on its first
+    // call (schema_version was unset); it only advances to the migration's
+    // own version ('1') once consolidate() finally returns non-false.
+    return $after_first === [range(0, 9), Migrator::BASELINE_VERSION]
+        && $after_second === [range(0, 19), Migrator::BASELINE_VERSION]
+        && $after_third === [range(0, 24), '1'];
+});
+
+/* ── Task 11.7: SiteBatchIterator ──────────────────────────────────── */
+
+check('SiteBatchIterator::process_batch() pages through sites in bounded batches and reports has_more correctly', static function () {
+    $GLOBALS['__wp_multisite_sites'] = range(1, 12);
+    $iterator = new SiteBatchIterator();
+    $seen = [];
+    $visit = static function (int $site_id) use (&$seen) {
+        $seen[] = $site_id;
+    };
+
+    $first = $iterator->process_batch($visit, 0, 5);
+    $second = $iterator->process_batch($visit, 5, 5);
+    $third = $iterator->process_batch($visit, 10, 5);
+
+    return $first === ['processed' => 5, 'has_more' => true]
+        && $second === ['processed' => 5, 'has_more' => true]
+        && $third === ['processed' => 2, 'has_more' => false]
+        && $seen === range(1, 12);
+});
+
+check('SiteBatchIterator::process_batch() switches into each site for the callback and restores the prior blog afterward', static function () {
+    $GLOBALS['__wp_multisite_sites'] = [101, 102, 103];
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+    $seen_during_callback = [];
+
+    (new SiteBatchIterator())->process_batch(static function () use (&$seen_during_callback) {
+        $seen_during_callback[] = $GLOBALS['__wp_current_blog_id'];
+    }, 0, 10);
+
+    return $seen_during_callback === [101, 102, 103]
+        && $GLOBALS['__wp_current_blog_id'] === 1
+        && $GLOBALS['__wp_blog_stack'] === [];
+});
+
+check('SiteBatchIterator::process_batch() restores the prior blog via finally even when the callback throws, and abandons the rest of the batch', static function () {
+    $GLOBALS['__wp_multisite_sites'] = [201, 202, 203];
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+    $processed = [];
+
+    try {
+        (new SiteBatchIterator())->process_batch(static function (int $site_id) use (&$processed) {
+            $processed[] = $site_id;
+
+            if ($site_id === 202) {
+                throw new RuntimeException('boom');
+            }
+        }, 0, 10);
+
+        return false; // The failure must propagate, not be swallowed.
+    } catch (RuntimeException $e) {
+        return $e->getMessage() === 'boom'
+            && $processed === [201, 202]
+            && $GLOBALS['__wp_current_blog_id'] === 1
+            && $GLOBALS['__wp_blog_stack'] === [];
+    }
+});
+
+check('SiteBatchIterator::process_batch() with a sub-one limit does nothing', static function () {
+    $GLOBALS['__wp_multisite_sites'] = [301, 302];
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+
+    $result = (new SiteBatchIterator())->process_batch(static function () {
+        throw new RuntimeException('must not be called');
+    }, 0, 0);
+
+    return $result === ['processed' => 0, 'has_more' => false] && $GLOBALS['__wp_current_blog_id'] === 1;
+});
+
+/* ── Task 11.7: Elemacy — bounded network seeding + lazy per-site fallback ── */
+
+check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($elemacy) {
+    delete_option(OptionKeys::ACTIVE_MODULES);
+
+    $ref = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
+    $ref->setAccessible(true);
+    $ref->invoke($elemacy);
+
+    $seeded = get_option(OptionKeys::ACTIVE_MODULES);
+
+    // A second call — nothing WordPress core itself would ever trigger
+    // twice, but exactly what a lazily-caught-up site's own next request
+    // does — must not clobber a value an admin may have since customized
+    // (including deliberately disabling every module, an empty array,
+    // which is falsy but must still count as "already seeded").
+    update_option(OptionKeys::ACTIVE_MODULES, []);
+    $ref->invoke($elemacy);
+    $after_customization = get_option(OptionKeys::ACTIVE_MODULES);
+
+    return $seeded === ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups']
+        && $after_customization === [];
+});
+
+check('Elemacy::maybe_continue_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($elemacy) {
+    $GLOBALS['__wp_multisite'] = false;
+    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 5);
+
+    $elemacy->maybe_continue_network_seeding();
+
+    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION) === 5;
+});
+
+check('Elemacy::maybe_continue_network_seeding() does nothing when no network seed is in progress', static function () use ($elemacy) {
+    $GLOBALS['__wp_multisite'] = true;
+    delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
+    $GLOBALS['__wp_multisite_sites'] = [9001, 9002]; // would be processed if this ran.
+
+    $elemacy->maybe_continue_network_seeding();
+
+    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false) === false;
+});
+
+check('Elemacy::maybe_continue_network_seeding() resumes a network of over 100 sites in bounded batches across separate requests, never in one unbounded pass', static function () use ($elemacy) {
+    $GLOBALS['__wp_multisite'] = true;
+    $GLOBALS['__wp_multisite_sites'] = range(20001, 20000 + 150); // 150 sites, > NETWORK_SEED_BATCH_SIZE (100).
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+    // Mirrors what activation_actions()'s own registration hook closure does
+    // for a network activation: seed the offset at 0, then run one bounded
+    // pass — leaving the job interrupted with 50 sites still unseeded.
+    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 0);
+
+    $elemacy->maybe_continue_network_seeding(); // The activation request's own first bounded pass.
+    $offset_after_first_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+
+    $elemacy->maybe_continue_network_seeding(); // A later request's plugins_loaded resumes it.
+    $offset_after_second_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+
+    // A third call must be a safe no-op: the job is already gone.
+    $elemacy->maybe_continue_network_seeding();
+    $offset_after_third_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+
+    return $offset_after_first_pass === 100
+        && $offset_after_second_pass === false
+        && $offset_after_third_pass === false
+        && $GLOBALS['__wp_current_blog_id'] === 1
+        && $GLOBALS['__wp_blog_stack'] === [];
+});
+
+check('Elemacy activation_actions(): a newly-created site under network activation is seeded via wp_initialize_site, switching and restoring the blog context', static function () use ($elemacy) {
+    $GLOBALS['__wp_plugin_active_for_network'] = true;
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+    delete_option(OptionKeys::ACTIVE_MODULES); // So seed_site()'s add_option() below is observable.
+
+    // An earlier, unrelated CompatibilityChecker test deliberately wipes
+    // $GLOBALS['__wp_actions'] entirely to isolate its own assertions, which
+    // also discards the wp_initialize_site listener this instance's
+    // constructor registered back at bootstrap. Re-registering here (a
+    // second call to this same public, idempotent-registration method) is
+    // what makes the listener present again to dispatch below, regardless
+    // of that earlier wipe.
+    $elemacy->activation_actions();
+
+    do_action('wp_initialize_site', (object) ['blog_id' => 777]);
+
+    return get_option(OptionKeys::ACTIVE_MODULES) === ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups']
+        && $GLOBALS['__wp_current_blog_id'] === 1
+        && $GLOBALS['__wp_blog_stack'] === [];
+});
+
+check('Elemacy activation_actions(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($elemacy) {
+    $GLOBALS['__wp_plugin_active_for_network'] = false;
+    $GLOBALS['__wp_current_blog_id'] = 1;
+    $GLOBALS['__wp_blog_stack'] = [];
+    delete_option(OptionKeys::ACTIVE_MODULES);
+    $elemacy->activation_actions();
+
+    do_action('wp_initialize_site', (object) ['blog_id' => 778]);
+
+    $unseeded = get_option(OptionKeys::ACTIVE_MODULES, null) === null;
+    $GLOBALS['__wp_plugin_active_for_network'] = true; // restore the shared default for any later test.
+
+    return $unseeded && $GLOBALS['__wp_current_blog_id'] === 1 && $GLOBALS['__wp_blog_stack'] === [];
+});
+
+// Leave the shared multisite globals in a neutral, single-site state for
+// anything that runs later, matching how they started.
+$GLOBALS['__wp_multisite'] = false;
+$GLOBALS['__wp_multisite_sites'] = [];
+$GLOBALS['__wp_blog_stack'] = [];
+$GLOBALS['__wp_current_blog_id'] = 1;
+delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
 
 /* ── Sanitizer rules ────────────────────────────────────────────── */
 
@@ -1081,6 +2870,34 @@ check('LoopContext push/pop tracks the innermost item, and unwinds to the outer 
         && $seen_outer_again === $outer && $seen_after_all_popped === null;
 });
 
+/* ── Task 7.1: Loop/ canonical move, old paths kept as class_alias()es ── */
+
+check('Elemacy\Modules\Widgets\Contracts\LoopItemInterface is a real alias of Elemacy\Loop\Contracts\LoopItemInterface, not a copy', static function () {
+    return LoopItemInterface::class !== \Elemacy\Loop\Contracts\LoopItemInterface::class
+        && is_a(LoopItemInterface::class, \Elemacy\Loop\Contracts\LoopItemInterface::class, true);
+});
+
+check('Elemacy\Modules\Widgets\DTO\LoopResultDTO is a real alias of Elemacy\Loop\DTO\LoopResultDTO, not a copy', static function () {
+    return LoopResultDTO::class !== \Elemacy\Loop\DTO\LoopResultDTO::class
+        && is_a(LoopResultDTO::class, \Elemacy\Loop\DTO\LoopResultDTO::class, true);
+});
+
+check('old Modules\Widgets\Services\LoopContext and new Loop\LoopContext push()/pop()/current() share the exact same stack', static function () {
+    $item = new FixedLoopItem('shared-stack-probe');
+
+    LoopContext::push($item); // old path
+    $seen_via_new_path = \Elemacy\Loop\LoopContext::current();
+    \Elemacy\Loop\LoopContext::pop(); // new path
+    $seen_via_old_path_after = LoopContext::current();
+
+    return $seen_via_new_path === $item && $seen_via_old_path_after === null;
+});
+
+check('an existing LoopItemInterface implementation (PostLoopItem, declared against the old path) satisfies the canonical Loop\Contracts\LoopItemInterface without adding methods', static function () {
+    return (new ReflectionClass(\Elemacy\Modules\Widgets\LoopItems\PostLoopItem::class))
+        ->implementsInterface(\Elemacy\Loop\Contracts\LoopItemInterface::class);
+});
+
 /* ── Modules\Widgets\Services\LoopDataSourceRegistry ──────────────── */
 
 final class FixedLoopDataSource implements LoopDataSourceInterface
@@ -1149,6 +2966,344 @@ check('LoopDataSourceRegistry::instance() returns the same instance across calls
     return LoopDataSourceRegistry::instance() === LoopDataSourceRegistry::instance();
 });
 
+/* ── Task 10.1: RegistryIdentifierGuard on LoopDataSourceRegistry/       ── */
+/* TypeRegistry — neither has a mock-stand-in concept, so a duplicate is   */
+/* tolerated only when it is an identical re-declaration (PHP's loose      */
+/* object equality: same class, equal property values).                   */
+
+final class ConflictingFixedLoopDataSource implements LoopDataSourceInterface
+{
+    protected string $key;
+
+    public function __construct(string $key)
+    {
+        $this->key = $key;
+    }
+
+    public function get_key(): string
+    {
+        return $this->key;
+    }
+
+    public function get_label(): string
+    {
+        return ucfirst($this->key);
+    }
+
+    public function register_controls($widget): void
+    {
+    }
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        return new LoopResultDTO();
+    }
+
+    public function get_ajax_payload(array $settings): array
+    {
+        return [];
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        return [];
+    }
+
+    public function register_preview_controls($document): void
+    {
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        return null;
+    }
+}
+
+check('LoopDataSourceRegistry rejects registering the reserved identifier "type"', static function () {
+    try {
+        (new LoopDataSourceRegistry())->register(new FixedLoopDataSource('type'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('LoopDataSourceRegistry rejects two distinct implementations claiming the same key', static function () {
+    $registry = new LoopDataSourceRegistry();
+    $registry->register(new FixedLoopDataSource('dup-source'));
+
+    try {
+        // A different class (even sharing the parent's fields) is a
+        // genuinely different implementation, not an idempotent re-declaration.
+        $registry->register(new ConflictingFixedLoopDataSource('dup-source'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('LoopDataSourceRegistry tolerates re-registering an identical source under a key it already owns', static function () {
+    $registry = new LoopDataSourceRegistry();
+    $registry->register(new FixedLoopDataSource('idempotent-source'));
+    $registry->register(new FixedLoopDataSource('idempotent-source'));
+
+    return $registry->get('idempotent-source') instanceof FixedLoopDataSource;
+});
+
+check('LoopDataSourceRegistry reports an unregistered key as unavailable and a registered one as available', static function () {
+    $registry = new LoopDataSourceRegistry();
+    $registry->register(new FixedLoopDataSource('available-source'));
+
+    $available = $registry->get_availability('available-source');
+    $unknown   = $registry->get_availability('never-registered-source');
+
+    return $available->is_available()
+        && $unknown->is_unavailable()
+        && $unknown->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+check('LoopDataSourceRegistry::replace() intentionally substitutes an already-registered source that register() would refuse as a conflict (an instrumented test decorator, e.g. tests/integration/fixtures/ObservedLoopSource)', static function () {
+    $registry = new LoopDataSourceRegistry();
+    $original = new FixedLoopDataSource('wrapped-source');
+    $registry->register($original);
+
+    $wrapper = new ConflictingFixedLoopDataSource('wrapped-source');
+    $registry->replace($wrapper);
+
+    return $registry->get('wrapped-source') === $wrapper;
+});
+
+check('LoopDataSourceRegistry::replace() still refuses a reserved identifier', static function () {
+    try {
+        (new LoopDataSourceRegistry())->replace(new FixedLoopDataSource('id'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TypeRegistry rejects registering the reserved identifier "id"', static function () {
+    try {
+        (new TypeRegistry())->register(new TypeDefinition('id', 'Reserved', 'block', 'fixture-extension'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TypeRegistry rejects two distinct type definitions claiming the same name', static function () {
+    $registry = new TypeRegistry();
+    $registry->register(new TypeDefinition('dup/fixture-type', 'A', 'block', 'fixture-extension'));
+
+    try {
+        // Same class, different label — genuinely distinct content, not an
+        // idempotent re-declaration of the exact same type.
+        $registry->register(new TypeDefinition('dup/fixture-type', 'B', 'block', 'fixture-extension'));
+    } catch (\InvalidArgumentException $e) {
+        return true;
+    }
+
+    return false;
+});
+
+check('TypeRegistry tolerates re-registering an identical type definition under a name it already owns', static function () {
+    $registry = new TypeRegistry();
+    $registry->register(new TypeDefinition('idempotent/fixture-type', 'Same', 'block', 'fixture-extension'));
+    $registry->register(new TypeDefinition('idempotent/fixture-type', 'Same', 'block', 'fixture-extension'));
+
+    return $registry->get('idempotent/fixture-type') instanceof TypeDefinition;
+});
+
+check('TypeRegistry reports an unregistered name as unavailable and a registered one as available', static function () {
+    $registry = new TypeRegistry();
+    $registry->register(new TypeDefinition('available/fixture-type', 'Available', 'block', 'fixture-extension'));
+
+    $available = $registry->get_availability('available/fixture-type');
+    $unknown   = $registry->get_availability('never-registered/fixture-type');
+
+    return $available->is_available()
+        && $unknown->is_unavailable()
+        && $unknown->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
+});
+
+/* ── Task 7.2: LoopDataSourceRegistry/LoopItemStyles/LoopItemIdentity/ ── */
+/* LoopItems moved to Loop/, old paths kept as class_alias()es          */
+
+check('old Modules\Widgets\Services\LoopDataSourceRegistry::instance() and new Loop\LoopDataSourceRegistry::instance() are the exact same singleton', static function () {
+    return LoopDataSourceRegistry::instance() === \Elemacy\Loop\LoopDataSourceRegistry::instance();
+});
+
+check('old Modules\Widgets\Services\LoopItemStyles and new Loop\LoopItemStyles share the exact same request-level "already printed" cache', static function () {
+    // print_base_css()'s degrade-to-empty output in this Elementor-less
+    // harness can't distinguish "cached" from "nothing to print" by output
+    // alone, so this reads the static cache directly through BOTH class
+    // names — provable identity, not inference from side effects.
+    ob_start();
+    (new LoopItemStyles())->print_base_css(556); // written through the old path.
+    ob_get_clean();
+
+    $ref = new ReflectionProperty(\Elemacy\Loop\LoopItemStyles::class, 'printed_base_css');
+    $ref->setAccessible(true);
+    $seen_via_new_path = $ref->getValue();
+
+    return isset($seen_via_new_path[556]);
+});
+
+check('Elemacy\Modules\Widgets\Support\LoopItemIdentity is a real alias of Elemacy\Loop\Support\LoopItemIdentity, not a copy', static function () {
+    return LoopItemIdentity::class !== \Elemacy\Loop\Support\LoopItemIdentity::class
+        && is_a(LoopItemIdentity::class, \Elemacy\Loop\Support\LoopItemIdentity::class, true);
+});
+
+check('old Modules\Widgets\LoopItems\{Post,Term,User}LoopItem are real aliases of their Loop\LoopItems canonical classes, not copies', static function () {
+    return is_a(\Elemacy\Modules\Widgets\LoopItems\PostLoopItem::class, \Elemacy\Loop\LoopItems\PostLoopItem::class, true)
+        && is_a(\Elemacy\Modules\Widgets\LoopItems\TermLoopItem::class, \Elemacy\Loop\LoopItems\TermLoopItem::class, true)
+        && is_a(\Elemacy\Modules\Widgets\LoopItems\UserLoopItem::class, \Elemacy\Loop\LoopItems\UserLoopItem::class, true);
+});
+
+/* ── Task 7.3: Loop\SourceDefinition assembles narrow query/controls/    ── */
+/* preview/public-policy collaborators behind the legacy aggregate adapter */
+
+final class FixtureSourceQuery implements LoopSourceQueryInterface
+{
+    public array $get_items_calls = [];
+    public array $sanitize_calls = [];
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        $this->get_items_calls[] = $settings;
+
+        return new LoopResultDTO([], 3, 1, true);
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        $this->sanitize_calls[] = [$raw_settings, $paged];
+
+        return ['sanitized' => true, 'paged' => $paged];
+    }
+}
+
+final class FixtureSourceControls implements LoopSourceControlsInterface
+{
+    public int $register_controls_calls = 0;
+
+    public function register_controls(\Elementor\Widget_Base $widget): void
+    {
+        $this->register_controls_calls++;
+    }
+}
+
+final class FixtureSourcePreview implements LoopSourcePreviewInterface
+{
+    public int $register_preview_controls_calls = 0;
+    public ?LoopItemInterface $resolved_item = null;
+
+    public function register_preview_controls(\Elemacy\Core\Documents\PreviewablePageBase $document): void
+    {
+        $this->register_preview_controls_calls++;
+    }
+
+    public function resolve_preview_item(array $settings): ?LoopItemInterface
+    {
+        return $this->resolved_item;
+    }
+}
+
+final class FixtureSourcePublicPolicy implements CanonicalPublicLoopSourcePolicyInterface
+{
+    public array $calls = [];
+
+    public function get_public_settings(array $settings, array $context, int $page): array
+    {
+        $this->calls[] = [$settings, $context, $page];
+
+        return ['public' => true, 'page' => $page];
+    }
+}
+
+check('SourceDefinition + register_definition(): one registration supplies controls, preview and safe (public-policy) pagination through the legacy aggregate adapter, with zero changes to the consuming registry/policy code', static function () {
+    $query = new FixtureSourceQuery();
+    $controls = new FixtureSourceControls();
+    $preview = new FixtureSourcePreview();
+    $preview->resolved_item = new PostLoopItem(new WP_Post(4242));
+    $public_policy = new FixtureSourcePublicPolicy();
+
+    $definition = new SourceDefinition('fixture-test-source', 'Fixture Test Source', $query, $controls, $preview, $public_policy);
+
+    $registry = new LoopDataSourceRegistry();
+    $registry->register_definition($definition);
+
+    $source = $registry->get('fixture-test-source');
+
+    if (!$source instanceof LoopDataSourceInterface) {
+        return false;
+    }
+
+    // Identity/label pass through.
+    if ($source->get_key() !== 'fixture-test-source' || $source->get_label() !== 'Fixture Test Source') {
+        return false;
+    }
+
+    // Controls delegate to the controls collaborator.
+    $source->register_controls(new \Elementor\Widget_Base());
+
+    if ($controls->register_controls_calls !== 1) {
+        return false;
+    }
+
+    // Query delegates to the query collaborator (both get_items() and
+    // sanitize_ajax_settings(), the "safe pagination" half).
+    $result = $source->get_items(['a' => 1]);
+    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
+
+    if ($result->total_items !== 3 || $query->get_items_calls !== [['a' => 1]]
+        || $sanitized !== ['sanitized' => true, 'paged' => 2]) {
+        return false;
+    }
+
+    // Preview delegates to the preview collaborator's item resolution — the
+    // meaningful runtime half of "preview" (register_preview_controls()
+    // itself is a one-line, argument-only forward call to the same
+    // collaborator, verified by inspection rather than executed here since
+    // it requires a real Elementor PreviewablePageBase document instance
+    // this fast harness does not stub).
+    if ($source->resolve_preview_item(['x' => 1]) !== $preview->resolved_item) {
+        return false;
+    }
+
+    // Public-context policy: instanceof resolves true (this is exactly
+    // PublicRenderPolicy::source()'s own guest-pagination gate), and
+    // get_public_settings() delegates to the policy collaborator — "safe
+    // pagination" end to end, through the SAME check every hand-written
+    // aggregate source is already gated by, with no new branch anywhere in
+    // PublicRenderPolicy itself.
+    if (!$source instanceof \Elemacy\Modules\Widgets\Contracts\PublicLoopSourcePolicyInterface) {
+        return false;
+    }
+
+    $public = $source->get_public_settings(['s' => 1], ['ctx' => 1], 3);
+
+    return $public === ['public' => true, 'page' => 3] && $public_policy->calls === [[['s' => 1], ['ctx' => 1], 3]];
+});
+
+check('SourceDefinition with no public policy produces a source that fails PublicRenderPolicy\'s own instanceof gate — "no explicit safe public-context policy cannot use guest pagination"', static function () {
+    $definition = new SourceDefinition(
+        'fixture-no-public-policy',
+        'Fixture Without Public Policy',
+        new FixtureSourceQuery(),
+        new FixtureSourceControls()
+    );
+
+    $source = $definition->to_legacy_source();
+
+    return $source instanceof LoopDataSourceInterface
+        && !$source instanceof \Elemacy\Modules\Widgets\Contracts\PublicLoopSourcePolicyInterface;
+});
+
 /* ── Modules\Widgets\Support\LoopItemIdentity ─────────────────────── */
 
 check('LoopItemIdentity::sanitize() keeps letters, digits, underscore and hyphen', static function () {
@@ -1157,6 +3312,183 @@ check('LoopItemIdentity::sanitize() keeps letters, digits, underscore and hyphen
 
 check('LoopItemIdentity::sanitize() strips everything else', static function () {
     return LoopItemIdentity::sanitize('42<script>.foo bar/baz') === '42scriptfoobarbaz';
+});
+
+/* ── Loop\Context\WordPressPostScope ───────────────────────────────── */
+
+check('WordPressPostScope::exit() restores an outer acquisition\'s exact state after a nested inner one exits, not merely resetting the globals', static function () {
+    $outer = new WordPressPostScope();
+    $outer->enter(new WP_Post(501, ['post_content' => 'outer']));
+    $outer_post_before = $GLOBALS['post'];
+    $outer_id_before = $GLOBALS['id'];
+
+    $inner = new WordPressPostScope();
+    $inner->enter(new WP_Post(502, ['post_content' => 'inner']));
+    $inner_ok = $GLOBALS['post']->ID === 502 && $GLOBALS['id'] === 502;
+    $inner->exit();
+
+    $restored = $GLOBALS['post'] === $outer_post_before && $GLOBALS['id'] === $outer_id_before;
+    $outer->exit();
+
+    return $inner_ok && $restored;
+});
+
+check('WordPressPostScope::exit() removes a global that was unset before enter(), rather than leaving it at the entered value', static function () {
+    foreach (['post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages'] as $key) {
+        unset($GLOBALS[$key]);
+    }
+
+    $scope = new WordPressPostScope();
+    $scope->enter(new WP_Post(503));
+    $entered = array_key_exists('post', $GLOBALS) && array_key_exists('id', $GLOBALS);
+    $scope->exit();
+
+    return $entered && !array_key_exists('post', $GLOBALS) && !array_key_exists('id', $GLOBALS);
+});
+
+check('WordPressPostScope::exit() is a safe no-op if called without a matching enter()', static function () {
+    (new WordPressPostScope())->exit();
+
+    return true;
+});
+
+/* ── Loop\Rendering\TemplateRecursionGuard ─────────────────────────── */
+
+check('TemplateRecursionGuard: sequential reuse of the same template across non-nested items succeeds', static function () {
+    TemplateRecursionGuard::enter(701);
+    TemplateRecursionGuard::exit();
+    TemplateRecursionGuard::enter(701);
+    TemplateRecursionGuard::exit();
+
+    return TemplateRecursionGuard::depth() === 0;
+});
+
+check('TemplateRecursionGuard: sibling (non-nested) reuse of the same template while a DIFFERENT template is active still succeeds', static function () {
+    TemplateRecursionGuard::enter(710);
+    TemplateRecursionGuard::enter(711);
+    TemplateRecursionGuard::exit();
+    TemplateRecursionGuard::enter(711); // 711 again, sequentially, while 710 is still active
+    TemplateRecursionGuard::exit();
+    TemplateRecursionGuard::exit();
+
+    return TemplateRecursionGuard::depth() === 0;
+});
+
+check('TemplateRecursionGuard: a direct cycle (template entering itself while still active) is refused', static function () {
+    TemplateRecursionGuard::enter(720);
+    $threw = false;
+
+    try {
+        TemplateRecursionGuard::enter(720);
+    } catch (TemplateRecursionException $e) {
+        $threw = true;
+    }
+
+    TemplateRecursionGuard::exit();
+
+    return $threw && TemplateRecursionGuard::depth() === 0;
+});
+
+check('TemplateRecursionGuard: an indirect cycle (A embeds B embeds A) is refused, not just a direct self-embed', static function () {
+    TemplateRecursionGuard::enter(730); // A
+    TemplateRecursionGuard::enter(731); // B, nested inside A
+    $threw = false;
+
+    try {
+        TemplateRecursionGuard::enter(730); // A again, nested inside B — indirect cycle
+    } catch (TemplateRecursionException $e) {
+        $threw = true;
+    }
+
+    TemplateRecursionGuard::exit();
+    TemplateRecursionGuard::exit();
+
+    return $threw && TemplateRecursionGuard::depth() === 0;
+});
+
+check('TemplateRecursionGuard: ten distinct, non-repeating levels of nesting succeed; an eleventh is refused purely on depth', static function () {
+    for ($i = 0; $i < TemplateRecursionGuard::MAX_DEPTH; $i++) {
+        TemplateRecursionGuard::enter(800 + $i);
+    }
+    $depth_at_ten = TemplateRecursionGuard::depth();
+    $threw = false;
+
+    try {
+        TemplateRecursionGuard::enter(999); // a brand new id — not a cycle, purely over depth
+    } catch (TemplateRecursionException $e) {
+        $threw = true;
+    }
+
+    for ($i = 0; $i < TemplateRecursionGuard::MAX_DEPTH; $i++) {
+        TemplateRecursionGuard::exit();
+    }
+
+    return $depth_at_ten === TemplateRecursionGuard::MAX_DEPTH && $threw && TemplateRecursionGuard::depth() === 0;
+});
+
+/* ── Loop\Rendering\LoopRenderIdentity / LoopRenderContext ─────────── */
+
+check('LoopRenderIdentity::key() differs across placements even for the same numeric domain item id', static function () {
+    $a = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42');
+    $b = new LoopRenderIdentity('widget-b', 'template-1', 'posts', '42');
+
+    return $a->key() !== $b->key();
+});
+
+check('LoopRenderIdentity::key() differs across sources even for the same placement/template and numeric domain item id', static function () {
+    $posts = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42');
+    $terms = new LoopRenderIdentity('widget-a', 'template-1', 'terms', '42');
+
+    return $posts->key() !== $terms->key();
+});
+
+check('LoopRenderIdentity::key() differs across templates even for the same placement/source and numeric domain item id', static function () {
+    $one = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42');
+    $two = new LoopRenderIdentity('widget-a', 'template-2', 'posts', '42');
+
+    return $one->key() !== $two->key();
+});
+
+check('LoopRenderIdentity::key() differs by occurrence and by AJAX batch context, all else equal', static function () {
+    $first = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42', 0, 'page-1');
+    $second_occurrence = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42', 1, 'page-1');
+    $second_batch = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42', 0, 'page-2');
+
+    return $first->key() !== $second_occurrence->key() && $first->key() !== $second_batch->key() && $second_occurrence->key() !== $second_batch->key();
+});
+
+check('LoopRenderIdentity::key() is identical for two separately-constructed identities with the exact same components (deterministic, not random)', static function () {
+    $a = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42', 3, 'page-2');
+    $b = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42', 3, 'page-2');
+
+    return $a->key() === $b->key();
+});
+
+check('LoopRenderIdentity::key() keeps the sanitized item identity readable as its prefix', static function () {
+    $identity = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '42');
+
+    return strpos($identity->key(), '42-') === 0;
+});
+
+check('LoopRenderIdentity::selector() returns only characters safe for a CSS class token / HTML id attribute', static function () {
+    $identity = new LoopRenderIdentity('widget <a>', 'template/1', 'posts;drop', "42'\"", 0, 'page 1');
+
+    return (bool) preg_match('/^[A-Za-z0-9_-]+$/', $identity->selector());
+});
+
+check('LoopRenderContext::push()/pop()/current() track the innermost active render identity, restoring the outer one after an inner pop', static function () {
+    $outer = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '1');
+    $inner = new LoopRenderIdentity('widget-a', 'template-1', 'posts', '2');
+
+    LoopRenderContext::push($outer);
+    $outer_current = LoopRenderContext::current();
+    LoopRenderContext::push($inner);
+    $inner_current = LoopRenderContext::current();
+    LoopRenderContext::pop();
+    $restored = LoopRenderContext::current();
+    LoopRenderContext::pop();
+
+    return $outer_current === $outer && $inner_current === $inner && $restored === $outer && LoopRenderContext::current() === null;
 });
 
 /* ── Modules\Widgets\LoopItems\PostLoopItem ────────────────────────── */
@@ -1190,6 +3522,627 @@ check('PostLoopItem::get_field() returns empty string for an unrecognized key wi
     $item = new PostLoopItem(new WP_Post(10));
 
     return $item->get_field('nonexistent_field') === '';
+});
+
+/* ── Task 7.5: Integrations/Acf — Widgets/Loop no longer imports Dynamic ── */
+/* Tags internals; the field-reader contract is optional and injectable    */
+
+check('Elemacy\Integrations\Acf\UnavailableFieldReader always returns null, no ACF/post-meta lookup at all', static function () {
+    update_post_meta(11, 'a_field_with_real_meta', 'should never be seen');
+    $reader = new \Elemacy\Integrations\Acf\UnavailableFieldReader();
+
+    return $reader->get_field_value('a_field_with_real_meta', 11) === null
+        && $reader instanceof \Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
+});
+
+final class FixtureFieldReader implements \Elemacy\Integrations\Acf\Contracts\FieldReaderInterface
+{
+    /** @var array<int, array{0: string, 1: mixed}> */
+    public array $calls = [];
+
+    public function get_field_value(string $key, $post_id = false)
+    {
+        $this->calls[] = [$key, $post_id];
+
+        return 'fixture:' . $key;
+    }
+}
+
+check('PostLoopItem::get_field() delegates an unrecognized key to an injected FieldReaderInterface instead of AcfFieldReader', static function () {
+    $reader = new FixtureFieldReader();
+    $item = new PostLoopItem(new WP_Post(12), $reader);
+
+    $value = $item->get_field('some_custom_field');
+
+    return $value === 'fixture:some_custom_field' && $reader->calls === [['some_custom_field', 12]];
+});
+
+check('PostLoopItem::enter()/exit() restore an outer item\'s exact global state after a nested inner item exits', static function () {
+    $outer = new PostLoopItem(new WP_Post(601));
+    $outer->enter();
+    $outer_post_before = $GLOBALS['post'];
+
+    $inner = new PostLoopItem(new WP_Post(602));
+    $inner->enter();
+    $inner_ok = $GLOBALS['post']->ID === 602;
+    $inner->exit();
+
+    $restored = $GLOBALS['post'] === $outer_post_before && $GLOBALS['post']->ID === 601;
+    $outer->exit();
+
+    return $inner_ok && $restored;
+});
+
+check('PostLoopItem::exit() without a prior enter() is a safe no-op', static function () {
+    (new PostLoopItem(new WP_Post(603)))->exit();
+
+    return true;
+});
+
+check('TermLoopItem::get_field() delegates an unrecognized key to an injected FieldReaderInterface with the "term_{id}" post-id shape', static function () {
+    $reader = new FixtureFieldReader();
+    $item = new TermLoopItem(new WP_Term(13, 'category'), $reader);
+
+    $value = $item->get_field('some_custom_field');
+
+    return $value === 'fixture:some_custom_field' && $reader->calls === [['some_custom_field', 'term_13']];
+});
+
+check('PostLoopItem/TermLoopItem no longer import any Dynamic Tags class (Widgets/Loop has no lateral module dependency)', static function () {
+    foreach ([PostLoopItem::class, TermLoopItem::class] as $class) {
+        $source = file_get_contents((new ReflectionClass($class))->getFileName());
+
+        if (false !== strpos($source, 'DynamicTags')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Task 7.6: PreviewContextProviderInterface — Core no longer imports ── */
+/* a concrete Loop context service                                       */
+
+final class TrackedPreviewLoopItem implements LoopItemInterface
+{
+    public int $enter_calls = 0;
+    public int $exit_calls = 0;
+
+    public function get_identity(): string
+    {
+        return 'tracked-preview-item';
+    }
+
+    public function get_field(string $key)
+    {
+        return null;
+    }
+
+    public function enter(): void
+    {
+        $this->enter_calls++;
+    }
+
+    public function exit(): void
+    {
+        $this->exit_calls++;
+    }
+}
+
+check('LoopItemPreviewContextProvider::enter() pushes the item onto LoopContext and calls its own enter(), returning the item as the opaque token', static function () {
+    $item = new TrackedPreviewLoopItem();
+    $provider = new \Elemacy\Loop\Preview\LoopItemPreviewContextProvider();
+
+    $token = $provider->enter($item);
+
+    $result = $token === $item && $item->enter_calls === 1 && LoopContext::current() === $item;
+
+    // Clean up regardless of the assertion above, so a failure here doesn't
+    // leave a stale item on the shared stack for every later test.
+    LoopContext::pop();
+
+    return $result;
+});
+
+check('LoopItemPreviewContextProvider::leave() pops LoopContext and calls the token\'s own exit()', static function () {
+    $item = new TrackedPreviewLoopItem();
+    $provider = new \Elemacy\Loop\Preview\LoopItemPreviewContextProvider();
+
+    $token = $provider->enter($item);
+    $provider->leave($token);
+
+    return $item->exit_calls === 1 && LoopContext::current() === null;
+});
+
+check('PreviewManager stores an injected PreviewContextProviderInterface instead of constructing the Loop implementation directly', static function () {
+    $fixture_provider = new class implements \Elemacy\Core\Contracts\PreviewContextProviderInterface {
+        public function enter($item)
+        {
+            return $item;
+        }
+
+        public function leave($context): void
+        {
+        }
+    };
+
+    $manager = new PreviewManager($fixture_provider);
+
+    $ref = new ReflectionProperty(PreviewManager::class, 'loop_provider');
+    $ref->setAccessible(true);
+
+    return $ref->getValue($manager) === $fixture_provider;
+});
+
+check('PreviewManager with no injected provider defaults to Loop\Preview\LoopItemPreviewContextProvider (the same behavior as before this contract existed)', static function () {
+    $manager = new PreviewManager();
+
+    $ref = new ReflectionProperty(PreviewManager::class, 'loop_provider');
+    $ref->setAccessible(true);
+
+    return $ref->getValue($manager) instanceof \Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
+});
+
+check('Core\Preview\PreviewManager and Core\Documents\PreviewablePageBase source files import no concrete Elemacy\Modules\Widgets class', static function () {
+    // PreviewablePageBase extends an Elementor document class this fast
+    // harness never stubs (its own editor/document machinery is out of
+    // scope here — see the harness's own README), so its source is read by
+    // file path directly rather than through ReflectionClass(), which would
+    // force-autoload the whole real class and fatal on the missing parent.
+    $files = [
+        (new ReflectionClass(PreviewManager::class))->getFileName(),
+        dirname(__DIR__, 2) . '/src/Core/Documents/PreviewablePageBase.php',
+    ];
+
+    foreach ($files as $file) {
+        $source = file_get_contents($file);
+
+        if (preg_match('/^use Elemacy\\\\Modules\\\\Widgets\\\\/m', $source)) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Task 7.7: optional NativeTermItemInterface/NativeUserItemInterface — */
+/* Dynamic Tags no longer checks a concrete Widgets/Loop item class       */
+
+check('TermLoopItem/UserLoopItem implement the optional NativeTermItemInterface/NativeUserItemInterface capability contracts, without widening the base LoopItemInterface', static function () {
+    $term_item = new TermLoopItem(new WP_Term(21, 'category'));
+    $user_item = new UserLoopItem(new WP_User(22));
+
+    return $term_item instanceof \Elemacy\Loop\Contracts\NativeTermItemInterface
+        && $user_item instanceof \Elemacy\Loop\Contracts\NativeUserItemInterface
+        && !method_exists(\Elemacy\Loop\Contracts\LoopItemInterface::class, 'get_term')
+        && !method_exists(\Elemacy\Loop\Contracts\LoopItemInterface::class, 'get_user');
+});
+
+final class FixtureCustomTermItem implements LoopItemInterface, \Elemacy\Loop\Contracts\NativeTermItemInterface
+{
+    private WP_Term $term;
+
+    public function __construct(WP_Term $term)
+    {
+        $this->term = $term;
+    }
+
+    public function get_identity(): string
+    {
+        return (string) $this->term->term_id;
+    }
+
+    public function get_field(string $key)
+    {
+        return null;
+    }
+
+    public function enter(): void
+    {
+    }
+
+    public function exit(): void
+    {
+    }
+
+    public function get_term(): WP_Term
+    {
+        return $this->term;
+    }
+}
+
+check('Taxonomy::get_current_term() recognizes ANY item implementing NativeTermItemInterface on the loop stack, not only TermLoopItem specifically', static function () {
+    $term = new WP_Term(23, 'category');
+    LoopContext::push(new FixtureCustomTermItem($term));
+
+    $result = Taxonomy::get_current_term();
+
+    LoopContext::pop();
+
+    return $result === $term;
+});
+
+check('Taxonomy::get_current_term() falls back to get_queried_object() outside a loop (no active item on the stack)', static function () {
+    $GLOBALS['__queried_object'] = new WP_Term(24, 'category');
+
+    $result = Taxonomy::get_current_term();
+
+    $GLOBALS['__queried_object'] = null;
+
+    return $result instanceof WP_Term && $result->term_id === 24;
+});
+
+check('Taxonomy::get_current_term() returns null outside a loop when the queried object is not a term (e.g. a normal page)', static function () {
+    $GLOBALS['__queried_object'] = new WP_Post(25);
+
+    $result = Taxonomy::get_current_term();
+
+    $GLOBALS['__queried_object'] = null;
+
+    return $result === null;
+});
+
+check('User::get_current_user() recognizes a UserLoopItem on the loop stack via the NativeUserItemInterface capability, and user_email resolves correctly through it', static function () {
+    $user = new WP_User(26, ['user_email' => 'author@example.test']);
+    $item = new UserLoopItem($user);
+    LoopContext::push($item);
+
+    $result = User::get_current_user();
+    $email_field = $item->get_field('user_email');
+
+    LoopContext::pop();
+
+    return $result === $user && $email_field === 'author@example.test';
+});
+
+check('User::get_current_user() falls back to get_queried_object() outside a loop (e.g. an author archive)', static function () {
+    $GLOBALS['__queried_object'] = new WP_User(27);
+
+    $result = User::get_current_user();
+
+    $GLOBALS['__queried_object'] = null;
+
+    return $result instanceof WP_User && $result->ID === 27;
+});
+
+check('Modules\DynamicTags\Services\{Taxonomy,User} source files import no concrete Elemacy\Modules\Widgets class', static function () {
+    foreach ([Taxonomy::class, User::class] as $class) {
+        $source = file_get_contents((new ReflectionClass($class))->getFileName());
+
+        if (preg_match('/^use Elemacy\\\\Modules\\\\Widgets\\\\/m', $source)) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Task 7.8: LoopGrid/LoopCarousel import canonical Loop/ contracts ── */
+
+check('LoopGrid.php/LoopCarousel.php no longer import the moved DTO/LoopResultDTO, Services/LoopContext, Services/LoopDataSourceRegistry, Services/LoopItemStyles, Services/LoopTemplateRenderStack (task 8.6: LoopRenderer now owns all of these), Services/PaginationContextSigner, Services/PublicRenderPolicy or Services/PublishedLoopDefinitionResolver — only the still-unmoved aggregate LoopDataSourceInterface and (LoopGrid only) PlacementResolverRegistry remain on the old path', static function () {
+    $moved_old_imports = [
+        'use Elemacy\\Modules\\Widgets\\DTO\\LoopResultDTO;',
+        'use Elemacy\\Modules\\Widgets\\DTO\\PublicLoopRequest;',
+        'use Elemacy\\Modules\\Widgets\\Services\\LoopContext;',
+        'use Elemacy\\Modules\\Widgets\\Services\\LoopDataSourceRegistry;',
+        'use Elemacy\\Modules\\Widgets\\Services\\LoopItemStyles;',
+        'use Elemacy\\Modules\\Widgets\\Services\\LoopTemplateRenderStack;',
+        'use Elemacy\\Modules\\Widgets\\Services\\PaginationContextSigner;',
+        'use Elemacy\\Modules\\Widgets\\Services\\PublicRenderPolicy;',
+        'use Elemacy\\Modules\\Widgets\\Services\\PublishedLoopDefinitionResolver;',
+    ];
+
+    $files = [
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopCarousel.php',
+    ];
+
+    foreach ($files as $file) {
+        $source = file_get_contents($file);
+
+        foreach ($moved_old_imports as $old_import) {
+            if (false !== strpos($source, $old_import)) {
+                return false;
+            }
+        }
+
+        // The aggregate source contract no task in this phase has moved yet
+        // stays on its existing, unmoved path — confirming this check is
+        // precise rather than accidentally matching every Widgets import.
+        if (false === strpos($source, 'use Elemacy\\Modules\\Widgets\\Contracts\\LoopDataSourceInterface;')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('LoopGrid.php/LoopCarousel.php/AjaxPaginationController.php delegate per-item rendering to Loop\\Rendering\\LoopRenderer, not an inline render loop', static function () {
+    $files = [
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopCarousel.php',
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Controllers/AjaxPaginationController.php',
+    ];
+
+    foreach ($files as $file) {
+        $source = file_get_contents($file);
+
+        if (false === strpos($source, 'use Elemacy\\Loop\\Rendering\\LoopRenderer;')
+            || false === strpos($source, '->render_item(')
+            || false !== strpos($source, 'get_builder_content_for_display')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('LoopGrid.php no longer defines render_pagination_html(); LoopGrid.php/AjaxPaginationController.php both delegate to Loop\\Pagination\\PaginationRenderer', static function () {
+    $loop_grid = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php');
+
+    if (false !== strpos($loop_grid, 'function render_pagination_html')) {
+        return false;
+    }
+
+    foreach ([
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/Widgets/Controllers/AjaxPaginationController.php',
+    ] as $file) {
+        $source = file_get_contents($file);
+
+        if (false === strpos($source, 'use Elemacy\\Loop\\Pagination\\PaginationRenderer;') || false === strpos($source, '->render(')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Task 7.9: PostsQuery/PostsPolicy extracted; PostsDataSource keeps ── */
+/* only what needs an Elementor widget/document instance                 */
+
+final class FixtureSentinelPostsQuery extends PostsQuery
+{
+    public array $get_items_calls = [];
+    public array $sanitize_calls = [];
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        $this->get_items_calls[] = $settings;
+
+        return new LoopResultDTO([], 999, 1, true);
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        $this->sanitize_calls[] = [$raw_settings, $paged];
+
+        return ['sentinel' => true];
+    }
+}
+
+final class FixtureSentinelPostsPolicy extends PostsPolicy
+{
+    public array $calls = [];
+
+    public function get_public_settings(array $settings, array $context, int $page): array
+    {
+        $this->calls[] = [$settings, $context, $page];
+
+        return ['sentinel_public' => true];
+    }
+}
+
+check('PostsDataSource constructor stores injected PostsQuery/PostsPolicy collaborators instead of constructing its own', static function () {
+    $query = new FixtureSentinelPostsQuery();
+    $policy = new FixtureSentinelPostsPolicy();
+    $source = new PostsDataSource($query, $policy);
+
+    $query_ref = new ReflectionProperty(PostsDataSource::class, 'query');
+    $query_ref->setAccessible(true);
+    $policy_ref = new ReflectionProperty(PostsDataSource::class, 'policy');
+    $policy_ref->setAccessible(true);
+
+    return $query_ref->getValue($source) === $query && $policy_ref->getValue($source) === $policy;
+});
+
+check('PostsDataSource with no injected collaborators defaults to real PostsQuery/PostsPolicy instances (PostsPolicy sharing the same PostsQuery instance)', static function () {
+    $source = new PostsDataSource();
+
+    $query_ref = new ReflectionProperty(PostsDataSource::class, 'query');
+    $query_ref->setAccessible(true);
+    $policy_ref = new ReflectionProperty(PostsDataSource::class, 'policy');
+    $policy_ref->setAccessible(true);
+
+    $query = $query_ref->getValue($source);
+    $policy = $policy_ref->getValue($source);
+
+    $policy_query_ref = new ReflectionProperty(PostsPolicy::class, 'query');
+    $policy_query_ref->setAccessible(true);
+
+    return $query instanceof PostsQuery && $policy instanceof PostsPolicy
+        && $policy_query_ref->getValue($policy) === $query;
+});
+
+check('PostsDataSource::get_items()/sanitize_ajax_settings()/get_public_settings() genuinely delegate to the injected collaborators, not a reimplementation', static function () {
+    $query = new FixtureSentinelPostsQuery();
+    $policy = new FixtureSentinelPostsPolicy();
+    $source = new PostsDataSource($query, $policy);
+
+    $items_result = $source->get_items(['a' => 1]);
+    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
+    $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
+
+    return $items_result->total_items === 999
+        && $query->get_items_calls === [['a' => 1]]
+        && $sanitized === ['sentinel' => true]
+        && $query->sanitize_calls === [[['raw' => 1], 2]]
+        && $public === ['sentinel_public' => true]
+        && $policy->calls === [[['s' => 1], ['c' => 1], 3]];
+});
+
+check('Loop\DataSources\PostsQuery and Loop\Pagination\Policies\PostsPolicy do not require an Elementor widget/document instance (no Widget_Base/PreviewablePageBase reference in either source file)', static function () {
+    foreach ([PostsQuery::class, PostsPolicy::class] as $class) {
+        $source = file_get_contents((new ReflectionClass($class))->getFileName());
+
+        if (false !== strpos($source, 'Widget_Base') || false !== strpos($source, 'PreviewablePageBase')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Task 7.10: TermsQuery/TermsPolicy and UsersQuery/UsersPolicy      ── */
+/* extracted; TaxonomyDataSource/UsersDataSource keep only their controls */
+
+final class FixtureSentinelTermsQuery extends TermsQuery
+{
+    public array $get_items_calls = [];
+    public array $sanitize_calls = [];
+    public int $queried_term_id = 0;
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        $this->get_items_calls[] = $settings;
+
+        return new LoopResultDTO([], 888, 1, true);
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        $this->sanitize_calls[] = [$raw_settings, $paged];
+
+        return ['sentinel_terms' => true];
+    }
+
+    public function get_current_queried_term_id(): int
+    {
+        return $this->queried_term_id;
+    }
+}
+
+final class FixtureSentinelTermsPolicy extends TermsPolicy
+{
+    public array $calls = [];
+
+    public function get_public_settings(array $settings, array $context, int $page): array
+    {
+        $this->calls[] = [$settings, $context, $page];
+
+        return ['sentinel_terms_public' => true];
+    }
+}
+
+check('TaxonomyDataSource constructor stores injected TermsQuery/TermsPolicy, defaults to real instances sharing one TermsQuery, and its methods genuinely delegate (including get_ajax_payload()\'s own "current queried term" lookup)', static function () {
+    $query = new FixtureSentinelTermsQuery();
+    $query->queried_term_id = 42;
+    $policy = new FixtureSentinelTermsPolicy();
+    $source = new TaxonomyDataSource($query, $policy);
+
+    $query_ref = new ReflectionProperty(TaxonomyDataSource::class, 'query');
+    $query_ref->setAccessible(true);
+    $policy_ref = new ReflectionProperty(TaxonomyDataSource::class, 'policy');
+    $policy_ref->setAccessible(true);
+
+    if ($query_ref->getValue($source) !== $query || $policy_ref->getValue($source) !== $policy) {
+        return false;
+    }
+
+    $items_result = $source->get_items(['a' => 1]);
+    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
+    $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
+    $payload = $source->get_ajax_payload(['taxonomy' => 'category', 'exclude_current_term' => 'yes']);
+
+    $default_source = new TaxonomyDataSource();
+    $default_query_ref = $query_ref->getValue($default_source);
+    $default_policy_query_ref = new ReflectionProperty(TermsPolicy::class, 'query');
+    $default_policy_query_ref->setAccessible(true);
+
+    return $items_result->total_items === 888
+        && $query->get_items_calls === [['a' => 1]]
+        && $sanitized === ['sentinel_terms' => true]
+        && $public === ['sentinel_terms_public' => true]
+        && $policy->calls === [[['s' => 1], ['c' => 1], 3]]
+        && ($payload['current_term_id'] ?? null) === 42
+        && $default_query_ref instanceof TermsQuery
+        && $default_policy_query_ref->getValue($policy_ref->getValue($default_source)) === $default_query_ref;
+});
+
+final class FixtureSentinelUsersQuery extends UsersQuery
+{
+    public array $get_items_calls = [];
+    public array $sanitize_calls = [];
+
+    public function get_items(array $settings): LoopResultDTO
+    {
+        $this->get_items_calls[] = $settings;
+
+        return new LoopResultDTO([], 777, 1, true);
+    }
+
+    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
+    {
+        $this->sanitize_calls[] = [$raw_settings, $paged];
+
+        return ['sentinel_users' => true];
+    }
+}
+
+final class FixtureSentinelUsersPolicy extends UsersPolicy
+{
+    public array $calls = [];
+
+    public function get_public_settings(array $settings, array $context, int $page): array
+    {
+        $this->calls[] = [$settings, $context, $page];
+
+        return ['sentinel_users_public' => true];
+    }
+}
+
+check('UsersDataSource constructor stores injected UsersQuery/UsersPolicy, defaults to real instances sharing one UsersQuery, and its methods genuinely delegate', static function () {
+    $query = new FixtureSentinelUsersQuery();
+    $policy = new FixtureSentinelUsersPolicy();
+    $source = new UsersDataSource($query, $policy);
+
+    $query_ref = new ReflectionProperty(UsersDataSource::class, 'query');
+    $query_ref->setAccessible(true);
+    $policy_ref = new ReflectionProperty(UsersDataSource::class, 'policy');
+    $policy_ref->setAccessible(true);
+
+    if ($query_ref->getValue($source) !== $query || $policy_ref->getValue($source) !== $policy) {
+        return false;
+    }
+
+    $items_result = $source->get_items(['a' => 1]);
+    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
+    $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
+
+    $default_source = new UsersDataSource();
+    $default_query = $query_ref->getValue($default_source);
+    $default_policy_query_ref = new ReflectionProperty(UsersPolicy::class, 'query');
+    $default_policy_query_ref->setAccessible(true);
+
+    return $items_result->total_items === 777
+        && $query->get_items_calls === [['a' => 1]]
+        && $sanitized === ['sentinel_users' => true]
+        && $public === ['sentinel_users_public' => true]
+        && $policy->calls === [[['s' => 1], ['c' => 1], 3]]
+        && $default_query instanceof UsersQuery
+        && $default_policy_query_ref->getValue($policy_ref->getValue($default_source)) === $default_query;
+});
+
+check('Loop\DataSources\{TermsQuery,UsersQuery} and Loop\Pagination\Policies\{TermsPolicy,UsersPolicy} do not require an Elementor widget/document instance', static function () {
+    foreach ([TermsQuery::class, UsersQuery::class, TermsPolicy::class, UsersPolicy::class] as $class) {
+        $source = file_get_contents((new ReflectionClass($class))->getFileName());
+
+        if (false !== strpos($source, 'Widget_Base') || false !== strpos($source, 'PreviewablePageBase')) {
+            return false;
+        }
+    }
+
+    return true;
 });
 
 /* ── DynamicTags\Tags\Base\PostContent (Elementor loaded) ────────── */
@@ -1461,5 +4414,123 @@ check('PostContent renders normally once the target post\'s password has already
 
     return '<div class="elementor elementor-602">unlocked design</div>' === $output;
 });
+
+/* ── Task 9.4: PostContent finally-based restoration (design.md D9) ── */
+
+/**
+ * Throws instead of returning content — simulates a render failure inside
+ * the exceptional same-document path SameDocumentContentRenderer owns.
+ */
+final class ThrowingPostContentFrontend
+{
+    public function get_builder_content($post_id, $with_css = false)
+    {
+        throw new \RuntimeException('injected render failure for post ' . $post_id);
+    }
+}
+
+check('PostContent::render() releases the recursion guard via finally even when the same-document render throws, so a later render for the same post is not permanently stuck', static function () {
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->editor = new \Elementor\Core\Editor\Editor();
+    \Elementor\Plugin::$instance->frontend = new ThrowingPostContentFrontend();
+
+    $GLOBALS['__current_post_id'] = 700;
+    $GLOBALS['__current_post_content'] = '<p>Classic fallback after failure</p>';
+
+    $threw = false;
+
+    try {
+        (new PostContent())->render();
+    } catch (\RuntimeException $e) {
+        $threw = true;
+    }
+
+    if (!$threw) {
+        return false;
+    }
+
+    // If the guard were stuck, this second render for the SAME post id
+    // would be silently swallowed (isset(self::$rendering[700]) === true)
+    // rather than reaching the classic-content fallback below.
+    \Elementor\Plugin::$instance->frontend = new FakePostContentFrontend();
+    ob_start();
+    (new PostContent())->render();
+    $output = ob_get_clean();
+
+    return wp_kses_post('<p>Classic fallback after failure</p>') === $output;
+});
+
+check('PostContent::render() restores the prior edit-mode state via finally even when the same-document render throws', static function () {
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->editor = new \Elementor\Core\Editor\Editor();
+    \Elementor\Plugin::$instance->editor->set_edit_mode(true);
+    \Elementor\Plugin::$instance->frontend = new ThrowingPostContentFrontend();
+
+    $GLOBALS['__current_post_id'] = 701;
+
+    try {
+        (new PostContent())->render();
+    } catch (\RuntimeException $e) {
+        // Expected - assert the restoration below regardless.
+    }
+
+    return true === \Elementor\Plugin::$instance->editor->is_edit_mode();
+});
+
+check('SameDocumentContentRenderer::render() itself propagates the underlying exception rather than swallowing it (finally restores state, it does not convert a failure into a false success)', static function () {
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->editor = new \Elementor\Core\Editor\Editor();
+    \Elementor\Plugin::$instance->frontend = new ThrowingPostContentFrontend();
+
+    try {
+        (new \Elemacy\Core\Integrations\Elementor\SameDocumentContentRenderer())->render(702);
+    } catch (\RuntimeException $e) {
+        return 'injected render failure for post 702' === $e->getMessage();
+    }
+
+    return false;
+});
+
+check('SameDocumentContentRenderer::available() is false, degrading render() to an empty string, when the injected Capabilities reports Elementor absent', static function () {
+    $renderer = new \Elemacy\Core\Integrations\Elementor\SameDocumentContentRenderer(new AllCapabilitiesAbsent());
+
+    return false === $renderer->available() && '' === $renderer->render(703);
+});
+
+/* ── Task 7.12: architecture dependency boundary check ────────────── */
+
+check('tests/architecture/dependency-boundaries.php passes cleanly against the real source tree (Core->Widgets, Widgets->DynamicTags, DynamicTags->Widgets, Loop->Widgets all clean or explicitly allowlisted)', static function () {
+    $script = dirname(__DIR__) . '/architecture/dependency-boundaries.php';
+    $output = [];
+    $exit_code = 0;
+
+    exec('php ' . escapeshellarg($script) . ' 2>&1', $output, $exit_code);
+
+    return 0 === $exit_code;
+});
+
+check('tests/architecture/dependency-boundaries.php actually detects a real violation (not a script that trivially always passes)', static function () {
+    // A throwaway fixture file with a brand-new name, never an existing real
+    // source file — the scanner picks up anything under src/Core/, and this
+    // avoids ever mutating a tracked file (only creates, then removes, one
+    // that never existed before; a leftover on interruption is harmless).
+    $fixture = dirname(__DIR__, 2) . '/src/Core/ZZArchitectureCheckFixture.php';
+    $script = dirname(__DIR__) . '/architecture/dependency-boundaries.php';
+
+    file_put_contents($fixture, "<?php\nnamespace Elemacy\\Core;\ndefined('ABSPATH') || exit;\nuse Elemacy\\Modules\\Widgets\\Services\\LoopContext;\n");
+
+    $output = [];
+    $exit_code = 0;
+
+    try {
+        exec('php ' . escapeshellarg($script) . ' 2>&1', $output, $exit_code);
+    } finally {
+        unlink($fixture);
+    }
+
+    return 1 === $exit_code && false !== strpos(implode("\n", $output), 'ZZArchitectureCheckFixture.php');
+});
+
+require __DIR__ . '/transport-policy.php';
 
 conclude();

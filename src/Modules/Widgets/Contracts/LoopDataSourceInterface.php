@@ -51,12 +51,12 @@ interface LoopDataSourceInterface
     public function get_items(array $settings): LoopResultDTO;
 
     /**
-     * Builds the settings subset (plus any ambient "current" context this
-     * source needs, e.g. the current post/term ID) to round-trip to the
-     * browser and back for AJAX pagination. Called from LoopGrid::render()/
-     * LoopCarousel::render() when building the data-elemacy-loop-settings
-     * payload; only the keys this source actually needs should be returned,
-     * not the widget's full settings array.
+     * Unused since the browser-authoritative AJAX pagination payload this
+     * built was replaced by a signed, server-resolved request envelope (see
+     * PublicLoopRequest, PublishedLoopDefinitionResolver and
+     * PublicRenderPolicy — design.md D1). Retained only as an implemented
+     * interface method for existing extensions during the compatibility
+     * window; a later phase removes it from this contract (design.md D7).
      *
      * @param array $settings
      * @return array

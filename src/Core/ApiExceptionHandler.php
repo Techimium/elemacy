@@ -7,17 +7,17 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Http\Response;
 use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\ValidationException;
-use Exception;
+use Throwable;
 
 class ApiExceptionHandler
 {
     /**
      * Converts a controller-thrown exception into a REST response.
      *
-     * @param Exception $exception The exception raised while handling the request.
+     * @param Throwable $exception The exception raised while handling the request.
      * @return Response
      */
-    public static function get_response(Exception $exception)
+    public static function get_response(Throwable $exception)
     {
         if ($exception instanceof ValidationException) {
             $response = [
@@ -36,10 +36,10 @@ class ApiExceptionHandler
      * a deliberate, client-safe message and status; everything else is logged
      * and replaced with a generic message.
      *
-     * @param Exception $exception The exception raised while handling the request.
+     * @param Throwable $exception The exception raised while handling the request.
      * @return Response
      */
-    protected static function fallback_response(Exception $exception)
+    protected static function fallback_response(Throwable $exception)
     {
         // HttpExceptions are deliberate, client-facing errors carrying a
         // translated message and an HTTP status, so surface them as-is.

@@ -232,7 +232,7 @@ class PopupDocument extends PageBase
                     'label_on'     => esc_html__('Yes', 'elemacy'),
                     'label_off'    => esc_html__('No', 'elemacy'),
                     'return_value' => 'yes',
-                    'default'      => '',
+                    'default'      => !empty($defaults['sticky']) ? 'yes' : '',
                     'description'  => esc_html__('Keep the bar visible while scrolling.', 'elemacy'),
                     'condition'    => [
                         DisplayKeys::POSITION => 'top',

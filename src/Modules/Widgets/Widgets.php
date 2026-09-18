@@ -13,11 +13,11 @@ use Elemacy\Core\Module;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
-use Elemacy\Modules\Widgets\Documents\DocumentManager;
-use Elemacy\Modules\Widgets\Services\EditorAssets;
-use Elemacy\Modules\Widgets\Services\FrontendAssets;
+use Elemacy\Modules\Widgets\Documents\LoopDocument;
 use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\WidgetManager;
+use Elemacy\Modules\Widgets\Services\Placement\NestedLoopPlacementResolver;
+use Elemacy\Modules\Widgets\Services\Placement\PagePlacementResolver;
+use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -44,15 +44,17 @@ class Widgets extends Module
         return __('Extend the Elementor editor with extra widgets built by Elemacy.', 'elemacy');
     }
 
+    public function get_providers(): array
+    {
+        return [new WidgetsServiceProvider()];
+    }
+
     public function init(): void
     {
         $this->register_admin_menu();
         $this->register_types();
         $this->register_data_sources();
-        new DocumentManager();
-        new FrontendAssets();
-        new EditorAssets();
-        WidgetManager::instance();
+        $this->register_placement_resolvers();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
     }
 
@@ -86,6 +88,26 @@ class Widgets extends Module
     }
 
     /**
+     * The placement resolvers public pagination uses to prove an owner
+     * document is the one actually resolved for the current request. Widgets
+     * registers the two placements it owns directly (an ordinary page, and a
+     * loop template actively rendering a nested Loop Grid); other modules
+     * contribute their own via LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION,
+     * mirroring register_data_sources() above.
+     */
+    protected function register_placement_resolvers(): void
+    {
+        add_action('init', static function () {
+            $registry = PlacementResolverRegistry::instance();
+
+            $registry->register(new PagePlacementResolver());
+            $registry->register(new NestedLoopPlacementResolver());
+
+            do_action(Hooks::LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION, $registry);
+        }, 99);
+    }
+
+    /**
      * The Widgets module owns the "Loop Item" block library type because it ships
      * the Loop Grid/Carousel widgets that consume it. Registered on `init` (the
      * label is translated); the Core Template Library page surfaces it via the
@@ -95,7 +117,7 @@ class Widgets extends Module
     {
         add_action('init', function () {
             TypeRegistry::instance()->register(
-                new TypeDefinition('loop', __('Loop Item', 'elemacy'), 'block', $this->get_name())
+                new TypeDefinition('loop', __('Loop Item', 'elemacy'), 'block', $this->get_name(), LoopDocument::class)
             );
         });
     }

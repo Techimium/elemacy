@@ -3,7 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "test": "node run-popups.mjs"
+        "test": "node run-popups.mjs",
+        "test:builders": "node run-builders.mjs",
+        "test:popup-assets": "node run-popup-assets.mjs"
     },
     "devDependencies": {
         "playwright-core": "^1.49.0"

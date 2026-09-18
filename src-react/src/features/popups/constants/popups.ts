@@ -1,35 +1,33 @@
 import { __ } from '@wordpress/i18n';
+import { AlignStartVertical, GalleryThumbnails, PanelTop, Puzzle, Square } from 'lucide-react';
 
-/** Popup types — value must match the PHP `type` enum. */
-export const POPUP_TYPES = [
-    {
-        value: 'popup',
-        label: __('Popup', 'elemacy'),
-        description: __('A classic centered modal popup.', 'elemacy'),
-    },
-    {
-        value: 'topbar',
-        label: __('Top/Bottom Bar', 'elemacy'),
+/**
+ * Purely cosmetic per-type icon + description for the built-in popup types,
+ * keyed by the server-registered `value` (task 10.4). Not authoritative:
+ * which types exist and their labels come from `GET /popups/types`
+ * (usePopupTypes()), so an extension-contributed type with no entry here
+ * still renders correctly — just with the fallback icon and no description.
+ */
+export const POPUP_TYPE_HINTS: Record<
+    string,
+    { icon: React.ComponentType<{ className?: string }>; description: string }
+> = {
+    popup: { icon: Square, description: __('A classic centered modal popup.', 'elemacy') },
+    topbar: {
+        icon: PanelTop,
         description: __('A sticky bar at the top or bottom of the screen.', 'elemacy'),
     },
-    {
-        value: 'floating',
-        label: __('Floating Element', 'elemacy'),
+    floating: {
+        icon: AlignStartVertical,
         description: __('A floating element anchored to a corner.', 'elemacy'),
     },
-    {
-        value: 'banner',
-        label: __('Banner', 'elemacy'),
+    banner: {
+        icon: GalleryThumbnails,
         description: __('A floating banner you can place anywhere on screen.', 'elemacy'),
     },
-] as const;
+};
 
-export type PopupType = (typeof POPUP_TYPES)[number]['value'];
-
-export const POPUP_TYPE_VALUES = POPUP_TYPES.map((t) => t.value) as [
-    PopupType,
-    ...PopupType[],
-];
+export const POPUP_TYPE_FALLBACK_ICON = Puzzle;
 
 export const STATUS_OPTIONS = [
     { value: 'publish', label: __('Published', 'elemacy') },

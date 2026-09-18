@@ -14,14 +14,33 @@
         }
 
         var $loopGrid = $targetContainer.find('.elemacy-loop-grid');
-        var settingsRaw = $targetContainer.attr('data-elemacy-loop-settings');
+        var requestRaw = $targetContainer.attr('data-elemacy-loop-request');
+        var paginateBase = $targetContainer.attr('data-elemacy-loop-base') || '';
 
-        if (!settingsRaw || typeof window.elemacy === 'undefined') {
+        if (!requestRaw || typeof window.elemacy === 'undefined') {
             return;
         }
 
+        var baseRequest;
+        try {
+            baseRequest = JSON.parse(requestRaw);
+        } catch (e) {
+            return;
+        }
+
+        // A refresh-required/invalid response is stable and bounded: show a
+        // notice once and stop intercepting clicks — never an automatic
+        // reload or a repeated/fallback query with the stale request.
+        function showStaleNotice() {
+            $targetContainer.off('click.elemacyLoopGrid');
+            $targetContainer.find('.elemacy-loop-stale-notice').remove();
+            $targetContainer.append(
+                $('<p class="elemacy-loop-stale-notice"></p>').text('This content has changed. Refresh the page to continue.')
+            );
+        }
+
         // Delegate pagination clicks
-        $targetContainer.on('click', '.elemacy-pagination a.page-numbers', function (e) {
+        $targetContainer.on('click.elemacyLoopGrid', '.elemacy-pagination a.page-numbers', function (e) {
             e.preventDefault();
 
             var $btn = $(this);
@@ -56,14 +75,16 @@
             $loopGrid.css('opacity', '0.5');
             $loopGrid.css('transition', 'opacity 0.3s ease');
 
+            var requestPayload = $.extend({}, baseRequest, { page: paged });
+
             $.ajax({
                 url: window.elemacy.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'elemacy_widgets_loop_grid_pagination',
                     _wpnonce: window.elemacy.nonce,
-                    paged: paged,
-                    settings: settingsRaw
+                    request: JSON.stringify(requestPayload),
+                    paginate_base: paginateBase
                 },
                 success: function (response) {
                     if (response.success && response.data) {
@@ -85,10 +106,19 @@
                             $oldPagination.remove();
                         }
 
-                        // Re-initialize any Elementor elements inside the grid that just loaded
-                        $loopGrid.find('.elementor-element').each(function () {
-                            elementorFrontend.elementsHandler.runReadyTrigger($(this));
-                        });
+                        // Re-initialize any Elementor elements inside the grid that just
+                        // loaded, through the shared lifecycle adapter (design.md D9, task
+                        // 9.5) rather than a second copy of this widget-handler-initialization
+                        // loop. $loopGrid[0] is the SAME container node across every
+                        // pagination click (.html() replaces its inner content, not the
+                        // node itself), so release() first is required: without it, the
+                        // adapter's own "never initialize an already-seen subtree twice"
+                        // guard (needed for a reopened popup) would silently skip
+                        // hydrating every pagination response after the first.
+                        if (window.ElemacyElementorLifecycle) {
+                            window.ElemacyElementorLifecycle.release($loopGrid[0]);
+                            window.ElemacyElementorLifecycle.hydrate($loopGrid[0]);
+                        }
 
                         // Smooth scroll to top of the grid
                         $('html, body').animate({
@@ -96,6 +126,7 @@
                         }, 500);
 
                     } else {
+                        showStaleNotice();
                         if (elementorFrontend.isEditMode()) {
                             console.error('Elemacy Loop AJAX Error:', response.data);
                         } else {

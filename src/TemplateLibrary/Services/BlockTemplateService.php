@@ -6,18 +6,20 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Hooks;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\DocumentDuplicator;
+use Elemacy\TemplateLibrary\DocumentWriter;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\DTO\CreateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
+use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\LibraryRepository;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Support\PostDates;
-use Elemacy\Support\Utils;
 use WP_Post;
 use WP_Query;
 
@@ -28,6 +30,12 @@ use WP_Query;
  * conditions, since block items are neither auto-resolved nor rendered as
  * standalone pages. They only carry editor defaults — a bare Canvas (no theme
  * header/footer) and a pinned Elementor document type.
+ *
+ * Native persistence, group/type ownership and library/Elementor document
+ * type synchronization are owned by the shared {@see LibraryRepository}/
+ * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
+ * this service keeps only what is specific to blocks — the fixed Canvas
+ * editor defaults — plus its own public DTO-shaped responses.
  */
 class BlockTemplateService
 {
@@ -39,6 +47,23 @@ class BlockTemplateService
      * @var int
      */
     const DEFAULT_PER_PAGE = 20;
+
+    protected LibraryRepository $repository;
+    protected DocumentWriter $writer;
+    protected DocumentDuplicator $duplicator;
+    protected TypeRegistry $types;
+
+    public function __construct(
+        ?LibraryRepository $repository = null,
+        ?DocumentWriter $writer = null,
+        ?DocumentDuplicator $duplicator = null,
+        ?TypeRegistry $types = null
+    ) {
+        $this->repository = $repository ?? new LibraryRepository();
+        $this->writer = $writer ?? new DocumentWriter($this->repository);
+        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
+        $this->types = $types ?? TypeRegistry::instance();
+    }
 
     /**
      * A page of block templates (BlockTemplateDTO items) matching the filter, plus pagination totals.
@@ -131,9 +156,9 @@ class BlockTemplateService
 
     public function get(int $id): ?BlockTemplateDTO
     {
-        $post = get_post($id);
+        $post = $this->repository->find($id);
 
-        if (!$this->owns($post)) {
+        if (!$this->repository->owns($post, self::GROUP)) {
             return null;
         }
 
@@ -153,127 +178,74 @@ class BlockTemplateService
 
     public function create(CreateBlockTemplateDTO $dto): BlockTemplateDTO
     {
-        if (isset($dto->type)) {
-            $this->assert_valid_type((string) $dto->type);
-        }
-
-        $post_id = wp_insert_post([
+        $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::PUBLISH,
-            'post_type' => LibraryPostType::POST_TYPE,
-        ], true);
+        ], isset($dto->type) ? (string) $dto->type : '');
 
-        if (is_wp_error($post_id)) {
-            throw new HttpException(esc_html($post_id->get_error_message()));
-        }
-
-        if (isset($dto->type)) {
-            update_post_meta($post_id, MetaKeys::TEMPLATE_TYPE, $dto->type);
-        }
-
-        update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
-        update_post_meta($post_id, '_elementor_template_type', $this->elementor_document_type($dto->type ?? ''));
-        update_post_meta($post_id, '_elementor_edit_mode', 'builder');
+        $this->apply_editor_defaults($post_id);
+        $this->notify($post_id, LibraryChanged::CREATED);
 
         return $this->create_dto(get_post($post_id));
     }
 
     public function update(int $id, UpdateBlockTemplateDTO $dto): BlockTemplateDTO
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
-
-        if (isset($dto->type)) {
-            $this->assert_valid_type((string) $dto->type);
-        }
-
-        $post_data = ['ID' => $id];
+        $post_fields = [];
 
         if (isset($dto->title)) {
-            $post_data['post_title'] = $dto->title;
+            $post_fields['post_title'] = $dto->title;
         }
 
         if (isset($dto->status)) {
-            $post_data['post_status'] = $dto->status;
+            $post_fields['post_status'] = $dto->status;
         }
 
-        $result = wp_update_post($post_data, true);
-
-        if (is_wp_error($result)) {
-            throw new HttpException(esc_html($result->get_error_message()));
-        }
-
-        if (isset($dto->type)) {
-            update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $dto->type);
-        }
+        $this->writer->update($id, self::GROUP, $post_fields, isset($dto->type) ? (string) $dto->type : null);
+        $this->notify($id, LibraryChanged::UPDATED);
 
         return $this->create_dto(get_post($id));
     }
 
     public function duplicate(int $id): BlockTemplateDTO
     {
-        $post = get_post($id);
+        $new_id = $this->duplicator->duplicate($id, self::GROUP);
 
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
+        $this->apply_editor_defaults($new_id);
+        $this->notify($new_id, LibraryChanged::DUPLICATED);
 
-        /* translators: %s: original template title. */
-        $new_title = sprintf(__('%s (Copy)', 'elemacy'), $post->post_title);
-
-        $new_post_id = wp_insert_post([
-            'post_title' => $new_title,
-            'post_content' => $post->post_content,
-            'post_status' => PostStatus::DRAFT,
-            'post_type' => LibraryPostType::POST_TYPE,
-            'post_author' => get_current_user_id(),
-        ], true);
-
-        if (is_wp_error($new_post_id)) {
-            throw new HttpException(esc_html($new_post_id->get_error_message()));
-        }
-
-        $meta = get_post_meta($id);
-
-        if (is_array($meta)) {
-            foreach ($meta as $meta_key => $meta_values) {
-                if (strpos($meta_key, '_edit_lock') === 0 || strpos($meta_key, '_edit_last') === 0) {
-                    continue;
-                }
-
-                foreach ($meta_values as $meta_value) {
-                    update_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
-                }
-            }
-        }
-
-        // Guarantee the editor defaults even when the source predates them.
-        $source_type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
-        update_post_meta($new_post_id, '_wp_page_template', 'elementor_canvas');
-        update_post_meta($new_post_id, '_elementor_template_type', $this->elementor_document_type($source_type));
-        update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
-
-        return $this->create_dto(get_post($new_post_id));
+        return $this->create_dto(get_post($new_id));
     }
 
     public function delete(int $id): bool
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
-
-        $result = wp_delete_post($id, true);
-
-        if (!$result) {
-            throw new HttpException(esc_html__('Failed to delete template.', 'elemacy'));
-        }
+        $this->writer->owned_or_fail($id, self::GROUP);
+        $this->repository->delete($id);
+        $this->notify($id, LibraryChanged::DELETED);
 
         return true;
+    }
+
+    /**
+     * Editor defaults every block item needs regardless of type — a bare
+     * Canvas (no theme header/footer) and builder edit mode — reasserted
+     * unconditionally so a duplicate whose source predates these defaults
+     * still gets them.
+     */
+    protected function apply_editor_defaults(int $id): void
+    {
+        $this->repository->set_meta($id, '_wp_page_template', 'elementor_canvas');
+        $this->repository->set_meta($id, '_elementor_edit_mode', 'builder');
+    }
+
+    /**
+     * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
+     */
+    protected function notify(int $id, string $action): void
+    {
+        $type = (string) $this->repository->get_meta($id, MetaKeys::TEMPLATE_TYPE);
+
+        do_action(Hooks::LIBRARY_CHANGED_ACTION, new LibraryChanged($id, self::GROUP, $type, $action));
     }
 
     /**
@@ -283,52 +255,7 @@ class BlockTemplateService
      */
     protected function block_types(): array
     {
-        return TypeRegistry::instance()->names_in_group(self::GROUP);
-    }
-
-    /**
-     * Reject a type this service does not own before it is persisted. A foreign
-     * or unknown type would create an item that owns() disowns — invisible to
-     * every list/show/update endpoint — while still sitting in the shared
-     * library CPT.
-     */
-    protected function assert_valid_type(string $type): void
-    {
-        if (!in_array($type, $this->block_types(), true)) {
-            throw ValidationException::with_errors([
-                'type' => [esc_html__('Invalid template type.', 'elemacy')],
-            ]);
-        }
-    }
-
-    /**
-     * Loop items get their own Elementor document (mapped in the Widgets module's
-     * Config/documents.php) so the editor can offer real-data Preview Settings;
-     * other block items keep Elementor's built-in page document. Either way the type
-     * is pinned so the editor never falls back to the popup document that shares the
-     * library CPT.
-     */
-    protected function elementor_document_type(string $type): string
-    {
-        $documents = require Utils::get_plugin_path('src/Modules/Widgets/Config/documents.php');
-
-        return isset($documents[$type]) ? $documents[$type]::get_type() : 'wp-page';
-    }
-
-    /**
-     * A block template lives on the shared library CPT and carries a block-group
-     * type, so theme templates and popups on the same CPT are never treated as
-     * block items.
-     */
-    protected function owns(?WP_Post $post): bool
-    {
-        if (!$post || $post->post_type !== LibraryPostType::POST_TYPE) {
-            return false;
-        }
-
-        $type = (string) get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
-
-        return in_array($type, $this->block_types(), true);
+        return $this->types->names_in_group(self::GROUP);
     }
 
     protected function create_dto(WP_Post $post): BlockTemplateDTO

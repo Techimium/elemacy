@@ -25,10 +25,25 @@ class QueryControlManager
     const RELATIVE_PATH = 'assets/editor/query-control.js';
 
     protected QueryService $service;
+    protected bool $registered = false;
 
     public function __construct()
     {
         $this->service = new QueryService();
+    }
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead).
+     */
+    public function register_hooks(): void
+    {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
 
         add_action('elementor/controls/register', [$this, 'register_control']);
         add_action('elementor/ajax/register_actions', [$this, 'register_ajax_actions']);

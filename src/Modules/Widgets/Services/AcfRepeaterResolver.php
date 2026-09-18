@@ -4,33 +4,16 @@ namespace Elemacy\Modules\Widgets\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Integrations\Acf\AcfRepeaterResolver as CanonicalAcfRepeaterResolver;
+
 /**
- * Resolves an ACF repeater/gallery field name to its row array, supporting both
- * top-level usage (get_field) and nested-loop usage (get_sub_field) so the
- * widget renders correctly inside another repeater iteration as well.
+ * Moved to Elemacy\Integrations\Acf\AcfRepeaterResolver (design.md D7). This
+ * alias is a real class_exists()/instanceof-compatible identity, not a copy.
+ * Kept at this path for the first supported Free/Pro compatibility window
+ * (Pro's AcfRepeaterDataSource still imports this exact path — task 7.8's
+ * own job to migrate) so any code still importing it from here is
+ * unaffected. New code should import the canonical namespace instead.
+ *
+ * @deprecated Use Elemacy\Integrations\Acf\AcfRepeaterResolver.
  */
-class AcfRepeaterResolver
-{
-    public static function is_acf_active(): bool
-    {
-        return function_exists('get_field');
-    }
-
-    /**
-     * @return array<int, mixed> Always an array (empty if nothing found).
-     */
-    public static function resolve(string $field_name): array
-    {
-        if ('' === $field_name || !self::is_acf_active()) {
-            return [];
-        }
-
-        $value = get_sub_field($field_name);
-
-        if (empty($value)) {
-            $value = get_field($field_name);
-        }
-
-        return is_array($value) ? $value : [];
-    }
-}
+class_alias(CanonicalAcfRepeaterResolver::class, __NAMESPACE__ . '\AcfRepeaterResolver');

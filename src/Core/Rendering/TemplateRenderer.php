@@ -4,6 +4,8 @@ namespace Elemacy\Core\Rendering;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Integrations\Elementor\Capabilities;
+
 /**
  * Renders an Elementor document's content by post ID, wherever on the page
  * it's needed. Independent of TemplateAssetsRegistrar: rendering never
@@ -12,15 +14,206 @@ defined('ABSPATH') || exit;
 class TemplateRenderer
 {
     /**
+     * This request's prepared fragments, keyed by cache_key(). Static so
+     * every TemplateRenderer instance — callers each construct their own,
+     * see PopupRenderer/ThemeBuilderManager — shares one request-scoped
+     * cache without having to thread an instance across hook callbacks.
+     * Every key includes the document's post ID, which WordPress never
+     * reuses within one request (or across a long-lived test process), so
+     * this never needs an explicit per-request reset.
+     *
+     * @var array<string, string>
+     */
+    protected static array $prepared = [];
+
+    protected Capabilities $capabilities;
+
+    public function __construct(?Capabilities $capabilities = null)
+    {
+        $this->capabilities = $capabilities ?? new Capabilities();
+    }
+
+    /**
      * @param int $id The post ID to render.
      * @return string
      */
     public function render(int $id): string
     {
-        if (!class_exists('\Elementor\Plugin')) {
+        if (!$this->capabilities->plugin_loaded()) {
             return '';
         }
 
         return \Elementor\Plugin::instance()->frontend->get_builder_content_for_display($id);
+    }
+
+    /**
+     * Renders $id once for ($context, $placement) — discovering its
+     * widgets' script/style dependencies as a side effect of Elementor's own
+     * render pipeline, so they can be queued before this request's
+     * asset-output deadlines — and caches the complete returned fragment
+     * (including any non-root style/link markup Elementor prints alongside
+     * the document root) for later retrieval via get_prepared(). Calling
+     * this again for the same key returns the cached fragment without
+     * rendering $id a second time.
+     *
+     * Ambient post/query/document/editor state is snapshotted before
+     * rendering and forced back afterwards even if rendering throws: none
+     * of WordPress's post globals, Elementor's document-switch stack, or
+     * its editor-mode flag restore themselves on an exception raised mid
+     * render.
+     *
+     * @param int    $id        The post ID to prepare.
+     * @param string $context   Caller-defined namespace, e.g. 'popup' or
+     *                          'theme-builder'.
+     * @param string $placement Caller-defined placement within that
+     *                          context, e.g. a popup ID or 'header'. Must be
+     *                          distinct per current-loop-item occurrence
+     *                          when $id renders item-dependent content —
+     *                          this cache never derives that on its own.
+     * @return string The prepared fragment.
+     */
+    public function prepare(int $id, string $context, string $placement): string
+    {
+        $key = $this->cache_key($id, $context, $placement);
+
+        if (array_key_exists($key, self::$prepared)) {
+            return self::$prepared[$key];
+        }
+
+        $state = $this->snapshot_state();
+
+        try {
+            $fragment = $this->render($id);
+        } finally {
+            $this->restore_state($state);
+        }
+
+        self::$prepared[$key] = $fragment;
+
+        return $fragment;
+    }
+
+    /**
+     * $id's fragment previously prepared for ($context, $placement) this
+     * request, or null when prepare() was never called for that exact key.
+     *
+     * @param int    $id
+     * @param string $context
+     * @param string $placement
+     * @return string|null
+     */
+    public function get_prepared(int $id, string $context, string $placement): ?string
+    {
+        return self::$prepared[$this->cache_key($id, $context, $placement)] ?? null;
+    }
+
+    /**
+     * @param int    $id
+     * @param string $context
+     * @param string $placement
+     * @return string
+     */
+    protected function cache_key(int $id, string $context, string $placement): string
+    {
+        return $id . '|' . $context . '|' . $placement;
+    }
+
+    /**
+     * @return array{post: \WP_Post|null, wp_query: \WP_Query|null, document: mixed, edit_mode: bool, ob_level: int}
+     */
+    protected function snapshot_state(): array
+    {
+        global $post, $wp_query;
+
+        $documents = $this->elementor_documents();
+        $editor = $this->elementor_editor();
+
+        return [
+            'post' => $post,
+            'wp_query' => $wp_query,
+            'document' => $documents ? $documents->get_current() : null,
+            'edit_mode' => $editor ? $editor->is_edit_mode() : false,
+            'ob_level' => ob_get_level(),
+        ];
+    }
+
+    /**
+     * @param array{post: \WP_Post|null, wp_query: \WP_Query|null, document: mixed, edit_mode: bool, ob_level: int} $state
+     * @return void
+     */
+    protected function restore_state(array $state): void
+    {
+        global $post, $wp_query;
+
+        // Elementor's own render pipeline nests several ob_start() calls
+        // (Document::print_elements(), Element_Base::print_element(),
+        // Frontend::get_builder_content()) with no try/finally of their
+        // own: a widget that throws mid-render leaves every one of those
+        // buffers open, silently swallowing whatever the rest of the
+        // request prints next until something eventually closes them.
+        // Discard back down to the level seen before this render started.
+        while (ob_get_level() > $state['ob_level']) {
+            ob_end_clean();
+        }
+
+        $post = $state['post']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- restoring a snapshot taken by this same class, same idiom as PostLoopItem::enter().
+        $wp_query = $state['wp_query']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- see above.
+
+        if ($post instanceof \WP_Post) {
+            setup_postdata($post);
+        }
+
+        $editor = $this->elementor_editor();
+        if ($editor) {
+            $editor->set_edit_mode($state['edit_mode']);
+        }
+
+        $documents = $this->elementor_documents();
+        if (!$documents) {
+            return;
+        }
+
+        $guard = 0;
+
+        // restore_document() only pops Documents_Manager's own switch stack;
+        // a render that throws mid-way (e.g. inside print_elements_with_
+        // wrapper()) can leave it deeper than when this snapshot was taken,
+        // since that pipeline has no finally of its own. Pop until the
+        // current document matches what was snapshotted, bounded so a
+        // genuinely corrupted stack can never hang the request.
+        while ($documents->get_current() !== $state['document'] && $guard < 64) {
+            $documents->restore_document();
+            ++$guard;
+        }
+    }
+
+    /**
+     * @return object|null Elementor's Documents_Manager instance, or null
+     *                      when Elementor isn't loaded or a test stub omits it.
+     */
+    protected function elementor_documents()
+    {
+        if (!$this->capabilities->plugin_loaded()) {
+            return null;
+        }
+
+        $documents = \Elementor\Plugin::instance()->documents;
+
+        return is_object($documents) ? $documents : null;
+    }
+
+    /**
+     * @return object|null Elementor's Editor instance, or null when
+     *                      Elementor isn't loaded or a test stub omits it.
+     */
+    protected function elementor_editor()
+    {
+        if (!$this->capabilities->plugin_loaded()) {
+            return null;
+        }
+
+        $editor = \Elementor\Plugin::instance()->editor;
+
+        return is_object($editor) ? $editor : null;
     }
 }

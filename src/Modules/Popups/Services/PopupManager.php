@@ -8,6 +8,7 @@ use Elemacy\Core\Hooks;
 use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -20,6 +21,13 @@ use Elementor\Plugin as ElementorPlugin;
  */
 class PopupManager
 {
+    /**
+     * TemplateAssetsRegistrar/TemplateRenderer preparation context for every
+     * popup document, shared with PopupRenderer so both agree on the same
+     * cache key without either hardcoding the other's string.
+     */
+    public const ASSET_CONTEXT = 'popup';
+
     protected static ?self $instance = null;
 
     /**
@@ -28,6 +36,24 @@ class PopupManager
      * @var \Elemacy\Modules\Popups\DTO\PopupDTO[]|null
      */
     protected $matched = null;
+
+    protected TypeRegistry $types;
+    protected PopupDisplayResolver $display_resolver;
+    protected PopupRenderer $renderer;
+
+    /**
+     * Every dependency defaults to its own pre-existing singleton/fresh
+     * instance, so instance()'s own `new static()` call needs no changes.
+     */
+    public function __construct(
+        ?TypeRegistry $types = null,
+        ?PopupDisplayResolver $display_resolver = null,
+        ?PopupRenderer $renderer = null
+    ) {
+        $this->types = $types ?? TypeRegistry::instance();
+        $this->display_resolver = $display_resolver ?? PopupDisplayResolver::instance();
+        $this->renderer = $renderer ?? new PopupRenderer();
+    }
 
     /**
      * Returns the shared PopupManager instance.
@@ -41,6 +67,17 @@ class PopupManager
         }
 
         return static::$instance;
+    }
+
+    /**
+     * Drops this request's memoized matched-popups list (task 11.2/11.3) —
+     * used when a popup's saved conditions/rules/triggers change within the
+     * same request, or the acting site changes mid-request, so a later call
+     * re-resolves instead of returning a stale or cross-site list.
+     */
+    public function reset(): void
+    {
+        $this->matched = null;
     }
 
     /**
@@ -58,8 +95,12 @@ class PopupManager
     }
 
     /**
-     * Informs the shared template-assets registrar about each matched popup,
-     * so its classic and atomic Elementor CSS is generated for this request.
+     * Prepares each matched popup document — bridging its classic/atomic
+     * Elementor CSS exactly as register() alone already did, and additionally
+     * rendering it once now so its widgets' script/style dependencies are
+     * queued before this request's head/footer output deadlines. The
+     * rendered fragment is cached for render_top_bars()/render_footer_popups()
+     * to emit later via PopupRenderer without rendering the document again.
      *
      * @param TemplateAssetsRegistrar $registrar
      * @return void
@@ -67,7 +108,7 @@ class PopupManager
     public function register_template_assets(TemplateAssetsRegistrar $registrar): void
     {
         foreach ($this->get_matched_ids() as $id) {
-            $registrar->register($id);
+            $registrar->prepare($id, self::ASSET_CONTEXT, (string) $id);
         }
     }
 
@@ -106,7 +147,7 @@ class PopupManager
         // templates on the same CPT keep their own preview handling.
         $type = (string) get_post_meta((int) get_queried_object_id(), MetaKeys::TEMPLATE_TYPE, true);
 
-        if (!in_array($type, TypeRegistry::instance()->names_in_group('popup'), true)) {
+        if (!in_array($type, $this->types->names_in_group('popup'), true)) {
             return $template;
         }
 
@@ -151,7 +192,7 @@ class PopupManager
             }
         }
 
-        $this->matched = PopupDisplayResolver::instance()->resolve_all();
+        $this->matched = $this->display_resolver->resolve_all();
 
         return $this->matched;
     }
@@ -187,11 +228,9 @@ class PopupManager
      */
     public function render_top_bars(): void
     {
-        $renderer = new PopupRenderer();
-
         foreach ($this->get_matched() as $popup) {
             if ($this->is_top_bar($popup)) {
-                $renderer->render($popup);
+                $this->renderer->render($popup);
             }
         }
     }
@@ -202,13 +241,32 @@ class PopupManager
      */
     public function render_footer_popups(): void
     {
-        $renderer = new PopupRenderer();
-
         foreach ($this->get_matched() as $popup) {
             if (!$this->is_top_bar($popup)) {
-                $renderer->render($popup);
+                $this->renderer->render($popup);
             }
         }
+    }
+
+    /**
+     * Available popup types for the admin app's type picker (task 10.4),
+     * mirroring ThemeBuilderManager::get_available_template_types() but also
+     * exposing availability so a registered-but-inactive extension type
+     * (D10) is distinguishable from a real, selectable one — no extension
+     * currently registers one, but the shape is ready for when one does.
+     *
+     * @return array<int, array{value: string, label: string, availability: array}>
+     */
+    public function get_available_popup_types(): array
+    {
+        return array_map(
+            fn ($definition): array => [
+                'value' => $definition->name,
+                'label' => $definition->label,
+                'availability' => $this->types->get_availability($definition->name)->to_array(),
+            ],
+            $this->types->by_group('popup')
+        );
     }
 
     /**
@@ -220,7 +278,7 @@ class PopupManager
      */
     protected function is_top_bar($popup): bool
     {
-        if ('topbar' !== $popup->type) {
+        if (PopupTypes::TOPBAR !== $popup->type) {
             return false;
         }
 

@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 }
 
 $elemacy_manager = ThemeBuilderManager::instance();
-$elemacy_manager->render_template($elemacy_manager->get_footer_id()); ?>
+$elemacy_manager->render_footer(); ?>
 
 <?php wp_footer(); ?>
 

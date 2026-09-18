@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import { AvailabilitySchema } from '@/schemas/availability';
 
 export const ConditionRuleSchema = z.object({
     id: z.string(),
     type: z.string(),
     operator: z.enum(['include', 'exclude']),
     value: z.string(),
+    availability: AvailabilitySchema.optional(),
 });
 
 export const ConditionSubValueSchema = z.object({

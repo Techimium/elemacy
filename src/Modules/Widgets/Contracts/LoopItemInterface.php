@@ -4,47 +4,15 @@ namespace Elemacy\Modules\Widgets\Contracts;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Loop\Contracts\LoopItemInterface as CanonicalLoopItemInterface;
+
 /**
- * One item a loop widget renders its template against, regardless of what
- * kind of data it wraps (a post, a term, a repeater row, an API response
- * object, ...). The loop render loop and the CSS layer only ever talk to
- * this interface — never to the underlying data directly.
+ * Moved to Elemacy\Loop\Contracts\LoopItemInterface (design.md D7). This
+ * alias is a real interface_exists()/instanceof-compatible identity, not a
+ * copy — kept at this path for the first supported Free/Pro compatibility
+ * window so any code still importing it from here (in either plugin) is
+ * unaffected. New code should import the canonical namespace instead.
+ *
+ * @deprecated Use Elemacy\Loop\Contracts\LoopItemInterface.
  */
-interface LoopItemInterface
-{
-    /**
-     * A key unique to this item within one render, safe to use as a CSS
-     * class token. Does not need to correspond to a WordPress post — see
-     * design.md D4.
-     *
-     * @return string
-     */
-    public function get_identity(): string;
-
-    /**
-     * Resolves one field's value for this item. Meaning and available keys
-     * are defined by whichever data source produced this item.
-     *
-     * @param string $key
-     * @return mixed
-     */
-    public function get_field(string $key);
-
-    /**
-     * Sets up whatever native context this item type has (e.g. global
-     * $post for a WP_Post-backed item), so existing dynamic tags and any
-     * third-party widget in the loop item template resolve correctly
-     * without knowing this abstraction exists. A no-op for item types with
-     * no native equivalent.
-     *
-     * @return void
-     */
-    public function enter(): void;
-
-    /**
-     * Tears down whatever enter() set up.
-     *
-     * @return void
-     */
-    public function exit(): void;
-}
+class_alias(CanonicalLoopItemInterface::class, __NAMESPACE__ . '\LoopItemInterface');

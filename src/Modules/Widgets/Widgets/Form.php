@@ -45,6 +45,12 @@ class Form extends BaseWidget
         return ['elemacy-form'];
     }
 
+    protected function is_dynamic_content(): bool
+    {
+        // Nonces and placement proofs belong to the current visitor/host, never Elementor's element cache.
+        return true;
+    }
+
     protected function register_controls()
     {
         $this->register_form_fields_section();
@@ -939,6 +945,14 @@ class Form extends BaseWidget
         // Elementor has switched to — not the viewed page (get_the_ID()).
         $document = Plugin::$instance->documents->get_current();
         $document_id = $document ? $document->get_main_id() : get_the_ID();
+        $form_context = '';
+        try {
+            $form_context = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Forms\Services\PublishedFormDefinitionResolver::class)
+                ->context((int) $document_id, $this->get_id());
+        } catch (\Elemacy\Core\Exceptions\ValidationException $error) {
+            // An editor may render an unsaved/draft widget; it cannot mint a public placement proof.
+        }
+
 
         ?>
         <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
@@ -946,6 +960,7 @@ class Form extends BaseWidget
                 <input type="hidden" name="action" value="elemacy_widgets_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
                 <input type="hidden" name="post_id" value="<?php echo esc_attr($document_id); ?>">
+                <input type="hidden" name="elemacy_form_context" value="<?php echo esc_attr($form_context); ?>">
                 <?php /* Honeypot field for simple spam protection */ ?>
                 <div style="display:none !important;">
                     <label>Do not fill this field</label>

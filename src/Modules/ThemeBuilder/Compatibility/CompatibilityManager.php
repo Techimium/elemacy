@@ -4,9 +4,11 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\AstraCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BBThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlocksyCompatibility;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlockThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\DefaultCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GenesisCompatibility;
@@ -15,14 +17,28 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\KadenceCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\NeveCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\OceanWPCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\StorefrontCompatibility;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
+/**
+ * Selects and boots exactly one theme compatibility adapter per request.
+ * Selection is deterministic: an active block theme always gets the shared
+ * block-theme adapter (its template-part mechanism is theme-independent);
+ * otherwise the first registered adapter matching the active theme's
+ * stylesheet/template slug wins; an unrecognized classic theme gets the
+ * generic fallback. Contributors register through
+ * Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION — adding a theme slug
+ * never requires editing this class or an unrelated adapter.
+ */
 class CompatibilityManager
 {
     /**
      * @var CompatibilityManager|null
      */
     protected static $instance = null;
+
+    /** @var array<string, class-string<ThemeCompatibilityInterface>> */
+    protected array $adapters = [];
 
     public static function instance()
     {
@@ -38,6 +54,20 @@ class CompatibilityManager
         add_action('wp', [$this, 'boot']);
     }
 
+    /**
+     * Registers a theme compatibility adapter for an exact theme slug
+     * (stylesheet or template directory name). A later registration for the
+     * same slug replaces the earlier one.
+     *
+     * @param string                                    $theme_slug
+     * @param class-string<ThemeCompatibilityInterface> $adapter_class
+     * @return void
+     */
+    public function register(string $theme_slug, string $adapter_class): void
+    {
+        $this->adapters[$theme_slug] = $adapter_class;
+    }
+
     public function boot(): void
     {
         $manager = ThemeBuilderManager::instance();
@@ -48,6 +78,8 @@ class CompatibilityManager
         if (!$has_header && !$has_footer) {
             return;
         }
+
+        $this->register_default_adapters();
 
         $theme = wp_get_theme();
         $theme_slugs = array_values(array_unique(array_filter([
@@ -64,29 +96,46 @@ class CompatibilityManager
         $compat->register($manager);
     }
 
-    protected function resolve_compatibility(array $theme_slugs)
+    /**
+     * Registers the adapters this module ships, then fires the extension
+     * point for add-ons/site-specific adapters. Idempotent: safe if boot()
+     * ever runs more than once in a request (it won't in production, since
+     * 'wp' fires once, but nothing here depends on that for correctness).
+     *
+     * @return void
+     */
+    protected function register_default_adapters(): void
     {
-        $map = [
-            'astra' => AstraCompatibility::class,
-            'generatepress' => GeneratePressCompatibility::class,
-            'oceanwp' => OceanWPCompatibility::class,
-            'kadence' => KadenceCompatibility::class,
-            'neve' => NeveCompatibility::class,
-            'blocksy' => BlocksyCompatibility::class,
-            'storefront' => StorefrontCompatibility::class,
-            'genesis' => GenesisCompatibility::class,
-            'bb-theme' => BBThemeCompatibility::class,
-            'hello-elementor' => DefaultCompatibility::class,
-        ];
+        $this->register('astra', AstraCompatibility::class);
+        $this->register('generatepress', GeneratePressCompatibility::class);
+        $this->register('oceanwp', OceanWPCompatibility::class);
+        $this->register('kadence', KadenceCompatibility::class);
+        $this->register('neve', NeveCompatibility::class);
+        $this->register('blocksy', BlocksyCompatibility::class);
+        $this->register('storefront', StorefrontCompatibility::class);
+        $this->register('genesis', GenesisCompatibility::class);
+        $this->register('bb-theme', BBThemeCompatibility::class);
+        $this->register('hello-elementor', DefaultCompatibility::class);
 
+        do_action(Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION, $this);
+    }
+
+    protected function resolve_compatibility(array $theme_slugs): ?ThemeCompatibilityInterface
+    {
+        // Block themes share one template-part-based mechanism regardless
+        // of slug; a dedicated per-theme adapter (if one is ever needed)
+        // can still be registered and will be preferred below instead.
         foreach ($theme_slugs as $slug) {
-            if (isset($map[$slug]) && class_exists($map[$slug])) {
-                return new $map[$slug]();
+            if (isset($this->adapters[$slug]) && class_exists($this->adapters[$slug])) {
+                return new $this->adapters[$slug]();
             }
         }
 
-        // Global fallback to support unknown themes without swapping templates.
+        if (wp_is_block_theme() && class_exists(BlockThemeCompatibility::class)) {
+            return new BlockThemeCompatibility();
+        }
+
+        // Global fallback to support unknown classic themes without swapping templates.
         return class_exists(GlobalCompatibility::class) ? new GlobalCompatibility() : (class_exists(DefaultCompatibility::class) ? new DefaultCompatibility() : null);
     }
 }
-

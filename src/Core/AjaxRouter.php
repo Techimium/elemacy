@@ -11,12 +11,15 @@ use Elemacy\Support\Utils;
 
 defined('ABSPATH') || exit;
 
-use Exception;
+use Throwable;
 
 class AjaxRouter
 {
     const USER_GUEST = 'guest';
     const USER_AUTH = 'auth';
+    const USER_PUBLIC = 'public';
+
+    protected ?string $capability = null;
 
     /**
      * All registered ajax routes/actions.
@@ -65,51 +68,43 @@ class AjaxRouter
      * `wp_ajax_*`/`wp_ajax_nopriv_*`.
      *
      * @return void
-     * @throws Exception If a route's callback is malformed or its controller/method doesn't exist.
+     * @throws Throwable If a route's callback is malformed or its controller/method doesn't exist.
      */
     public static function register()
     {
         foreach (static::$routes as $route) {
-            if (count($route->callback) < 2) {
-                throw new Exception(esc_html__('Invalid ajax callback handler', 'elemacy'));
+            if ($route->user_type === null) {
+                _doing_it_wrong(__METHOD__, esc_html__('AJAX actions require an explicit access policy.', 'elemacy'), '1.0.0');
+                continue;
             }
 
-            if (!class_exists($route->callback[0])) {
-                /* translators: %s: Controller name */
-                throw new Exception(sprintf(esc_html__('Controller %s not found', 'elemacy'), esc_html($route->callback[0])));
-            }
-
-            if (!method_exists($route->callback[0], $route->callback[1])) {
-                /* translators: %s: Method name */
-                throw new Exception(sprintf(esc_html__('Method %s not found', 'elemacy'), esc_html($route->callback[1])));
-            }
-
-            $controller = Container::instance()->make($route->callback[0]);
-
-            $callback = function () use ($controller, $route) {
-                // Perform nonce verification if required
-                if ($route->needs_nonce_check) {
-                    $nonce = Sanitizer::apply_rule(wp_unslash($_POST['_wpnonce'] ?? $_GET['_wpnonce'] ?? ''), Sanitizer::TEXT); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-                    $nonce_action = $route->nonce_action ?? Utils::with_prefix('ajax_nonce');
-
-                    if (!wp_verify_nonce($nonce, $nonce_action)) {
-                        wp_send_json_error(__('Security check failed', 'elemacy'), 403);
-                        return;
-                    }
-                }
-
+            $callback = function () use ($route) {
                 try {
+                    if ($route->capability !== null && !current_user_can($route->capability)) {
+                        throw new HttpException(esc_html__('You do not have permission for this action.', 'elemacy'), 403);
+                    }
+                    if ($route->needs_nonce_check) {
+                        $nonce = Sanitizer::apply_rule(wp_unslash($_POST['_wpnonce'] ?? $_GET['_wpnonce'] ?? ''), Sanitizer::TEXT); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                        $nonce_action = $route->nonce_action ?? Utils::with_prefix('ajax_nonce');
+                        if (!wp_verify_nonce($nonce, $nonce_action)) {
+                            wp_send_json_error(__('Security check failed', 'elemacy'), 403);
+                            return;
+                        }
+                    }
+                    if (count($route->callback) !== 2 || !is_string($route->callback[0]) || !is_string($route->callback[1])) {
+                        throw new \InvalidArgumentException('Invalid AJAX controller callback.');
+                    }
+                    $controller = Container::instance()->make($route->callback[0]);
                     return $controller->{$route->callback[1]}(static::get_request_instance());
-                } catch (Exception $error) {
+                } catch (Throwable $error) {
                     return static::send_error_response($error);
                 }
             };
 
-            if ($route->user_type === static::USER_GUEST || $route->user_type === null) {
+            if ($route->user_type === static::USER_GUEST || $route->user_type === static::USER_PUBLIC) {
                 add_action('wp_ajax_nopriv_' . $route->action, $callback);
             }
-
-            if ($route->user_type === static::USER_AUTH || $route->user_type === null) {
+            if ($route->user_type === static::USER_AUTH || $route->user_type === static::USER_PUBLIC) {
                 add_action('wp_ajax_' . $route->action, $callback);
             }
         }
@@ -143,6 +138,23 @@ class AjaxRouter
         $this->user_type = static::USER_GUEST;
 
         return $this;
+    }
+
+    /** Explicit public action, reachable by guests and authenticated users. */
+    public function for_public()
+    {
+        $this->user_type = static::USER_PUBLIC;
+        return $this;
+    }
+
+    /** Native capability policy for an authenticated action. */
+    public function require_capability(string $capability)
+    {
+        if ($capability === '') {
+            throw new \InvalidArgumentException('A nonempty capability is required.');
+        }
+        $this->capability = $capability;
+        return $this->for_authenticated();
     }
 
     /**
@@ -185,10 +197,10 @@ class AjaxRouter
     /**
      * Converts a caught exception into a JSON error response.
      *
-     * @param Exception $error The exception raised by the route's callback.
+     * @param Throwable $error The exception raised by the route's callback.
      * @return void
      */
-    protected static function send_error_response(Exception $error)
+    protected static function send_error_response(Throwable $error)
     {
         if ($error instanceof ValidationException) {
             return SiteResponse::instance()->json_error([

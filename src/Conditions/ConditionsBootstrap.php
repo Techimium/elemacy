@@ -28,8 +28,24 @@ use Elemacy\Support\Utils;
  */
 class ConditionsBootstrap
 {
-    public function __construct()
+    protected bool $hooked = false;
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead). Named
+     * register_hooks() rather than register() to avoid colliding with this
+     * class's own pre-existing register() method below, which registers
+     * free's conditions into ConditionManager, not a WordPress hook.
+     */
+    public function register_hooks(): void
     {
+        if ($this->hooked) {
+            return;
+        }
+
+        $this->hooked = true;
+
         add_action('init', [$this, 'register'], 99);
     }
 

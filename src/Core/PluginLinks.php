@@ -8,8 +8,21 @@ use Elemacy\Support\Utils;
 
 class PluginLinks
 {
-    public function __construct()
+    protected bool $registered = false;
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead).
+     */
+    public function register_hooks(): void
     {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
+
         add_filter('plugin_action_links_' . ELEMACY_PLUGIN_BASE, [$this, 'add_action_links']);
     }
 

@@ -4,6 +4,8 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Contracts\ServiceProviderInterface;
+
 abstract class Module
 {
     abstract public function get_name(): string;
@@ -15,6 +17,22 @@ abstract class Module
     abstract public function get_description(): string;
 
     abstract public function init();
+
+    /**
+     * The service providers this module's own collaborators are obtained
+     * through, instead of ad hoc construction inside init() (design.md D7).
+     * ModuleManager registers-then-boots every returned provider exactly
+     * once per request, only for a module that ends up active — the same
+     * two-phase discipline Core/Elemacy.php already applies to its own
+     * providers, scoped to this one module's composition instead of the
+     * whole plugin.
+     *
+     * @return ServiceProviderInterface[]
+     */
+    public function get_providers(): array
+    {
+        return [];
+    }
 
     public function register_routes() {}
 

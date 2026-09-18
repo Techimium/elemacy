@@ -7,17 +7,14 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Constants\OptionKeys;
+use Elemacy\Core\Contracts\ServiceProviderInterface;
 use Elemacy\Core\DTO\MenuDTO;
 use Elemacy\Core\DTO\SubMenuDTO;
-use Elemacy\Core\Controls\Query\QueryControlManager;
+use Elemacy\Core\Multisite\SiteBatchIterator;
+use Elemacy\Core\Providers\CoreServiceProvider;
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Preview\PreviewAssets;
-use Elemacy\Core\Preview\PreviewManager;
-use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
-use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Support\Brand;
 use Elemacy\Support\Utils;
-use Elemacy\TemplateLibrary\LibraryBootstrap;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -27,10 +24,53 @@ class Elemacy
     protected static $instance = null;
     protected ModuleManager $module_manager;
 
+    /** @var ServiceProviderInterface[] */
+    protected array $providers = [];
+
+    /**
+     * Guards the whole bootstrap, not only the provider phase: every step
+     * in init() — provider registration/boot, module loading, route/admin-
+     * menu registration — assumes it runs exactly once per request. A
+     * provider's own boot() being idempotent is not, by itself, enough to
+     * make a second init() call safe: REGISTER_PROVIDERS_ACTION's own
+     * subscribers (subscribe_own_provider() below, and any add-on's)
+     * construct a fresh provider instance every time they run, so a second
+     * do_action() would hand boot_providers() a brand-new, not-yet-booted
+     * instance of the same logical provider regardless of that instance's
+     * own guard.
+     */
+    protected bool $initialized = false;
+
     protected function __construct()
     {
         $this->activation_actions();
+        $this->subscribe_own_provider();
         add_action('plugins_loaded', [$this, 'init']);
+    }
+
+    /**
+     * Free registers its own core provider through the same
+     * REGISTER_PROVIDERS_ACTION extension point an add-on would use,
+     * proving the mechanism works uniformly rather than special-casing
+     * Free's own services — subscribed here (the constructor, which runs
+     * as soon as this file's plugin bootstrap requires it) so it fires
+     * whenever init() later does, the same way Pro's own subscription does.
+     */
+    protected function subscribe_own_provider(): void
+    {
+        add_action(Hooks::REGISTER_PROVIDERS_ACTION, function (self $elemacy) {
+            $elemacy->register_provider(new CoreServiceProvider());
+        });
+    }
+
+    /**
+     * Queues a provider for the current request's register()/boot() cycle.
+     * Called by REGISTER_PROVIDERS_ACTION listeners (Free's own subscriber
+     * above, and any add-on's), never directly by application code.
+     */
+    public function register_provider(ServiceProviderInterface $provider): void
+    {
+        $this->providers[] = $provider;
     }
 
     public static function get_instance(): self
@@ -42,21 +82,32 @@ class Elemacy
         return static::$instance;
     }
 
+    /**
+     * The site-count-independent option a bounded network activation leaves
+     * behind when more sites remain than fit in one batch (task 11.7). A
+     * network option (get_site_option()/update_site_option()), not a
+     * per-blog one: this tracks one network-wide job, not "whichever site
+     * happens to be current when a request checks it."
+     */
+    const NETWORK_SEED_OFFSET_OPTION = 'elemacy_network_seed_offset';
+
+    const NETWORK_SEED_BATCH_SIZE = 100;
+
     public function activation_actions()
     {
         register_activation_hook(ELEMACY_FILE, function ($network_wide = false) {
             if (is_multisite() && $network_wide) {
-                // number => 0 lifts WP_Site_Query's default 100-site cap.
-                $site_ids = get_sites([
-                    'fields' => 'ids',
-                    'number' => 0,
-                ]);
-
-                foreach ($site_ids as $site_id) {
-                    switch_to_blog((int) $site_id);
-                    $this->seed_site();
-                    restore_current_blog();
-                }
+                // Seeds a bounded first batch synchronously — safe even for
+                // a very large network, unlike the previous unbounded
+                // get_sites(['number' => 0]) + synchronous foreach, which
+                // could exceed one request's execution time entirely. Any
+                // site beyond this batch is picked up by
+                // maybe_continue_network_seeding() (ordinary request
+                // traffic resuming the job, the same pattern
+                // Migrator::sync() uses) or, failing that, by that site's
+                // own lazy seeding on its first real visit.
+                update_site_option(self::NETWORK_SEED_OFFSET_OPTION, 0);
+                $this->continue_network_seeding();
 
                 return;
             }
@@ -75,9 +126,85 @@ class Elemacy
             }
 
             switch_to_blog((int) $new_site->blog_id);
-            $this->seed_site();
-            restore_current_blog();
+
+            try {
+                $this->seed_site();
+            } finally {
+                restore_current_blog();
+            }
         }, 10, 1);
+
+        // Resumes a bounded network seed a prior activation request did not
+        // finish, a small amount of work per request until exhausted —
+        // never a second unbounded pass.
+        add_action('plugins_loaded', [$this, 'maybe_continue_network_seeding'], 1);
+    }
+
+    /**
+     * @internal Public only so it can be hooked directly to plugins_loaded;
+     * not part of this class's supported API.
+     */
+    public function maybe_continue_network_seeding(): void
+    {
+        if (!is_multisite() || get_site_option(self::NETWORK_SEED_OFFSET_OPTION, false) === false) {
+            return;
+        }
+
+        $this->continue_network_seeding();
+    }
+
+    protected function continue_network_seeding(): void
+    {
+        $offset = (int) get_site_option(self::NETWORK_SEED_OFFSET_OPTION, 0);
+
+        $result = (new SiteBatchIterator())->process_batch(
+            function (int $site_id): void {
+                $this->seed_site();
+            },
+            $offset,
+            self::NETWORK_SEED_BATCH_SIZE
+        );
+
+        if ($result['has_more']) {
+            update_site_option(self::NETWORK_SEED_OFFSET_OPTION, $offset + $result['processed']);
+        } else {
+            delete_site_option(self::NETWORK_SEED_OFFSET_OPTION);
+        }
+    }
+
+    /**
+     * The safety net under both the bounded batch above and
+     * wp_initialize_site: a site that is somehow still unseeded when it
+     * receives its own real request (the batch has not reached it yet, or
+     * predates this mechanism entirely) seeds itself here, once, on that
+     * request — no coordination with the network-wide job required.
+     */
+    protected function maybe_seed_current_site(): void
+    {
+        if (get_option(OptionKeys::ACTIVE_MODULES, null) !== null) {
+            return;
+        }
+
+        // Unlike seed_site(), no rewrite-rules flush: by the time a site
+        // reaches its own normal request, the library CPT is already
+        // registered through this plugin's ordinary per-request bootstrap
+        // (independent of activation), so only the module-defaults option
+        // itself was actually missing.
+        add_option(OptionKeys::ACTIVE_MODULES, $this->default_active_modules());
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function default_active_modules(): array
+    {
+        return [
+            'theme-builder',
+            'widgets',
+            'custom-css',
+            'dynamic-tags',
+            'popups',
+        ];
     }
 
     /**
@@ -88,13 +215,7 @@ class Elemacy
      */
     protected function seed_site(bool $flush_now = false): void
     {
-        add_option(OptionKeys::ACTIVE_MODULES, [
-            'theme-builder',
-            'widgets',
-            'custom-css',
-            'dynamic-tags',
-            'popups',
-        ]);
+        add_option(OptionKeys::ACTIVE_MODULES, $this->default_active_modules());
 
         if ($flush_now) {
             LibraryPostType::register_post_type();
@@ -104,15 +225,33 @@ class Elemacy
         }
     }
 
+    /**
+     * A duplicate call (e.g. something re-triggering plugins_loaded, or a
+     * defensive re-boot) must attach nothing a second time — see
+     * $initialized's own doc comment above for why per-provider idempotency
+     * alone does not already guarantee this.
+     */
     public function init()
     {
+        if ($this->initialized) {
+            return;
+        }
+
         if (!$this->check_requirements()) {
             return;
         }
 
+        $this->initialized = true;
+
+        $this->maybe_seed_current_site();
+        Route::set_namespace('elemacy');
+
+        do_action(Hooks::REGISTER_PROVIDERS_ACTION, $this);
+        $this->register_providers();
+        $this->boot_providers();
+
         $this->load_textdomain();
         $this->handle_version_update();
-        $this->init_core_components();
         $this->init_module_manager();
         $this->load_modules();
         $this->init_admin_menus();
@@ -132,39 +271,51 @@ class Elemacy
         load_plugin_textdomain('elemacy', false, dirname(ELEMACY_PLUGIN_BASE) . '/languages');
     }
 
+    /**
+     * Two independent concerns (task 11.5, design.md D11): which release the
+     * site last saw (DB_VERSION — diagnostics/the fired hook's own args
+     * only) and which data migrations have actually applied
+     * (SCHEMA_VERSION — Migrator's own marker, advanced only inside
+     * Migrator::run() itself, one completed step at a time). A release with
+     * no new migration must never touch the schema marker; a downgrade must
+     * never lower it back below already-completed work.
+     */
     public function handle_version_update()
     {
-        $installed_version = get_option(OptionKeys::DB_VERSION, false);
+        $is_fresh_install  = get_option(OptionKeys::DB_VERSION, false) === false;
+        $installed_version = $is_fresh_install ? ELEMACY_VERSION : get_option(OptionKeys::DB_VERSION);
 
-        if ($installed_version === ELEMACY_VERSION) {
-            return;
-        }
-
-        if ($installed_version === false) {
+        if ($installed_version !== ELEMACY_VERSION) {
             update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
-            return;
+            do_action(Hooks::VERSION_UPDATED_ACTION, (string) $installed_version, ELEMACY_VERSION);
         }
 
-        if (version_compare($installed_version, ELEMACY_VERSION, '<')) {
-            (new Migrator())->run((string) $installed_version, ELEMACY_VERSION);
-        }
-
-        update_option(OptionKeys::DB_VERSION, ELEMACY_VERSION);
-
-        do_action(Hooks::VERSION_UPDATED_ACTION, (string) $installed_version, ELEMACY_VERSION);
+        (new Migrator())->sync($is_fresh_install);
     }
 
-    public function init_core_components()
+    /**
+     * Phase one of every registered provider (design.md D7): bindings and
+     * stable feature descriptors only, before any provider's boot() runs —
+     * so a provider's boot() can rely on every other enabled provider's own
+     * registration already being complete regardless of registration order.
+     */
+    protected function register_providers(): void
     {
-        new AdminScripts();
-        new FrontendScripts();
-        new PluginLinks();
-        new ConditionsBootstrap();
-        new LibraryBootstrap();
-        new PreviewManager();
-        new PreviewAssets();
-        new QueryControlManager();
-        (new TemplateAssetsRegistrar())->register_hooks();
+        foreach ($this->providers as $provider) {
+            $provider->register(Container::instance());
+        }
+    }
+
+    /**
+     * Phase two: attaches WordPress hooks. Each provider's own boot() is
+     * responsible for its own idempotency; calling this twice in one
+     * request is therefore also safe.
+     */
+    protected function boot_providers(): void
+    {
+        foreach ($this->providers as $provider) {
+            $provider->boot();
+        }
     }
 
     public function init_module_manager()

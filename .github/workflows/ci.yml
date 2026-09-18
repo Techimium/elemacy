@@ -40,6 +40,9 @@ jobs:
       - name: Unit tests
         run: php tests/php/run.php
 
+      - name: Architecture dependency boundaries
+        run: php tests/architecture/dependency-boundaries.php
+
   admin-app:
     name: Admin app — typecheck, lint, build
     runs-on: ubuntu-latest
@@ -82,3 +85,130 @@ jobs:
         run: |
           npm ci
           npm test
+
+  elementor-compatibility:
+    name: Elementor ${{ matrix.elementor }} — real WordPress integration
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # task 9.6: the oldest and newest Elementor releases the required
+        # fixtures have actually been run against and confirmed passing.
+        # CompatibilityChecker::MIN_ELEMENTOR_VERSION must track the "min"
+        # entry — bumping either pin is a deliberate, re-verified decision,
+        # not an automatic "latest" tracker (design.md D9).
+        include:
+          - label: min
+            elementor: '3.35.9'
+          - label: current
+            elementor: '4.2.3'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: elemacy
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer, wp-cli
+          extensions: mysqli
+
+      - name: Install Composer dependencies
+        working-directory: elemacy
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Download WordPress core
+        # Pinned, not "latest": a moving WordPress core would make this job's
+        # pass/fail depend on which day it ran, the same reproducibility
+        # concern design.md raises for cross-plugin pins.
+        run: wp core download --path=wordpress-core --skip-content --version=7.1
+
+      - name: Download Elementor ${{ matrix.elementor }}
+        run: |
+          mkdir -p wordpress-core/wp-content/plugins
+          curl -sSL "https://downloads.wordpress.org/plugin/elementor.${{ matrix.elementor }}.zip" -o elementor.zip
+          unzip -q elementor.zip -d wordpress-core/wp-content/plugins
+
+      - name: Provision disposable environment
+        working-directory: elemacy
+        run: |
+          python3 tests/integration/setup.py \
+            --wordpress-source "$GITHUB_WORKSPACE/wordpress-core" \
+            --port 8897 \
+            --private-mysql | tee /tmp/setup-output.log
+          grep '^ELEMACY_TEST_ENV=' /tmp/setup-output.log >> "$GITHUB_ENV"
+
+      - name: Real WordPress/Elementor integration suite
+        # requires-acf-pro-tagged scenarios need a licensed ACF Pro
+        # installation (its repeater field type isn't in the free ACF
+        # package) this public job doesn't have; run with --acf-plugin
+        # locally for that coverage (see tests/integration/README.md). This
+        # job still covers document lifecycle, theme/popup asset preparation,
+        # library persistence, the Elementor compatibility surface and
+        # Post Content restoration against each matrix Elementor version.
+        working-directory: elemacy
+        run: php tests/integration/run.php --exclude-group requires-acf-pro
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: elemacy/tests/e2e/package-lock.json
+
+      - name: Setup Chromium
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Real-browser popup and Loop Grid AJAX hydration
+        working-directory: elemacy/tests/e2e
+        env:
+          ELEMACY_CHROMIUM: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          npm ci
+          node run-builders.mjs
+          node run-popup-assets.mjs
+          node run-loop-pagination.mjs
+          node run-form-submissions.mjs
+
+  package:
+    name: Verify the generated Free archive
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: elemacy
+          ref: ${{ github.sha }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer, wp-cli
+          extensions: mysqli
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Locked dependencies and production package
+        working-directory: elemacy
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci --prefix src-react
+          npm run build:zip --prefix src-react
+          python3 src-react/scripts/verify-package.py build/elemacy-*.zip --check-missing-tools
+      - name: Install exact ZIP in clean WordPress
+        working-directory: elemacy
+        run: |
+          wp core download --path=/tmp/elemacy-package-core --version=7.1 --skip-content
+          mkdir -p /tmp/elemacy-package-core/wp-content/plugins
+          curl --fail --silent --show-error --location https://downloads.wordpress.org/plugin/elementor.4.2.3.zip -o /tmp/elementor.zip
+          unzip -q /tmp/elementor.zip -d /tmp/elemacy-package-core/wp-content/plugins
+          python3 tests/integration/setup.py --private-mysql --wordpress-source /tmp/elemacy-package-core --free-zip build/elemacy-*.zip | tee /tmp/elemacy-package-setup.log
+          grep '^ELEMACY_TEST_ENV=' /tmp/elemacy-package-setup.log >> "$GITHUB_ENV"
+      - name: Verify installed archive
+        working-directory: elemacy
+        run: php tests/integration/run.php --exclude-group requires-acf-pro
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: elemacy-package-${{ github.sha }}
+          path: elemacy/build/*.zip*

@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
 import { ProBadge } from '@/components/pro-badge';
+import { UnavailableBadge } from '@/components/unavailable-badge';
 import {
     Select,
     SelectContent,
@@ -97,6 +98,8 @@ function TypeSelect({
                     ))}
                 </SelectContent>
             </Select>
+
+            <UnavailableBadge availability={rule.availability} />
 
             {selected?.value_type === 'select' && (
                 <SubValueSelect condition={selected} rule={rule} onChange={onChange} />

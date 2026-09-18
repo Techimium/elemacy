@@ -4,37 +4,17 @@ namespace Elemacy\Modules\Widgets\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
+use Elemacy\Loop\LoopContext as CanonicalLoopContext;
 
 /**
- * The stack of loop items currently being rendered, innermost last. A stack
- * rather than a single slot so a loop item template that itself contains
- * another loop widget — or a page with more than one loop widget — nests
- * and unwinds correctly, with no leakage between them (see design.md D3).
+ * Moved to Elemacy\Loop\LoopContext (design.md D7). This alias is a real
+ * class_exists()/instanceof-compatible identity, not a copy — old and new
+ * entry points read/write the exact same static $stack, since they are the
+ * same class under two names. Kept at this path for the first supported
+ * Free/Pro compatibility window so any code still importing it from here
+ * (in either plugin) is unaffected. New code should import the canonical
+ * namespace instead.
  *
- * The loop render loop is the only writer: push() right before rendering
- * one item, pop() right after, wrapped in try/finally so an exception
- * mid-render can't leave a stale item on the stack.
+ * @deprecated Use Elemacy\Loop\LoopContext.
  */
-final class LoopContext
-{
-    /** @var LoopItemInterface[] */
-    protected static array $stack = [];
-
-    public static function push(LoopItemInterface $item): void
-    {
-        self::$stack[] = $item;
-    }
-
-    public static function pop(): void
-    {
-        array_pop(self::$stack);
-    }
-
-    public static function current(): ?LoopItemInterface
-    {
-        $count = count(self::$stack);
-
-        return $count > 0 ? self::$stack[$count - 1] : null;
-    }
-}
+class_alias(CanonicalLoopContext::class, __NAMESPACE__ . '\LoopContext');

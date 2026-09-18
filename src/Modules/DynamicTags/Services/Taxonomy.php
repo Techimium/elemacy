@@ -4,8 +4,8 @@ namespace Elemacy\Modules\DynamicTags\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\LoopItems\TermLoopItem;
-use Elemacy\Modules\Widgets\Services\LoopContext;
+use Elemacy\Loop\Contracts\NativeTermItemInterface;
+use Elemacy\Loop\LoopContext;
 use WP_Term;
 
 /**
@@ -17,7 +17,9 @@ use WP_Term;
  * duality for free from an ambient WordPress global (global $post); terms
  * have no such global, which is why TermLoopItem::enter()/exit() are no-ops
  * and this resolver exists instead (see loop-data-source-taxonomy design.md
- * D3).
+ * D3). Checks the optional NativeTermItemInterface capability rather than a
+ * concrete Widgets/Loop item class (design.md D7) — any loop item type that
+ * wraps a real WP_Term is recognized, not only TermLoopItem specifically.
  */
 class Taxonomy
 {
@@ -25,7 +27,7 @@ class Taxonomy
     {
         $item = LoopContext::current();
 
-        if ($item instanceof TermLoopItem) {
+        if ($item instanceof NativeTermItemInterface) {
             return $item->get_term();
         }
 

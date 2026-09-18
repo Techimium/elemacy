@@ -109,9 +109,34 @@ class ModuleManager
         }
 
         foreach ($this->active_modules as $module) {
+            $this->boot_module_providers($module);
             $module->init();
             $module->register_routes();
             $module->register_assets();
+        }
+    }
+
+    /**
+     * Registers, then boots, every provider an active module declares
+     * (design.md D7) — register() for every provider before boot() for any
+     * of them, mirroring Elemacy::register_providers()/boot_providers(),
+     * scoped to this one module rather than the whole plugin. Runs before
+     * $module->init() so any of the module's own remaining declarative
+     * wiring can rely on the module's collaborators already existing.
+     *
+     * @param Module $module
+     * @return void
+     */
+    protected function boot_module_providers(Module $module): void
+    {
+        $providers = $module->get_providers();
+
+        foreach ($providers as $provider) {
+            $provider->register(Container::instance());
+        }
+
+        foreach ($providers as $provider) {
+            $provider->boot();
         }
     }
 

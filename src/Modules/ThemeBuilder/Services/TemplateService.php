@@ -7,23 +7,35 @@ defined('ABSPATH') || exit;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
 use Elemacy\Support\PostDates;
-use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
+use Elemacy\TemplateLibrary\DocumentDuplicator;
+use Elemacy\TemplateLibrary\DocumentWriter;
+use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\LibraryRepository;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use WP_Post;
 use WP_Query;
 
+/**
+ * Native persistence, group/type ownership and library/Elementor document
+ * type synchronization are owned by the shared {@see LibraryRepository}/
+ * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
+ * this service keeps only what is specific to theme templates — the
+ * per-type page template and conditions — plus its own public DTO-shaped
+ * responses.
+ */
 class TemplateService
 {
+    const GROUP = 'theme';
+
     /**
      * Default page size when the request omits (or under/over-shoots) per_page.
      *
@@ -32,10 +44,23 @@ class TemplateService
     const DEFAULT_PER_PAGE = 20;
 
     protected ConditionRepository $conditions;
+    protected LibraryRepository $repository;
+    protected DocumentWriter $writer;
+    protected DocumentDuplicator $duplicator;
+    protected TypeRegistry $types;
 
-    public function __construct()
-    {
-        $this->conditions = new ConditionRepository();
+    public function __construct(
+        ?ConditionRepository $conditions = null,
+        ?LibraryRepository $repository = null,
+        ?DocumentWriter $writer = null,
+        ?DocumentDuplicator $duplicator = null,
+        ?TypeRegistry $types = null
+    ) {
+        $this->conditions = $conditions ?? new ConditionRepository();
+        $this->repository = $repository ?? new LibraryRepository();
+        $this->writer = $writer ?? new DocumentWriter($this->repository);
+        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
+        $this->types = $types ?? TypeRegistry::instance();
     }
 
     /**
@@ -102,9 +127,9 @@ class TemplateService
 
     public function get(int $id)
     {
-        $post = get_post($id);
+        $post = $this->repository->find($id);
 
-        if (!$this->owns($post)) {
+        if (!$this->repository->owns($post, self::GROUP)) {
             return null;
         }
 
@@ -124,145 +149,84 @@ class TemplateService
 
     public function create(CreateTemplateDTO $dto)
     {
-        if (isset($dto->type)) {
-            $this->assert_valid_type((string) $dto->type);
-        }
-
-        $post_data = [
+        $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::PUBLISH,
-            'post_type' => LibraryPostType::POST_TYPE,
-        ];
-
-        $post_id = wp_insert_post($post_data, true);
-
-        if (is_wp_error($post_id)) {
-            throw new HttpException(esc_html($post_id->get_error_message()));
-        }
+        ], isset($dto->type) ? (string) $dto->type : '');
 
         if (isset($dto->type)) {
-            update_post_meta($post_id, MetaKeys::TEMPLATE_TYPE, $dto->type);
-            update_post_meta($post_id, '_wp_page_template', $this->page_template_for_type($dto->type));
+            $this->repository->set_meta($post_id, '_wp_page_template', $this->page_template_for_type((string) $dto->type));
         }
 
-        // Pin the Elementor document for the type so the editor never falls back to
-        // the popup document that shares the elemacy_library CPT (Documents_Manager
-        // maps one doc type per CPT when _elementor_template_type is empty). Single/
-        // Archive/Search get their own previewable documents; the rest stay wp-page.
-        update_post_meta($post_id, '_elementor_template_type', $this->elementor_document_type($dto->type ?? ''));
-        update_post_meta($post_id, '_elementor_edit_mode', 'builder');
+        $this->repository->set_meta($post_id, '_elementor_edit_mode', 'builder');
 
         if (isset($dto->conditions)) {
             $this->conditions->save($post_id, (array) $dto->conditions);
         }
+
+        $this->notify($post_id, LibraryChanged::CREATED);
 
         return $this->create_dto(get_post($post_id));
     }
 
     public function update(int $id, UpdateTemplateDTO $dto)
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
-
-        if (isset($dto->type)) {
-            $this->assert_valid_type((string) $dto->type);
-        }
-
-        $post_data = [
-            'ID' => $id,
-        ];
+        $post_fields = [];
 
         if (isset($dto->title)) {
-            $post_data['post_title'] = $dto->title;
+            $post_fields['post_title'] = $dto->title;
         }
 
         if (isset($dto->status)) {
-            $post_data['post_status'] = $dto->status;
+            $post_fields['post_status'] = $dto->status;
         }
 
-        $result = wp_update_post($post_data, true);
-
-        if (is_wp_error($result)) {
-            throw new HttpException(esc_html($result->get_error_message()));
-        }
+        $this->writer->update($id, self::GROUP, $post_fields, isset($dto->type) ? (string) $dto->type : null);
 
         if (isset($dto->type)) {
-            update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $dto->type);
-            update_post_meta($id, '_wp_page_template', $this->page_template_for_type($dto->type));
-            update_post_meta($id, '_elementor_template_type', $this->elementor_document_type($dto->type));
+            $this->repository->set_meta($id, '_wp_page_template', $this->page_template_for_type((string) $dto->type));
         }
 
         if (isset($dto->conditions)) {
             $this->conditions->save($id, (array) $dto->conditions);
         }
 
+        $this->notify($id, LibraryChanged::UPDATED);
+
         return $this->create_dto(get_post($id));
     }
 
     public function duplicate(int $id)
     {
-        $post = get_post($id);
+        $new_id = $this->duplicator->duplicate($id, self::GROUP);
 
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
+        // Matches the pre-existing behavior this replaces: only edit mode is
+        // reasserted here — _wp_page_template is left as whatever the copy
+        // carried over, correct already since duplication never changes type.
+        $this->repository->set_meta($new_id, '_elementor_edit_mode', 'builder');
 
-        /* translators: %s: original template title. */
-        $new_title = sprintf(__('%s (Copy)', 'elemacy'), $post->post_title);
+        $this->notify($new_id, LibraryChanged::DUPLICATED);
 
-        $new_post_id = wp_insert_post([
-            'post_title' => $new_title,
-            'post_content' => $post->post_content,
-            'post_status' => PostStatus::DRAFT,
-            'post_type' => LibraryPostType::POST_TYPE,
-            'post_author' => get_current_user_id(),
-        ], true);
-
-        if (is_wp_error($new_post_id)) {
-            throw new HttpException(esc_html($new_post_id->get_error_message()));
-        }
-
-        $meta = get_post_meta($id);
-
-        if (is_array($meta)) {
-            foreach ($meta as $meta_key => $meta_values) {
-                if (strpos($meta_key, '_edit_lock') === 0 || strpos($meta_key, '_edit_last') === 0) {
-                    continue;
-                }
-
-                foreach ($meta_values as $meta_value) {
-                    update_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
-                }
-            }
-        }
-
-        // Guarantee the correct doc type even when the source template predates the
-        // _elementor_template_type pin (see create()).
-        $source_type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
-        update_post_meta($new_post_id, '_elementor_template_type', $this->elementor_document_type($source_type));
-        update_post_meta($new_post_id, '_elementor_edit_mode', 'builder');
-
-        return $this->create_dto(get_post($new_post_id));
+        return $this->create_dto(get_post($new_id));
     }
 
     public function delete(int $id)
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Template not found.', 'elemacy'));
-        }
-
-        $result = wp_delete_post($id, true);
-
-        if (!$result) {
-            throw new HttpException(esc_html__('Failed to delete template.', 'elemacy'));
-        }
+        $this->writer->owned_or_fail($id, self::GROUP);
+        $this->repository->delete($id);
+        $this->notify($id, LibraryChanged::DELETED);
 
         return true;
+    }
+
+    /**
+     * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
+     */
+    protected function notify(int $id, string $action): void
+    {
+        $type = (string) $this->repository->get_meta($id, MetaKeys::TEMPLATE_TYPE);
+
+        do_action(Hooks::LIBRARY_CHANGED_ACTION, new LibraryChanged($id, self::GROUP, $type, $action));
     }
 
     /**
@@ -272,22 +236,7 @@ class TemplateService
      */
     protected function theme_types(): array
     {
-        return TypeRegistry::instance()->names_in_group('theme');
-    }
-
-    /**
-     * Reject a type this service does not own before it is persisted. A foreign
-     * or unknown type would create an item that owns() disowns — invisible to
-     * every list/show/update endpoint — while still sitting in the shared
-     * library CPT.
-     */
-    protected function assert_valid_type(string $type): void
-    {
-        if (!in_array($type, $this->theme_types(), true)) {
-            throw ValidationException::with_errors([
-                'type' => [esc_html__('Invalid template type.', 'elemacy')],
-            ]);
-        }
+        return $this->types->names_in_group(self::GROUP);
     }
 
     /**
@@ -301,33 +250,6 @@ class TemplateService
         return in_array($type, ['header', 'footer'], true)
             ? 'elementor_canvas'
             : 'elementor_header_footer';
-    }
-
-    /**
-     * The Elementor document type for a template type. Single/Archive/Search get
-     * their own previewable documents (mapped in Config/documents.php); every other
-     * theme type keeps Elementor's built-in page document.
-     */
-    protected function elementor_document_type(string $type): string
-    {
-        $documents = require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/documents.php');
-
-        return isset($documents[$type]) ? $documents[$type]::get_type() : 'wp-page';
-    }
-
-    /**
-     * A theme template lives on the shared library CPT and carries a theme-group
-     * type, so popups on the same CPT are never treated as templates.
-     */
-    protected function owns(?WP_Post $post): bool
-    {
-        if (!$post || $post->post_type !== LibraryPostType::POST_TYPE) {
-            return false;
-        }
-
-        $type = (string) get_post_meta($post->ID, MetaKeys::TEMPLATE_TYPE, true);
-
-        return in_array($type, $this->theme_types(), true);
     }
 
     protected function create_dto($post): TemplateDTO

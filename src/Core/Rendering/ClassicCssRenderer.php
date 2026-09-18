@@ -4,6 +4,8 @@ namespace Elemacy\Core\Rendering;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Integrations\Elementor\Capabilities;
+use Elemacy\Core\Integrations\Elementor\ElementTreeWalker;
 use Elemacy\Core\Rendering\Support\LoopDynamicCss;
 
 /**
@@ -15,6 +17,22 @@ use Elemacy\Core\Rendering\Support\LoopDynamicCss;
  */
 class ClassicCssRenderer
 {
+    protected Capabilities $capabilities;
+
+    /**
+     * has_dynamic_settings()'s classic-owned element traversal (design.md D9,
+     * task 9.3) — no longer routed through the optional Atomic Widgets
+     * module (see docs/ELEMENTOR-COMPATIBILITY.md's history of that
+     * dependency).
+     */
+    protected ElementTreeWalker $element_tree;
+
+    public function __construct(?Capabilities $capabilities = null, ?ElementTreeWalker $element_tree = null)
+    {
+        $this->capabilities = $capabilities ?? new Capabilities();
+        $this->element_tree = $element_tree ?? new ElementTreeWalker();
+    }
+
     /**
      * render_base() outcome: Elementor already wrote this post's CSS to a
      * cached, cache-busted file on disk — the caller should reference it by
@@ -99,7 +117,7 @@ class ClassicCssRenderer
      */
     public function render_base(int $post_id): array
     {
-        if (!class_exists('\Elementor\Core\Files\CSS\Post')) {
+        if (!$this->capabilities->classic_css_files()) {
             return [
                 'type' => self::DELIVERY_NONE,
                 'content' => '',
@@ -163,7 +181,7 @@ class ClassicCssRenderer
      */
     public function render_dynamic(int $template_id, string $item_identity, string $selector_prefix): string
     {
-        if (!class_exists('\Elementor\Core\DynamicTags\Dynamic_CSS')) {
+        if (!$this->capabilities->dynamic_css()) {
             return '';
         }
 
@@ -185,15 +203,14 @@ class ClassicCssRenderer
      */
     public function has_dynamic_settings(int $post_id): bool
     {
-        if (!class_exists('\Elementor\Modules\AtomicWidgets\Utils\Utils')
-            || !class_exists('\Elementor\Core\DynamicTags\Manager')) {
+        if (!$this->capabilities->dynamic_tags_manager()) {
             return false;
         }
 
         $found = false;
 
-        \Elementor\Modules\AtomicWidgets\Utils\Utils::traverse_post_elements(
-            (string) $post_id,
+        $this->element_tree->walk(
+            $post_id,
             function (array $element_data) use (&$found) {
                 if ($found) {
                     return;

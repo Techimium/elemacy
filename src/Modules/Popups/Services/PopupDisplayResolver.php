@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
+use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\TemplateLibrary\TemplateResolver;
 
 /**
@@ -64,10 +65,11 @@ class PopupDisplayResolver
                 continue;
             }
 
-            // Server-evaluable advanced rules (logged-in, etc.) gate the popup
-            // before it is handed to the frontend. Client-side rules (frequency,
+            // Every configured rule and trigger must be available before this
+            // popup is handed to the frontend, then server-evaluable advanced
+            // rules (logged-in, etc.) gate it; client-side rules (frequency,
             // devices, …) are enforced in engine.js.
-            if (!$this->passes_server_rules($popup)) {
+            if (!$this->passes_required_capabilities($popup)) {
                 continue;
             }
 
@@ -80,6 +82,21 @@ class PopupDisplayResolver
          * @param PopupDTO[] $matched
          */
         return apply_filters(Hooks::POPUP_MATCHED_FILTER, $matched);
+    }
+
+    /** Server-side eligibility independent of frontend display orchestration/query matching. */
+    public function is_runtime_eligible(PopupDTO $popup): bool
+    {
+        if ($popup->status !== 'publish' || post_password_required((int) $popup->id)
+            || !$this->has_content($popup) || !$this->passes_required_capabilities($popup)) {
+            return false;
+        }
+        foreach ($popup->conditions as $condition) {
+            if (\Elemacy\Conditions\ConditionManager::instance()->get_availability($condition->type)->is_unavailable()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -105,10 +122,21 @@ class PopupDisplayResolver
     }
 
     /**
-     * Drop the popup if any server-evaluable rule attached to it fails.
+     * Drop the popup if any attached rule or trigger is unavailable (D5), or
+     * if any server-evaluable rule fails.
+     *
+     * A rule's or trigger's availability is checked before anything else:
+     * neither side can enforce a rule it cannot resolve, and an unavailable
+     * trigger has no real client handler to open the popup with, so treating
+     * either as absent would broaden the popup's actual audience beyond what
+     * was authored.
      */
-    protected function passes_server_rules(PopupDTO $popup): bool
+    protected function passes_required_capabilities(PopupDTO $popup): bool
     {
+        if (!$this->has_available_triggers($popup)) {
+            return false;
+        }
+
         $rules = is_array($popup->rules) ? $popup->rules : [];
 
         if (empty($rules)) {
@@ -118,9 +146,37 @@ class PopupDisplayResolver
         $manager = RuleManager::instance();
 
         foreach (RuleDTO::collection($rules) as $dto) {
+            if ($manager->get_availability($dto->type)->is_unavailable()) {
+                return false;
+            }
+
             $rule = $manager->get($dto->type);
 
-            if ($rule && $rule->is_server_evaluable() && !$rule->check($dto)) {
+            if ($rule->is_server_evaluable() && !$rule->check($dto)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Every configured trigger must be available: one the loaded runtime
+     * cannot execute must not be silently dropped from its way-to-open set,
+     * since an administrator authored it as part of how this popup opens.
+     */
+    protected function has_available_triggers(PopupDTO $popup): bool
+    {
+        $triggers = is_array($popup->triggers) ? $popup->triggers : [];
+
+        if (empty($triggers)) {
+            return true;
+        }
+
+        $manager = TriggerManager::instance();
+
+        foreach (TriggerDTO::collection($triggers) as $dto) {
+            if ($manager->get_availability($dto->type)->is_unavailable()) {
                 return false;
             }
         }

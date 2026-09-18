@@ -8,11 +8,19 @@ use Elemacy\Core\Http\Request;
 use Elemacy\Core\Http\Response;
 use Elemacy\Modules\Popups\Resources\RuleTypeResource;
 use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
+use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 
 class PopupSettingsController
 {
+    public function types(Request $request)
+    {
+        return Response::create()->json([
+            'data' => PopupManager::instance()->get_available_popup_types(),
+        ]);
+    }
+
     public function triggers(Request $request)
     {
         return Response::create()->json([

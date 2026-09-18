@@ -132,7 +132,15 @@ class Validator
     public function validate()
     {
         if ($this->is_failed()) {
-            throw ValidationException::with_errors(array_map('esc_html', $this->errors));
+            // Each entry is a list of messages for one field (see
+            // apply_rules()), not a single string — esc_html() must run over
+            // that inner list, never the list itself, or a real WordPress
+            // esc_html() (unlike a permissive test stub) fatals on the array.
+            // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- exception message, never rendered as HTML output (and is itself the escaping call this sniff wants).
+            throw ValidationException::with_errors(array_map(
+                static fn(array $messages): array => array_map('esc_html', $messages),
+                $this->errors
+            ));
         }
 
         return true;

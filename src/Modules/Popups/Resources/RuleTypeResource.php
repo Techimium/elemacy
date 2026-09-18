@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Resources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Resource;
 
 /**
@@ -19,6 +20,14 @@ class RuleTypeResource extends Resource
             'is_mock'             => $this->is_mock(),
             'is_server_evaluable' => $this->is_server_evaluable(),
             'params_schema'       => $this->get_config_schema(),
+            // Every entry here came from RuleManager::get_all(), so it is by
+            // definition registered — "unknown" cannot occur; only whether
+            // it is a real implementation or a non-functional Mock stand-in
+            // (task 10.3: type-list resources expose availability too, not
+            // just the per-saved-instance resources phase 4 already covers).
+            'availability'        => ($this->is_mock()
+                ? FeatureAvailability::inactive_extension($this->get_name())
+                : FeatureAvailability::available())->to_array(),
         ];
     }
 }

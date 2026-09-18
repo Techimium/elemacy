@@ -5,7 +5,7 @@ namespace Elemacy\Core\Documents;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
+use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elementor\Controls_Manager;
 use Elementor\Core\DocumentTypes\PageBase;
 

@@ -30,6 +30,6 @@ $elemacy_manager = ThemeBuilderManager::instance();
 
 <body <?php body_class(); ?>>
 	<?php
-	wp_body_open();
-	$elemacy_manager->render_template($elemacy_manager->get_header_id());
+	did_action('wp_body_open') || wp_body_open();
+	$elemacy_manager->render_header();
 	?>

@@ -12,7 +12,7 @@ npm install
 ELEMACY_CHROMIUM=/path/to/chrome npm test   # or let playwright-core resolve it
 ```
 
-Never shipped: `tests/` is excluded by `.distignore`.
+Never shipped: `src-react/scripts/package-manifest.json` only stages `src/`, `assets/` and `languages/`, so `tests/` is never part of a built ZIP.
 
 The pro plugin's `tests/e2e` extends this with the pro triggers/rules/analytics
 suite (it loads this repo's engine.js from the sibling checkout).

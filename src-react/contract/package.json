@@ -1,0 +1,10 @@
+{
+    "name": "@elemacy/admin-contract",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Elemacy's versioned admin extension declaration artifact (design.md D12) — the narrow, types-only public surface Pro builds against, generated from Free's own source by `npm run build:contract`. Never import this package for its own code: it emits zero runtime JS. Its version is kept in sync with Core/AdminScripts.php's CONTRACT_VERSION by convention.",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ]
+}

@@ -2,11 +2,15 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Services\LoopContext;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\LoopItemStyles;
+use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Loop\DTO\LoopResultDTO;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Rendering\LoopRenderer;
+use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
+use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 
@@ -525,7 +529,7 @@ class LoopCarousel extends BaseWidget
             return;
         }
 
-        $result = $source->get_items($settings);
+        $result = $this->items_for_display($settings, $source);
 
         if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
@@ -538,29 +542,13 @@ class LoopCarousel extends BaseWidget
         echo '<div class="swiper elemacy-loop-carousel">';
         echo '<div class="swiper-wrapper">';
 
-        $loop_item_styles = new LoopItemStyles();
-        $loop_item_styles->print_base_css($settings['template_id']);
-
-        foreach ($result->items as $item) {
-            LoopContext::push($item);
-
-            try {
-                $item->enter();
-
-                try {
-                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
-
-                    echo '<div class="swiper-slide">';
-                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
-                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-                    echo '</div>';
-                    echo '</div>';
-                } finally {
-                    $item->exit();
-                }
-            } finally {
-                LoopContext::pop();
-            }
+        $renderer = new LoopRenderer();
+        $placement = $this->current_owner_id() . '-' . $this->get_id();
+        $data_source_key = $settings['data_source'] ?? 'posts';
+        foreach ($result->items as $occurrence => $item) {
+            echo '<div class="swiper-slide">';
+            $renderer->render_item((int) $settings['template_id'], $item, $placement, $data_source_key, $occurrence);
+            echo '</div>';
         }
 
         echo '</div>'; // End swiper-wrapper
@@ -577,5 +565,45 @@ class LoopCarousel extends BaseWidget
 
         echo '</div>'; // End swiper element
         echo '</div>'; // End elemacy-loop-carousel-container
+    }
+
+    /**
+     * The document actually rendering this widget right now — a Theme
+     * Builder header/footer, popup, or loop template document Elementor has
+     * switched to, not the viewed page (get_the_ID()), when this widget
+     * lives in one of those.
+     */
+    private function current_owner_id(): int
+    {
+        $document = Plugin::$instance->documents->get_current();
+
+        return $document ? (int) $document->get_main_id() : (int) get_the_ID();
+    }
+
+    /**
+     * Applies the same public eligibility policy the AJAX endpoint enforces
+     * to LoopGrid/AjaxPaginationController to this widget's own classic
+     * output (design.md D1) — Loop Carousel has no AJAX pagination feature,
+     * but an authored template/source that has since become inaccessible
+     * still must not appear here. Skipped for an authorized editor preview,
+     * where the author's own saved settings render directly and unfiltered.
+     *
+     * @param array                   $settings
+     * @param LoopDataSourceInterface $source
+     * @return LoopResultDTO
+     */
+    private function items_for_display(array $settings, LoopDataSourceInterface $source): LoopResultDTO
+    {
+        if (Plugin::instance()->editor->is_edit_mode()) {
+            return $source->get_items($settings);
+        }
+
+        try {
+            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
+
+            return $policy->eligible_items($settings, $this->current_owner_id());
+        } catch (ValidationException $error) {
+            return new LoopResultDTO([], 0, 0, false);
+        }
     }
 }

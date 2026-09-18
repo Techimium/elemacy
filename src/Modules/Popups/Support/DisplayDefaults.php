@@ -25,6 +25,7 @@ class DisplayDefaults
             case PopupTypes::TOPBAR:
                 $defaults = [
                     'position' => 'top',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -53,6 +54,7 @@ class DisplayDefaults
             case PopupTypes::FLOATING:
                 $defaults = [
                     'position' => 'bottom-right',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -83,6 +85,7 @@ class DisplayDefaults
                 // promotional bar (bottom-anchored, dismissible) by default.
                 $defaults = [
                     'position' => 'bottom',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -112,6 +115,7 @@ class DisplayDefaults
             default:
                 $defaults = [
                     'position' => 'center',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => true,
                         'color' => '#000000',

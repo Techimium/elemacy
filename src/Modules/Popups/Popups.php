@@ -6,13 +6,11 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\AdminMenu;
 use Elemacy\Core\DTO\SubMenuDTO;
-use Elemacy\Modules\Popups\Documents\DocumentManager;
-use Elemacy\Modules\Popups\Services\EditorPreview;
-use Elemacy\Modules\Popups\Services\PopupFrontendAssets;
-use Elemacy\Modules\Popups\Services\PopupManager;
-use Elemacy\Modules\Popups\Services\TriggerRuleBootstrap;
+use Elemacy\Core\Hooks;
+use Elemacy\Modules\Popups\Services\Placement\PopupPlacementResolver;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -39,16 +37,28 @@ class Popups extends Module
         return __('Build popups, top/bottom bars, banners and floating elements with display conditions and triggers.', 'elemacy');
     }
 
+    public function get_providers(): array
+    {
+        return [new PopupsServiceProvider()];
+    }
+
     public function init(): void
     {
         $this->register_admin_menu();
         $this->register_types();
+        $this->register_placement_resolver();
+    }
 
-        (new DocumentManager())->register_hooks();
-        (new EditorPreview())->register_hooks();
-        (new PopupFrontendAssets());
-        PopupManager::instance()->register_hooks();
-        (new TriggerRuleBootstrap())->register();
+    /**
+     * Contributes the Popup placement resolver into Widgets' public
+     * pagination registry (see ThemeBuilder::register_placement_resolver()
+     * for the same pattern).
+     */
+    protected function register_placement_resolver(): void
+    {
+        add_action(Hooks::LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION, static function (PlacementResolverRegistry $registry) {
+            $registry->register(new PopupPlacementResolver());
+        });
     }
 
     public function register_routes()

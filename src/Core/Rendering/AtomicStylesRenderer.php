@@ -4,10 +4,13 @@ namespace Elemacy\Core\Rendering;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Integrations\Elementor\AtomicElementsAdapter;
+use Elemacy\Core\Integrations\Elementor\StylesRendererAdapter;
+
 /**
  * The single place that touches Elementor's atomic-widgets CSS internals
- * (Utils::traverse_post_elements, Atomic_Elements_Utils, Styles_Renderer) on
- * behalf of anything that needs a post's atomic CSS as a plain string.
+ * (via AtomicElementsAdapter/StylesRendererAdapter — design.md D9) on behalf
+ * of anything that needs a post's atomic CSS as a plain string.
  *
  * Elementor's own atomic CSS pipeline (Atomic_Styles_Manager) only generates
  * CSS for post IDs pushed into it via the `elementor/post/render` action, and
@@ -22,6 +25,15 @@ defined('ABSPATH') || exit;
  */
 class AtomicStylesRenderer
 {
+    protected AtomicElementsAdapter $elements;
+    protected StylesRendererAdapter $styles_renderer;
+
+    public function __construct(?AtomicElementsAdapter $elements = null, ?StylesRendererAdapter $styles_renderer = null)
+    {
+        $this->elements = $elements ?? new AtomicElementsAdapter();
+        $this->styles_renderer = $styles_renderer ?? new StylesRendererAdapter();
+    }
+
     /**
      * $post_id's atomic CSS for every style that does NOT contain a
      * dynamic-tag-bound value anywhere in it, using Styles_Renderer's own
@@ -70,15 +82,7 @@ class AtomicStylesRenderer
      */
     protected function render_styles(array $styles, string $selector_prefix): string
     {
-        if (empty($styles) || !class_exists('\Elementor\Modules\AtomicWidgets\Styles\Styles_Renderer')
-            || !class_exists('\Elementor\Plugin')) {
-            return '';
-        }
-
-        $breakpoints = \Elementor\Plugin::$instance->breakpoints->get_breakpoints_config();
-
-        return \Elementor\Modules\AtomicWidgets\Styles\Styles_Renderer::make($breakpoints, $selector_prefix)
-            ->render($styles);
+        return $this->styles_renderer->render($styles, $selector_prefix);
     }
 
     /**
@@ -121,28 +125,7 @@ class AtomicStylesRenderer
      */
     protected function collect_all_element_styles(int $post_id): array
     {
-        if (!class_exists('\Elementor\Modules\AtomicWidgets\Utils\Utils')
-            || !class_exists('\Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils')) {
-            return [];
-        }
-
-        $per_element_styles = [];
-
-        \Elementor\Modules\AtomicWidgets\Utils\Utils::traverse_post_elements(
-            (string) $post_id,
-            function (array $element_data) use (&$per_element_styles) {
-                $element_type = \Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils::get_element_type($element_data);
-                $element_instance = \Elementor\Modules\GlobalClasses\Utils\Atomic_Elements_Utils::get_element_instance($element_type);
-
-                if (!\Elementor\Modules\AtomicWidgets\Utils\Utils::is_atomic($element_instance)) {
-                    return;
-                }
-
-                $per_element_styles[] = $element_data['styles'] ?? [];
-            }
-        );
-
-        return $per_element_styles;
+        return $this->elements->collect_element_styles($post_id);
     }
 
     /**
@@ -151,21 +134,6 @@ class AtomicStylesRenderer
      */
     protected function contains_dynamic_value($value): bool
     {
-        if (!is_array($value)) {
-            return false;
-        }
-
-        if (class_exists('\Elementor\Modules\AtomicWidgets\DynamicTags\Dynamic_Prop_Type')
-            && \Elementor\Modules\AtomicWidgets\DynamicTags\Dynamic_Prop_Type::is_dynamic_prop_value($value)) {
-            return true;
-        }
-
-        foreach ($value as $item) {
-            if ($this->contains_dynamic_value($item)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->elements->contains_dynamic_value($value);
     }
 }

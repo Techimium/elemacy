@@ -2,14 +2,13 @@
 
 Elemacy is a free WordPress plugin that extends Elementor. The companion paid
 add-on, **Elemacy Pro**, is a separate plugin that hooks into the seams documented
-below. This guide gets a new developer productive quickly; the deep architecture
-reference is `CLAUDE.md` (and the `elemacy-dev` skill) in this repo.
+below. See `docs/STORAGE.md`, `docs/ADMIN-COMPATIBILITY.md`, and `docs/RELEASE-VALIDATION.md` for storage, compatibility, and recorded evidence.
 
 ## Prerequisites
 
 - A local WordPress install with **Elementor** active.
 - PHP 7.4+ and Composer.
-- Node 18+ and npm.
+- Node 20.19+ (or 22.12+) and npm.
 
 ## Setup
 
@@ -18,7 +17,7 @@ reference is `CLAUDE.md` (and the `elemacy-dev` skill) in this repo.
 composer install                 # PHP dev tooling (WPCS)
 
 # From src-react/:
-npm install
+npm ci
 ```
 
 For a live admin UI with hot reload, enable dev mode by adding this to
@@ -47,7 +46,7 @@ Without `ELEMACY_ENV=dev`, the admin app loads the built bundle from
 | `src-react/` | `npm run lint` | ESLint over the React source. |
 | `src-react/` | `npm run build:zip` | Produce the distributable production zip. |
 
-There is no PHP test suite.
+Run `php tests/php/run.php` and `php tests/architecture/dependency-boundaries.php` from the plugin root. Native WordPress/database tests use `php tests/integration/run.php` with a guarded `ELEMACY_TEST_ENV`; browser commands and setup are in `tests/integration/README.md`. Keep fixtures outside release artifacts.
 
 ## Architecture in one paragraph
 
@@ -57,7 +56,7 @@ by the `elemacy_active_modules` option). Every template-like item — Theme Buil
 templates *and* Popups — lives on **one** CPT, `elemacy_library`, discriminated by
 the `_elemacy_template_type` meta and resolved through `TemplateLibrary\TemplateResolver`
 against the shared **conditions engine** (`Conditions/`). REST goes through the
-`Core\Route` facade (namespace `elemacy`); frontend AJAX through `Core\AjaxRouter`.
+`Core\Route` facade (namespace `elemacy`); frontend AJAX through `Core\AjaxRouter`. Every route declares `public_access()` or `require_capability()`, and every AJAX registration declares its user/capability policy. Public nonces never replace saved-document or host authorization.
 The admin is a single React SPA (`src-react/`) mounted at `#elemacy_root`.
 
 ## Conventions (enforced or expected)
@@ -91,3 +90,11 @@ a slot rather than a direct dependency.
 2. `npm run lint` is clean and `npm run build` succeeds.
 3. New persisted data follows `docs/STORAGE.md` (native WP storage, prefixed keys,
    a `Migrator` step if you changed a serialized shape).
+
+## Canonical services and release checks
+
+`TemplateLibrary` owns native persistence (`DocumentWriter`, `DocumentDuplicator`, `LibraryRepository::delete`); `Core\Rendering\TemplateRenderer` owns preparation, type registration and candidate resolution. Builders contribute their own policies and placement resolvers. `Loop` owns source/query/context contracts; `Integrations/Acf` owns ACF access; internal `Modules/Forms` owns saved definitions, validation, actions and limits. Core composition uses the provider contracts; registries and supported hooks remain the extension boundaries. Avoid importing a concrete sibling builder manager.
+
+The declared candidate pair is Free 1.0.0 + Pro 1.0.0, admin contract 1.0.0. Elementor pins are 3.35.9 and 4.2.3; PHP syntax compatibility targets 7.4+, while actual runtime results are recorded separately in RELEASE-VALIDATION.md. Do not infer that every intermediate or future version was exercised. Animations is excluded from this release; popup-native transitions remain supported.
+
+From `src-react`, `npm run build:zip` requires Node/npm, PHP, Git and Composer, stages `scripts/package-manifest.json`, creates a production autoloader from composer.lock, and retains the ZIP/file manifest/checksum under `build/`. It fails if tooling or required files are missing. Run `python3 src-react/scripts/verify-package.py build/elemacy-1.0.0.zip --check-missing-tools` from the plugin root. Install and test that exact ZIP using setup's `--free-zip` option; never substitute a development checkout for artifact validation. The manifest records the Git revision and whether the working tree was dirty. Publishing is a separate action.

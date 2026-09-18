@@ -2,6 +2,8 @@
 
 namespace Elemacy\Modules\DynamicTags\Tags\Base;
 
+use Elemacy\Core\Integrations\Elementor\Capabilities;
+use Elemacy\Core\Integrations\Elementor\SameDocumentContentRenderer;
 use Elemacy\Core\Rendering\AtomicStylesRenderer;
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Modules\DynamicTags\Module;
@@ -75,15 +77,23 @@ class PostContent extends Tag
 			return;
 		}
 
-		self::$level++;
+		++self::$level;
 		self::$rendering[$post_id] = true;
 
-		$this->render_content($post_id);
+		try {
+			$this->render_content($post_id);
+		} finally {
+			// A thrown render must still release this post id and unwind the
+			// nesting depth - otherwise a single failed render would leave
+			// $rendering permanently stuck for the rest of the request,
+			// silently blocking every later legitimate use of this tag for
+			// the same post (design.md D9: "protect ... nested render
+			// counters ... with finally").
+			--self::$level;
 
-		self::$level--;
-
-		if (0 === self::$level) {
-			self::$rendering = [];
+			if (0 === self::$level) {
+				self::$rendering = [];
+			}
 		}
 	}
 
@@ -93,21 +103,15 @@ class PostContent extends Tag
 	 */
 	protected function render_content($post_id)
 	{
-		if (class_exists('\Elementor\Plugin') && !$this->is_own_document_already_rendering($post_id)) {
-			$editor = \Elementor\Plugin::instance()->editor;
-			$was_edit_mode = $editor->is_edit_mode();
-			$editor->set_edit_mode(false);
-
-			// get_builder_content_for_display() is not used here: it refuses
-			// to render a post the same as the one currently being viewed
-			// (get_the_ID() === $post_id, which is always true for this tag),
-			// specifically to avoid this exact recursion - a guard this tag
-			// already provides itself above. get_builder_content($id, true)
-			// is the lower-level call with no such guard, matching what
-			// Elementor Pro's own equivalent widget uses for this exact case.
-			$content = \Elementor\Plugin::instance()->frontend->get_builder_content($post_id, true);
-
-			$editor->set_edit_mode($was_edit_mode);
+		if ($this->capabilities()->plugin_loaded() && !$this->is_own_document_already_rendering($post_id)) {
+			// SameDocumentContentRenderer owns get_builder_content($id, true)
+			// (the lower-level call with no same-post recursion guard of its
+			// own, matching what Elementor Pro's own equivalent widget uses
+			// for this exact case - get_builder_content_for_display() would
+			// refuse to render a post the same as get_the_ID(), which is
+			// always true for this tag) plus finally-based editor-mode and
+			// document-switch-stack restoration around it (design.md D9).
+			$content = $this->same_document_renderer()->render($post_id);
 
 			if (!empty($content)) {
 				// get_builder_content(..., true) already inlines classic CSS
@@ -146,6 +150,22 @@ class PostContent extends Tag
 	protected function atomic_styles_renderer()
 	{
 		return new AtomicStylesRenderer();
+	}
+
+	/**
+	 * @return SameDocumentContentRenderer
+	 */
+	protected function same_document_renderer()
+	{
+		return new SameDocumentContentRenderer();
+	}
+
+	/**
+	 * @return Capabilities
+	 */
+	protected function capabilities()
+	{
+		return new Capabilities();
 	}
 
 	/**

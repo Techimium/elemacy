@@ -14,6 +14,11 @@
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Requires Plugins: elementor
+ *
+ * Requires Elementor 3.35.9 or higher (see Elemacy\Core\CompatibilityChecker::
+ * MIN_ELEMENTOR_VERSION and F/docs/ELEMENTOR-COMPATIBILITY.md) — the WordPress
+ * plugin header format has no native version-constrained equivalent of
+ * "Requires Plugins" above, so this is enforced at runtime instead.
  */
 
 use Elemacy\Core\Elemacy;

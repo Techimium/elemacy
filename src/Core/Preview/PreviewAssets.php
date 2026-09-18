@@ -17,8 +17,21 @@ class PreviewAssets
 {
     const RELATIVE_PATH = 'assets/editor/preview-bridge.js';
 
-    public function __construct()
+    protected bool $registered = false;
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead).
+     */
+    public function register_hooks(): void
     {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
+
         add_action('elementor/editor/after_enqueue_scripts', [$this, 'enqueue']);
     }
 

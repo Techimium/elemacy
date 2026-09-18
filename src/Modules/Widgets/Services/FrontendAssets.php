@@ -25,7 +25,10 @@ class FrontendAssets
         $this->register_script('nav-menu');
 
         $this->register_style('loop-grid');
-        $this->register_script('loop-grid');
+        // AJAX-loaded pagination content re-initializes Elementor widgets
+        // through the shared lifecycle adapter (design.md D9, task 9.5)
+        // instead of duplicating that logic inline.
+        $this->register_script('loop-grid', ['elemacy-elementor-lifecycle']);
 
         $this->register_style('loop-carousel');
         $this->register_script('loop-carousel');
@@ -39,12 +42,12 @@ class FrontendAssets
         $this->register_script('acf-accordion');
     }
 
-    protected function register_script($file_name)
+    protected function register_script($file_name, array $extra_deps = [])
     {
         wp_register_script(
             'elemacy-' . $file_name,
             Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/' . $file_name . '.js'),
-            ['jquery', 'elemacy-frontend'],
+            array_merge(['jquery', 'elemacy-frontend'], $extra_deps),
             ELEMACY_VERSION,
             true
         );

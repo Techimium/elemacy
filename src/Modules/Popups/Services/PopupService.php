@@ -7,7 +7,6 @@ defined('ABSPATH') || exit;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\HttpException;
 use Elemacy\Core\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Constants\MetaKeys;
@@ -19,13 +18,30 @@ use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
 use Elemacy\Support\PostDates;
 use Elemacy\TemplateLibrary\Constants\MetaKeys as LibraryMetaKeys;
+use Elemacy\TemplateLibrary\DocumentDuplicator;
+use Elemacy\TemplateLibrary\DocumentWriter;
+use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryPostType;
+use Elemacy\TemplateLibrary\LibraryRepository;
 use Elemacy\TemplateLibrary\TypeRegistry;
-use WP_Post;
 use WP_Query;
 
+/**
+ * Native persistence, group/type ownership and library/Elementor document
+ * type synchronization are owned by the shared {@see LibraryRepository}/
+ * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
+ * this service keeps only what is specific to popups — the fixed Canvas
+ * editor defaults, triggers/rules, and conditions — plus its own public
+ * DTO-shaped responses. Every popup type shares one Elementor document
+ * (`elemacy_popup`) regardless of which type is selected, so
+ * DocumentWriter's per-type registry resolution is overridden with that
+ * constant rather than relied on (see DocumentWriter::create()'s own doc).
+ */
 class PopupService
 {
+    const GROUP = 'popup';
+    const DOCUMENT_TYPE = 'elemacy_popup';
+
     /**
      * Default page size when the request omits (or under/over-shoots) per_page.
      *
@@ -34,10 +50,23 @@ class PopupService
     const DEFAULT_PER_PAGE = 20;
 
     protected ConditionRepository $conditions;
+    protected LibraryRepository $repository;
+    protected DocumentWriter $writer;
+    protected DocumentDuplicator $duplicator;
+    protected TypeRegistry $types;
 
-    public function __construct()
-    {
-        $this->conditions = new ConditionRepository();
+    public function __construct(
+        ?ConditionRepository $conditions = null,
+        ?LibraryRepository $repository = null,
+        ?DocumentWriter $writer = null,
+        ?DocumentDuplicator $duplicator = null,
+        ?TypeRegistry $types = null
+    ) {
+        $this->conditions = $conditions ?? new ConditionRepository();
+        $this->repository = $repository ?? new LibraryRepository();
+        $this->writer = $writer ?? new DocumentWriter($this->repository);
+        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
+        $this->types = $types ?? TypeRegistry::instance();
     }
 
     /**
@@ -104,9 +133,9 @@ class PopupService
 
     public function get(int $id)
     {
-        $post = get_post($id);
+        $post = $this->repository->find($id);
 
-        if (!$this->owns($post)) {
+        if (!$this->repository->owns($post, self::GROUP)) {
             return null;
         }
 
@@ -126,31 +155,12 @@ class PopupService
 
     public function create(CreatePopupDTO $dto)
     {
-        $post_data = [
+        $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::DRAFT,
-            'post_type' => LibraryPostType::POST_TYPE,
-        ];
+        ], isset($dto->type) ? (string) $dto->type : '', self::DOCUMENT_TYPE);
 
-        $post_id = wp_insert_post($post_data, true);
-
-        if (is_wp_error($post_id)) {
-            throw new HttpException(esc_html($post_id->get_error_message()));
-        }
-
-        $type = $dto->type ?? '';
-
-        if ($type !== '') {
-            update_post_meta($post_id, LibraryMetaKeys::TEMPLATE_TYPE, $type);
-        }
-
-        // Popups render in an isolated Elementor canvas (no theme header/footer).
-        update_post_meta($post_id, '_wp_page_template', 'elementor_canvas');
-
-        // Bind the post to our custom Elementor document type so it opens on a
-        // blank popup canvas in the editor (see Documents\PopupDocument).
-        update_post_meta($post_id, '_elementor_template_type', 'elemacy_popup');
-        update_post_meta($post_id, '_elementor_edit_mode', 'builder');
+        $this->apply_editor_defaults($post_id);
 
         if (isset($dto->conditions)) {
             $this->conditions->save($post_id, (array) $dto->conditions);
@@ -164,38 +174,24 @@ class PopupService
             $this->save_rules($post_id, (array) $dto->rules);
         }
 
+        $this->notify($post_id, LibraryChanged::CREATED);
+
         return $this->create_dto(get_post($post_id));
     }
 
     public function update(int $id, UpdatePopupDTO $dto)
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
-        }
-
-        $post_data = [
-            'ID' => $id,
-        ];
+        $post_fields = [];
 
         if (isset($dto->title)) {
-            $post_data['post_title'] = $dto->title;
+            $post_fields['post_title'] = $dto->title;
         }
 
         if (isset($dto->status)) {
-            $post_data['post_status'] = $dto->status;
+            $post_fields['post_status'] = $dto->status;
         }
 
-        $result = wp_update_post($post_data, true);
-
-        if (is_wp_error($result)) {
-            throw new HttpException(esc_html($result->get_error_message()));
-        }
-
-        if (isset($dto->type)) {
-            update_post_meta($id, LibraryMetaKeys::TEMPLATE_TYPE, $dto->type);
-        }
+        $this->writer->update($id, self::GROUP, $post_fields, isset($dto->type) ? (string) $dto->type : null, self::DOCUMENT_TYPE);
 
         if (isset($dto->conditions)) {
             $this->conditions->save($id, (array) $dto->conditions);
@@ -209,72 +205,54 @@ class PopupService
             $this->save_rules($id, (array) $dto->rules);
         }
 
+        $this->notify($id, LibraryChanged::UPDATED);
+
         return $this->create_dto(get_post($id));
     }
 
     public function duplicate(int $id)
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
-        }
-
-        /* translators: %s: original popup title. */
-        $new_title = sprintf(__('%s (Copy)', 'elemacy'), $post->post_title);
-
-        $new_post_id = wp_insert_post([
-            'post_title' => $new_title,
-            'post_content' => $post->post_content,
-            'post_status' => PostStatus::DRAFT,
-            'post_type' => LibraryPostType::POST_TYPE,
-            'post_author' => get_current_user_id(),
-        ], true);
-
-        if (is_wp_error($new_post_id)) {
-            throw new HttpException(esc_html($new_post_id->get_error_message()));
-        }
-
-        $meta = get_post_meta($id);
-
         // Meta keys add-ons own and should not carry over to the copy (e.g. pro
-        // resets analytics counters for the new popup).
-        $excluded_meta = (array) apply_filters(Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER, []);
+        // resets analytics counters for the new popup) — merged with the
+        // shared LIBRARY_DUPLICATE_EXCLUDED_META_FILTER inside DocumentDuplicator.
+        $extra_excluded_meta = (array) apply_filters(Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER, []);
 
-        if (is_array($meta)) {
-            foreach ($meta as $meta_key => $meta_values) {
-                if (strpos($meta_key, '_edit_lock') === 0 || strpos($meta_key, '_edit_last') === 0) {
-                    continue;
-                }
+        $new_id = $this->duplicator->duplicate($id, self::GROUP, $extra_excluded_meta, self::DOCUMENT_TYPE);
 
-                if (in_array($meta_key, $excluded_meta, true)) {
-                    continue;
-                }
+        $this->apply_editor_defaults($new_id);
+        $this->notify($new_id, LibraryChanged::DUPLICATED);
 
-                foreach ($meta_values as $meta_value) {
-                    update_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
-                }
-            }
-        }
-
-        return $this->create_dto(get_post($new_post_id));
+        return $this->create_dto(get_post($new_id));
     }
 
     public function delete(int $id)
     {
-        $post = get_post($id);
-
-        if (!$this->owns($post)) {
-            throw new NotFoundException(esc_html__('Popup not found.', 'elemacy'));
-        }
-
-        $result = wp_delete_post($id, true);
-
-        if (!$result) {
-            throw new HttpException(esc_html__('Failed to delete popup.', 'elemacy'));
-        }
+        $this->writer->owned_or_fail($id, self::GROUP);
+        $this->repository->delete($id);
+        $this->notify($id, LibraryChanged::DELETED);
 
         return true;
+    }
+
+    /**
+     * Popups render in an isolated Elementor canvas (no theme header/footer),
+     * reasserted unconditionally so a duplicate whose source predates these
+     * defaults still gets them.
+     */
+    protected function apply_editor_defaults(int $id): void
+    {
+        $this->repository->set_meta($id, '_wp_page_template', 'elementor_canvas');
+        $this->repository->set_meta($id, '_elementor_edit_mode', 'builder');
+    }
+
+    /**
+     * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
+     */
+    protected function notify(int $id, string $action): void
+    {
+        $type = (string) $this->repository->get_meta($id, LibraryMetaKeys::TEMPLATE_TYPE);
+
+        do_action(Hooks::LIBRARY_CHANGED_ACTION, new LibraryChanged($id, self::GROUP, $type, $action));
     }
 
     protected function get_triggers(int $popup_id): array
@@ -286,7 +264,7 @@ class PopupService
 
     protected function save_triggers(int $popup_id, array $triggers): void
     {
-        update_post_meta($popup_id, MetaKeys::TRIGGERS, $this->normalize_items($triggers, TriggerDTO::class));
+        update_post_meta($popup_id, MetaKeys::TRIGGERS, $this->normalize_items(TriggerDTO::collection_or_fail($triggers)));
     }
 
     protected function get_rules(int $popup_id): array
@@ -298,23 +276,22 @@ class PopupService
 
     protected function save_rules(int $popup_id, array $rules): void
     {
-        update_post_meta($popup_id, MetaKeys::RULES, $this->normalize_items($rules, RuleDTO::class));
+        update_post_meta($popup_id, MetaKeys::RULES, $this->normalize_items(RuleDTO::collection_or_fail($rules)));
     }
 
     /**
-     * Normalize a list of trigger/rule items: hydrate, ensure each has an id, serialize back.
+     * Ensures every trigger/rule DTO has an id, then serializes back.
      *
-     * @param array  $items
-     * @param string $dto_class
+     * @param (TriggerDTO|RuleDTO)[] $items
      * @return array
      */
-    protected function normalize_items(array $items, string $dto_class): array
+    protected function normalize_items(array $items): array
     {
-        return array_values(array_map(function ($item) use ($dto_class): array {
-            $dto = $dto_class::from_array(is_array($item) ? $item : []);
+        return array_map(function ($dto): array {
             $dto->id = $dto->id !== '' ? $dto->id : wp_generate_uuid4();
+
             return $dto->to_array();
-        }, $items));
+        }, $items);
     }
 
     /**
@@ -324,22 +301,7 @@ class PopupService
      */
     protected function popup_types(): array
     {
-        return TypeRegistry::instance()->names_in_group('popup');
-    }
-
-    /**
-     * A popup lives on the shared library CPT and carries a popup-group type, so
-     * theme templates on the same CPT are never treated as popups.
-     */
-    protected function owns(?WP_Post $post): bool
-    {
-        if (!$post || $post->post_type !== LibraryPostType::POST_TYPE) {
-            return false;
-        }
-
-        $type = (string) get_post_meta($post->ID, LibraryMetaKeys::TEMPLATE_TYPE, true);
-
-        return in_array($type, $this->popup_types(), true);
+        return $this->types->names_in_group(self::GROUP);
     }
 
     protected function create_dto($post): PopupDTO

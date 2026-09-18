@@ -12,8 +12,32 @@ use Elemacy\Support\Utils;
 
 class AdminScripts
 {
-    public function __construct()
+    protected bool $registered = false;
+
+    /**
+     * The admin extension bridge's own version (design.md D12) — independent
+     * of ELEMACY_VERSION (the plugin release), since the bridge's shape
+     * (window.ElemacyShared's fields, the readiness event) can stay stable
+     * across many releases, or need to change within one. PHP is this
+     * value's single source of truth: it is localized into window.elemacy
+     * below, and the JS bridge (lib/globals.ts) reads it from there rather
+     * than hardcoding its own separate copy that could drift.
+     */
+    const CONTRACT_VERSION = '1.0.0';
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing (design.md D7 — constructors store dependencies, they do not
+     * register hooks; this is where that happens instead).
+     */
+    public function register_hooks(): void
     {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
+
         add_action('admin_enqueue_scripts', [$this, 'enqueue_global_assets']);
 
         if (!Utils::is_plugin_page()) {
@@ -56,6 +80,7 @@ class AdminScripts
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'modules' => Elemacy::get_instance()->get_module_manager()->to_array(),
+            'contract_version' => self::CONTRACT_VERSION,
         ]);
 
         wp_localize_script($handle, 'elemacy', $script_data);

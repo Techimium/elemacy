@@ -17,7 +17,7 @@ One Elementor addon to replace them all. Theme Builder, Display Conditions, Popu
 
 Stop installing five different plugins to get five different features. Elemacy brings everything together in one lean, well-coded package. The core feature set is completely free; advanced capabilities are available in **Elemacy Pro**.
 
-> Works with the **free version of Elementor** — Elementor Pro is **not** required.
+> Works with the **free version of Elementor** — Elementor Pro is **not** required. Requires **Elementor 3.35.9 or higher**.
 
 ---
 
@@ -251,7 +251,7 @@ Elemacy Pro installs on top of the free plugin and unlocks advanced features. No
 ### 🔌 Compatibility
 
 * **WordPress** 6.0+
-* **Elementor** (Free) — latest version recommended
+* **Elementor** (Free) — 3.35.9 or higher; latest version recommended
 * **PHP** 7.4+
 * **Advanced Custom Fields (ACF)** — optional, required only for the ACF widgets and ACF dynamic tags
 * **WooCommerce** — Theme Builder detects the Shop page when resolving archive templates
@@ -307,7 +307,7 @@ Whether you want to submit a bug fix, add a new widget, propose a feature, or im
 
 = Does Elemacy require Elementor Pro? =
 
-No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features.
+No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features. Elemacy requires Elementor 3.35.9 or higher.
 
 = Is the free version really free? =
 
