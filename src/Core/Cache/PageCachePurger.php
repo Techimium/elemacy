@@ -9,16 +9,8 @@ use Elemacy\Core\Hooks;
 /**
  * Best-effort purge of the object cache plus whichever supported page-cache
  * plugin, if any, is active — called when a change to feature availability
- * (D5) means previously suspended or previously visible content must stop
- * being served from a stale cached page on the very next request.
- *
- * Detection is by function/class existence, so nothing here requires any of
- * these plugins to be installed; each check is a no-op when its plugin is
- * absent. This purges what Elemacy can reach directly. It cannot purge an
- * edge/CDN cache (e.g. Cloudflare) or a page cache plugin not listed here —
- * those are bound by their own TTL until their next natural expiry or a
- * manual purge; document this limitation to site owners rather than
- * pretending full coverage.
+ * means previously suspended or previously visible content must stop being
+ * served from a stale cached page on the very next request.
  */
 final class PageCachePurger
 {

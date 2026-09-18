@@ -6,8 +6,8 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
-use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Http\DTO\PaginatedResultDTO;
+use Elemacy\Http\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
@@ -27,15 +27,11 @@ use Elemacy\TemplateLibrary\TypeRegistry;
 use WP_Query;
 
 /**
- * Native persistence, group/type ownership and library/Elementor document
- * type synchronization are owned by the shared {@see LibraryRepository}/
- * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
- * this service keeps only what is specific to popups — the fixed Canvas
- * editor defaults, triggers/rules, and conditions — plus its own public
- * DTO-shaped responses. Every popup type shares one Elementor document
- * (`elemacy_popup`) regardless of which type is selected, so
- * DocumentWriter's per-type registry resolution is overridden with that
- * constant rather than relied on (see DocumentWriter::create()'s own doc).
+ * Native persistence, group/type ownership and library/Elementor document type
+ * synchronization are owned by the shared {@see LibraryRepository}/ {@see
+ * DocumentWriter}/{@see DocumentDuplicator} primitives; this service keeps
+ * only what is specific to popups — the fixed Canvas editor defaults,
+ * triggers/rules, and conditions — plus its own public DTO-shaped responses.
  */
 class PopupService
 {
@@ -56,17 +52,17 @@ class PopupService
     protected TypeRegistry $types;
 
     public function __construct(
-        ?ConditionRepository $conditions = null,
-        ?LibraryRepository $repository = null,
-        ?DocumentWriter $writer = null,
-        ?DocumentDuplicator $duplicator = null,
-        ?TypeRegistry $types = null
+        ConditionRepository $conditions,
+        LibraryRepository $repository,
+        DocumentWriter $writer,
+        DocumentDuplicator $duplicator,
+        TypeRegistry $types
     ) {
-        $this->conditions = $conditions ?? new ConditionRepository();
-        $this->repository = $repository ?? new LibraryRepository();
-        $this->writer = $writer ?? new DocumentWriter($this->repository);
-        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
-        $this->types = $types ?? TypeRegistry::instance();
+        $this->conditions = $conditions;
+        $this->repository = $repository;
+        $this->writer = $writer;
+        $this->duplicator = $duplicator;
+        $this->types = $types;
     }
 
     /**

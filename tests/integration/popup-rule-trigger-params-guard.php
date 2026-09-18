@@ -2,7 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Modules\Popups\Requests\CreatePopupRequest;
 use Elemacy\Modules\Popups\Requests\UpdatePopupRequest;
 use WP_REST_Request;

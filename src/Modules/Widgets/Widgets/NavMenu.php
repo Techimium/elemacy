@@ -8,6 +8,7 @@ use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Icons_Manager;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit;

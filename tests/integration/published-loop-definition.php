@@ -2,11 +2,11 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
-use Elemacy\Modules\Widgets\DTO\PublicLoopRequest;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\PublishedLoopDefinitionResolver;
-use Elemacy\Modules\Widgets\Services\PublicRenderPolicy;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;

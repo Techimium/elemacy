@@ -4,35 +4,28 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
-use Elemacy\Core\Documents\SinglePostPreviewDocument;
-use Elemacy\Core\Controls\Query\QueryControl;
-use Elemacy\Core\Controls\Query\QueryService;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\SinglePostPreviewDocument;
+use Elemacy\Elementor\Controls\Query\QueryControl;
+use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\DataSources\PostsQuery;
+use Elemacy\Loop\Sources\PostsQuery;
 use Elemacy\Loop\DTO\LoopResultDTO;
-use Elemacy\Loop\LoopItems\PostLoopItem;
+use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\Pagination\Policies\PostsPolicy;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Support\PostTypes;
 use Elementor\Controls_Manager;
-use Elementor\Widget_Base;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 /**
  * The built-in Posts data source: reproduces exactly what LoopGrid's and
- * LoopCarousel's Query section did before this abstraction existed (post
- * type select including "Current Query", posts-per-page, offset, order,
- * excluding the current post), so every existing site's saved widget
- * settings keep working unchanged (design.md D5).
- *
- * The runtime query execution and public-context policy live in
- * Loop\DataSources\PostsQuery / Loop\Pagination\Policies\PostsPolicy
- * (design.md D7) — this class keeps only what needs an Elementor
- * widget/document instance (register_controls()/register_preview_controls())
- * plus this source's own identity, delegating everything else to those two
- * collaborators.
+ * LoopCarousel's Query section did before this abstraction existed (post type
+ * select including "Current Query", posts-per-page, offset, order, excluding
+ * the current post), so every existing site's saved widget settings keep
+ * working unchanged.
  */
 class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {
@@ -75,7 +68,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         return $options;
     }
 
-    public function register_controls(Widget_Base $widget): void
+    public function register_controls(BaseWidget $widget): void
     {
         $condition = ['data_source' => $this->get_key()];
 
@@ -164,26 +157,6 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         return $this->query->get_items($settings);
     }
 
-    public function get_ajax_payload(array $settings): array
-    {
-        $payload = [
-            'post_type' => $settings['post_type'],
-            'posts_per_page' => $settings['posts_per_page'],
-            'orderby' => $settings['orderby'],
-            'order' => $settings['order'],
-            'offset' => $settings['offset'],
-            'exclude_current_post' => $settings['exclude_current_post'],
-            'current_post_id' => get_the_ID(),
-        ];
-
-        if ('current_query' === $settings['post_type']) {
-            global $wp_query;
-            $payload['current_query_vars'] = $wp_query->query_vars;
-        }
-
-        return $payload;
-    }
-
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
         return $this->query->sanitize_ajax_settings($raw_settings, $paged);
@@ -193,7 +166,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
      * Same control SinglePostPreviewDocument registers for SingleDocument's
      * own (non-loop) preview — same key, label, placeholder, and default, so
      * a Loop Item template saved before this preview support existed keeps
-     * previewing against the same post with no migration (design.md D5).
+     * previewing against the same post with no migration.
      */
     public function register_preview_controls(PreviewablePageBase $document): void
     {

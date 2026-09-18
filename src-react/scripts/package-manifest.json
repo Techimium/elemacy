@@ -43,11 +43,7 @@
       ".json"
     ]
   },
-  "exclude": [
-    "src/Modules/Animations/",
-    "src/Modules/Mock/AnimationsPlaceholder.php",
-    "assets/animations/"
-  ],
+  "exclude": [],
   "requiredRuntime": [
     "src/Core/Elemacy.php",
     "assets/admin/scripts/admin.js",

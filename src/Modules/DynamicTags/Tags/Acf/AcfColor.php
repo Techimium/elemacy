@@ -5,7 +5,7 @@ namespace Elemacy\Modules\DynamicTags\Tags\Acf;
 use Elementor\Controls_Manager;
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Modules\DynamicTags\Module;
-use Elemacy\Modules\DynamicTags\Services\Acf;
+use Elemacy\Integrations\Acf\AcfFieldReader;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -47,7 +47,7 @@ class AcfColor extends Tag
 			return;
 		}
 
-		$value = Acf::get_field_value($key);
+		$value = (new AcfFieldReader())->get_field_value((string) $key);
 
 		if (is_string($value) || is_numeric($value)) {
 			echo wp_kses_post($value);

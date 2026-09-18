@@ -4,15 +4,13 @@ namespace Elemacy\Loop\Pagination\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use JsonException;
 use stdClass;
 
 /**
- * Validated public pagination claims. Query settings are never part of this DTO.
- *
- * Parsing establishes shape and resource limits only. The definition resolver
- * and render policy must still authorize every referenced document and context.
+ * Validated public pagination claims. Query settings are never part of this
+ * DTO.
  */
 final class PublicLoopRequest
 {
@@ -54,9 +52,6 @@ final class PublicLoopRequest
 
     /**
      * Validate an unslashed JSON string without coercing scalar shapes.
-     *
-     * The outer JSON is bounded before decoding. The opaque context is bounded
-     * here before any later signature verification or context-payload decoding.
      *
      * @param mixed $raw Untrusted request value, including malformed nonstrings.
      * @return self

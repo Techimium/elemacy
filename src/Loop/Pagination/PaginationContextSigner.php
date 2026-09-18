@@ -4,19 +4,12 @@ namespace Elemacy\Loop\Pagination;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use JsonException;
 
 /**
  * Signs/verifies the opaque host-context token a public pagination request
- * carries. A valid signature proves a contributed placement resolver
- * verified these host facts for this owner/widget/definition revision on
- * this site; it does not itself authorize access — PublicRenderPolicy and
- * definition resolution still run against the live document on every
- * request. The key is derived from WordPress's own auth salt, so a token
- * rotates automatically when salts change and cannot be replayed on another
- * site sharing the same code (a differing blog ID is rejected explicitly for
- * multisite, where the salt is shared network-wide).
+ * carries. See docs/ARCHITECTURE.md § Rationale digest.
  */
 final class PaginationContextSigner
 {

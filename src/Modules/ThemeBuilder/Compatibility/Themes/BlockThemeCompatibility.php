@@ -7,18 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
-/**
- * Block theme compatibility.
- *
- * A block theme has no classic header.php/footer.php — get_header()/
- * get_footer() never fire, so no other adapter's hooks apply. It renders
- * its header/footer as core/template-part blocks instead ("header"/"footer"
- * slugs, the convention WordPress's own bundled themes and most third-party
- * block themes use). Replacing that block's own rendered content — the
- * documented, native override point for a template part, not a removed
- * hook — swaps in Elemacy's content without touching the theme's block
- * template at all.
- */
+/** Block theme compatibility. */
 class BlockThemeCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void

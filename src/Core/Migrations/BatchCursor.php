@@ -5,23 +5,9 @@ namespace Elemacy\Core\Migrations;
 defined('ABSPATH') || exit;
 
 /**
- * A named, resumable progress cursor plus an expiring lock, for one
- * migration step that must process more records than fit in one request
- * without timing out (task 11.6, design.md D11: "Expiring locks, batch
- * cursors and idempotent steps allow safe resumption").
- *
- * A migration callback owns one cursor for its own name, processes one
- * bounded batch per invocation, calls advance() after each successful
- * batch, and returns `false` from the callback (see Migrator::run()) until
- * complete() has been called — at which point returning anything else
- * advances Migrator's own schema-version marker. No queue or custom table:
- * ordinary request traffic re-invoking Migrator::sync() is the resumption
- * mechanism (design.md D11: "Do not introduce a queue or custom index
- * table until measured load requires it").
- *
- * Deliberately independent of any Migrator/OptionKeys — plain string
- * options/transients — so it is equally usable by Free's own migrations and
- * by an unrelated plugin's (e.g. Pro's) migrator without any shared class.
+ * A named, resumable progress cursor plus an expiring lock, for one migration
+ * step that must process more records than fit in one request without timing
+ * out.
  */
 class BatchCursor
 {

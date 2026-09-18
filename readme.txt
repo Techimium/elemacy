@@ -2,14 +2,14 @@
 Contributors: techimium, mdashraful
 Tags: elementor, elementor addons, theme builder, popup builder, dynamic tags
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Stable tag: 1.0.0
 Requires PHP: 7.4
 Requires Plugins: elementor
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-One Elementor addon to replace them all. Theme Builder, Display Conditions, Popups & Floating Elements, Loop Builder, Form Builder, Dynamic Tags, Custom CSS, and a suite of widgets — all free.
+One free Elementor addon: Theme Builder, Display Conditions, Popups, Loop Builder, Forms, Dynamic Tags, Custom CSS and widgets.
 
 == Description ==
 
@@ -373,6 +373,12 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 
 = 1.0.0 =
 * Initial release
+* Loop Grid and Loop Carousel only show visitors items from a published Loop Item template; a draft template renders nothing publicly, and users who can edit the page see an inline note explaining why
+* AJAX-paginated Loop Grids show at most 100 items per page; a "0" or unlimited value now means 100
+* Loop Grid AJAX pagination uses a signed, server-verified request; after upgrading, purge any full-page cache so stale pages stop showing a "refresh the page" notice on the first pagination click
+* A "Current Query" loop inside an Archive or Search Results template keeps that archive's category, tag, author, date or search term on every page
+* A popup or template whose saved display condition, rule or trigger is unavailable (for example after deactivating an extension) is suspended instead of shown to everyone; its settings are kept for repair
+* Theme Builder header and footer replacement no longer removes other plugins' wp_head and wp_footer callbacks
 * Theme Builder: Header, Footer, Single, Archive, Post Archive, 404, Search Results, Loop, and Custom Post Type templates, with multi-theme compatibility
 * Display Conditions: Entire Site, Singular Post Type, and Post Type Archive (advanced conditions available in Elemacy Pro)
 * Popups & Floating Elements: popups, top/bottom bars, banners, and floating elements designed in Elementor, with display conditions, Page Load/Click triggers, and Frequency Cap/Logged-in Users rules

@@ -8,21 +8,7 @@ use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
-/**
- * Global compatibility.
- *
- * - Inject header via wp_body_open (best-effort across themes).
- * - Inject footer from get_footer(), before footer.php's own wp_footer()
- *   call — so it lands before the footer script-printing deadline instead
- *   of mixed among wp_footer's own late-priority script output.
- * - Adds minimal CSS to hide common theme header/footer wrappers, scoped to
- *   the document's own near-root structure (body/#page's direct children)
- *   so it can never match content authored inside Elementor/Elemacy
- *   (popup, loop item, or any other builder content is always nested many
- *   levels deeper than that).
- *
- * This is intended as a safe fallback when we don't have a theme-specific adapter.
- */
+/** Global compatibility. See docs/ARCHITECTURE.md § Rationale digest. */
 class GlobalCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void

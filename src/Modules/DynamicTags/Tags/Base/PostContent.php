@@ -2,9 +2,9 @@
 
 namespace Elemacy\Modules\DynamicTags\Tags\Base;
 
-use Elemacy\Core\Integrations\Elementor\Capabilities;
-use Elemacy\Core\Integrations\Elementor\SameDocumentContentRenderer;
-use Elemacy\Core\Rendering\AtomicStylesRenderer;
+use Elemacy\Elementor\Compatibility\Capabilities;
+use Elemacy\Elementor\Compatibility\SameDocumentContentRenderer;
+use Elemacy\Elementor\Rendering\AtomicStylesRenderer;
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Modules\DynamicTags\Module;
 
@@ -87,7 +87,7 @@ class PostContent extends Tag
 			// nesting depth - otherwise a single failed render would leave
 			// $rendering permanently stuck for the rest of the request,
 			// silently blocking every later legitimate use of this tag for
-			// the same post (design.md D9: "protect ... nested render
+			// the same post (: "protect... nested render
 			// counters ... with finally").
 			--self::$level;
 
@@ -110,7 +110,7 @@ class PostContent extends Tag
 			// for this exact case - get_builder_content_for_display() would
 			// refuse to render a post the same as get_the_ID(), which is
 			// always true for this tag) plus finally-based editor-mode and
-			// document-switch-stack restoration around it (design.md D9).
+			// document-switch-stack restoration around it.
 			$content = $this->same_document_renderer()->render($post_id);
 
 			if (!empty($content)) {
@@ -169,20 +169,10 @@ class PostContent extends Tag
 	}
 
 	/**
-	 * Whether $post_id's own document is the one Elementor is actively
-	 * rendering right now - i.e. this tag is embedded directly in a post's
-	 * own design and targets that same post (its natural, un-embedded
-	 * render is already in progress). $rendering above cannot detect this on
-	 * its own: it only tracks re-entry into this tag's own render() calls,
-	 * not Elementor's own, separate rendering of the same document that
-	 * triggered the very first one. Embedding a document into itself here
-	 * would just print it a second time nested inside the first, so this
-	 * falls through to the classic-content path below instead - matching
-	 * get_builder_content_for_display()'s own "same as the currently viewed
-	 * post" guard, but checked against the actively-rendering document
-	 * rather than the coarser get_the_ID() proxy that guard uses (which
-	 * can't tell "this post's own natural render" apart from "a Theme
-	 * Builder template currently embedding this same post").
+	 * Whether $post_id's own document is the one Elementor is actively rendering
+	 * right now - i.e. this tag is embedded directly in a post's own design and
+	 * targets that same post (its natural, un-embedded render is already in
+	 * progress).
 	 *
 	 * @param int $post_id
 	 * @return bool

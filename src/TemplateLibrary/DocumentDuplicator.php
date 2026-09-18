@@ -10,16 +10,8 @@ use WP_Post;
 
 /**
  * Duplicates a library document through the same verified native write
- * boundary {@see LibraryRepository}/{@see DocumentWriter} use, instead of
- * each of the three application services running its own copy loop.
- *
- * Preserves authoring content and its multiplicity byte-equivalently
- * (including quotes/backslashes/Unicode inside `_elementor_data`'s JSON —
- * see copy_meta()'s own note on slashing) while excluding generated/runtime
- * metadata a new document must produce for itself: WordPress's edit-lock
- * bookkeeping and Elementor's own generated CSS/asset/element caches.
- * Extensions declare their own additional exclusions (e.g. analytics
- * counters) through {@see Hooks::LIBRARY_DUPLICATE_EXCLUDED_META_FILTER}.
+ * boundary {@see LibraryRepository}/{@see DocumentWriter} use, instead of each
+ * of the three application services running its own copy loop.
  */
 class DocumentDuplicator
 {
@@ -40,10 +32,10 @@ class DocumentDuplicator
     protected LibraryRepository $repository;
     protected DocumentWriter $writer;
 
-    public function __construct(?LibraryRepository $repository = null, ?DocumentWriter $writer = null)
+    public function __construct(LibraryRepository $repository, DocumentWriter $writer)
     {
-        $this->repository = $repository ?? new LibraryRepository();
-        $this->writer = $writer ?? new DocumentWriter($this->repository);
+        $this->repository = $repository;
+        $this->writer = $writer;
     }
 
     /**
@@ -52,7 +44,7 @@ class DocumentDuplicator
      *   PopupService merging in the pre-existing Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER result.
      * @param string|null $document_type See {@see DocumentWriter::create()} — an explicit override
      *   for a group whose Elementor document type is a group-wide constant rather than per type.
-     * @throws \Elemacy\Core\Exceptions\NotFoundException
+     * @throws \Elemacy\Http\Exceptions\NotFoundException
      */
     public function duplicate(int $id, string $group, array $extra_excluded_meta = [], ?string $document_type = null): int
     {
@@ -107,18 +99,12 @@ class DocumentDuplicator
     /**
      * Copies every non-excluded meta key from the source post, preserving
      * multiplicity (a key stored as three separate rows stays three separate
-     * rows — add_post_meta() with $unique=false, never update_post_meta(),
-     * which would collapse repeated writes for the same key into one) and
-     * re-slashing each value before writing it. update_post_meta()/
-     * add_post_meta() both call wp_unslash() on the value they are given
-     * (WordPress's own convention: callers are expected to pass slashed
-     * input, as $_POST already is). A value fetched raw from postmeta is
-     * already in its final, unslashed form, so writing it again unchanged
-     * would have that second wp_unslash() strip backslashes that are
-     * genuinely part of the content — e.g. _elementor_data's own JSON
-     * escaping. wp_slash() here exists specifically to cancel that out, the
-     * same way Elementor's own Document::save() already wp_slash()es before
-     * its own update_post_meta() call, for the same reason.
+     * rows — add_post_meta() with $unique=false, never update_post_meta(), which
+     * would collapse repeated writes for the same key into one) and re-
+     * slashing each value before writing it. update_post_meta()/ add_post_meta()
+     * both call wp_unslash() on the value they are given (WordPress's own
+     * convention: callers are expected to pass slashed input, as $_POST
+     * already is).
      */
     protected function copy_meta(WP_Post $source, int $new_id, array $excluded): void
     {

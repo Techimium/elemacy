@@ -2,7 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Rendering\TemplateRenderer;
+use Elemacy\Elementor\Rendering\TemplateRenderer;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 

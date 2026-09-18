@@ -23,5 +23,5 @@ add_action('elemacy/action/template_assets/collect', static function ($registrar
 
 add_shortcode('elemacy_fixture_document', static function (): string {
     $document = elemacy_fixture_foreign_document();
-    return $document ? (new Elemacy\Core\Rendering\TemplateRenderer())->render($document) : '';
+    return $document ? (new Elemacy\Elementor\Rendering\TemplateRenderer())->render($document) : '';
 });

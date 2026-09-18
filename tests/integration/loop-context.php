@@ -4,7 +4,7 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
-use Elemacy\Loop\LoopItems\PostLoopItem;
+use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;

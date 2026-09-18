@@ -36,7 +36,7 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [search, setSearch] = useState('');
     const debouncedSearch = useDebounce(search, 300);
 
-    // Registry-backed (task 10.4), not a hardcoded list: an extension type
+    // Registry-backed, not a hardcoded list: an extension type
     // needs no edit here to appear as a filter option.
     const { data: popupTypes = [] } = usePopupTypes();
     const filters: FilterOption[] = [

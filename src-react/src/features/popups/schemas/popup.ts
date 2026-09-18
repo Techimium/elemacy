@@ -20,7 +20,7 @@ const RuleSchema = TriggerRuleSchema;
 export type TriggerRule = z.infer<typeof TriggerRuleSchema>;
 
 /**
- * A selectable popup type returned by `GET /popups/types` (task 10.4):
+ * A selectable popup type returned by `GET /popups/types`:
  * registry-backed, not a hardcoded compile-time enum, so an extension type
  * needs no edit here to become choosable.
  */
@@ -55,7 +55,7 @@ export const PopupSchema = z.object({
     title: z.string(),
     type: PopupTypeValueSchema,
     // Present when the server evaluated this popup's own stored type against
-    // the registry (task 10.4) — absent for other consumers of this shape
+    // the registry — absent for other consumers of this shape
     // (e.g. a freshly-built CreatePopup value that was never fetched back).
     type_availability: AvailabilitySchema.optional(),
     status: StatusSchema,

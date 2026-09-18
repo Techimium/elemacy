@@ -5,8 +5,8 @@ namespace Elemacy\TemplateLibrary\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
-use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Http\DTO\PaginatedResultDTO;
+use Elemacy\Http\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\DocumentDuplicator;
@@ -24,18 +24,9 @@ use WP_Post;
 use WP_Query;
 
 /**
- * CRUD for "block" library items — referenced-by-ID building blocks (Loop today).
- * Lives in Core because these items sit on the always-registered library CPT and
- * are not owned by any toggleable module. Deliberately self-contained: no
- * conditions, since block items are neither auto-resolved nor rendered as
- * standalone pages. They only carry editor defaults — a bare Canvas (no theme
- * header/footer) and a pinned Elementor document type.
- *
- * Native persistence, group/type ownership and library/Elementor document
- * type synchronization are owned by the shared {@see LibraryRepository}/
- * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
- * this service keeps only what is specific to blocks — the fixed Canvas
- * editor defaults — plus its own public DTO-shaped responses.
+ * CRUD for "block" library items — referenced-by-ID building blocks (Loop
+ * today). Lives in Core because these items sit on the always-registered
+ * library CPT and are not owned by any toggleable module.
  */
 class BlockTemplateService
 {
@@ -54,15 +45,15 @@ class BlockTemplateService
     protected TypeRegistry $types;
 
     public function __construct(
-        ?LibraryRepository $repository = null,
-        ?DocumentWriter $writer = null,
-        ?DocumentDuplicator $duplicator = null,
-        ?TypeRegistry $types = null
+        LibraryRepository $repository,
+        DocumentWriter $writer,
+        DocumentDuplicator $duplicator,
+        TypeRegistry $types
     ) {
-        $this->repository = $repository ?? new LibraryRepository();
-        $this->writer = $writer ?? new DocumentWriter($this->repository);
-        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
-        $this->types = $types ?? TypeRegistry::instance();
+        $this->repository = $repository;
+        $this->writer = $writer;
+        $this->duplicator = $duplicator;
+        $this->types = $types;
     }
 
     /**
@@ -81,10 +72,9 @@ class BlockTemplateService
     }
 
     /**
-     * Every block template matching the filter, unbounded — for internal callers
-     * (e.g. an Elementor control's option list) that need the full set rather
-     * than one REST page. Never expose this to a REST/query-string caller: an
-     * unbounded fetch on a large library is expensive and defeats pagination.
+     * Every block template matching the filter, unbounded — for internal
+     * callers (e.g. an Elementor control's option list) that need the full set
+     * rather than one REST page.
      *
      * @return BlockTemplateDTO[]
      */

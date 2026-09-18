@@ -13,8 +13,7 @@ import type { ElemacyBridgeCapability } from '@/types/elemacy'
 const CAPABILITIES: readonly ElemacyBridgeCapability[] = Object.freeze(['registry', 'routes', 'components', 'toast'])
 
 /** The name a consumer that starts before the bridge exists listens for
- * (design.md D12: Pro must wait for a ready event/promise, or consume an
- * already-ready bridge, before dereferencing runtime values). */
+ *. */
 export const ELEMACY_ADMIN_READY_EVENT = 'elemacy:admin-ready'
 
 /**

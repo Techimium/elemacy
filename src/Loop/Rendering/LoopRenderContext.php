@@ -6,14 +6,9 @@ defined('ABSPATH') || exit;
 
 /**
  * The stack of render identities currently being rendered, innermost last —
- * the render-identity counterpart to LoopContext's item stack (design.md
- * D8), used by the dynamic-CSS layer (task 8.7) to scope per-item styles to
- * exactly the occurrence currently rendering, not merely the current item's
- * domain identity.
- *
- * The render loop is the only writer: push() right before rendering one
- * item, pop() right after, wrapped in try/finally so an exception mid-render
- * can't leave a stale identity on the stack.
+ * the render-identity counterpart to LoopContext's item stack, used by the
+ * dynamic-CSS layer to scope per-item styles to exactly the occurrence
+ * currently rendering, not merely the current item's domain identity.
  */
 final class LoopRenderContext
 {

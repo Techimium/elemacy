@@ -11,7 +11,7 @@ while (!file_exists($input['barrier']) && microtime(true) < $deadline) {
 if (!file_exists($input['barrier'])) {
     throw new RuntimeException('Analytics fixture barrier timed out.');
 }
-$service = new ElemacyPro\Extensions\Popups\Services\AnalyticsService();
+$service = \Elemacy\Core\Container::instance()->make(\ElemacyPro\Extensions\Popups\Services\AnalyticsService::class);
 if ($input['operation'] === 'normalize') {
     $service->consolidate($input['id']);
 } else {

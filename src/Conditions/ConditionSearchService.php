@@ -6,13 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
 
-/**
- * Runs the lookups behind a condition's `search` value input.
- *
- * Conditions declare what to search via {@see \Elemacy\Conditions\ConditionInterface::get_search_config()};
- * this service turns that config into a WordPress query and returns a flat list
- * of `[{value, label}]` options for the admin combobox.
- */
+/** Runs the lookups behind a condition's `search` value input. */
 class ConditionSearchService
 {
     protected const LIMIT = 20;

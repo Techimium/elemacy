@@ -2,8 +2,8 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
-use Elemacy\Modules\Widgets\DTO\PublicLoopRequest;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
 use PHPUnit\Framework\TestCase;
 
 final class PublicLoopRequestTest extends TestCase

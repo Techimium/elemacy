@@ -4,8 +4,8 @@ namespace Elemacy\Modules\Popups\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\DTO\DTO;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 
 /**

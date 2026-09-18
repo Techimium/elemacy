@@ -4,15 +4,10 @@ namespace Elemacy\Conditions\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\DTO\DTO;
+use Elemacy\Http\Exceptions\ValidationException;
 
-/**
- * A single display-condition rule attached to a template.
- *
- * This is the canonical shape passed to {@see \Elemacy\Conditions\ConditionInterface::check()},
- * evaluated by the resolver, and persisted (as an array) by the ConditionService.
- */
+/** A single display-condition rule attached to a template. */
 class ConditionRuleDTO extends DTO
 {
     /** @var string */

@@ -15,6 +15,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Plugin;
 use Elemacy\Modules\Widgets\Services\LogoResolver;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 class SiteLogo extends BaseWidget
 {

@@ -5,20 +5,13 @@ namespace Elemacy\Loop\Pagination\Policies;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\DataSources\PostsQuery;
-use Elemacy\Modules\Widgets\Support\PublicLoopLimits;
+use Elemacy\Loop\Sources\PostsQuery;
+use Elemacy\Loop\Pagination\PublicLoopLimits;
 
 /**
- * The Posts source's public-context policy (design.md D7) — extracted from
- * Modules\Widgets\DataSources\PostsDataSource so it can be exercised without
- * an Elementor widget/document instance. Behavior is unchanged from before
- * the move; PostsDataSource itself now delegates get_public_settings() to an
- * instance of this class. Depends on PostsQuery directly (constructor
- * injection, defaulting to a fresh instance) since validating a public
- * request still ends by running it through the query's own
- * sanitize_ajax_settings() — the same "prepare a public query without
- * executing it" contract every PublicLoopSourcePolicyInterface implementer
- * already had before this extraction.
+ * The Posts source's public-context policy, kept free of any Elementor
+ * widget/document dependency; PostsDataSource delegates get_public_settings()
+ * to an instance of this class.
  */
 class PostsPolicy implements PublicLoopSourcePolicyInterface
 {

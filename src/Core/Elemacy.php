@@ -8,8 +8,8 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Contracts\ServiceProviderInterface;
-use Elemacy\Core\DTO\MenuDTO;
-use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Admin\MenuDTO;
+use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Multisite\SiteBatchIterator;
 use Elemacy\Core\Providers\CoreServiceProvider;
 use Elemacy\Core\Hooks;
@@ -18,6 +18,9 @@ use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Http\AjaxRouter;
+use Elemacy\Http\Route;
+use Elemacy\Core\Admin\AdminMenu;
 
 class Elemacy
 {
@@ -28,16 +31,9 @@ class Elemacy
     protected array $providers = [];
 
     /**
-     * Guards the whole bootstrap, not only the provider phase: every step
-     * in init() — provider registration/boot, module loading, route/admin-
-     * menu registration — assumes it runs exactly once per request. A
-     * provider's own boot() being idempotent is not, by itself, enough to
-     * make a second init() call safe: REGISTER_PROVIDERS_ACTION's own
-     * subscribers (subscribe_own_provider() below, and any add-on's)
-     * construct a fresh provider instance every time they run, so a second
-     * do_action() would hand boot_providers() a brand-new, not-yet-booted
-     * instance of the same logical provider regardless of that instance's
-     * own guard.
+     * Guards the whole bootstrap, not only the provider phase: every step in
+     * init — provider registration/boot, module loading, route/admin- menu
+     * registration — assumes it runs exactly once per request.
      */
     protected bool $initialized = false;
 
@@ -84,10 +80,7 @@ class Elemacy
 
     /**
      * The site-count-independent option a bounded network activation leaves
-     * behind when more sites remain than fit in one batch (task 11.7). A
-     * network option (get_site_option()/update_site_option()), not a
-     * per-blog one: this tracks one network-wide job, not "whichever site
-     * happens to be current when a request checks it."
+     * behind when more sites remain than fit in one batch.
      */
     const NETWORK_SEED_OFFSET_OPTION = 'elemacy_network_seed_offset';
 
@@ -272,13 +265,10 @@ class Elemacy
     }
 
     /**
-     * Two independent concerns (task 11.5, design.md D11): which release the
-     * site last saw (DB_VERSION — diagnostics/the fired hook's own args
-     * only) and which data migrations have actually applied
-     * (SCHEMA_VERSION — Migrator's own marker, advanced only inside
-     * Migrator::run() itself, one completed step at a time). A release with
-     * no new migration must never touch the schema marker; a downgrade must
-     * never lower it back below already-completed work.
+     * Two independent concerns: which release the site last saw (DB_VERSION —
+     * diagnostics/the fired hook's own args only) and which data migrations
+     * have actually applied (SCHEMA_VERSION — Migrator's own marker, advanced
+     * only inside Migrator::run itself, one completed step at a time).
      */
     public function handle_version_update()
     {
@@ -294,7 +284,7 @@ class Elemacy
     }
 
     /**
-     * Phase one of every registered provider (design.md D7): bindings and
+     * Phase one of every registered provider: bindings and
      * stable feature descriptors only, before any provider's boot() runs —
      * so a provider's boot() can rely on every other enabled provider's own
      * registration already being complete regardless of registration order.
@@ -367,11 +357,9 @@ class Elemacy
 
     /**
      * Register the built-in generic "block" library type owned by Core. Block
-     * items are referenced by ID rather than auto-resolved, so the library always
-     * has a default type even with every module off; modules push their own
-     * specialized types (e.g. Widgets → "Loop Item"). Priority 5 keeps the generic
-     * type first in the registry so it is the default selection. Deferred to
-     * `init` because the label is translated.
+     * items are referenced by ID rather than auto-resolved, so the library
+     * always has a default type even with every module off; modules push their
+     * own specialized types (e.g.
      */
     protected function register_block_library_type()
     {

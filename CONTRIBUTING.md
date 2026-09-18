@@ -1,100 +1,151 @@
 # Contributing to Elemacy
 
-Elemacy is a free WordPress plugin that extends Elementor. The companion paid
-add-on, **Elemacy Pro**, is a separate plugin that hooks into the seams documented
-below. See `docs/STORAGE.md`, `docs/ADMIN-COMPATIBILITY.md`, and `docs/RELEASE-VALIDATION.md` for storage, compatibility, and recorded evidence.
+Elemacy is a free WordPress plugin that extends Elementor. The paid add-on, **Elemacy Pro**, is a separate plugin that extends Free through the seams documented here; Free never knows about Pro.
+
+Read `docs/ARCHITECTURE.md` first: it is the map of the codebase. `docs/CONTRACTS.md` lists what must never be renamed, `docs/STORAGE.md` every stored shape, `docs/ELEMENTOR-COMPATIBILITY.md` every Elementor API we touch, and `docs/RELEASE.md` how a release is verified.
 
 ## Prerequisites
 
 - A local WordPress install with **Elementor** active.
 - PHP 7.4+ and Composer.
 - Node 20.19+ (or 22.12+) and npm.
+- For the real-site suites: MySQL (`mysqld`), WP-CLI and Python 3.
 
 ## Setup
 
 ```bash
-# From the plugin root:
-composer install                 # PHP dev tooling (WPCS)
-
-# From src-react/:
-npm ci
+composer install          # plugin root: PHP dev tooling (WPCS, PHPUnit)
+cd src-react && npm ci    # admin app
 ```
 
-For a live admin UI with hot reload, enable dev mode by adding this to
-`wp-config.php` **before** the plugin loads, then start Vite:
-
-```php
-define('ELEMACY_ENV', 'dev');    // production is the default; opt in to HMR
-```
-
-```bash
-# From src-react/:
-npm run dev                      # Vite dev server on http://localhost:5173
-```
-
-Without `ELEMACY_ENV=dev`, the admin app loads the built bundle from
-`assets/admin/`.
+For a live admin UI with hot reload add `define('ELEMACY_ENV', 'dev');` to `wp-config.php` before the plugin loads and run `npm run dev` in `src-react/`. Without it the admin app loads the built bundle from `assets/admin/`.
 
 ## Commands
 
 | Where | Command | Purpose |
 | --- | --- | --- |
-| plugin root | `vendor/bin/phpcs` | Lint PHP against `phpcs.xml`. Target **0 errors**. |
-| plugin root | `vendor/bin/phpcbf` | Auto-fix WPCS violations (`--tab-width=4`). |
-| `src-react/` | `npm run dev` | Vite dev server (HMR). |
-| `src-react/` | `npm run build` | `tsc -b && vite build` → `../assets/admin/`. |
-| `src-react/` | `npm run lint` | ESLint over the React source. |
-| `src-react/` | `npm run build:zip` | Produce the distributable production zip. |
+| plugin root | `php tests/php/run.php` | Fast harness (pure logic, stubbed WordPress). |
+| plugin root | `vendor/bin/phpcs -q` | Coding standards and PHP compatibility. Target 0 errors. |
+| plugin root | `vendor/bin/phpcbf` | Auto-fix what WPCS can fix. |
+| plugin root | `php tests/architecture/check.php` | Layering, Elementor boundary and planning-reference rules. |
+| plugin root | `php tests/integration/run.php` | Real WordPress and Elementor suite in a disposable site (`tests/integration/README.md`). |
+| `tests/e2e/` | `node run-*.mjs` | Real-browser suites (`tests/e2e/README.md`). |
+| `src-react/` | `npm run dev` / `npm run build` / `npm run lint` | Admin app. |
+| `src-react/` | `npm run build:zip` | Release archive (`docs/RELEASE.md`). |
 
-Run `php tests/php/run.php` and `php tests/architecture/dependency-boundaries.php` from the plugin root. Native WordPress/database tests use `php tests/integration/run.php` with a guarded `ELEMACY_TEST_ENV`; browser commands and setup are in `tests/integration/README.md`. Keep fixtures outside release artifacts.
+The full gate, in order, is in `docs/RELEASE.md` section 1. Run it before every pull request that touches PHP.
 
-## Architecture in one paragraph
+## Where things live
 
-`elemacy.php` boots `Core\Elemacy`, which wires everything on `plugins_loaded`.
-Features are **modules** (`Core\Module`, registered in `Config/modules.php`, toggled
-by the `elemacy_active_modules` option). Every template-like item — Theme Builder
-templates *and* Popups — lives on **one** CPT, `elemacy_library`, discriminated by
-the `_elemacy_template_type` meta and resolved through `TemplateLibrary\TemplateResolver`
-against the shared **conditions engine** (`Conditions/`). REST goes through the
-`Core\Route` facade (namespace `elemacy`); frontend AJAX through `Core\AjaxRouter`. Every route declares `public_access()` or `require_capability()`, and every AJAX registration declares its user/capability policy. Public nonces never replace saved-document or host authorization.
-The admin is a single React SPA (`src-react/`) mounted at `#elemacy_root`.
+| Folder | What goes there |
+| --- | --- |
+| `src/Core/` | Plugin lifecycle and composition: bootstrap, `Module`, `ModuleManager`, `Container`, `Hooks`, migrations, multisite, capabilities, admin menu and scripts. |
+| `src/Http/` | REST `Route`, `AjaxRouter`, requests, responses, middlewares, validation, exceptions. |
+| `src/Elementor/` | Everything that calls Elementor: rendering, CSS, preview, documents, controls, the widget base class, compatibility probes. |
+| `src/Loop/`, `src/Conditions/`, `src/TemplateLibrary/`, `src/Integrations/` | Shared domains used by more than one module. |
+| `src/Modules/<Name>/` | A user-facing feature. Inside: `Config/`, `Controllers/`, `Services/`, `Requests/`, `Resources/`, `DTO/`, `Documents/`, `Widgets/`, `Support/`, `Views/`, `assets/`. |
+| `src/Support/` | Small stateless helpers. |
+| `src/Config/` | The module list, shared routes and built-in conditions. |
 
-## Conventions (enforced or expected)
+Shared layers never import a module; a module never imports another module. `php tests/architecture/check.php` fails the build otherwise, and there is no allowlist.
+
+## Conventions
 
 - Every PHP file starts with `defined('ABSPATH') || exit;`.
-- Text domain is `elemacy` everywhere; i18n + escaping are enforced by WPCS.
-- Keys use two intentional prefixes: protected post meta as `_elemacy_*` (via
-  `*\Constants\MetaKeys` consts, never inline literals); options/nonces/transients/
-  CPT slugs as `elemacy_*` (build dynamic ones with `Support\Utils::with_prefix()`).
-  See `docs/STORAGE.md` for the full key + serialized-shape contract.
-- New REST routes go through `Core\Route::*`; new AJAX through
-  `Core\AjaxRouter::add_action`. Never call `register_rest_route` directly.
-- All `do_action`/`apply_filters` names are constants on `Core\Hooks` — reference
-  the constant, never a raw string.
-- Prefer typed **DTOs/Resources** (`*/DTO/`, `*/Resources/`) over raw arrays.
-- Comment only the non-obvious *why*, not the *what*.
+- Text domain is `elemacy`; i18n and escaping are enforced by WPCS.
+- Keys: protected post meta as `_elemacy_*` through `*\Constants\MetaKeys`; options, nonces, transients and CPT slugs as `elemacy_*` (dynamic ones through `Support\Utils::with_prefix()`). Shapes live in `docs/STORAGE.md`; changing one needs a `Migrator` step.
+- Hook names are constants on `Core\Hooks`. Never a raw string.
+- REST routes go through `Http\Route` and declare `public_access()` or `require_capability()`; AJAX through `Http\AjaxRouter` with `for_public()`, `for_guest()`, `for_authenticated()` or `require_capability()`. Never call `register_rest_route` directly.
+- Anything the container builds (controllers, services) takes its dependencies as required constructor parameters. `Container::instance()` is used only inside classes Elementor or WordPress instantiate (widgets, documents, dynamic tags, hook callbacks) and in bootstrap.
+- Registries keep their `::instance()` and are also bound in the container by their owner's `register()`.
+- Prefer typed DTOs and Resources over raw arrays.
+- A docblock is one sentence of what and, when needed, one sentence of why. Longer reasoning goes into `docs/ARCHITECTURE.md`, referenced by section name. Never reference a planning document, a task number or a change name in code.
 
-## The free ↔ Pro seam
+## Recipes
 
-Pro never edits free; it hooks the extension points in `Core\Hooks` (e.g.
-`REGISTER_MODULES_ACTION`, `LOADED_ACTION`, `LIBRARY_TYPES_REGISTER_ACTION`,
-`POPUP_TRIGGERS_REGISTER_ACTION`, `ADMIN_SCRIPT_DATA_FILTER`). On the React side,
-free exposes Slot/Fill points (`src/lib/slots.ts`) and renders its own fallback;
-Pro registers fills. **Free must stay Pro-agnostic** — never read Pro state in free
-code. When adding a feature Pro should be able to extend, add a `Hooks` constant or
-a slot rather than a direct dependency.
+### Add a module
 
-## Before opening a PR
+1. Create `src/Modules/Reviews/Reviews.php`:
 
-1. `vendor/bin/phpcs` is clean.
-2. `npm run lint` is clean and `npm run build` succeeds.
-3. New persisted data follows `docs/STORAGE.md` (native WP storage, prefixed keys,
-   a `Migrator` step if you changed a serialized shape).
+```php
+namespace Elemacy\Modules\Reviews;
 
-## Canonical services and release checks
+use Elemacy\Core\Container;
+use Elemacy\Core\Module;
+use Elemacy\Support\Utils;
 
-`TemplateLibrary` owns native persistence (`DocumentWriter`, `DocumentDuplicator`, `LibraryRepository::delete`); `Core\Rendering\TemplateRenderer` owns preparation, type registration and candidate resolution. Builders contribute their own policies and placement resolvers. `Loop` owns source/query/context contracts; `Integrations/Acf` owns ACF access; internal `Modules/Forms` owns saved definitions, validation, actions and limits. Core composition uses the provider contracts; registries and supported hooks remain the extension boundaries. Avoid importing a concrete sibling builder manager.
+class Reviews extends Module
+{
+    public function get_name(): string { return 'reviews'; }
+    public function get_title(): string { return __('Reviews', 'elemacy'); }
+    public function get_icon(): string { return 'star'; }
+    public function get_description(): string { return __('Collect and display reviews.', 'elemacy'); }
 
-The declared candidate pair is Free 1.0.0 + Pro 1.0.0, admin contract 1.0.0. Elementor pins are 3.35.9 and 4.2.3; PHP syntax compatibility targets 7.4+, while actual runtime results are recorded separately in RELEASE-VALIDATION.md. Do not infer that every intermediate or future version was exercised. Animations is excluded from this release; popup-native transitions remain supported.
+    public function register(Container $container): void
+    {
+        // Bind what other code may inject; registries bind to their ::instance().
+    }
 
-From `src-react`, `npm run build:zip` requires Node/npm, PHP, Git and Composer, stages `scripts/package-manifest.json`, creates a production autoloader from composer.lock, and retains the ZIP/file manifest/checksum under `build/`. It fails if tooling or required files are missing. Run `python3 src-react/scripts/verify-package.py build/elemacy-1.0.0.zip --check-missing-tools` from the plugin root. Install and test that exact ZIP using setup's `--free-zip` option; never substitute a development checkout for artifact validation. The manifest records the Git revision and whether the working tree was dirty. Publishing is a separate action.
+    public function boot(): void
+    {
+        // Attach hooks. Anything with a translated label hooks `init`.
+    }
+
+    public function register_routes()
+    {
+        require_once Utils::get_plugin_path('src/Modules/Reviews/Config/api.php');
+    }
+}
+```
+
+2. Add `Reviews::class` to `src/Config/modules.php`. The module appears on the Modules screen, can be toggled, and its `register()` runs before any module's `boot()`.
+
+### Add a widget
+
+1. Create `src/Modules/Widgets/Widgets/Testimonial.php` extending `Elemacy\Elementor\Widgets\BaseWidget`, with `get_name()` returning a stable, never-renamed name such as `elemacy-testimonial`.
+2. Add it to `src/Modules/Widgets/Config/widgets.php` (`name`, `title`, `icon`, `class`). Add-ons use `Hooks::WIDGETS_REGISTER_FILTER`.
+3. Enqueue its assets from `Modules/Widgets/Services/FrontendAssets.php`; frontend behaviour goes in `Modules/Widgets/assets/`.
+
+### Add a loop data source
+
+1. Keep the query in an Elementor-free class (like `Loop/Sources/PostsQuery.php`), and the public-context policy in another (like `Loop/Pagination/Policies/PostsPolicy.php`) implementing `Loop\Contracts\PublicLoopSourcePolicyInterface`.
+2. Create the source under `Modules/Widgets/DataSources/` implementing `Loop\Contracts\LoopDataSourceInterface`: `get_key()`, `get_label()`, `register_controls(BaseWidget $widget)`, `get_items(array $settings): LoopResultDTO`, `sanitize_ajax_settings()`, `register_preview_controls()`, `resolve_preview_item()`. Also implement `PublicLoopSourcePolicyInterface` if visitors may see it; without it the source renders only for editors.
+3. Register it on `Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION` with `Loop\LoopDataSourceRegistry`. The Loop Grid, Loop Carousel, AJAX pagination and Loop Item preview pick it up without changes.
+
+### Add a display condition
+
+1. Create a class extending `Conditions\BaseCondition` with `get_name()` (`group/name`, never renamed), `get_type()`, `get_label()`, `get_value_type()` and `check(ConditionRuleDTO $rule): bool`.
+2. Free conditions are listed in `src/Config/conditions.php`; add-ons register on `Hooks::CONDITIONS_REGISTER_ACTION`.
+3. Conditions are flat: includes OR together, any matching exclude vetoes. Do not design a condition that assumes grouping.
+
+### Add a popup rule or trigger
+
+1. Extend `Modules\Popups\Rules\BaseRule` or `Modules\Popups\Triggers\BaseTrigger` and implement its interface: the stable name, the label, `get_config_schema()` (field types `number`, `text`, `datetime`, `select`, `boolean`, `checkbox-group`, rendered by the admin UI without React changes), and `check()` for a server-evaluable rule or `to_js_config()` for the frontend engine.
+2. Register on `Hooks::POPUP_RULES_REGISTER_ACTION` or `Hooks::POPUP_TRIGGERS_REGISTER_ACTION`. A rule with no frontend handler is reported as unavailable, and a popup that requires it is suspended rather than shown to everyone.
+
+### Add a REST endpoint
+
+In the module's `Config/api.php`:
+
+```php
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
+use Elemacy\Modules\Reviews\Controllers\ReviewController;
+
+Route::get('/reviews', [ReviewController::class, 'index'])
+    ->require_capability('manage_options')
+    ->middleware(AdminMiddleware::class);
+```
+
+The controller receives its services through its constructor. Throw `Http\Exceptions\ValidationException` for bad input; the transport boundary turns every `Throwable` into the safe response envelope. A public endpoint calls `public_access()` and enforces its own application policy; a nonce is not authorization. Frontend AJAX uses `Http\AjaxRouter::add_action(...)->for_public()->with_nonce(...)` in `Config/ajax.php`.
+
+## The Free and Pro seam
+
+Pro never edits Free. It subscribes a provider through `Hooks::REGISTER_PROVIDERS_ACTION`, registers into the domain registries on `Hooks::LOADED_ACTION` and the `*_REGISTER_ACTION` hooks, and adds admin UI through Slot/Fill points (`src-react/src/lib/slots.ts`). When a feature should be extendable, add a `Hooks` constant or a slot rather than a direct dependency.
+
+## Before opening a pull request
+
+1. `vendor/bin/phpcs -q`, `php tests/php/run.php` and `php tests/architecture/check.php` pass.
+2. `npm run lint` and `npm run build` succeed in `src-react/`.
+3. Behaviour changes carry an integration or browser test; the full gate in `docs/RELEASE.md` passes.
+4. New persisted data follows `docs/STORAGE.md`; new identifiers are added to `docs/CONTRACTS.md`.

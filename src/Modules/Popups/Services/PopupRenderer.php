@@ -4,16 +4,11 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Rendering\TemplateRenderer;
+use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 
-/**
- * Renders a popup's root container into the page footer.
- *
- * The built Elementor content is wrapped in a <template> so it is not painted
- * until the engine clones it on first open (lazy hydration).
- */
+/** Renders a popup's root container into the page footer. */
 class PopupRenderer
 {
     protected TemplateRenderer $renderer;

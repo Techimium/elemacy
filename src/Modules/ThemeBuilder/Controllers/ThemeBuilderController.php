@@ -4,8 +4,8 @@ namespace Elemacy\Modules\ThemeBuilder\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
@@ -20,9 +20,9 @@ class ThemeBuilderController
 {
     protected $service;
 
-    public function __construct()
+    public function __construct(TemplateService $service)
     {
-        $this->service = new TemplateService();
+        $this->service = $service;
     }
 
     public function types()

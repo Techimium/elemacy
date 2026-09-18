@@ -46,9 +46,9 @@ class Plugin
 }
 
 /**
- * Empty on purpose: tests that need a LoopSourceControlsInterface's
- * register_controls(Widget_Base $widget) call to actually run only need
- * *some* instance satisfying the type hint — none call any method on it.
+ * Empty on purpose: tests that need a source's register_controls(Widget_Base
+ * $widget) call to actually run only need *some* instance satisfying the
+ * type hint — none call any method on it.
  */
 class Widget_Base
 {

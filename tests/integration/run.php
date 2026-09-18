@@ -23,6 +23,8 @@ try {
         'public-loop-request.php' => 'PublicLoopRequestTest',
         'published-loop-definition.php' => 'PublishedLoopDefinitionTest',
         'public-render-policy.php' => 'PublicRenderPolicyTest',
+        'current-query-archives.php' => 'CurrentQueryArchivesTest',
+        'loop-ineligibility-notice.php' => 'LoopIneligibilityNoticeTest',
     ];
     if (isset($arguments[0], $scenarios[$arguments[0]])) {
         array_splice($arguments, 0, 1, ['--filter', $scenarios[$arguments[0]]]);

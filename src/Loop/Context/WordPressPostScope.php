@@ -7,16 +7,9 @@ defined('ABSPATH') || exit;
 use WP_Post;
 
 /**
- * Reversibly acquires the native WordPress "current post" context
- * (design.md D8) — everything `setup_postdata()` changes — and restores
- * exactly the state that was active before enter() ran, not the site's
- * main-query post. `wp_reset_postdata()` alone cannot do this: it always
- * resets to `$wp_query->post`, which is only correct when there is no
- * enclosing loop item of its own to return to.
- *
- * One instance is scoped to one enter()/exit() pair; a fresh instance must
- * be used for each nested acquisition so an inner scope's snapshot never
- * overwrites an outer one still awaiting its own exit().
+ * Reversibly acquires the native WordPress "current post" context — everything
+ * `setup_postdata()` changes — and restores exactly the state that was active
+ * before enter ran, not the site's main-query post.
  */
 final class WordPressPostScope
 {
@@ -29,7 +22,7 @@ final class WordPressPostScope
     {
         $this->snapshot = self::capture();
 
-        $GLOBALS['post'] = $post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- mirrors WP_Query::the_post(), which every loop item template already relies on.
+        $GLOBALS['post'] = $post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- mirrors WP_Query::the_post, which every loop item template already relies on.
         setup_postdata($post);
     }
 

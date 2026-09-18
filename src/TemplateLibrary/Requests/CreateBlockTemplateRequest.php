@@ -4,8 +4,8 @@ namespace Elemacy\TemplateLibrary\Requests;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Sanitizer;
+use Elemacy\Http\Request;
+use Elemacy\Http\Sanitizer;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
 class CreateBlockTemplateRequest extends Request

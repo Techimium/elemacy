@@ -2,8 +2,8 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Route;
-use Elemacy\Core\Http\Request;
+use Elemacy\Http\Route;
+use Elemacy\Http\Request;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 

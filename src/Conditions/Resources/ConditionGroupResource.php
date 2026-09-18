@@ -4,7 +4,7 @@ namespace Elemacy\Conditions\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 use Elemacy\Conditions\Support\ConditionGroups;
 
 /**

@@ -11,6 +11,7 @@ use Elementor\Group_Control_Typography;
 use Elementor\Icons_Manager;
 use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 class Search extends BaseWidget
 {
@@ -717,13 +718,13 @@ class Search extends BaseWidget
         ]);
 
         ?>
-        <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+        <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
             <?php if (self::SKIN_FULL_SCREEN === $skin) : ?>
                 <?php $this->render_toggle($settings); ?>
             <?php endif; ?>
 
-            <div <?php echo $this->get_render_attribute_string('container'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                <label <?php echo $this->get_render_attribute_string('label'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+            <div <?php echo $this->get_render_attribute_string('container'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
+                <label <?php echo $this->get_render_attribute_string('label'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                     <?php echo esc_html__('Search', 'elemacy'); ?>
                 </label>
 
@@ -733,7 +734,7 @@ class Search extends BaseWidget
                     </span>
                 <?php endif; ?>
 
-                <input <?php echo $this->get_render_attribute_string('input'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                <input <?php echo $this->get_render_attribute_string('input'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
 
                 <?php if (self::SKIN_CLASSIC === $skin) : ?>
                     <?php $this->render_submit_button($settings); ?>

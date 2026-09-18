@@ -4,23 +4,11 @@ namespace Elemacy\Modules\Popups\Support;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 
 /**
  * Shared write-boundary validation for RuleDTO/TriggerDTO `params` — the one
- * field an editor payload fully controls (task 10.2, design.md D10:
- * "Reserve discriminator keys ... so parameter arrays cannot overwrite
- * them"). `type`/`id` select which rule/trigger implementation runs and its
- * stored identity; a params entry using either key is never a legitimate
- * schema field (see Rules/Triggers Config/*.php in both plugins — no
- * get_config_schema() anywhere declares one) and is always an attempt to
- * shadow the discriminator once BaseRule/BaseTrigger::to_js_config() spreads
- * params into the client-facing config object.
- *
- * Every schema currently registered only ever declares a scalar field
- * (number/text/select/datetime) or a flat list of scalars (checkbox-group),
- * so rejecting anything deeper is safe without this class needing to know
- * which shape a given key expects.
+ * field an editor payload fully controls.
  */
 final class RuleTriggerParams
 {

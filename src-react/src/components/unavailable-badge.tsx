@@ -10,7 +10,7 @@ interface UnavailableBadgeProps {
 
 /**
  * Marks a saved condition/rule/trigger the server reports as unavailable
- * (D5) — unknown, or a non-functional mock stand-in — so an administrator
+ * — unknown, or a non-functional mock stand-in — so an administrator
  * can tell it apart from a field that simply has nothing selected yet. The
  * message explains why; the underlying value/params are left untouched.
  */

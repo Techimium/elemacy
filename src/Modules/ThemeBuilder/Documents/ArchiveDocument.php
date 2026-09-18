@@ -4,16 +4,11 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elementor\Controls_Manager;
 use WP_Post_Type;
 
-/**
- * Elementor document for Archive templates. An archive renders a list of posts, so
- * it previews against a real query — the user picks a post type and the preview
- * resolves the archive title, queried object and post loop for that type, like
- * Elementor Pro's theme builder.
- */
+/** Elementor document for Archive templates. */
 class ArchiveDocument extends PreviewablePageBase
 {
     const PREVIEW_POST_TYPE = 'elemacy_preview_post_type';

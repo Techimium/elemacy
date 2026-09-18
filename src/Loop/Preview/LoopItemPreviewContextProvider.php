@@ -4,13 +4,12 @@ namespace Elemacy\Loop\Preview;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Contracts\PreviewContextProviderInterface;
+use Elemacy\Elementor\Contracts\PreviewContextProviderInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
 
 /**
- * The loop-specific half of PreviewManager's own orchestration (design.md
- * D7): pushing a previewed item onto the shared LoopContext stack and
+ * The loop-specific half of PreviewManager's own orchestration: pushing a previewed item onto the shared LoopContext stack and
  * entering its native context, then reversing both on the way out — moved
  * here, unchanged in behavior, from what used to be inline in
  * Core\Preview\PreviewManager itself.

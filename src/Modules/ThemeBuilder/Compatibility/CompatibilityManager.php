@@ -20,16 +20,7 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\StorefrontCompatibility;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
-/**
- * Selects and boots exactly one theme compatibility adapter per request.
- * Selection is deterministic: an active block theme always gets the shared
- * block-theme adapter (its template-part mechanism is theme-independent);
- * otherwise the first registered adapter matching the active theme's
- * stylesheet/template slug wins; an unrecognized classic theme gets the
- * generic fallback. Contributors register through
- * Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION — adding a theme slug
- * never requires editing this class or an unrelated adapter.
- */
+/** Selects and boots exactly one theme compatibility adapter per request. */
 class CompatibilityManager
 {
     /**
@@ -97,10 +88,8 @@ class CompatibilityManager
     }
 
     /**
-     * Registers the adapters this module ships, then fires the extension
-     * point for add-ons/site-specific adapters. Idempotent: safe if boot()
-     * ever runs more than once in a request (it won't in production, since
-     * 'wp' fires once, but nothing here depends on that for correctness).
+     * Registers the adapters this module ships, then fires the extension point
+     * for add-ons/site-specific adapters.
      *
      * @return void
      */

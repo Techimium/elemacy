@@ -4,31 +4,23 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\DataSources\TermsQuery;
-use Elemacy\Loop\LoopItems\TermLoopItem;
+use Elemacy\Loop\Sources\TermsQuery;
+use Elemacy\Loop\Items\TermLoopItem;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Pagination\Policies\TermsPolicy;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elementor\Controls_Manager;
-use Elementor\Widget_Base;
+use Elemacy\Elementor\Widgets\BaseWidget;
 use WP_Term;
 use WP_Term_Query;
 
 /**
  * Built-in Taxonomy Terms data source: loops over a chosen taxonomy's terms
  * instead of posts, so a Loop Grid/Carousel can build a "browse by category"
- * grid or similar. See openspec/changes/loop-data-source-taxonomy/design.md
- * for the term-meta resolution, no-op enter()/exit(), and pagination-total
- * decisions.
- *
- * The runtime query execution and public-context policy live in
- * Loop\DataSources\TermsQuery / Loop\Pagination\Policies\TermsPolicy
- * (design.md D7) — this class keeps only what needs an Elementor
- * widget/document instance plus this source's own identity, delegating
- * everything else to those two collaborators.
+ * grid or similar.
  */
 class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {
@@ -69,7 +61,7 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         return $options;
     }
 
-    public function register_controls(Widget_Base $widget): void
+    public function register_controls(BaseWidget $widget): void
     {
         $condition = ['data_source' => $this->get_key()];
 
@@ -154,28 +146,6 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         return $this->query->get_items($settings);
     }
 
-    public function get_ajax_payload(array $settings): array
-    {
-        $payload = [
-            'taxonomy' => $settings['taxonomy'] ?? 'category',
-            'terms_number' => $settings['terms_number'] ?? 6,
-            'terms_orderby' => $settings['terms_orderby'] ?? 'name',
-            'terms_order' => $settings['terms_order'] ?? 'ASC',
-            'hide_empty' => $settings['hide_empty'] ?? 'yes',
-            'exclude_current_term' => $settings['exclude_current_term'] ?? '',
-        ];
-
-        if ('yes' === ($settings['exclude_current_term'] ?? '')) {
-            $current_term_id = $this->query->get_current_queried_term_id();
-
-            if ($current_term_id) {
-                $payload['current_term_id'] = $current_term_id;
-            }
-        }
-
-        return $payload;
-    }
-
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
         return $this->query->sanitize_ajax_settings($raw_settings, $paged);
@@ -215,9 +185,6 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
      * Capped, server-populated SELECT2 (same accepted pattern as
      * AcfRepeaterDataSource::get_post_options() — Elementor core exposes no
      * reusable AJAX term-search endpoint a custom control can hook into).
-     * Spans every public taxonomy, prefixed by taxonomy label, since the
-     * option list can't reactively re-filter based on the sibling Taxonomy
-     * control's value.
      */
     protected function get_preview_term_options(): array
     {

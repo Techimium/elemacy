@@ -7,13 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
 
 /**
- * The real ACF-backed field reader — moved from
- * Modules\DynamicTags\Services\Acf (design.md D7's Integrations/Acf
- * extraction), converted to an instance so callers (loop items, chiefly)
- * can receive it through their own constructor instead of a static import.
- * Degrades to a plain get_post_meta() lookup when ACF is not active, exactly
- * as the moved static method already did — this class's own behavior is
- * unchanged, only its home and calling convention are.
+ * The real ACF-backed field reader — moved from the former static Dynamic Tags
+ * ACF service, converted to an instance so callers (loop items, chiefly) can
+ * receive it through their own constructor instead of a static import.
  */
 class AcfFieldReader implements FieldReaderInterface
 {
@@ -147,7 +143,6 @@ class AcfFieldReader implements FieldReaderInterface
                 $field['return_format'] = isset($field['save_format']) ? $field['save_format'] : '';
             }
 
-
             switch ($field['type']) {
                 case 'email':
                     if ($value) {
@@ -178,7 +173,7 @@ class AcfFieldReader implements FieldReaderInterface
                 case 'taxonomy':
                     $value = get_term_link($value, $field['taxonomy']);
                     break;
-            } // End switch().
+            } // End switch.
         }
 
         return $value;

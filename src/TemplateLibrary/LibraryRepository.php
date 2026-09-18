@@ -4,7 +4,7 @@ namespace Elemacy\TemplateLibrary;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\HttpException;
+use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use WP_Post;
 

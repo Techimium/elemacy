@@ -1,0 +1,117 @@
+# Elemacy architecture
+
+Elemacy is an Elementor addon. Elementor owns the editor, the element tree and template rendering; Elemacy adds a template library, display conditions, a theme builder, popups, loop widgets, forms, dynamic tags and custom CSS on top of it, all persisted in native WordPress storage. Elemacy Pro extends Free through published hooks and contracts and never the other way round.
+
+This document is the map. `docs/CONTRACTS.md` lists the identifiers that must never change, `docs/STORAGE.md` the stored shapes, `docs/ELEMENTOR-COMPATIBILITY.md` every Elementor API touched, and `docs/RELEASE.md` how a release is verified.
+
+## Folder map
+
+| Folder | Responsibility | May import |
+| --- | --- | --- |
+| `src/Core/` | Plugin lifecycle and composition: bootstrap (`Elemacy`), `Module`, `ModuleManager`, `Container`, `Hooks`, providers, constants, migrations, multisite batching, capabilities, cache purging, admin menu and scripts | `Http`, `Elementor`, shared domains, `Support` |
+| `src/Http/` | The in-house transport layer: REST `Route`, `AjaxRouter`, request/response objects, middlewares, validation rules, `Sanitizer`, exceptions, resources and result DTOs | `Core\Container`, `Support` |
+| `src/Elementor/` | Everything that calls Elementor's PHP API on behalf of the rest of the plugin: template rendering and preparation, classic and atomic CSS, editor preview, previewable documents, query controls, the widget base class, and the compatibility probes and adapters that isolate version-sensitive calls | `Core`, `Http`, shared domains |
+| `src/Loop/` | The loop domain: source contract and registry, loop items and context, render pipeline, pagination security model, placement resolvers, limits | `Core`, `Http`, `Elementor`, `TemplateLibrary`, `Integrations` |
+| `src/Conditions/` | Display conditions: registry, evaluator, repository, DTOs, built-in predicates | `Core`, `Http` |
+| `src/TemplateLibrary/` | The one library post type and its types, persistence primitives, resolver and cache | `Core`, `Http`, `Conditions` |
+| `src/Integrations/` | Optional third-party plugins (ACF today), each behind its own boundary | `Core` |
+| `src/Modules/<Name>/` | User-facing features. Each module is a `Module` with a consistent inner layout | any shared layer, never another module |
+| `src/Support/` | Small stateless helpers | nothing above it |
+| `src/Config/` | The composition root's declarations: module list, shared routes, built-in conditions | may name modules |
+
+Inside a module the folders mean the same thing everywhere: `Config/` (routes, AJAX actions, document classes), `Controllers/` (HTTP handlers), `Services/` (application services), `Requests/` and `Resources/` (HTTP input and output shapes), `DTO/`, `Documents/` (Elementor documents), `Widgets/` (Elementor widgets), `Support/` (module-local helpers), `Views/` and `assets/`.
+
+## Dependency rules
+
+Shared layers never import a feature module. A feature module never imports another module's classes; modules cooperate through the shared layers' contracts and the hooks in `Core\Hooks`. Only `src/Elementor/` and the Elementor-instantiated classes inside modules (widgets, documents, dynamic tags, controls) reference Elementor's PHP API; `Loop`, `Conditions` and `TemplateLibrary` obtain rendering, CSS, preview and capability probes from the Elementor layer. Production source never references planning documents.
+
+`php tests/architecture/check.php` enforces all of this on every push. It has no allowlist: an exception is a violation.
+
+## Boot lifecycle
+
+1. `elemacy.php` loads the autoloader and calls `Elemacy::get_instance()`, which subscribes its own core provider to `Hooks::REGISTER_PROVIDERS_ACTION` and waits for `plugins_loaded`.
+2. `Elemacy::init()` runs once per request. It checks requirements (Elementor present and supported), seeds a site's defaults if missing, fires `REGISTER_PROVIDERS_ACTION` so Free and Pro queue their providers, then runs every provider's `register()` before any provider's `boot()`.
+3. `ModuleManager::init_modules()` reads the active module list, runs every active module's `register()` before any module's `boot()`, then each module's routes and assets. A module is a service provider with an identity: `register()` binds what it shares, `boot()` attaches its hooks.
+4. Registrations that need translated labels (library types, admin menus, data sources, placement resolvers) hook `init`; anything an add-on contributes hooks `Hooks::LOADED_ACTION` or a domain registration action, all of which fire after every module has booted.
+
+Pro follows the same shape: `ElemacyPro` subscribes a provider to `REGISTER_PROVIDERS_ACTION`, and its extensions register into Free's registries on `LOADED_ACTION`, gated on the license and on the Free module they extend.
+
+## Composition and injection
+
+`Core\Container` is a small reflection container with explicit bindings. `make()` builds a fresh object, `singleton()` a shared one, and `bind()` registers a factory with a shared or fresh lifetime. Constructor parameters are auto-wired by class type; a required built-in parameter needs a factory, because scalar configuration belongs to a binding, not to reflection.
+
+The rules:
+
+- Anything the container builds (controllers, application services) declares its dependencies as required constructor parameters. No `?Dependency $x = null` defaults there.
+- Every process-wide registry keeps its `::instance()` accessor for hook callbacks and is also bound in the container by the layer or module that owns it, so a container-built service always receives the populated singleton and never a fresh empty copy.
+- `Container::instance()` is reached for only inside classes that Elementor or WordPress instantiate (widgets, documents, dynamic tags, hook callbacks) and inside bootstrap. Application services never locate their own dependencies.
+- Route and AJAX handlers are resolved through the container lazily, inside the transport error boundary.
+
+## The Elementor boundary
+
+`Elementor\Rendering\TemplateRenderer` renders a foreign document (a header, footer, popup or loop item) wherever it is needed. `prepare()` renders once per (document, context, placement) early in the request, at `wp_enqueue_scripts`, so the widgets inside can queue their scripts and styles before WordPress prints them, and caches the fragment for the actual output position. It snapshots and restores `$post`, `$wp_query`, Elementor's document stack, the editor flag and the output-buffer depth, because Elementor's own pipeline restores none of them when a widget throws.
+
+`Elementor\Compatibility\Capabilities` is the single place that asks whether the installed Elementor exposes an internal class; the adapters beside it own the version-sensitive calls behind those probes, so a future Elementor change is absorbed in one file rather than several. The supported range is verified by CI against the minimum and current versions and recorded in `docs/ELEMENTOR-COMPATIBILITY.md`.
+
+Classic CSS and atomic CSS are separate renderers; classic dynamic CSS never depends on the optional atomic traversal being present.
+
+## Shared domains
+
+**Template library.** One post type, `elemacy_library`, holds every builder's documents; `_elemacy_template_type` says which. `TypeRegistry` describes each type (group, owning module, Elementor document class, availability). `LibraryRepository`, `DocumentWriter` and `DocumentDuplicator` own native persistence, ownership checks, Elementor document-type synchronization and compensation when a required write fails; the block, theme and popup services keep only what is specific to them and announce changes through `LibraryChanged`. `TemplateResolver` chooses the template for a location from `ResolverCache`, a rebuildable, non-autoloaded candidate index protected by generation checks and an expiring rebuild lock.
+
+**Conditions.** Flat include/exclude matching that mirrors Elementor: includes OR together, any matching exclude vetoes, an exclude-only set means everywhere. A saved condition whose implementation is unavailable suspends the document instead of widening its targeting; `FeatureAvailability` distinguishes "unknown identifier", "extension inactive" and "no client handler" from a predicate that merely evaluated false.
+
+**Loop.** A `LoopDataSourceInterface` supplies items for the Loop Grid and Carousel and registers its own Elementor controls; sources register through `LoopDataSourceRegistry` and add-ons through `Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION`. `LoopRenderer` renders one item: template check, recursion guard, base CSS once per template, the item's native scope entered and restored in `finally`, per-item dynamic CSS scoped by `LoopRenderIdentity` so the same post in two widgets never shares a style scope. Public pagination never trusts the browser: a request carries only the owner document, widget id, page, a fingerprint of the saved definition and a signed context; `PublishedLoopDefinitionResolver` reads the saved widget, `PublicRenderPolicy` checks publication and source policy, and only then does a source run its query, bounded to 100 items. Placement resolvers (page, nested loop, Theme Builder, popup) prove the owner is the document actually rendering, and the Theme Builder placement supplies the archive's own verified query facts so "Current Query" keeps the archive's term, author, date or search term.
+
+**Registries describe executable features.** Every library type, loop source, condition, popup rule and popup trigger is registered as a descriptor with its identifier, its parameter schema and its availability. The REST layer validates saved values against those descriptors and the admin UI derives its choices from them, so an extension's type appears everywhere by registering once and a reserved or duplicate identifier is rejected at registration.
+
+**Integrations.** ACF access lives in `Integrations\Acf`; `AcfRowScope` advances ACF's native row cursor reversibly so nested and repeated rows restore the exact enclosing state.
+
+## Transport
+
+Every REST route declares `public_access()` or `require_capability()`; a route without a policy is not registered. Group prefixes, middleware and policies compose through every nesting level. Handlers are built inside the error boundary and every `Throwable` becomes the safe response envelope without a stack trace. The two intentionally public handlers, loop pagination and form submission, apply their own application policies: a nonce is request hygiene, not authorization.
+
+## Popups
+
+Matched popups are prepared before the head and footer deadlines and emitted later from the prepared fragment. The frontend engine has explicit per-instance states (closed, opening, open, closing, destroyed) with cancellable transitions, initializes inserted Elementor subtrees exactly once, and a single modal stack owns opening order, Escape, focus return and the shared scroll lock.
+
+## Free and Pro
+
+Free owns shared infrastructure and works alone. Pro contributes through `Hooks::REGISTER_PROVIDERS_ACTION`, `ExtensionInterface` (`depends_on()` names the Free module, `register()` runs only when it is active and the license allows), and the domain registration actions. The admin UI bridge, `window.ElemacyShared`, carries a contract version (`AdminScripts::CONTRACT_VERSION`, currently 1.0.0) and a capability list, and announces readiness with the `elemacy:admin-ready` event. Pro's loader accepts contract major 1 with the required capabilities and runtime fields, either already ready or delivered within five seconds; an unsupported or missing bridge shows a diagnostic and leaves Free usable. Pro builds against a pinned, types-only contract package (`src-react/contracts/`) rather than Free's source tree, keeps its own lockfile, ships only additive prefixed styles, and its production build rejects any bundled React. The guarded `tests/e2e/run-admin-contract.mjs` suite exercises both delivery orders, a delayed bundle, repeated readiness and an injected unsupported-major contract.
+
+## Caches and schema
+
+Request-level caches (matched popups, resolved templates, display settings) reset on library changes and on `switch_blog`. `elemacy_db_version` records the release last seen; `elemacy_schema_version` records completed data migrations and only `Migrator::run()` advances it, one completed step at a time, resumable and never lowered on downgrade. Pro owns `elemacy_pro_schema_version` independently. Availability changes purge plugin caches and invoke supported page-cache purge hooks; external caches keep their own TTL.
+
+## Invariants
+
+- Persisted identifiers (post type, meta keys, option keys, widget names, source keys, document types, hook names, REST and AJAX action names) are listed in `docs/CONTRACTS.md` and never renamed by a code move.
+- Hook names live in `Core\Hooks`; no raw hook string in a consumer.
+- No custom tables. Every stored shape is documented in `docs/STORAGE.md` and changes only through a migration step.
+- Release archives are staged from an explicit manifest with production autoload metadata, verified file by file, and installed into a clean WordPress before publication; unshipped code is not on the release branch.
+- Uninstall deletes only plugin-owned data, through native deletion in bounded batches per site, and never schedules future work.
+- Every phase of a release runs the full gate in `docs/RELEASE.md`.
+
+## Rationale digest
+
+Longer reasoning that used to live in code comments, by section name.
+
+**Bounded network seeding.** Network activation seeds sites in batches of 100 and records a network-wide offset; ordinary requests resume the job and a site that is somehow still unseeded seeds itself on its first real visit. An unbounded loop over every site could exceed one request's execution time.
+
+**One init per request.** `Elemacy::init()` guards the whole bootstrap, not only the provider phase, because provider subscribers construct a fresh provider instance every time they run; a second `do_action` would boot a brand-new instance regardless of the old one's own guard.
+
+**Container lifetimes.** `make()` requesting freshness never overrides an explicit shared binding, and nested dependencies resolve as shared unless they have their own fresh binding, so a service never receives two copies of a registry by accident. Cycle detection is instance state so a cycle reached through a bound factory is caught exactly like one reached through reflection.
+
+**Early preparation restores ambient state.** Elementor nests several output buffers with no `finally`; a widget that throws mid-render leaves them open and silently swallows the rest of the page. `TemplateRenderer` discards buffers back to the depth it saw before rendering and pops the document stack until it matches the snapshot, bounded so a corrupted stack cannot hang the request.
+
+**Render identity.** The per-item CSS selector is derived from placement, template, source, item identity, occurrence and batch. The item's own domain identity is untouched and still reaches dynamic tags, so a post, term and user that share a numeric id never collide into one style scope, and an AJAX replacement never reuses a selector from page one.
+
+**Signed pagination context.** A valid signature proves a placement resolver verified these host facts for this owner, widget and definition revision on this site; it never authorizes access by itself. The key derives from WordPress's auth salt and the token names the blog id, so it rotates with the salts and cannot be replayed on another site.
+
+**Theme adapters own replacement without destroying hooks.** Hello Elementor's own `hello_elementor_header_footer` filter suppresses only its chrome; nothing is removed from `wp_head` or `wp_footer`, so other plugins' callbacks survive. Generic themes get header output at `wp_body_open` and footer output from `get_footer()`, before the theme's `wp_footer()` prints scripts, with suppression CSS scoped to the document's near-root structure so it can never match builder content.
+
+**Counter leases.** `add_post_meta(..., true)` is not a unique constraint, so a counter's first creation takes a 30-second database lease and rechecks under it; existing counters increment database-side. Legacy duplicate rows were replicas incremented together, so normalization keeps the oldest row at the largest value rather than summing.
+
+**Feature availability is not truth.** A condition can be available and still evaluate false for this request. Only an unavailable required feature suspends a document, and its stored configuration is preserved for repair rather than dropped.
+
+**Elementor capability probes.** A `true` from `Capabilities` only means the class exists; the adapters own the calls whose shape a future Elementor version could change, and the CI matrix is the evidence that they still behave.

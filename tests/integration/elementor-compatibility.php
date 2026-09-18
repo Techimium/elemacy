@@ -169,7 +169,7 @@ final class ElementorCompatibilityTest extends IntegrationTestCase
         setup_postdata($post);
 
         try {
-            return (new \Elemacy\Core\Rendering\TemplateRenderer())->render($document_id);
+            return (new \Elemacy\Elementor\Rendering\TemplateRenderer())->render($document_id);
         } finally {
             $post = $previous; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- see above.
             if ($post instanceof \WP_Post) {
@@ -275,7 +275,7 @@ final class ElementorCompatibilityTest extends IntegrationTestCase
         $host = $this->documents->create('Compat: related-posts host');
         $registered = $this->documents->create('Compat: related-posts dependency');
 
-        $registrar = new \Elemacy\Core\Rendering\TemplateAssetsRegistrar();
+        $registrar = new \Elemacy\Elementor\Rendering\TemplateAssetsRegistrar();
         $registrar->register_hooks();
         $registrar->register($registered);
 

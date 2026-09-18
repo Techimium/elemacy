@@ -37,9 +37,8 @@ class Brand
 
     /**
      * Inline brand mark for markup rendered as HTML — e.g. Elementor section
-     * labels, which print the label through an unescaped Mustache
-     * (`{{{ data.label }}}`), so SVG is safe there. `currentColor` keeps it aligned
-     * with the surrounding text color in both the light and dark editor themes.
+     * labels, which print the label through an unescaped Mustache (`{{{
+     * data.label }}}`), so SVG is safe there.
      */
     public static function inline_mark(int $size = 13): string
     {

@@ -4,30 +4,26 @@ namespace Elemacy\TemplateLibrary;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\NotFoundException;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\NotFoundException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use WP_Post;
 
 /**
  * Coordinates validated builder/type ownership, post status and the library
  * type + Elementor document type metadata that must change together — the
- * defect design.md D6 exists to fix: a block template whose type changed
- * without its Elementor document type following. Builder-owned settings
- * beyond these (page template, edit mode, conditions, popup triggers/rules)
- * stay with each application service, which calls this after create()/update()
- * with whatever else it alone knows how to set — this class does not grow
- * into a generic CRUD service for all three.
+ * defect exists to fix: a block template whose type changed without its
+ * Elementor document type following.
  */
 class DocumentWriter
 {
     protected LibraryRepository $repository;
     protected TypeRegistry $types;
 
-    public function __construct(?LibraryRepository $repository = null, ?TypeRegistry $types = null)
+    public function __construct(LibraryRepository $repository, TypeRegistry $types)
     {
-        $this->repository = $repository ?? new LibraryRepository();
-        $this->types = $types ?? TypeRegistry::instance();
+        $this->repository = $repository;
+        $this->types = $types;
     }
 
     /**
@@ -63,8 +59,6 @@ class DocumentWriter
      * Removes a partially assembled item after one of its required writes
      * failed. A failure here must never mask the original error — it is the
      * one the caller needs to see — so it is swallowed rather than thrown.
-     * Public so {@see DocumentDuplicator} can reuse it for its own draft
-     * copy rather than duplicating the same swallow-on-failure logic.
      */
     public function compensate(int $post_id): void
     {
@@ -113,7 +107,7 @@ class DocumentWriter
 
     /**
      * The Elementor document type for a registered type, resolved through
-     * the shared TypeRegistry (task 5.2) — a type with no document of its
+     * the shared TypeRegistry — a type with no document of its
      * own, or one this registry does not recognize at all, keeps Elementor's
      * built-in page document.
      */

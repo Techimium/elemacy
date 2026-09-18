@@ -10,21 +10,9 @@ use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
 
 /**
- * Registers the display conditions free ships, listed in src/Config/conditions.php.
- * The list includes mock conditions that elemacy-pro overrides (by name) with
- * real implementations when active.
- *
- * Entries are class-strings or ready-made instances. Registration runs on
- * `init` because the config's per-taxonomy factories enumerate taxonomies,
- * which don't exist until then; nothing reads the conditions before `init`
- * (REST + front-end resolver run later).
- *
- * Lives in Core so the conditions registry is populated regardless of whether
- * the ThemeBuilder module is active.
- *
- * After free's own conditions are in place, {@see Hooks::CONDITIONS_REGISTER_ACTION}
- * fires with the manager so extensions (e.g. elemacy-pro) can register or
- * override conditions reliably — without depending on hook priority.
+ * Registers the display conditions free ships, listed in
+ * src/Config/conditions.php. The list includes mock conditions that elemacy-
+ * pro overrides (by name) with real implementations when active.
  */
 class ConditionsBootstrap
 {
@@ -32,11 +20,7 @@ class ConditionsBootstrap
 
     /**
      * Attaches this class's WordPress hooks. Idempotent: a second call does
-     * nothing (design.md D7 — constructors store dependencies, they do not
-     * register hooks; this is where that happens instead). Named
-     * register_hooks() rather than register() to avoid colliding with this
-     * class's own pre-existing register() method below, which registers
-     * free's conditions into ConditionManager, not a WordPress hook.
+     * nothing.
      */
     public function register_hooks(): void
     {

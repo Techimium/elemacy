@@ -38,8 +38,6 @@ abstract class BaseCondition implements ConditionInterface
      *  - `singular` → site-wide templates + the generic Single template.
      *  - `archive`  → site-wide templates + the generic Archive template.
      *
-     * Concrete conditions override this only when the default does not fit.
-     *
      * @return string[]
      */
     public function get_applicable_template_types(): array

@@ -8,11 +8,7 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 interface ThemeCompatibilityInterface
 {
-    /**
-     * Register theme-specific header/footer overrides.
-     *
-     * Implementations should only register hooks when a corresponding template exists.
-     */
+    /** Register theme-specific header/footer overrides. */
     public function register(ThemeBuilderManager $manager): void;
 }
 

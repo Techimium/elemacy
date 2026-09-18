@@ -9,16 +9,10 @@ if (!defined('ABSPATH')) {
 use Elemacy\Support\Utils;
 
 /**
- * Registers (never enqueues) the shared frontend handles. Widgets and the popup
- * engine declare `elemacy-frontend` / `elemacy-core` as dependencies, so the
- * assets — and the localized `elemacy` config — load only on pages that
+ * Registers (never enqueues) the shared frontend handles. Widgets and the
+ * popup engine declare `elemacy-frontend` / `elemacy-core` as dependencies, so
+ * the assets — and the localized `elemacy` config — load only on pages that
  * actually render something of ours.
- *
- * `elemacy-elementor-lifecycle` (design.md D9, task 9.5) is the one shared
- * Elementor frontend lifecycle adapter for markup inserted outside
- * Elementor's own render pipeline; the popup engine and Loop Grid's AJAX
- * pagination script both declare it as a dependency rather than each
- * duplicating its widget-handler-initialization logic inline.
  */
 class FrontendScripts
 {
@@ -26,8 +20,7 @@ class FrontendScripts
 
     /**
      * Attaches this class's WordPress hooks. Idempotent: a second call does
-     * nothing (design.md D7 — constructors store dependencies, they do not
-     * register hooks; this is where that happens instead).
+     * nothing.
      */
     public function register_hooks(): void
     {

@@ -28,18 +28,8 @@ class ConditionEvaluator
 
     /**
      * Flat matching model (mirrors Elementor, no AND/grouping): includes are
-     * OR'd, any exclude match vetoes, and an exclude-only set is based on "show
-     * everywhere".
-     *
-     * Every rule's identifier must be available before any include/exclude
-     * matching happens: a rule that is unregistered, or resolves only to a
-     * non-functional mock stand-in, suspends the whole set rather than being
-     * skipped. Skipping would let an unavailable-only include set silently
-     * become "show everywhere", and let an unavailable exclude silently stop
-     * vetoing — both would broaden who sees the dependent item, which D5
-     * forbids. This never treats a missing capability as a satisfied (or
-     * failed) predicate: it is a distinct, unavailable status, checked before
-     * any `check()` call.
+     * OR'd, any exclude match vetoes, and an exclude-only set is based on
+     * "show everywhere".
      *
      * @param ConditionRuleDTO[] $conditions
      */

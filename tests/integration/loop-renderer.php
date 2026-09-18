@@ -2,12 +2,12 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Rendering\AtomicStylesRenderer;
-use Elemacy\Core\Rendering\ClassicCssRenderer;
+use Elemacy\Elementor\Rendering\AtomicStylesRenderer;
+use Elemacy\Elementor\Rendering\ClassicCssRenderer;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
-use Elemacy\Loop\LoopItems\PostLoopItem;
-use Elemacy\Loop\LoopItemStyles;
+use Elemacy\Loop\Items\PostLoopItem;
+use Elemacy\Loop\Rendering\LoopItemStyles;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Loop\Rendering\TemplateRecursionGuard;
 use RuntimeException;

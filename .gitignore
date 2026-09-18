@@ -44,3 +44,6 @@ assets/admin/styles/*
 tests/e2e/node_modules
 tests/e2e/engine.js
 tests/e2e/popups.css
+
+# Python bytecode caches from the release scripts
+__pycache__/

@@ -4,7 +4,7 @@ namespace Elemacy\Loop\Pagination;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\Pagination\DTO\PublishedLoopDefinition;
 use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
 use JsonException;
@@ -44,9 +44,6 @@ final class PublishedLoopDefinitionResolver
 
     /**
      * Read server-owned settings for payload generation or request resolution.
-     *
-     * A published library owner is not proof of an authorized public placement;
-     * the placement policy must still validate its host/reference chain.
      *
      * @param int    $owner_id Authoring document ID.
      * @param string $widget_id Exact saved Loop Grid widget ID.

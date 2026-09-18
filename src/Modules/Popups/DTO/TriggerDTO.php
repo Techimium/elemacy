@@ -4,8 +4,8 @@ namespace Elemacy\Modules\Popups\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\DTO\DTO;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 
 /**
@@ -58,7 +58,7 @@ class TriggerDTO extends DTO
      *
      * @param array $triggers
      * @return self[]
-     * @throws \Elemacy\Core\Exceptions\ValidationException
+     * @throws \Elemacy\Http\Exceptions\ValidationException
      */
     public static function collection_or_fail(array $triggers): array
     {

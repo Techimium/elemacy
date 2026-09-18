@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elementor\Controls_Manager;
 
 /**

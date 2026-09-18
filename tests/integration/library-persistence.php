@@ -2,9 +2,10 @@
 
 namespace Elemacy\Tests\Integration;
 
+use Elemacy\Core\Container;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
-use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Http\Exceptions\NotFoundException;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
@@ -12,7 +13,7 @@ use Elemacy\Modules\Popups\Services\PopupService;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Core\Hooks;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\DocumentDuplicator;
@@ -117,7 +118,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testChangingABlockTemplatesTypeMustSyncTheElementorDocumentTypeToo(): void
     {
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Block type sync', 'type' => 'section', 'status' => 'publish',
         ]));
@@ -157,7 +158,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
             FixtureExtensionBlockDocument::class
         ));
 
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Extension block', 'type' => 'fixture_extension_block', 'status' => 'publish',
         ]));
@@ -182,7 +183,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentWriterCreateSyncsLibraryTypeAndElementorDocumentTypeForBlockAndTheme(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
 
         $block_id = $writer->create('block', ['post_title' => 'DW block', 'post_status' => 'publish'], 'loop');
         $this->own($block_id);
@@ -197,7 +198,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentWriterCreateHonorsAnExplicitDocumentTypeOverrideForPopups(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
 
         $topbar_id = $writer->create('popup', ['post_title' => 'DW topbar', 'post_status' => 'draft'], 'topbar', 'elemacy_popup');
         $this->own($topbar_id);
@@ -212,7 +213,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentWriterUpdateActuallyFixesTheBlockDocumentTypeDesyncBug(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DW desync fix', 'post_status' => 'publish'], 'section');
         $this->own($id);
         self::assertSame('wp-page', get_post_meta($id, '_elementor_template_type', true));
@@ -229,7 +230,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentWriterUpdateRejectsAWrongGroupIdWithoutMutation(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $block_id = $writer->create('block', ['post_title' => 'DW wrong group', 'post_status' => 'publish'], 'section');
         $this->own($block_id);
 
@@ -247,7 +248,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentWriterRejectsAnInvalidTypeForTheGroupWithTheSameErrorEnvelopeAsExistingServices(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $caught = null;
 
         try {
@@ -278,7 +279,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // The same, through a full update() call: changing type to the value
         // it already has must not throw despite update_post_meta() reporting
         // no rows changed for TEMPLATE_TYPE.
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'Repeat type update', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
@@ -298,13 +299,13 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testPopupServiceRejectsAWriteTargetingABlockTemplatesId(): void
     {
-        $block = new BlockTemplateService();
+        $block = Container::instance()->make(BlockTemplateService::class);
         $created = $block->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Not a popup', 'type' => 'section', 'status' => 'publish',
         ]));
         $this->own($created->id);
 
-        $popups = new PopupService();
+        $popups = Container::instance()->make(PopupService::class);
         $caught = null;
 
         try {
@@ -319,13 +320,13 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testTemplateServiceRejectsAWriteTargetingAPopupsId(): void
     {
-        $popups = new PopupService();
+        $popups = Container::instance()->make(PopupService::class);
         $created = $popups->create(CreatePopupDTO::from_array([
             'title' => 'Not a template', 'type' => 'popup', 'status' => 'draft',
         ]));
         $this->own($created->id);
 
-        $templates = new TemplateService();
+        $templates = Container::instance()->make(TemplateService::class);
         $caught = null;
 
         try {
@@ -393,7 +394,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testPopupServiceSaveAcceptsSupportedTriggerDtoObjectsNotJustArrays(): void
     {
-        $popups = new PopupService();
+        $popups = Container::instance()->make(PopupService::class);
         $created = $popups->create(CreatePopupDTO::from_array([
             'title' => 'DTO trigger popup', 'type' => 'popup', 'status' => 'draft',
         ]));
@@ -416,7 +417,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDuplicatingABlockTemplateDoesNotCopyElementorsGeneratedCssCache(): void
     {
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Has generated CSS', 'type' => 'section', 'status' => 'publish',
         ]));
@@ -451,7 +452,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
             return $keys;
         });
 
-        $popups = new PopupService();
+        $popups = Container::instance()->make(PopupService::class);
         $created = $popups->create(CreatePopupDTO::from_array([
             'title' => 'Has analytics', 'type' => 'popup', 'status' => 'draft',
         ]));
@@ -473,7 +474,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDuplicatingATemplatePreservesMultiValuedMetadataMultiplicity(): void
     {
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Multi meta source', 'type' => 'section', 'status' => 'publish',
         ]));
@@ -495,7 +496,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDuplicatingATemplatePreservesElementorDataWithBackslashesQuotesAndUnicodeByteEquivalently(): void
     {
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Nasty content', 'type' => 'section', 'status' => 'publish',
         ]));
@@ -534,7 +535,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentDuplicatorExcludesItsOwnBaseGeneratedElementorCaches(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DD generated caches', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
@@ -542,7 +543,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         update_post_meta($id, '_elementor_page_assets', ['styles' => ['x'], 'scripts' => ['y']]);
         update_post_meta($id, '_elementor_element_cache', ['a1' => '<div>cached</div>']);
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $duplicate_id = $duplicator->duplicate($id, 'block');
         $this->own($duplicate_id);
 
@@ -561,7 +562,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
             return $keys;
         }, 10, 2);
 
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DD extra exclusions', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
@@ -569,7 +570,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         update_post_meta($id, '_elemacy_fixture_shared_filter_excluded', 'y');
         update_post_meta($id, '_elemacy_fixture_kept', 'z');
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $duplicate_id = $duplicator->duplicate($id, 'block', ['_elemacy_fixture_caller_excluded']);
         $this->own($duplicate_id);
 
@@ -580,7 +581,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentDuplicatorPreservesMultiValuedMetadataMultiplicity(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DD multi meta', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
@@ -588,7 +589,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         add_post_meta($id, '_elemacy_fixture_multi', 'second', false);
         add_post_meta($id, '_elemacy_fixture_multi', 'third', false);
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $duplicate_id = $duplicator->duplicate($id, 'block');
         $this->own($duplicate_id);
 
@@ -597,7 +598,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentDuplicatorPreservesElementorDataByteEquivalentlyIncludingSlashing(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DD nasty content', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
@@ -609,7 +610,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         $json = wp_json_encode($elements);
         update_post_meta($id, '_elementor_data', wp_slash($json));
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $duplicate_id = $duplicator->duplicate($id, 'block');
         $this->own($duplicate_id);
 
@@ -618,11 +619,11 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testDocumentDuplicatorRejectsAWrongGroupIdWithoutCreatingAnything(): void
     {
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $id = $writer->create('block', ['post_title' => 'DD wrong group', 'post_status' => 'publish'], 'section');
         $this->own($id);
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $caught = null;
 
         try {
@@ -643,7 +644,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
             $seen[] = $event;
         });
 
-        $popups = new PopupService();
+        $popups = Container::instance()->make(PopupService::class);
         $created = $popups->create(CreatePopupDTO::from_array([
             'title' => 'Notify create', 'type' => 'popup', 'status' => 'draft',
             'triggers' => [['id' => 't1', 'type' => 'page_load', 'params' => []]],
@@ -676,7 +677,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
             $seen[] = $event;
         });
 
-        $service = new BlockTemplateService();
+        $service = Container::instance()->make(BlockTemplateService::class);
         $created = $service->create(CreateBlockTemplateDTO::from_array([
             'title' => 'Notify update/duplicate', 'type' => 'section', 'status' => 'publish',
         ]));
@@ -708,7 +709,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
     public function testDocumentWriterCreateCompensatesByDeletingThePartiallyAssembledItemWhenARequiredWriteFails(): void
     {
         $failing = new FailingLibraryRepository(0); // The very first set_meta() call fails.
-        $writer = new DocumentWriter($failing);
+        $writer = new DocumentWriter($failing, TypeRegistry::instance());
 
         $caught = null;
 
@@ -729,7 +730,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // The source is created with an ordinary, non-failing repository —
         // only the duplicate() call under test below uses the failing one,
         // so its call counter starts fresh at zero for that call alone.
-        $source_id = (new DocumentWriter())->create('block', ['post_title' => 'DD failure source', 'post_status' => 'publish'], 'section');
+        $source_id = (Container::instance()->make(DocumentWriter::class))->create('block', ['post_title' => 'DD failure source', 'post_status' => 'publish'], 'section');
         $this->own($source_id);
 
         // copy_meta() itself writes via add_post_meta() directly, not
@@ -737,7 +738,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // type re-sync's own set_meta() calls — failing on the first proves
         // the same compensating-cleanup path DocumentWriter uses.
         $failing = new FailingLibraryRepository(0);
-        $duplicator = new DocumentDuplicator($failing, new DocumentWriter($failing));
+        $duplicator = new DocumentDuplicator($failing, new DocumentWriter($failing, TypeRegistry::instance()));
 
         $caught = null;
 
@@ -760,11 +761,11 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // failure): the copy must still start as a draft — design.md D6's
         // "create copies as drafts until all required writes complete" — not
         // inherit the source's own publish status.
-        $writer = new DocumentWriter();
+        $writer = Container::instance()->make(DocumentWriter::class);
         $source_id = $writer->create('block', ['post_title' => 'Draft-first source', 'post_status' => 'publish'], 'section');
         $this->own($source_id);
 
-        $duplicator = new DocumentDuplicator();
+        $duplicator = Container::instance()->make(DocumentDuplicator::class);
         $duplicate_id = $duplicator->duplicate($source_id, 'block');
         $this->own($duplicate_id);
 
@@ -775,7 +776,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testFullCrudAndDuplicateCycleForTheThemeBuilder(): void
     {
-        $service = new TemplateService();
+        $service = Container::instance()->make(TemplateService::class);
 
         $created = $service->create(CreateTemplateDTO::from_array(['title' => 'Theme CRUD', 'type' => 'single', 'status' => 'publish']));
         $this->own($created->id);
@@ -801,7 +802,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     public function testFullCrudAndDuplicateCycleForPopups(): void
     {
-        $service = new PopupService();
+        $service = Container::instance()->make(PopupService::class);
 
         $created = $service->create(CreatePopupDTO::from_array(['title' => 'Popup CRUD', 'type' => 'popup', 'status' => 'draft']));
         $this->own($created->id);
@@ -834,14 +835,14 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // these are the stored values every builder's write path commits to
         // — only how they get resolved/synchronized changed, never what
         // they resolve to.
-        self::assertSame('wp-page', (new DocumentWriter())->document_type('section'));
-        self::assertSame('elemacy_loop', (new DocumentWriter())->document_type('loop'));
-        self::assertSame('wp-page', (new DocumentWriter())->document_type('header'));
-        self::assertSame('wp-page', (new DocumentWriter())->document_type('footer'));
-        self::assertSame('elemacy_single', (new DocumentWriter())->document_type('single'));
-        self::assertSame('elemacy_archive', (new DocumentWriter())->document_type('archive'));
-        self::assertSame('wp-page', (new DocumentWriter())->document_type('404'));
-        self::assertSame('elemacy_search', (new DocumentWriter())->document_type('search'));
+        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('section'));
+        self::assertSame('elemacy_loop', (Container::instance()->make(DocumentWriter::class))->document_type('loop'));
+        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('header'));
+        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('footer'));
+        self::assertSame('elemacy_single', (Container::instance()->make(DocumentWriter::class))->document_type('single'));
+        self::assertSame('elemacy_archive', (Container::instance()->make(DocumentWriter::class))->document_type('archive'));
+        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('404'));
+        self::assertSame('elemacy_search', (Container::instance()->make(DocumentWriter::class))->document_type('search'));
         self::assertSame(PopupService::DOCUMENT_TYPE, 'elemacy_popup');
     }
 }

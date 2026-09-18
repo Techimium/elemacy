@@ -14,13 +14,6 @@ use Elemacy\TemplateLibrary\TypeRegistry;
  * Renders the popup "chrome" (overlay + framed box + position + a real close
  * button) inside the Elementor editor preview, so authors see the popup as it
  * appears on the site — like Elementor Pro's popup editor.
- *
- * - Structural chrome CSS is injected here; the dynamic parts read CSS custom
- *   properties set by the document controls (overlay, position), so they update
- *   live as the author edits.
- * - A real `.elemacy-popup__close` button is injected by preview.js so the Close
- *   Button style controls — including :hover and :active — preview accurately.
- *   Its look comes entirely from the document controls' generated CSS.
  */
 class EditorPreview
 {
@@ -97,9 +90,7 @@ class EditorPreview
 
     /**
      * Keep Elementor's document-level creation prompt limited to an empty
-     * popup. The section wrapper and prompt are adjacent siblings, so this
-     * responds automatically when content is added, removed, undone, or
-     * restored without maintaining duplicate state in JavaScript.
+     * popup.
      */
     protected function empty_document_state_css(): string
     {

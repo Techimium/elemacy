@@ -2,13 +2,13 @@
 
 namespace Elemacy\Tests\Integration\Fixtures;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
-use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
-use Elemacy\Modules\Widgets\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Modules\Widgets\DTO\LoopResultDTO;
-use Elemacy\Modules\Widgets\Support\PublicLoopLimits;
-use Elementor\Widget_Base;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
+use Elemacy\Loop\DTO\LoopResultDTO;
+use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 /** Counts the real source boundary; queries still run through the real source. */
 final class ObservedLoopSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
@@ -32,7 +32,7 @@ final class ObservedLoopSource implements LoopDataSourceInterface, PublicLoopSou
         return $this->source->get_label();
     }
 
-    public function register_controls(Widget_Base $widget): void
+    public function register_controls(BaseWidget $widget): void
     {
         $this->source->register_controls($widget);
     }
@@ -42,11 +42,6 @@ final class ObservedLoopSource implements LoopDataSourceInterface, PublicLoopSou
         ++$this->query_calls;
         $this->queried_settings[] = $settings;
         return $this->source->get_items($settings);
-    }
-
-    public function get_ajax_payload(array $settings): array
-    {
-        return $this->source->get_ajax_payload($settings);
     }
 
     public function get_public_settings(array $settings, array $context, int $page): array

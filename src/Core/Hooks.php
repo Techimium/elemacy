@@ -11,7 +11,7 @@ final class Hooks
     const REGISTER_MODULES_ACTION = 'elemacy/action/register_modules';
 
     // Fired early — after dependency/compatibility checks, before any
-    // provider's boot() runs — so a service provider (design.md D7) can
+    // provider's boot runs — so a service provider can
     // register itself (passes the Elemacy instance; call
     // register_provider() on it). Pro subscribes from its own plugin
     // bootstrap, so its own provider registration does not depend on the

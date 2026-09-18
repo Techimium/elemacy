@@ -10,16 +10,9 @@ use WP_Term;
 
 /**
  * Resolves the "current term" a taxonomy dynamic tag should read: whichever
- * term a Taxonomy Terms-sourced loop item is currently rendering, falling
- * back to the term the current page's own query is for (a normal taxonomy
- * archive page) when there is no active loop item. Every other dynamic tag
- * in this codebase gets this "works inside a loop and works standalone"
- * duality for free from an ambient WordPress global (global $post); terms
- * have no such global, which is why TermLoopItem::enter()/exit() are no-ops
- * and this resolver exists instead (see loop-data-source-taxonomy design.md
- * D3). Checks the optional NativeTermItemInterface capability rather than a
- * concrete Widgets/Loop item class (design.md D7) — any loop item type that
- * wraps a real WP_Term is recognized, not only TermLoopItem specifically.
+ * term a Taxonomy Terms-sourced loop item is currently rendering, falling back
+ * to the term the current page's own query is for (a normal taxonomy archive
+ * page) when there is no active loop item.
  */
 class Taxonomy
 {

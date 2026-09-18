@@ -4,30 +4,22 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\DataSources\UsersQuery;
+use Elemacy\Loop\Sources\UsersQuery;
 use Elemacy\Loop\DTO\LoopResultDTO;
-use Elemacy\Loop\LoopItems\UserLoopItem;
+use Elemacy\Loop\Items\UserLoopItem;
 use Elemacy\Loop\Pagination\Policies\UsersPolicy;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elementor\Controls_Manager;
-use Elementor\Widget_Base;
+use Elemacy\Elementor\Widgets\BaseWidget;
 use WP_User;
 
 /**
- * Built-in Users data source: loops over WP_User accounts instead of posts
- * or terms, so a Loop Grid/Carousel can build a team directory, author grid,
- * or staff listing. See openspec/changes/loop-data-source-users/design.md
- * for the role-filtering, pagination-total, and no-op enter()/exit()
- * decisions.
- *
- * The runtime query execution and public-context policy live in
- * Loop\DataSources\UsersQuery / Loop\Pagination\Policies\UsersPolicy
- * (design.md D7) — this class keeps only what needs an Elementor
- * widget/document instance plus this source's own identity, delegating
- * everything else to those two collaborators.
+ * Built-in Users data source: loops over WP_User accounts instead of posts or
+ * terms, so a Loop Grid/Carousel can build a team directory, author grid, or
+ * staff listing.
  */
 class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {
@@ -67,7 +59,7 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         return $options;
     }
 
-    public function register_controls(Widget_Base $widget): void
+    public function register_controls(BaseWidget $widget): void
     {
         $condition = ['data_source' => $this->get_key()];
 
@@ -141,23 +133,6 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
     public function get_items(array $settings): LoopResultDTO
     {
         return $this->query->get_items($settings);
-    }
-
-    public function get_ajax_payload(array $settings): array
-    {
-        $payload = [
-            'users_roles' => $settings['users_roles'] ?? [],
-            'users_number' => $settings['users_number'] ?? 6,
-            'users_orderby' => $settings['users_orderby'] ?? 'display_name',
-            'users_order' => $settings['users_order'] ?? 'ASC',
-            'exclude_current_user' => $settings['exclude_current_user'] ?? '',
-        ];
-
-        if ('yes' === ($settings['exclude_current_user'] ?? '') && is_user_logged_in()) {
-            $payload['current_user_id'] = get_current_user_id();
-        }
-
-        return $payload;
     }
 
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array

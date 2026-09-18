@@ -8,20 +8,8 @@ use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Migrations\DatabaseLease;
 
 /**
- * Runs ordered data migrations when the plugin is upgraded.
- *
- * Each migration is keyed by a schema version — a number this class owns
- * entirely, independent of the plugin's own release version (task 11.5,
- * design.md D11) — and runs once, when upgrading from any earlier schema
- * version. Nothing about a plugin release (a hotfix with no data change,
- * a version bump) advances this marker; only a completed migration step
- * does. run() sorts by version before executing, so listing order in
- * migrations() does not matter; they must be idempotent. Each callback is
- * invoked with ($from_version, $to_version).
- *
- * The stored schema version (OptionKeys::SCHEMA_VERSION) is advanced to each
- * migration's version as soon as that migration completes, so if a later one
- * fails the finished steps are not run again on the next request.
+ * Runs ordered data migrations when the plugin is upgraded. See
+ * docs/ARCHITECTURE.md § Caches and schema.
  */
 class Migrator
 {
@@ -34,7 +22,7 @@ class Migrator
     const BASELINE_VERSION = '0.0.0';
 
     /**
-     * Bounded expiring mutex (task 11.6) so two concurrent requests can
+     * Bounded expiring mutex so two concurrent requests can
      * never both run a due migration and duplicate its mutation — the
      * second simply skips this sync() call; the marker is unchanged, so its
      * own later call (or the next real request) picks up wherever the first
@@ -55,8 +43,7 @@ class Migrator
     /**
      * The option this Migrator's own schema marker is stored under.
      * Overridden by a subclass that owns an independent versioned-data
-     * domain (task 11.6: e.g. Pro's own Migrator, which must never share
-     * Free's marker/lock — the two are unrelated migration streams).
+     * domain.
      */
     protected function option_key(): string
     {
@@ -99,16 +86,6 @@ class Migrator
      * step that throws leaves the marker at the last successfully completed
      * step rather than skipping ahead or crash-looping the finished ones on
      * the next request.
-     *
-     * Each migration callback receives ($from_version, $to_version) so it can
-     * make context-aware decisions if needed. A callback processing more
-     * records than fit in one request (task 11.6 — see Migrations\BatchCursor
-     * for a ready-made resumable cursor + lock) returns `false` to report
-     * "made progress, not yet complete": the marker does not advance and no
-     * later-versioned migration runs this pass, so the very next sync() call
-     * (driven by ordinary request traffic — no separate queue/scheduler)
-     * resumes this same step rather than either replaying it from scratch or
-     * skipping ahead.
      */
     public function run(string $from_version, string $to_version): void
     {

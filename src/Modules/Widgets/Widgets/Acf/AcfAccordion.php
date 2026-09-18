@@ -4,21 +4,13 @@ namespace Elemacy\Modules\Widgets\Widgets\Acf;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\Services\AcfRepeaterResolver;
+use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elementor\Controls_Manager;
 use Elementor\Icons_Manager;
 use Elementor\Utils;
 use Elementor\Widget_Accordion;
 
-/**
- * Renders an Elementor accordion populated from an ACF repeater field.
- *
- * Extends the core Widget_Accordion so all of its style controls (icons,
- * typography, colors, borders, etc.) work unchanged. We replace the static
- * `tabs` repeater with three text controls that point at an ACF repeater and
- * its title / content sub-fields, then synthesize `$settings['tabs']` at
- * display time from the resolved rows.
- */
+/** Renders an Elementor accordion populated from an ACF repeater field. */
 class AcfAccordion extends Widget_Accordion
 {
     public function get_name()

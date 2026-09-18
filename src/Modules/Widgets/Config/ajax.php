@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Elemacy\Core\AjaxRouter;
+use Elemacy\Http\AjaxRouter;
 use Elemacy\Modules\Widgets\Controllers\AjaxPaginationController;
 use Elemacy\Modules\Widgets\Controllers\AjaxFormController;
 use Elemacy\Support\Utils;

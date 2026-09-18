@@ -4,7 +4,7 @@ namespace Elemacy\Modules\DynamicTags\Tags\Acf;
 use Elementor\Controls_Manager;
 use Elementor\Core\DynamicTags\Data_Tag;
 use Elementor\Modules\DynamicTags\Module;
-use Elemacy\Modules\DynamicTags\Services\Acf;
+use Elemacy\Integrations\Acf\AcfFieldReader;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -40,7 +40,7 @@ class AcfUrl extends Data_Tag
 
 	public function get_value(array $options = [])
 	{
-		$value = Acf::get_field_value($this->get_settings('key'));
+		$value = (new AcfFieldReader())->get_field_value((string) $this->get_settings('key'));
 
 		if (empty($value) && $this->get_settings('fallback')) {
 			$value = $this->get_settings('fallback');

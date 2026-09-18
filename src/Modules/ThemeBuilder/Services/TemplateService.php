@@ -6,8 +6,8 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Constants\PostStatus;
-use Elemacy\Core\DTO\PaginatedResultDTO;
-use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Http\DTO\PaginatedResultDTO;
+use Elemacy\Http\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\TemplateDTO;
@@ -27,7 +27,7 @@ use WP_Query;
 /**
  * Native persistence, group/type ownership and library/Elementor document
  * type synchronization are owned by the shared {@see LibraryRepository}/
- * {@see DocumentWriter}/{@see DocumentDuplicator} primitives (design.md D6);
+ * {@see DocumentWriter}/{@see DocumentDuplicator} primitives;
  * this service keeps only what is specific to theme templates — the
  * per-type page template and conditions — plus its own public DTO-shaped
  * responses.
@@ -50,17 +50,17 @@ class TemplateService
     protected TypeRegistry $types;
 
     public function __construct(
-        ?ConditionRepository $conditions = null,
-        ?LibraryRepository $repository = null,
-        ?DocumentWriter $writer = null,
-        ?DocumentDuplicator $duplicator = null,
-        ?TypeRegistry $types = null
+        ConditionRepository $conditions,
+        LibraryRepository $repository,
+        DocumentWriter $writer,
+        DocumentDuplicator $duplicator,
+        TypeRegistry $types
     ) {
-        $this->conditions = $conditions ?? new ConditionRepository();
-        $this->repository = $repository ?? new LibraryRepository();
-        $this->writer = $writer ?? new DocumentWriter($this->repository);
-        $this->duplicator = $duplicator ?? new DocumentDuplicator($this->repository, $this->writer);
-        $this->types = $types ?? TypeRegistry::instance();
+        $this->conditions = $conditions;
+        $this->repository = $repository;
+        $this->writer = $writer;
+        $this->duplicator = $duplicator;
+        $this->types = $types;
     }
 
     /**
@@ -240,10 +240,8 @@ class TemplateService
     }
 
     /**
-     * Elementor page template the editor (and direct preview) renders the type in.
-     * Header/footer are the chrome themselves, so they edit on a bare Canvas; the
-     * page-rendering types edit Full Width so the theme/Elemacy header and footer
-     * wrap the editable content in the editor, like Elementor Pro's theme builder.
+     * Elementor page template the editor (and direct preview) renders the type
+     * in.
      */
     protected function page_template_for_type(string $type): string
     {

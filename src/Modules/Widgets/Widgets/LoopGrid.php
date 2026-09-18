@@ -2,7 +2,8 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Container;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
@@ -11,14 +12,14 @@ use Elemacy\Loop\Pagination\PaginationRenderer;
 use Elemacy\Loop\Pagination\PublicRenderPolicy;
 use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Rendering\LoopRenderer;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
-use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
-use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Group_Control_Typography;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -26,6 +27,14 @@ if (!defined('ABSPATH')) {
 
 class LoopGrid extends BaseWidget
 {
+    /**
+     * Why visitors cannot see this loop, computed only for a user who can
+     * edit the owning document; null when the loop is eligible.
+     *
+     * @var string|null
+     */
+    private ?string $ineligibility_notice = null;
+
     public function get_name()
     {
         return 'elemacy-loop-grid';
@@ -69,7 +78,7 @@ class LoopGrid extends BaseWidget
     protected function get_loop_templates()
     {
         if ($this->loop_templates === null) {
-            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
+            $this->loop_templates = Container::instance()->singleton(BlockTemplateService::class)->get_all_unbounded(
                 BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
             );
         }
@@ -534,6 +543,8 @@ class LoopGrid extends BaseWidget
         if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
                 echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
+            } elseif (null !== $this->ineligibility_notice) {
+                echo '<div class="elemacy-loop-notice" role="status">' . esc_html($this->ineligibility_notice) . '</div>';
             }
             return;
         }
@@ -546,10 +557,10 @@ class LoopGrid extends BaseWidget
             $wrapper_attrs .= $this->ajax_request_attrs();
         }
 
-        echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr(); remaining HTML structure is hardcoded
+        echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr; remaining HTML structure is hardcoded
         echo '<div class="elemacy-loop-grid">';
 
-        $renderer = new LoopRenderer();
+        $renderer = Container::instance()->singleton(LoopRenderer::class);
         $placement = $this->current_owner_id() . '-' . $this->get_id();
         $data_source_key = $settings['data_source'] ?? 'posts';
         foreach ($result->items as $occurrence => $item) {
@@ -559,7 +570,7 @@ class LoopGrid extends BaseWidget
         echo '</div>';
 
         if (!empty($settings['pagination_type']) && $result->max_num_pages > 1) {
-            (new PaginationRenderer())->render($settings, $result->max_num_pages);
+            Container::instance()->singleton(PaginationRenderer::class)->render($settings, $result->max_num_pages);
         }
 
         echo '</div>'; // End elemacy-loop-builder-grid
@@ -579,11 +590,10 @@ class LoopGrid extends BaseWidget
     }
 
     /**
-     * Applies the same public eligibility policy the AJAX endpoint enforces
-     * to this widget's own classic first-page output (design.md D1), so an
-     * authored template/source that has since become inaccessible cannot
-     * appear there either. Skipped for an authorized editor preview, where
-     * the author's own saved settings render directly and unfiltered.
+     * Applies the same public eligibility policy the AJAX endpoint enforces to
+     * this widget's own classic first-page output, so an authored
+     * template/source that has since become inaccessible cannot appear there
+     * either.
      *
      * @param array                   $settings
      * @param LoopDataSourceInterface $source
@@ -595,36 +605,37 @@ class LoopGrid extends BaseWidget
             return $source->get_items($settings);
         }
 
-        try {
-            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
+        $policy = Container::instance()->singleton(PublicRenderPolicy::class);
+        $owner_id = $this->current_owner_id();
 
-            return $policy->eligible_items($settings, $this->current_owner_id());
+        try {
+            return $policy->eligible_items($settings, $owner_id);
         } catch (ValidationException $error) {
+            if (current_user_can('edit_post', $owner_id)) {
+                $this->ineligibility_notice = $policy->describe_ineligibility($settings, $owner_id);
+            }
+
             return new LoopResultDTO([], 0, 0, false);
         }
     }
 
     /**
-     * The signed request envelope subsequent AJAX pages replay (design.md
-     * D1): owner/widget identity and definition revision, resolved and
-     * signed the same way PublishedLoopDefinitionResolver/PaginationContextSigner
-     * verify them, plus an independently-verified host-context token when a
-     * contributed placement resolver recognizes the current request. Omitted
-     * entirely — falling back to plain classic markup with no AJAX attribute
-     * — when this widget's own document isn't independently resolvable right
-     * now (e.g. an editor preview of an inaccessible draft): the frontend
-     * must never be handed a request it cannot itself authorize.
+     * The signed request envelope subsequent AJAX pages replay: owner/widget
+     * identity and definition revision, resolved and signed the same way
+     * PublishedLoopDefinitionResolver/PaginationContextSigner verify them,
+     * plus an independently-verified host-context token when a contributed
+     * placement resolver recognizes the current request.
      */
     private function ajax_request_attrs(): string
     {
         try {
-            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
-            $definition = (new PublishedLoopDefinitionResolver($policy))->find($this->current_owner_id(), $this->get_id());
+            $policy = Container::instance()->singleton(PublicRenderPolicy::class);
+            $definition = Container::instance()->singleton(PublishedLoopDefinitionResolver::class)->find($this->current_owner_id(), $this->get_id());
 
             $context = '';
             $placement = PlacementResolverRegistry::instance()->resolve_current($definition->owner_id());
             if (null !== $placement) {
-                $context = (new PaginationContextSigner())->sign(
+                $context = Container::instance()->singleton(PaginationContextSigner::class)->sign(
                     $definition->owner_id(),
                     $definition->widget_id(),
                     $definition->fingerprint(),

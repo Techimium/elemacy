@@ -8,6 +8,7 @@ use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Plugin;
 use Elementor\Repeater;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -947,16 +948,15 @@ class Form extends BaseWidget
         $document_id = $document ? $document->get_main_id() : get_the_ID();
         $form_context = '';
         try {
-            $form_context = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Forms\Services\PublishedFormDefinitionResolver::class)
+            $form_context = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver::class)
                 ->context((int) $document_id, $this->get_id());
-        } catch (\Elemacy\Core\Exceptions\ValidationException $error) {
+        } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
             // An editor may render an unsaved/draft widget; it cannot mint a public placement proof.
         }
 
-
         ?>
-        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
+            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                 <input type="hidden" name="action" value="elemacy_widgets_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
                 <input type="hidden" name="post_id" value="<?php echo esc_attr($document_id); ?>">
@@ -990,7 +990,7 @@ class Form extends BaseWidget
                         $this->add_render_attribute('input_' . $index, 'aria-required', 'true');
                     }
                     ?>
-                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                         <?php if ($settings['labels_display'] === 'yes' && !empty($field['label'])) : ?>
                             <label class="elemacy-field-label" for="<?php echo esc_attr($field_id); ?>">
                                 <?php echo esc_html($field['label']); ?>
@@ -1001,13 +1001,13 @@ class Form extends BaseWidget
                         switch ($field['type']) {
                             case 'textarea':
                                 ?>
-                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?> rows="5"></textarea>
+                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?> rows="5"></textarea>
                                 <?php
                                 break;
                             case 'select':
                                 $options = explode("\n", $field['options']);
                                 ?>
-                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                                     <?php foreach ($options as $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
@@ -1048,7 +1048,7 @@ class Form extends BaseWidget
                                 break;
                             default:
                                 ?>
-                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                                 <?php
                                 break;
                         }

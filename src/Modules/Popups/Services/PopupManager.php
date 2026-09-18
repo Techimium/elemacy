@@ -5,7 +5,7 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\Modules\Popups\Support\PopupTypes;
@@ -41,18 +41,14 @@ class PopupManager
     protected PopupDisplayResolver $display_resolver;
     protected PopupRenderer $renderer;
 
-    /**
-     * Every dependency defaults to its own pre-existing singleton/fresh
-     * instance, so instance()'s own `new static()` call needs no changes.
-     */
     public function __construct(
-        ?TypeRegistry $types = null,
-        ?PopupDisplayResolver $display_resolver = null,
-        ?PopupRenderer $renderer = null
+        TypeRegistry $types,
+        PopupDisplayResolver $display_resolver,
+        PopupRenderer $renderer
     ) {
-        $this->types = $types ?? TypeRegistry::instance();
-        $this->display_resolver = $display_resolver ?? PopupDisplayResolver::instance();
-        $this->renderer = $renderer ?? new PopupRenderer();
+        $this->types = $types;
+        $this->display_resolver = $display_resolver;
+        $this->renderer = $renderer;
     }
 
     /**
@@ -63,14 +59,14 @@ class PopupManager
     public static function instance(): self
     {
         if (static::$instance === null) {
-            static::$instance = new static();
+            static::$instance = new static(TypeRegistry::instance(), PopupDisplayResolver::instance(), new PopupRenderer());
         }
 
         return static::$instance;
     }
 
     /**
-     * Drops this request's memoized matched-popups list (task 11.2/11.3) —
+     * Drops this request's memoized matched-popups list —
      * used when a popup's saved conditions/rules/triggers change within the
      * same request, or the acting site changes mid-request, so a later call
      * re-resolves instead of returning a stale or cross-site list.
@@ -98,9 +94,7 @@ class PopupManager
      * Prepares each matched popup document — bridging its classic/atomic
      * Elementor CSS exactly as register() alone already did, and additionally
      * rendering it once now so its widgets' script/style dependencies are
-     * queued before this request's head/footer output deadlines. The
-     * rendered fragment is cached for render_top_bars()/render_footer_popups()
-     * to emit later via PopupRenderer without rendering the document again.
+     * queued before this request's head/footer output deadlines.
      *
      * @param TemplateAssetsRegistrar $registrar
      * @return void
@@ -124,15 +118,6 @@ class PopupManager
 
     /**
      * Render a singular popup through Elementor's Canvas template.
-     *
-     * A popup is authored on a private CPT bound to a custom Elementor document
-     * type. When Elementor loads the editor preview it requests the popup on the
-     * frontend; if the active theme's single template does not call the_content()
-     * Elementor aborts with "You must call 'the_content' function…". Forcing the
-     * Canvas template (which calls the_content() via print_content()) guarantees
-     * the preview renders, with no theme header/footer — exactly what a popup
-     * canvas should be. Only affects direct singular popup requests, i.e. the
-     * editor preview; normal pages are untouched.
      *
      * @param string $template The template path Elementor is about to load.
      * @return string
@@ -164,9 +149,6 @@ class PopupManager
 
     /**
      * Resolve and memoize the popups matching the current request.
-     *
-     * Bails (empty) in the admin and inside the Elementor editor/preview so
-     * popups never interfere with the builder.
      *
      * @return \Elemacy\Modules\Popups\DTO\PopupDTO[]
      */
@@ -249,10 +231,10 @@ class PopupManager
     }
 
     /**
-     * Available popup types for the admin app's type picker (task 10.4),
+     * Available popup types for the admin app's type picker,
      * mirroring ThemeBuilderManager::get_available_template_types() but also
      * exposing availability so a registered-but-inactive extension type
-     * (D10) is distinguishable from a real, selectable one — no extension
+     * is distinguishable from a real, selectable one — no extension
      * currently registers one, but the shape is ready for when one does.
      *
      * @return array<int, array{value: string, label: string, availability: array}>

@@ -2,10 +2,10 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\LoopTemplateRenderStack;
-use Elemacy\Modules\Widgets\Services\PublicRenderPolicy;
-use Elemacy\Modules\Widgets\Services\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;

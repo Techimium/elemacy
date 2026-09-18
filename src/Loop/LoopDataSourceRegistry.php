@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 
 /**
  * In-memory registry of the loop data sources modules have declared.
@@ -47,26 +47,8 @@ class LoopDataSourceRegistry
     }
 
     /**
-     * Registers a source assembled from narrow query/controls/(preview)/
-     * (public-policy) collaborators (design.md D7) — one registration, same
-     * store as register(), through the legacy aggregate-interface adapter
-     * SourceDefinition::to_legacy_source() builds. Every existing consumer
-     * of get()/all() (LoopGrid/LoopCarousel, AjaxPaginationController,
-     * PublicRenderPolicy, PublishedLoopDefinitionResolver) needs no changes
-     * at all to accept a source registered this way.
-     */
-    public function register_definition(SourceDefinition $definition): self
-    {
-        return $this->register($definition->to_legacy_source());
-    }
-
-    /**
      * Deliberately substitutes whatever is currently registered under this
-     * key, bypassing register()'s duplicate-implementation guard. Reserved
-     * for call sites that intentionally wrap an already-registered source
-     * (e.g. an instrumented decorator counting invocations in a test) —
-     * never for module/extension bootstrap, which must use register() so a
-     * genuine identifier collision is still caught.
+     * key, bypassing register()'s duplicate-implementation guard.
      */
     public function replace(LoopDataSourceInterface $source): self
     {
@@ -84,9 +66,7 @@ class LoopDataSourceRegistry
 
     /**
      * Whether a stored source key is still registered by any module/
-     * extension. No mock-stand-in concept exists for loop sources today
-     * (an unlicensed extension simply skips registering its source), so
-     * this only distinguishes a live registration from an unregistered one.
+     * extension.
      */
     public function get_availability(string $key): FeatureAvailability
     {

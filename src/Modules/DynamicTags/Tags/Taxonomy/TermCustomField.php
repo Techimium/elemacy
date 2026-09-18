@@ -1,7 +1,7 @@
 <?php
 namespace Elemacy\Modules\DynamicTags\Tags\Taxonomy;
 
-use Elemacy\Modules\DynamicTags\Services\Acf;
+use Elemacy\Integrations\Acf\AcfFieldReader;
 use Elemacy\Modules\DynamicTags\Services\Taxonomy;
 use Elementor\Controls_Manager;
 use Elementor\Core\DynamicTags\Tag;
@@ -12,12 +12,8 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Reads an ACF term-meta field (or plain term meta, when ACF is inactive —
- * see Acf::get_field_value()'s fallback) for the current term. Uses a plain
- * text "Key" control rather than PostCustomField's key dropdown: WordPress
- * has no get_term_custom_keys()-equivalent to populate one from, so this
- * mirrors the ACF single-field tags (AcfNumber, AcfUrl, ...), which already
- * use a plain text key control for the same reason.
+ * Reads an ACF term-meta field (or plain term meta, when ACF is inactive — see
+ * AcfFieldReader::get_field_value()'s fallback) for the current term.
  */
 class TermCustomField extends Tag
 {
@@ -88,7 +84,7 @@ class TermCustomField extends Tag
 			return;
 		}
 
-		$value = Acf::get_field_value($key, 'term_' . $term->term_id);
+		$value = (new AcfFieldReader())->get_field_value((string) $key, 'term_' . $term->term_id);
 
 		if (!is_scalar($value) || '' === (string) $value) {
 			return;

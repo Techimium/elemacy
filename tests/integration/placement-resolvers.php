@@ -4,10 +4,10 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Modules\Popups\Services\Placement\PopupPlacementResolver;
 use Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver;
-use Elemacy\Modules\Widgets\Services\LoopTemplateRenderStack;
-use Elemacy\Modules\Widgets\Services\Placement\NestedLoopPlacementResolver;
-use Elemacy\Modules\Widgets\Services\Placement\PagePlacementResolver;
-use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
+use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
+use Elemacy\Loop\Placement\NestedLoopPlacementResolver;
+use Elemacy\Loop\Placement\PagePlacementResolver;
+use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 

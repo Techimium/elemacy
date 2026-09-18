@@ -4,13 +4,13 @@ namespace Elemacy\Loop\Pagination;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
-use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
-use Elemacy\Modules\Widgets\Support\PublicLoopLimits;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Placement\PlacementResolverRegistry;
+use Elemacy\Loop\Pagination\PublicLoopLimits;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -121,9 +121,7 @@ final class PublicRenderPolicy
      * Grid/Carousel widget's own classic, non-AJAX render: applies the
      * identical template and source eligibility policy the AJAX endpoint
      * enforces, so a rejected private template/source cannot appear on page
-     * one either (design.md D1). Callers must skip this for an authorized
-     * editor preview — this policy applies equally regardless of viewer
-     * capability, the same as the AJAX endpoint.
+     * one either.
      *
      * @param array $settings Raw author settings (get_settings_for_display()).
      * @param int   $owner_id The document currently rendering this widget.
@@ -138,6 +136,56 @@ final class PublicRenderPolicy
         $item_settings = $this->settings($source, $settings, $placement['facts'] ?? [], 1);
 
         return $source->get_items($item_settings);
+    }
+
+    /**
+     * An editor-facing sentence explaining why eligible_items refused
+     * $settings for $owner_id. Only ever shown to a user who can edit the
+     * owning document; visitors get nothing.
+     *
+     * @param array $settings Raw author settings.
+     * @param int $owner_id The document rendering the widget.
+     * @return string
+     */
+    public function describe_ineligibility(array $settings, int $owner_id): string
+    {
+        $template = get_post((int) ($settings['template_id'] ?? 0));
+
+        if (!$template instanceof WP_Post) {
+            return __('The selected Loop Item template no longer exists.', 'elemacy');
+        }
+        if ('publish' !== $template->post_status) {
+            /* translators: %s: template title */
+            return sprintf(__('The Loop Item template "%s" is not published, so visitors cannot see this loop.', 'elemacy'), $template->post_title);
+        }
+        if (post_password_required($template)) {
+            return __('The Loop Item template is password protected, so visitors cannot see this loop.', 'elemacy');
+        }
+
+        try {
+            $this->assert_template($template->ID);
+        } catch (ValidationException $error) {
+            return __('The selected template is not a Loop Item template.', 'elemacy');
+        }
+
+        $key = (string) ($settings['data_source'] ?? 'posts');
+        $source = $this->sources->get($key);
+
+        if (!$source) {
+            /* translators: %s: data source key */
+            return sprintf(__('The "%s" data source is not available.', 'elemacy'), $key);
+        }
+        if (!$source instanceof PublicLoopSourcePolicyInterface) {
+            /* translators: %s: data source key */
+            return sprintf(__('The "%s" data source cannot be shown to visitors.', 'elemacy'), $key);
+        }
+
+        $placement = $this->placements->resolve_current($owner_id);
+        if ('current_query' === ($settings['post_type'] ?? '') && empty($placement['facts']['query'])) {
+            return __('"Current Query" only works inside an Archive or Search Results template.', 'elemacy');
+        }
+
+        return __('This loop cannot be shown to visitors with its current settings.', 'elemacy');
     }
 
     /**

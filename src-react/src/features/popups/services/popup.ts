@@ -18,7 +18,7 @@ const fetchPopupTypes = async (): Promise<PopupTypeOption[]> => {
     return response.data?.data ?? [];
 };
 
-/** Available popup types (task 10.4: registry-backed, not a hardcoded enum). */
+/** Available popup types. */
 export const usePopupTypes = () => {
     return useQuery({
         queryKey: ['popup-types'],

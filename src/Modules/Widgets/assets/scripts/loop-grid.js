@@ -107,9 +107,8 @@
                         }
 
                         // Re-initialize any Elementor elements inside the grid that just
-                        // loaded, through the shared lifecycle adapter (design.md D9, task
-                        // 9.5) rather than a second copy of this widget-handler-initialization
-                        // loop. $loopGrid[0] is the SAME container node across every
+                        // loaded, through the shared lifecycle adapter rather than a second
+                        // copy of this widget-handler-initialization loop. $loopGrid[0] is the SAME container node across every
                         // pagination click (.html() replaces its inner content, not the
                         // node itself), so release() first is required: without it, the
                         // adapter's own "never initialize an already-seen subtree twice"

@@ -4,7 +4,7 @@
 define('DOING_AJAX', true);
 require dirname(__DIR__) . '/bootstrap.php';
 
-class ElemacyFixtureAjaxRouter extends \Elemacy\Core\AjaxRouter
+class ElemacyFixtureAjaxRouter extends \Elemacy\Http\AjaxRouter
 {
     protected static $routes = [];
 }

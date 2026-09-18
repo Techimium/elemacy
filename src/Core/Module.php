@@ -6,7 +6,13 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Contracts\ServiceProviderInterface;
 
-abstract class Module
+/**
+ * A feature module is a service provider with an identity: register binds what
+ * it shares, boot attaches its behavior. ModuleManager runs every active
+ * module's register before any module's boot. See docs/ARCHITECTURE.md § Boot
+ * lifecycle.
+ */
+abstract class Module implements ServiceProviderInterface
 {
     abstract public function get_name(): string;
 
@@ -16,23 +22,17 @@ abstract class Module
 
     abstract public function get_description(): string;
 
-    abstract public function init();
+    /**
+     * Binds the services this module shares. Nothing by default.
+     */
+    public function register(Container $container): void
+    {
+    }
 
     /**
-     * The service providers this module's own collaborators are obtained
-     * through, instead of ad hoc construction inside init() (design.md D7).
-     * ModuleManager registers-then-boots every returned provider exactly
-     * once per request, only for a module that ends up active — the same
-     * two-phase discipline Core/Elemacy.php already applies to its own
-     * providers, scoped to this one module's composition instead of the
-     * whole plugin.
-     *
-     * @return ServiceProviderInterface[]
+     * Attaches this module's hooks and registrations.
      */
-    public function get_providers(): array
-    {
-        return [];
-    }
+    abstract public function boot(): void;
 
     public function register_routes() {}
 

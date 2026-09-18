@@ -4,6 +4,7 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
@@ -31,10 +32,6 @@ class PopupDisplayResolver
      * Return every published popup whose display conditions match the current
      * request.
      *
-     * A popup with no conditions is treated as global (shows everywhere).
-     * Otherwise the shared condition engine decides (include-OR / exclude-AND /
-     * no-include = show everywhere).
-     *
      * @return PopupDTO[]
      */
     public function resolve_all(): array
@@ -50,7 +47,7 @@ class PopupDisplayResolver
             _prime_post_caches($ids, false, true);
         }
 
-        $service = new PopupService();
+        $service = Container::instance()->singleton(PopupService::class);
         $matched = [];
 
         foreach ($ids as $id) {
@@ -103,10 +100,6 @@ class PopupDisplayResolver
      * Whether the popup has any authored Elementor content. A never-edited
      * document stores an empty elements array; showing it would paint only the
      * overlay backdrop with no visible content box.
-     *
-     * Mirrors Elementor's own Document::get_elements_data() (a json_decode of the
-     * _elementor_data meta) without instantiating a Document on the hot path; the
-     * meta is already cache-primed in resolve_all().
      */
     protected function has_content(PopupDTO $popup): bool
     {
@@ -122,14 +115,8 @@ class PopupDisplayResolver
     }
 
     /**
-     * Drop the popup if any attached rule or trigger is unavailable (D5), or
-     * if any server-evaluable rule fails.
-     *
-     * A rule's or trigger's availability is checked before anything else:
-     * neither side can enforce a rule it cannot resolve, and an unavailable
-     * trigger has no real client handler to open the popup with, so treating
-     * either as absent would broaden the popup's actual audience beyond what
-     * was authored.
+     * Drop the popup if any attached rule or trigger is unavailable, or if any
+     * server-evaluable rule fails.
      */
     protected function passes_required_capabilities(PopupDTO $popup): bool
     {

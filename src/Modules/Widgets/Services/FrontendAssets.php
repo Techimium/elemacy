@@ -26,7 +26,7 @@ class FrontendAssets
 
         $this->register_style('loop-grid');
         // AJAX-loaded pagination content re-initializes Elementor widgets
-        // through the shared lifecycle adapter (design.md D9, task 9.5)
+        // through the shared lifecycle adapter
         // instead of duplicating that logic inline.
         $this->register_script('loop-grid', ['elemacy-elementor-lifecycle']);
 

@@ -11,7 +11,7 @@ interface TypeFieldProps {
     onChange: (value: string) => void;
     disabled?: boolean;
     /**
-     * The currently saved popup's own type availability (task 10.4, D10): a
+     * The currently saved popup's own type availability: a
      * stored type that is no longer registered (e.g. a deactivated
      * extension) stays visible/selected here for repair rather than
      * silently looking indistinguishable from a healthy selection.

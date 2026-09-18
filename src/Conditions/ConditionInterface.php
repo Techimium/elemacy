@@ -21,14 +21,7 @@ interface ConditionInterface
      */
     public function check(ConditionRuleDTO $rule): bool;
 
-    /**
-     * How the condition's value is picked in the UI:
-     *
-     *  - `none`   → no value input (e.g. "Entire Site").
-     *  - `select` → a dropdown populated from {@see get_sub_values()}.
-     *  - `search` → a debounced async combobox backed by the conditions/search
-     *               endpoint, configured by {@see get_search_config()}.
-     */
+    /** How the condition's value is picked in the UI: */
     public function get_value_type(): string;
 
     /**
@@ -37,13 +30,7 @@ interface ConditionInterface
      */
     public function get_sub_values(): array;
 
-    /**
-     * Search configuration for conditions whose value type is `search`.
-     *
-     * Shape: ['entity' => 'post'|'term'|'user', ...scope] — e.g.
-     * ['entity' => 'post', 'post_type' => 'page'] or
-     * ['entity' => 'term', 'taxonomy' => 'category'].
-     */
+    /** Search configuration for conditions whose value type is `search`. */
     public function get_search_config(): array;
 
     /**

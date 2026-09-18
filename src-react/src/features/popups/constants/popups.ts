@@ -3,7 +3,7 @@ import { AlignStartVertical, GalleryThumbnails, PanelTop, Puzzle, Square } from 
 
 /**
  * Purely cosmetic per-type icon + description for the built-in popup types,
- * keyed by the server-registered `value` (task 10.4). Not authoritative:
+ * keyed by the server-registered `value`. Not authoritative:
  * which types exist and their labels come from `GET /popups/types`
  * (usePopupTypes()), so an extension-contributed type with no entry here
  * still renders correctly — just with the fallback icon and no description.

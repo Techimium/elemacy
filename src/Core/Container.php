@@ -9,30 +9,8 @@ use ReflectionClass;
 use ReflectionNamedType;
 
 /**
- * Reflection container with explicit interface-to-factory bindings.
- * Lifetime is chosen explicitly:
- *
- *  - singleton($class): one shared instance, built once and reused on every
- *    later call. Use for stateless services/collaborators.
- *  - make($class): a fresh instance on every call. Use for per-request
- *    handlers (e.g. controllers) that consume shared services.
- *
- * Without any binding, both auto-wire the concrete class from its
- * constructor type hints exactly as before this class gained bind() — every
- * nested dependency is resolved as a shared singleton unless it has its own
- * registered 'fresh' binding (design.md D7: "never assume every dependency
- * is shared"). bind() lets a service provider (task 6.2) register a
- * contract — an interface, or a concrete class whose construction needs a
- * factory rather than plain reflection (e.g. scalar configuration a
- * constructor parameter's own default cannot express) — with an explicit
- * lifetime that make()/singleton() and every nested resolution both honor.
- *
- * A single shared container (Container::instance()) backs Route and AjaxRouter;
- * the singleton/binding caches live for the (short-lived) WordPress request.
- * This is a service locator restricted to bootstrap and forwarding facades
- * (Route/AjaxRouter resolving a controller) — application/domain services
- * still receive their dependencies through their own constructors, not by
- * reaching into this container themselves.
+ * Reflection container with explicit interface-to-factory bindings. Lifetime
+ * is chosen explicitly: See docs/ARCHITECTURE.md § Composition and injection.
  */
 class Container
 {
@@ -90,13 +68,7 @@ class Container
     /**
      * Registers an explicit factory for a contract — an interface name, or a
      * concrete class name whose construction a factory (rather than plain
-     * reflection) should own. The factory receives this container, so it
-     * can resolve its own further dependencies through make()/singleton()
-     * rather than constructing them directly; it is responsible for any
-     * scalar configuration a plain constructor default cannot express.
-     *
-     * Re-binding an already-bound contract replaces its factory/lifetime
-     * and drops any previously cached shared instance for it.
+     * reflection) should own.
      *
      * @param class-string $contract
      * @param callable(self): object $factory
@@ -220,10 +192,7 @@ class Container
      * Instantiates a class via reflection, recursively resolving its
      * constructor's class-typed parameters (each through resolve(), so a
      * parameter type with its own binding is honored even here) and, for a
-     * builtin-typed parameter, using its default value. A required builtin
-     * parameter with no default cannot be auto-wired at all: register an
-     * explicit bind() factory for $class_name instead, since a factory is
-     * where scalar configuration belongs, not this reflection path.
+     * builtin-typed parameter, using its default value.
      *
      * @param string $class_name Fully-qualified class name to instantiate.
      * @return object The new instance.

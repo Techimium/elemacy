@@ -10,13 +10,8 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use WP_Query;
 
 /**
- * Caches the per-type candidate index used to resolve which library items apply
- * to a request. The index holds published items' ids + raw conditions. It is
- * NOT autoloaded — it grows with content, and `get_option()` already rides the
- * persistent `options` cache group — so plain requests never carry it in
- * `alloptions`. On any change it is deleted, then rebuilt on this request's
- * `shutdown` (after all service/Elementor meta writes have landed), so the
- * saving request pays the rebuild query instead of the next frontend visitor.
+ * Caches the per-type candidate index used to resolve which library items
+ * apply to a request. The index holds published items' ids + raw conditions.
  */
 class ResolverCache
 {
@@ -27,7 +22,7 @@ class ResolverCache
      * option itself — bumped on every invalidate() so a rebuild started
      * under an older generation can detect a newer one landed while it was
      * still running and discard its own result instead of overwriting
-     * fresher data (task 11.4).
+     * fresher data.
      */
     const GENERATION_OPTION = 'elemacy_library_index_generation';
 
@@ -64,10 +59,10 @@ class ResolverCache
         }
 
         // Cache miss: every caller still gets a correct, freshly-built index
-        // for its own request immediately — never blocked on a lock (D11:
-        // "do not block a public request indefinitely"). Persisting it is a
+        // for its own request immediately — never blocked on a lock
+        // ("do not block a public request indefinitely"). Persisting it is a
         // best-effort optimization for the *next* request, applied only if
-        // no concurrent write landed while this build ran (task 11.4, same
+        // no concurrent write landed while this build ran (, same
         // generation guard as invalidate()'s own scheduled rebuild below).
         $generation = (int) get_option(self::GENERATION_OPTION, 0);
         $index = $this->build_index();
@@ -159,7 +154,7 @@ class ResolverCache
      * changes mid-request (switch_to_blog()/restore_current_blog()) so the
      * next get_index() call re-reads get_option() under the now-current
      * site's own table prefix instead of returning another site's cached
-     * array (task 11.2: a bare invalidate() would wrongly delete and
+     * array would wrongly delete and
      * schedule a rebuild of the *current* site's index for a change that
      * happened on a *different* site).
      */
@@ -182,7 +177,7 @@ class ResolverCache
             // ID DESC breaks ties between candidates sharing the same date
             // (e.g. bulk-imported together) deterministically — SQL's ORDER
             // BY date alone does not guarantee stable ordering for ties
-            // (task 11.2). Preserves existing newest-match precedence.
+            //. Preserves existing newest-match precedence.
             'orderby'        => [
                 'date' => 'DESC',
                 'ID'   => 'DESC',
@@ -198,7 +193,7 @@ class ResolverCache
         // A candidate is selected on exactly two fields; loading every
         // Elementor document's entire meta cache (update_meta_cache()) to
         // read them would also pull in _elementor_data/_elementor_css and
-        // similar large, unrelated values for every candidate (task 11.4).
+        // similar large, unrelated values for every candidate.
         // One targeted query for only those two keys avoids that.
         $fields = $this->load_selection_fields($post_ids);
         $index  = [];

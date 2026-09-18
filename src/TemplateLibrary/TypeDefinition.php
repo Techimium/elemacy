@@ -28,10 +28,7 @@ class TypeDefinition
 
     /**
      * Fully-qualified Elementor document class backing this type, if it has
-     * one of its own (e.g. for real-data Preview Settings). Null means the
-     * caller's own fallback applies — typically Elementor's built-in
-     * 'wp-page' document, but this is a decision each builder-specific
-     * service already owns, not a rule this registry imposes.
+     * one of its own (e.g. for real-data Preview Settings).
      *
      * @var class-string|null
      */

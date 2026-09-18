@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\Services\RuleManager;
@@ -21,7 +21,7 @@ class PopupResource extends Resource
             'id' => $this->id,
             'title' => $this->title,
             'type' => $this->type,
-            // task 10.4: lets the admin app tell a repairable unknown stored
+            // : lets the admin app tell a repairable unknown stored
             // type apart from one of the live registry choices, the same way
             // conditions/triggers/rules below already do.
             'type_availability' => TypeRegistry::instance()->get_availability((string) $this->type)->to_array(),
@@ -47,7 +47,7 @@ class PopupResource extends Resource
     /**
      * Annotates each stored entry with its current {@see \Elemacy\Core\Capabilities\FeatureAvailability}
      * so the admin app can identify an unavailable saved condition/rule/trigger
-     * (D5) instead of it merely appearing unset.
+     * instead of it merely appearing unset.
      *
      * @param array<int, array{type: string}> $entries
      * @param callable(string): \Elemacy\Core\Capabilities\FeatureAvailability $resolve

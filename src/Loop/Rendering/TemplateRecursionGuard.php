@@ -5,16 +5,9 @@ namespace Elemacy\Loop\Rendering;
 defined('ABSPATH') || exit;
 
 /**
- * Refuses an *active* recursive template cycle — direct or indirect — and
- * caps nesting depth, without refusing a repeated template across
- * sequential (non-nested) items, which is entirely legal (design.md D8).
- * Membership in the whole active chain, not just the immediate parent, is
- * what catches an indirect cycle (template A embeds B embeds A again).
- *
- * A plain stack of currently-rendering template IDs, replacing
- * Modules\Widgets\Services\LoopTemplateRenderStack's own ownership-only
- * stack (still used for placement validation until task 8.6 rewires the
- * render loop onto this pipeline) with cycle and depth enforcement.
+ * Refuses an *active* recursive template cycle — direct or indirect — and caps
+ * nesting depth, without refusing a repeated template across sequential (non-
+ * nested) items, which is entirely legal.
  */
 final class TemplateRecursionGuard
 {

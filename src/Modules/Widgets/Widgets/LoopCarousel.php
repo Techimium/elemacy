@@ -2,17 +2,18 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Core\Container;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Pagination\PublicRenderPolicy;
 use Elemacy\Loop\Rendering\LoopRenderer;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
-use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -20,6 +21,14 @@ if (!defined('ABSPATH')) {
 
 class LoopCarousel extends BaseWidget
 {
+    /**
+     * Why visitors cannot see this loop, computed only for a user who can
+     * edit the owning document; null when the loop is eligible.
+     *
+     * @var string|null
+     */
+    private ?string $ineligibility_notice = null;
+
     public function get_name()
     {
         return 'elemacy-loop-carousel';
@@ -66,7 +75,7 @@ class LoopCarousel extends BaseWidget
     protected function get_loop_templates()
     {
         if ($this->loop_templates === null) {
-            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
+            $this->loop_templates = Container::instance()->singleton(BlockTemplateService::class)->get_all_unbounded(
                 BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
             );
         }
@@ -534,6 +543,8 @@ class LoopCarousel extends BaseWidget
         if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
                 echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
+            } elseif (null !== $this->ineligibility_notice) {
+                echo '<div class="elemacy-loop-notice" role="status">' . esc_html($this->ineligibility_notice) . '</div>';
             }
             return;
         }
@@ -542,7 +553,7 @@ class LoopCarousel extends BaseWidget
         echo '<div class="swiper elemacy-loop-carousel">';
         echo '<div class="swiper-wrapper">';
 
-        $renderer = new LoopRenderer();
+        $renderer = Container::instance()->singleton(LoopRenderer::class);
         $placement = $this->current_owner_id() . '-' . $this->get_id();
         $data_source_key = $settings['data_source'] ?? 'posts';
         foreach ($result->items as $occurrence => $item) {
@@ -581,12 +592,11 @@ class LoopCarousel extends BaseWidget
     }
 
     /**
-     * Applies the same public eligibility policy the AJAX endpoint enforces
-     * to LoopGrid/AjaxPaginationController to this widget's own classic
-     * output (design.md D1) — Loop Carousel has no AJAX pagination feature,
-     * but an authored template/source that has since become inaccessible
-     * still must not appear here. Skipped for an authorized editor preview,
-     * where the author's own saved settings render directly and unfiltered.
+     * Applies the same public eligibility policy the AJAX endpoint enforces to
+     * LoopGrid/AjaxPaginationController to this widget's own classic output —
+     * Loop Carousel has no AJAX pagination feature, but an authored
+     * template/source that has since become inaccessible still must not appear
+     * here.
      *
      * @param array                   $settings
      * @param LoopDataSourceInterface $source
@@ -598,11 +608,16 @@ class LoopCarousel extends BaseWidget
             return $source->get_items($settings);
         }
 
-        try {
-            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
+        $policy = Container::instance()->singleton(PublicRenderPolicy::class);
+        $owner_id = $this->current_owner_id();
 
-            return $policy->eligible_items($settings, $this->current_owner_id());
+        try {
+            return $policy->eligible_items($settings, $owner_id);
         } catch (ValidationException $error) {
+            if (current_user_can('edit_post', $owner_id)) {
+                $this->ineligibility_notice = $policy->describe_ineligibility($settings, $owner_id);
+            }
+
             return new LoopResultDTO([], 0, 0, false);
         }
     }

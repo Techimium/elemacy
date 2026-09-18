@@ -4,13 +4,8 @@ namespace Elemacy\Support;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Sanitizer;
-/**
- * A utility class for string manipulation and formatting.
- *
- * Provides various static methods to handle common string operations
- * such as type conversion, slug generation, and string incrementation.
- */
+use Elemacy\Http\Sanitizer;
+/** A utility class for string manipulation and formatting. */
 class Str
 {
     /**
@@ -48,9 +43,6 @@ class Str
 
     /**
      * Sanitize a string to use as a slug.
-     *
-     * This function sanitizes the input string according to the Sanitizer::TITLE rule,
-     * which is used to sanitize title strings.
      *
      * @param string $value The string to sanitize.
      * @return string The sanitized string.

@@ -5,6 +5,7 @@ namespace Elemacy\Modules\DynamicTags;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Module;
+use Elemacy\Modules\DynamicTags\Services\TagManager;
 
 class DynamicTags extends Module
 {
@@ -33,12 +34,8 @@ class DynamicTags extends Module
         return true;
     }
 
-    public function get_providers(): array
+    public function boot(): void
     {
-        return [new DynamicTagsServiceProvider()];
-    }
-
-    public function init(): void
-    {
+        TagManager::init();
     }
 }

@@ -41,7 +41,7 @@ function formatDate(date: string) {
 function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }: PopupCardProps) {
     // usePopupTypes() is cached (staleTime: Infinity) from the toolbar filter
     // fetch that already ran for this list, so this never fires its own
-    // request per card (task 10.4: registry-backed, not a hardcoded lookup).
+    // request per card.
     const { data: types = [] } = usePopupTypes();
     const typeLabel = types.find((t) => t.value === popup.type)?.label || __('Unknown', 'elemacy');
 

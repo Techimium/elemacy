@@ -2,6 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
+use Elemacy\Core\Container;
 use ElemacyPro\Extensions\Popups\Services\AnalyticsService;
 use ElemacyPro\Extensions\Popups\Services\CounterLock;
 
@@ -34,7 +35,7 @@ final class AnalyticsCountersTest extends IntegrationTestCase
         $this->concurrent($id, array_merge(['normalize'], array_fill(0, 8, 'track')));
         self::assertSame(['18'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
         self::assertSame(['0'], get_post_meta($id, AnalyticsService::META_CONVERSIONS));
-        (new AnalyticsService())->consolidate($id);
+        (Container::instance()->make(AnalyticsService::class))->consolidate($id);
         self::assertSame(['18'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
     }
 
@@ -67,7 +68,7 @@ final class AnalyticsCountersTest extends IntegrationTestCase
         add_filter('query', $break);
         $previous = $wpdb->suppress_errors(true);
         try {
-            (new AnalyticsService())->record_impression($id);
+            (Container::instance()->make(AnalyticsService::class))->record_impression($id);
             self::fail('Failed SQL was accepted.');
         } catch (\RuntimeException $error) {
             self::assertSame([], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));

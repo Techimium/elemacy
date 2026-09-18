@@ -14,8 +14,6 @@ class DisplayDefaults
     /**
      * Default DisplaySettings for a given popup type.
      *
-     * This is the schema source of truth for the display settings shape.
-     *
      * @param string $type
      * @return array
      */

@@ -5,14 +5,9 @@ namespace Elemacy\Loop\Pagination;
 defined('ABSPATH') || exit;
 
 /**
- * Renders a loop widget's pagination markup from its saved display
- * settings (design.md D8) — moved verbatim out of
- * Modules\Widgets\Widgets\LoopGrid::render_pagination_html(), the only two
- * callers of which were that same widget's own render() and
- * AjaxPaginationController's cross-class static call. Behavior is
- * unchanged; only the ownership moved, so both callers stay in sync by
- * construction rather than by keeping two independent implementations
- * consistent by hand.
+ * Renders the pagination links a Loop Grid emits on its classic first page
+ * and the AJAX endpoint emits for later pages, from the widget's saved
+ * pagination settings.
  */
 class PaginationRenderer
 {

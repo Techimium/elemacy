@@ -5,18 +5,13 @@ namespace Elemacy\Loop\Pagination\Policies;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\DataSources\TermsQuery;
-use Elemacy\Modules\Widgets\Support\PublicLoopLimits;
+use Elemacy\Loop\Sources\TermsQuery;
+use Elemacy\Loop\Pagination\PublicLoopLimits;
 
 /**
- * The Terms source's public-context policy (design.md D7) — extracted from
- * Modules\Widgets\DataSources\TaxonomyDataSource so it can be exercised
- * without an Elementor widget/document instance. Behavior is unchanged from
- * before the move; TaxonomyDataSource itself now delegates
- * get_public_settings() to an instance of this class. Depends on TermsQuery
- * directly (constructor injection, defaulting to a fresh instance), the same
- * "validate then run through the query's own sanitize_ajax_settings()"
- * pattern PostsPolicy already established.
+ * The Terms source's public-context policy, kept free of any Elementor
+ * widget/document dependency; TaxonomyDataSource delegates get_public_settings()
+ * to an instance of this class.
  */
 class TermsPolicy implements PublicLoopSourcePolicyInterface
 {

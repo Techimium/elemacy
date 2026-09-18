@@ -5,6 +5,8 @@ namespace Elemacy\Modules\CustomCss;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Module;
+use Elemacy\Modules\CustomCss\Services\CustomCssManager;
+use Elemacy\Modules\CustomCss\Services\FrontendAssets;
 
 class CustomCss extends Module
 {
@@ -33,12 +35,9 @@ class CustomCss extends Module
         return true;
     }
 
-    public function get_providers(): array
+    public function boot(): void
     {
-        return [new CustomCssServiceProvider()];
-    }
-
-    public function init(): void
-    {
+        new FrontendAssets();
+        new CustomCssManager();
     }
 }

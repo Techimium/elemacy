@@ -7,11 +7,8 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Container;
 
 /**
- * A composition unit registered through {@see \Elemacy\Core\Hooks::REGISTER_PROVIDERS_ACTION}
- * (design.md D7). Every registered provider's register() runs before any
- * provider's boot() — a provider's boot() can rely on every other enabled
- * provider's bindings/descriptors already existing, regardless of
- * registration order.
+ * A composition unit registered through {@see
+ * \Elemacy\Core\Hooks::REGISTER_PROVIDERS_ACTION} .
  */
 interface ServiceProviderInterface
 {

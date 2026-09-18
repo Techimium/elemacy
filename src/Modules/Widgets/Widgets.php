@@ -6,18 +6,28 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Elemacy\Core\AdminMenu;
-use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Admin\AdminMenu;
+use Elemacy\Core\Container;
+use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
+use Elemacy\Modules\Widgets\Documents\DocumentManager;
 use Elemacy\Modules\Widgets\Documents\LoopDocument;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\Placement\NestedLoopPlacementResolver;
-use Elemacy\Modules\Widgets\Services\Placement\PagePlacementResolver;
-use Elemacy\Modules\Widgets\Services\PlacementResolverRegistry;
+use Elemacy\Modules\Widgets\Forms\Actions\EmailAction;
+use Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionRateLimiter;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionService;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionValidator;
+use Elemacy\Modules\Widgets\Services\EditorAssets;
+use Elemacy\Modules\Widgets\Services\FrontendAssets;
+use Elemacy\Modules\Widgets\Services\WidgetManager;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Placement\NestedLoopPlacementResolver;
+use Elemacy\Loop\Placement\PagePlacementResolver;
+use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -44,13 +54,29 @@ class Widgets extends Module
         return __('Extend the Elementor editor with extra widgets built by Elemacy.', 'elemacy');
     }
 
-    public function get_providers(): array
+    public function register(Container $container): void
     {
-        return [new WidgetsServiceProvider()];
+        $container->bind(WidgetManager::class, static fn () => WidgetManager::instance());
+
+        // The submission pipeline's action list is configuration, so a
+        // factory owns it rather than reflection.
+        $container->bind(SubmissionService::class, static function (Container $container) {
+            return new SubmissionService(
+                $container->make(PublishedFormDefinitionResolver::class),
+                $container->make(SubmissionValidator::class),
+                $container->make(SubmissionRateLimiter::class),
+                [$container->make(EmailAction::class)]
+            );
+        });
     }
 
-    public function init(): void
+    public function boot(): void
     {
+        new DocumentManager();
+        new FrontendAssets();
+        new EditorAssets();
+        WidgetManager::instance();
+
         $this->register_admin_menu();
         $this->register_types();
         $this->register_data_sources();
@@ -61,18 +87,8 @@ class Widgets extends Module
     /**
      * The loop data sources Loop Grid / Loop Carousel / AJAX pagination
      * consume. Registers the built-in Posts source directly, then fires
-     * LOOP_DATA_SOURCES_REGISTER_ACTION so add-ons can register more —
-     * mirrors register_locations() in ThemeBuilder.
-     *
-     * Deferred to `init` (priority 99), mirroring
-     * Popups\Services\TriggerRuleBootstrap::register(): pro extensions hook
-     * this action via Hooks::LOADED_ACTION, which only fires once this
-     * module's own init() (called from Elemacy::init()'s synchronous
-     * init_modules() pass, on `plugins_loaded`) has already returned. Firing
-     * the action directly from here — before LOADED_ACTION even runs — would
-     * leave no listener in place yet. Running on `init` instead guarantees
-     * any extension that hooked in during `plugins_loaded` is ready before
-     * the action fires, without depending on hook priority between plugins.
+     * LOOP_DATA_SOURCES_REGISTER_ACTION so add-ons can register more — mirrors
+     * register_locations() in ThemeBuilder.
      */
     protected function register_data_sources(): void
     {
@@ -89,11 +105,7 @@ class Widgets extends Module
 
     /**
      * The placement resolvers public pagination uses to prove an owner
-     * document is the one actually resolved for the current request. Widgets
-     * registers the two placements it owns directly (an ordinary page, and a
-     * loop template actively rendering a nested Loop Grid); other modules
-     * contribute their own via LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION,
-     * mirroring register_data_sources() above.
+     * document is the one actually resolved for the current request.
      */
     protected function register_placement_resolvers(): void
     {

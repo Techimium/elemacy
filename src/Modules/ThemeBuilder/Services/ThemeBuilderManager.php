@@ -7,8 +7,8 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
-use Elemacy\Core\Rendering\TemplateRenderer;
+use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
@@ -34,30 +34,30 @@ class ThemeBuilderManager
     protected TypeRegistry $types;
     protected TemplateRenderer $renderer;
 
-    /**
-     * Every dependency defaults to its own pre-existing singleton/fresh
-     * instance, so instance()'s own `new self()` call needs no changes —
-     * only a caller that wants a different collaborator (tests, chiefly)
-     * needs to construct this class directly instead of through instance().
-     */
     public function __construct(
-        ?CompatibilityManager $compatibility = null,
-        ?LocationRegistry $locations = null,
-        ?TemplateResolver $resolver = null,
-        ?TypeRegistry $types = null,
-        ?TemplateRenderer $renderer = null
+        CompatibilityManager $compatibility,
+        LocationRegistry $locations,
+        TemplateResolver $resolver,
+        TypeRegistry $types,
+        TemplateRenderer $renderer
     ) {
-        $this->compatibility = $compatibility ?? CompatibilityManager::instance();
-        $this->locations     = $locations ?? LocationRegistry::instance();
-        $this->resolver      = $resolver ?? TemplateResolver::instance();
-        $this->types         = $types ?? TypeRegistry::instance();
-        $this->renderer      = $renderer ?? new TemplateRenderer();
+        $this->compatibility = $compatibility;
+        $this->locations     = $locations;
+        $this->resolver      = $resolver;
+        $this->types         = $types;
+        $this->renderer      = $renderer;
     }
 
     public static function instance()
     {
         if (is_null(static::$instance)) {
-            static::$instance = new self();
+            static::$instance = new self(
+                CompatibilityManager::instance(),
+                LocationRegistry::instance(),
+                TemplateResolver::instance(),
+                TypeRegistry::instance(),
+                new TemplateRenderer()
+            );
         }
 
         return static::$instance;
@@ -79,9 +79,7 @@ class ThemeBuilderManager
      * their classic/atomic Elementor CSS exactly as register() alone already
      * did, and additionally rendering each once now so its widgets'
      * script/style dependencies are queued before this request's head/footer
-     * output deadlines. Each rendered fragment is cached for
-     * render_header()/render_footer()/render_template() to emit later
-     * without rendering the document again.
+     * output deadlines.
      *
      * @param TemplateAssetsRegistrar $registrar
      * @return void
@@ -162,10 +160,7 @@ class ThemeBuilderManager
 
     /**
      * A template's content by ID, for $placement ('header', 'footer' or
-     * 'location'). Returns the fragment register_template_assets() already
-     * prepared for this exact (id, placement) this request; only renders
-     * now as a fallback if that early preparation never ran for some reason,
-     * so a mismatch never silently emits no content.
+     * 'location').
      *
      * @param int    $post_id
      * @param string $placement

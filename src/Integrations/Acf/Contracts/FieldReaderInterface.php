@@ -5,11 +5,9 @@ namespace Elemacy\Integrations\Acf\Contracts;
 defined('ABSPATH') || exit;
 
 /**
- * Optional field-reading capability a loop item (or anything else outside
- * the ACF integration itself) can consume without importing any concrete
- * ACF/Dynamic Tags class directly (design.md D7). Implementations decide for
- * themselves how to degrade when ACF is not active; callers never branch on
- * ACF's own presence.
+ * Optional field-reading capability a loop item (or anything else outside the
+ * ACF integration itself) can consume without importing any concrete
+ * ACF/Dynamic Tags class directly.
  */
 interface FieldReaderInterface
 {

@@ -4,7 +4,7 @@ namespace Elemacy\Loop\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
+use Elemacy\Http\DTO\DTO;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 
 /**

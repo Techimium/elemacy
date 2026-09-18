@@ -5,7 +5,7 @@ namespace Elemacy\Modules\Popups\Resources;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Capabilities\FeatureAvailability;
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
 /**
  * Serializes a single trigger (TriggerInterface) for the admin app.
@@ -22,7 +22,7 @@ class TriggerTypeResource extends Resource
             // Every entry here came from TriggerManager::get_all(), so it is
             // by definition registered — "unknown" cannot occur; only
             // whether it is a real implementation or a non-functional Mock
-            // stand-in (task 10.3: type-list resources expose availability
+            // stand-in (: type-list resources expose availability
             // too, not just the per-saved-instance resources phase 4 covers).
             'availability'  => ($this->is_mock()
                 ? FeatureAvailability::inactive_extension($this->get_name())

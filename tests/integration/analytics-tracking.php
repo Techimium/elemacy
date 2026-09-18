@@ -2,7 +2,8 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Route;
+use Elemacy\Core\Container;
+use Elemacy\Http\Route;
 use ElemacyPro\Extensions\Popups\Services\AnalyticsService;
 use ElemacyPro\Extensions\Popups\Services\TrackingRateLimiter;
 
@@ -94,7 +95,7 @@ final class AnalyticsTrackingTest extends IntegrationTestCase
         self::assertSame([], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
         self::assertSame(200, $this->track($id, 'impression')->get_status());
         self::assertSame(200, $this->track($id, 'conversion')->get_status());
-        self::assertSame(['impressions' => 1, 'conversions' => 1], (new AnalyticsService())->get($id));
+        self::assertSame(['impressions' => 1, 'conversions' => 1], (Container::instance()->make(AnalyticsService::class))->get($id));
     }
 
     public function testIneligibleDocumentsCannotCountAndAdminAnalyticsRetainsCapabilityPolicy(): void

@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
 class TemplateResource extends Resource
 {
@@ -27,7 +27,7 @@ class TemplateResource extends Resource
     /**
      * Annotates each stored condition with its current
      * {@see \Elemacy\Core\Capabilities\FeatureAvailability} so the admin app
-     * can identify an unavailable saved condition (D5) instead of it merely
+     * can identify an unavailable saved condition instead of it merely
      * appearing unset.
      *
      * @param \Elemacy\Conditions\DTO\ConditionRuleDTO[] $conditions

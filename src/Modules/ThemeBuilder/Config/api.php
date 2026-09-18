@@ -3,8 +3,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Elemacy\Core\Middlewares\API\AdminMiddleware;
-use Elemacy\Core\Route;
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
 use Elemacy\Modules\ThemeBuilder\Controllers\ThemeBuilderController;
 
 Route::get('/theme-builder/template-types', [ThemeBuilderController::class, 'types'])->require_capability('manage_options')->middleware(AdminMiddleware::class);

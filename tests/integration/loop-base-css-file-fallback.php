@@ -2,8 +2,8 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Rendering\ClassicCssRenderer;
-use Elemacy\Loop\LoopItemStyles;
+use Elemacy\Elementor\Rendering\ClassicCssRenderer;
+use Elemacy\Loop\Rendering\LoopItemStyles;
 use Elementor\Core\Files\CSS\Post as Post_CSS;
 
 require_once __DIR__ . '/IntegrationTestCase.php';

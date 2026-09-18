@@ -2,8 +2,8 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
-use Elemacy\Modules\Widgets\Services\PaginationContextSigner;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Pagination\PaginationContextSigner;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 

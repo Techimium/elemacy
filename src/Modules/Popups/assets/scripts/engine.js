@@ -236,8 +236,7 @@
 	// opened it — but that opener may no longer be connected to the
 	// document (e.g. it was itself inside dynamically-replaced content).
 	// Falls back to the modal now on top of the stack, if any, so focus is
-	// never silently dropped while another modal is still open (design.md
-	// D4: "restore focus to the next modal or a still-connected opener").
+	// never silently dropped while another modal is still open.
 	function restoreFocusAfterModalCloses(state) {
 		if (state.lastFocused && typeof state.lastFocused.focus === 'function'
 			&& document.contains(state.lastFocused)) {
@@ -261,7 +260,7 @@
 	}
 
 	/* ---------------------------------------------------------------- */
-	/* Modal stack (design.md D4) — the single owner of opening order    */
+	/* Modal stack — the single owner of opening order                  */
 	/* (z-index, Escape, focus trap) and the shared body-scroll lock     */
 	/* across every currently-open MODAL popup. Topbars/banners/floating */
 	/* elements never join it unless authored to behave modally          */
@@ -271,7 +270,7 @@
 
 	var ModalStack = (function () {
 		var stack = []; // ordered ids, oldest-opened first; last = topmost.
-		var order = 0; // strictly increasing per push — see push()'s note.
+		var order = 0; // strictly increasing per push — see push's note.
 		var lockers = []; // ids currently holding the shared scroll lock.
 		var lockedBodyOverflow = '';
 
@@ -307,7 +306,7 @@
 		// asked for the lock", not by call count — an out-of-order
 		// release() from a modal that never actually acquired it is always
 		// a safe no-op, and the original inline style is restored exactly
-		// once, when the LAST locking modal releases it (D4).
+		// once, when the LAST locking modal releases it.
 		function acquireScrollLock(id) {
 			if (lockers.indexOf(id) !== -1) {
 				return;
@@ -341,7 +340,7 @@
 
 	/* ---------------------------------------------------------------- */
 	/* Open / close / destroy core — explicit per-instance state         */
-	/* machine (design.md D4): closed -> opening -> open -> closing ->   */
+	/* machine: closed -> opening -> open -> closing ->                  */
 	/* closed, with destroyed reachable from any state except itself.    */
 	/* `state.token` increments on every transition start; a transition  */
 	/* superseded mid-flight (open-during-close, close-during-open, or   */
@@ -766,7 +765,7 @@
 		});
 
 		// ESC + focus-trap tab cycling. Both act on the modal stack's own
-		// topmost entry only (design.md D4's "opening order") — with
+		// topmost entry only: with
 		// several modals open, Escape/Tab release and trap one at a time,
 		// innermost first, not every open modal simultaneously.
 		document.addEventListener('keydown', function (event) {

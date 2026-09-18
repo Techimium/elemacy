@@ -4,8 +4,8 @@ namespace Elemacy\Modules\Popups\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\Modules\Popups\Resources\RuleTypeResource;
 use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
 use Elemacy\Modules\Popups\Services\PopupManager;

@@ -37,13 +37,7 @@ class TemplateResolver
         $this->cache = $cache ?? new ResolverCache();
     }
 
-    /**
-     * Drops the per-type evaluation memo (task 11.2). Distinct from
-     * ResolverCache::invalidate()/forget_memo(), which own the persistent
-     * candidate index: this is the context-dependent layer built on top of
-     * it (which candidate actually matched *this* request/site), so a write
-     * or a site switch must clear both, not just the candidate data.
-     */
+    /** Drops the per-type evaluation memo. */
     public static function reset(): void
     {
         static::$resolved = [];

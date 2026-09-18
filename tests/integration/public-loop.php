@@ -2,7 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;
 use ElemacyPro\Extensions\LoopDataSources\AcfRepeaterDataSource;

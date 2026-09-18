@@ -4,8 +4,8 @@ namespace Elemacy\Modules\Popups\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
@@ -19,9 +19,9 @@ class PopupController
 {
     protected $service;
 
-    public function __construct()
+    public function __construct(PopupService $service)
     {
-        $this->service = new PopupService();
+        $this->service = $service;
     }
 
     public function index(Request $request)

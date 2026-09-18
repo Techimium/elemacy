@@ -238,6 +238,12 @@ function setup_postdata($post)
 /** @var mixed Settable directly by a test; defaults to null (no queried object). */
 $GLOBALS['__queried_object'] = null;
 
+/** Public post types only: what a placement may ever expose. */
+function get_post_types($args = [], $output = 'names')
+{
+    return ['post' => 'post', 'page' => 'page'];
+}
+
 function get_queried_object()
 {
     return $GLOBALS['__queried_object'];
@@ -486,6 +492,31 @@ function update_post_meta($post_id, $key, $value)
  * Minimal stand-in for WordPress's post object: only the public properties
  * PostLoopItem actually reads, faithful to the real class's shape for those.
  */
+/**
+ * Minimal stand-in for WordPress's query object: the query vars a resolver
+ * reads plus the empty result a query-building caller expects. Every
+ * construction's vars are recorded in $GLOBALS['__wp_query_args'] so a
+ * test can assert exactly what a caller asked WordPress for.
+ */
+class WP_Query
+{
+    public $query_vars = [];
+    public $posts = [];
+    public $found_posts = 0;
+    public $max_num_pages = 0;
+
+    public function __construct($query = [])
+    {
+        $this->query_vars = is_array($query) ? $query : [];
+        $GLOBALS['__wp_query_args'][] = $this->query_vars;
+    }
+
+    public function get($query_var, $default_value = '')
+    {
+        return $this->query_vars[$query_var] ?? $default_value;
+    }
+}
+
 class WP_Post
 {
     public $ID;
@@ -556,7 +587,7 @@ class WP_User
 
 /**
  * Minimal stand-in for WordPress's REST response class: only what
- * Elemacy\Core\Http\Response (which extends it) needs to be declarable, so
+ * Elemacy\Http\Response (which extends it) needs to be declarable, so
  * any code path that merely references that class — e.g. a class constant,
  * as ValidationException::with_errors() does — can load without a real
  * WordPress REST API present.

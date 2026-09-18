@@ -2,16 +2,16 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Modules\DynamicTags\Tags\User\UserEmail;
-use Elemacy\Modules\Widgets\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
-use Elemacy\Modules\Widgets\Services\LoopContext;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\PublicRenderPolicy;
-use Elemacy\Modules\Widgets\Support\PublicLoopLimits;
+use Elemacy\Loop\LoopContext;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Pagination\PublicLoopLimits;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;

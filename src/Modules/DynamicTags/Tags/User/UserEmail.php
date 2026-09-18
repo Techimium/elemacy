@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 /**
  * Renders the currently-rendering user's email address, unrestricted — per
- * proposal.md/design.md D3, whether to bind this into a visible template is
+ * proposal.md/, whether to bind this into a visible template is
  * the page author's decision, not this tag's to police.
  */
 class UserEmail extends Tag

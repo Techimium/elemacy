@@ -4,21 +4,18 @@ namespace Elemacy\Modules\Widgets\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\SiteRequest as Request;
+use Elemacy\Http\SiteRequest as Request;
 use Elemacy\Loop\Pagination\PaginationContextSigner;
 use Elemacy\Loop\Pagination\PaginationRenderer;
 use Elemacy\Loop\Pagination\PublicRenderPolicy;
 use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Rendering\LoopRenderer;
-use Elemacy\Modules\Widgets\DTO\PublicLoopRequest;
+use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
 
 /**
  * Resolves request → authored definition → policy → source query → render,
- * strictly in that order (design.md D1): every authorization check below
- * must complete before the first source query or Elementor render. A legacy
- * or tampered request never reaches either — see PublicLoopRequest,
- * PublishedLoopDefinitionResolver and PublicRenderPolicy for their own
- * boundaries.
+ * strictly in that order: every authorization check below must complete before
+ * the first source query or Elementor render.
  */
 class AjaxPaginationController
 {
@@ -29,12 +26,9 @@ class AjaxPaginationController
     protected PaginationRenderer $pagination_renderer;
 
     /**
-     * Resolved through the Container (AjaxRouter::register() → make()) —
-     * PublicRenderPolicy has an explicit bind() factory registered in
-     * CoreServiceProvider specifically so its own singleton-registry
-     * dependencies resolve correctly through this same constructor
-     * injection (task 6.6); the other four have no such concern (each is a
-     * plain, stateless class reflection auto-wires safely on its own).
+     * Built by the container; the shared registries behind these services
+     * resolve to their populated singletons through the bindings each owner
+     * registers.
      */
     public function __construct(
         PublicRenderPolicy $policy,

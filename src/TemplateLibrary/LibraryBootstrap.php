@@ -19,8 +19,7 @@ class LibraryBootstrap
 
     /**
      * Attaches this class's WordPress hooks. Idempotent: a second call does
-     * nothing (design.md D7 — constructors store dependencies, they do not
-     * register hooks; this is where that happens instead).
+     * nothing.
      */
     public function register_hooks(): void
     {
@@ -39,7 +38,7 @@ class LibraryBootstrap
     /**
      * The candidate index (ResolverCache) and the per-request evaluation
      * memo built on top of it (TemplateResolver) are separate layers (task
-     * 11.2/11.3, design.md D11): a write invalidates both, but a bare site
+     * 11.2/11.3, ): a write invalidates both, but a bare site
      * switch only needs to reset both back to empty, not delete/rebuild the
      * persisted index of a site that never actually changed.
      */
@@ -93,7 +92,7 @@ class LibraryBootstrap
         // the current site's own row), but the in-request memo/evaluation
         // cache are plain statics: without this, resolving on site B after
         // switch_to_blog() from site A would wrongly reuse site A's result
-        // for a same-named type (task 11.2).
+        // for a same-named type.
         add_action('switch_blog', static function (): void {
             ResolverCache::forget_memo();
             TemplateResolver::reset();

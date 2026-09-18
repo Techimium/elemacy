@@ -5,7 +5,7 @@ namespace Elemacy\Modules\Popups\Resources;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
@@ -48,13 +48,8 @@ class PopupConfigResource extends Resource
     }
 
     /**
-     * Normalize each stored trigger into the flat engine config ({type, ...params})
-     * via its registered handler. PopupDisplayResolver::resolve_all() already
-     * excludes any popup with an unavailable required trigger before this
-     * resource is ever built (design.md D5); an unregistered trigger reaching
-     * here regardless is omitted rather than forwarded, so this public,
-     * unauthenticated client payload never carries an identifier/params pair
-     * the server itself does not recognize (task 10.3).
+     * Normalize each stored trigger into the flat engine config ({type,
+     * ...params}) via its registered handler.
      *
      * @param array $triggers
      * @return array<int, array<string, mixed>>
@@ -81,7 +76,7 @@ class PopupConfigResource extends Resource
      * Normalize each stored rule into the flat engine config ({type, ...params}).
      * Server-evaluable rules are enforced server-side and therefore excluded
      * from the client payload. See normalize_triggers() for why an
-     * unregistered rule is omitted rather than forwarded (task 10.3).
+     * unregistered rule is omitted rather than forwarded.
      *
      * @param array $rules
      * @return array<int, array<string, mixed>>

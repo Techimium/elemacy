@@ -5,11 +5,13 @@ namespace Elemacy\Core;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\OptionKeys;
-use Elemacy\Core\Exceptions\ModuleNotFoundException;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Exceptions\ModuleNotFoundException;
+use Elemacy\Http\Response;
 
 class ModuleManager
 {
+    protected bool $initialized = false;
+
     protected array $modules = [];
     protected array $active_modules = [];
 
@@ -94,12 +96,18 @@ class ModuleManager
 
     /**
      * Determines the active module set from the stored option (plus any
-     * always-active modules) and initializes each one.
+     * always-active modules), then runs every active module's register
+     * before any module's boot. Runs once per request.
      *
      * @return void
      */
     public function init_modules(): void
     {
+        if ($this->initialized) {
+            return;
+        }
+
+        $this->initialized = true;
         $stored = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
 
         foreach ($this->modules as $name => $module) {
@@ -108,35 +116,16 @@ class ModuleManager
             }
         }
 
+        $container = Container::instance();
+
         foreach ($this->active_modules as $module) {
-            $this->boot_module_providers($module);
-            $module->init();
+            $module->register($container);
+        }
+
+        foreach ($this->active_modules as $module) {
+            $module->boot();
             $module->register_routes();
             $module->register_assets();
-        }
-    }
-
-    /**
-     * Registers, then boots, every provider an active module declares
-     * (design.md D7) — register() for every provider before boot() for any
-     * of them, mirroring Elemacy::register_providers()/boot_providers(),
-     * scoped to this one module rather than the whole plugin. Runs before
-     * $module->init() so any of the module's own remaining declarative
-     * wiring can rely on the module's collaborators already existing.
-     *
-     * @param Module $module
-     * @return void
-     */
-    protected function boot_module_providers(Module $module): void
-    {
-        $providers = $module->get_providers();
-
-        foreach ($providers as $provider) {
-            $provider->register(Container::instance());
-        }
-
-        foreach ($providers as $provider) {
-            $provider->boot();
         }
     }
 

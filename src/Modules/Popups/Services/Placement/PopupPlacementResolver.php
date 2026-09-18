@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Modules\Popups\Services\PopupDisplayResolver;
-use Elemacy\Modules\Widgets\Contracts\PublicContextPlacementResolverInterface;
+use Elemacy\Loop\Contracts\PublicContextPlacementResolverInterface;
 
 /** Proves a popup document is one the server actually matched for this request. */
 final class PopupPlacementResolver implements PublicContextPlacementResolverInterface

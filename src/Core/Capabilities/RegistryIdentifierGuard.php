@@ -8,22 +8,6 @@ defined('ABSPATH') || exit;
  * Shared identifier validation for the plugin's domain registries
  * (TemplateLibrary\TypeRegistry, Loop\LoopDataSourceRegistry,
  * Conditions\ConditionManager, Popups\Services\{Rule,Trigger}Manager).
- * Each registry keeps its own store and lookup semantics (design.md D10:
- * "keep responsibilities in their own domain registries"); this only
- * centralizes the two checks every one of them needs at registration time.
- *
- * Free deliberately registers a Mock* stand-in under the same identifier a
- * Pro extension later provides for real (see MockCondition, MockRule,
- * MockTrigger) — that same-name override is the intended extension
- * mechanism, not a collision. A registry with no such stand-in concept
- * (TypeRegistry, LoopDataSourceRegistry) instead tolerates re-registering
- * an identical entry (same class, same field values — PHP's loose object
- * equality) under a key it already owns, since an uncertain bootstrap order
- * can legitimately register a plain value-object type/source more than
- * once. What is never allowed is two genuinely different implementations
- * silently fighting over one identifier, or an identifier that collides
- * with a discriminator/structural key used in every one of these domains'
- * own wire formats.
  */
 final class RegistryIdentifierGuard
 {

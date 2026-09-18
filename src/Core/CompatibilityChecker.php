@@ -9,15 +9,10 @@ class CompatibilityChecker
 {
     /**
      * The oldest Elementor release the required fixtures have actually been
-     * run against (task 9.6, design.md D9): the full real-WordPress
-     * integration suite, both real-browser suites (popup hydration, AJAX
-     * Loop Grid pagination) and every fast-harness check, all passing
-     * identically to the currently-tested release below. Not an invented
-     * floor and not merely "the oldest release that happens to declare
-     * compatible headers" — every class/method this plugin's rendering, CSS,
-     * document, control and frontend-hydration code touches (see
-     * docs/ELEMENTOR-COMPATIBILITY.md) was confirmed present and working on
-     * this exact version before it was declared here.
+     * run against: the full real-WordPress integration suite, both real-
+     * browser suites (popup hydration, AJAX Loop Grid pagination) and every
+     * fast-harness check, all passing identically to the currently-tested
+     * release below.
      */
     const MIN_ELEMENTOR_VERSION = '3.35.9';
 

@@ -6,25 +6,9 @@ defined('ABSPATH') || exit;
 
 /**
  * Reversibly advances ACF's own native row cursor (`have_rows()`/
- * `the_row()`/`get_sub_field()`) to one target row, then restores exactly
- * what was active before — including an enclosing row iteration's own
- * position — rather than leaving the shared cursor wherever this
- * acquisition last left it (design.md D8). An empty `exit()` and
- * forward-only walking are insufficient once a nested or repeated render
- * shares the same field+post_id: see docs/ARCHITECTURE-CONTRACTS.md for the
- * confirmed row-cursor-sharing behavior this restores against.
- *
- * ACF exposes no official save/restore API for arbitrary loop position, so
- * this is the one place that reaches into ACF's own internal loop stack
- * (`acf()->loop->loops`, a public property on ACF core's own global
- * singleton — not a private/protected internal reached via reflection).
- * `snapshot()`/`restore()` are also used by AcfRepeaterQuery's own eager
- * have_rows()/the_row() pre-walk, which is a read-only "how many rows"
- * query and must leave no lasting cursor side effect of its own.
- *
- * One instance is scoped to one enter()/exit() pair; a fresh instance must
- * be used for each nested acquisition so an inner scope's snapshot never
- * overwrites an outer one still awaiting its own exit().
+ * `the_row()`/`get_sub_field()`) to one target row, then restores exactly what was
+ * active before — including an enclosing row iteration's own position — rather
+ * than leaving the shared cursor wherever this acquisition last left it.
  */
 final class AcfRowScope
 {

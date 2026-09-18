@@ -1,7 +1,7 @@
 <?php
 
 /** Pure registration invariants; actual REST/AJAX responses live in integration. */
-class TransportRouteProbe extends \Elemacy\Core\Route
+class TransportRouteProbe extends \Elemacy\Http\Route
 {
     protected static array $routes = [];
     protected static array $group_stack = [];
@@ -44,7 +44,7 @@ check('REST capability declaration rejects an empty capability', static function
     return false;
 });
 
-class TransportAjaxProbe extends \Elemacy\Core\AjaxRouter
+class TransportAjaxProbe extends \Elemacy\Http\AjaxRouter
 {
     protected static $routes = [];
 }

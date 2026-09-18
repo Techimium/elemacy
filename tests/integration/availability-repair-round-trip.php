@@ -2,6 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
+use Elemacy\Core\Container;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
@@ -89,7 +90,7 @@ final class AvailabilityRepairRoundTripTest extends IntegrationTestCase
             ['id' => 'r1', 'type' => 'elemacy_fixture/totally_unregistered_rule', 'params' => ['note' => 'kept as authored']],
         ]);
 
-        $service = new PopupService();
+        $service = Container::instance()->make(PopupService::class);
         $before = $service->get($popup_id);
         self::assertNotNull($before);
 

@@ -7,15 +7,8 @@ defined('ABSPATH') || exit;
 /**
  * Iterates every site in a WordPress Multisite network in bounded pages,
  * switching into each site only for the duration of a supplied callback and
- * always restoring the prior blog context via `finally` — even if the
- * callback throws (task 11.7, design.md D14: "restore blog context in
- * finally").
- *
- * Deliberately self-contained: no dependency on any other class in this
- * plugin, only WordPress's own multisite functions. Each plugin that needs
- * one (this task's own network activation; Free's and Pro's own uninstall
- * routines, tasks 14.4/14.5) keeps an independent copy so it keeps working
- * even if a sibling plugin is already gone.
+ * always restoring the prior blog context via `finally` — even if the callback
+ * throws.
  */
 class SiteBatchIterator
 {

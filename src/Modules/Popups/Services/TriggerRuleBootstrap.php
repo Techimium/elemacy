@@ -14,12 +14,6 @@ use Elemacy\Support\Utils;
  * src/Modules/Popups/Config/{triggers,rules}.php. Both lists include mock
  * entries that elemacy-pro overrides (by name) with real implementations when
  * active.
- *
- * Registration runs on `init` (priority 99) so that any extension which hooked
- * the register action earlier in the request is in place before the action
- * fires. After free's own entries are registered the matching register action
- * fires with the manager so extensions can register or override reliably —
- * without depending on hook priority.
  */
 class TriggerRuleBootstrap
 {

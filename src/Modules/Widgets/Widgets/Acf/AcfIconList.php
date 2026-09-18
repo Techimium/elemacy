@@ -4,19 +4,12 @@ namespace Elemacy\Modules\Widgets\Widgets\Acf;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\Services\AcfRepeaterResolver;
+use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elementor\Controls_Manager;
 use Elementor\Icons_Manager;
 use Elementor\Widget_Icon_List;
 
-/**
- * Renders an Elementor icon list populated from an ACF repeater field.
- *
- * Extends Widget_Icon_List so layout/style controls work unchanged. The
- * built-in per-item repeater is removed in favour of two text controls (the
- * repeater field name and the sub-field that holds each item's text) plus a
- * single shared icon control reused for every row.
- */
+/** Renders an Elementor icon list populated from an ACF repeater field. */
 class AcfIconList extends Widget_Icon_List
 {
     public function get_name()

@@ -3,12 +3,12 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Core\Container;
-use Elemacy\Core\Exceptions\ValidationException;
-use Elemacy\Core\Exceptions\HttpException;
-use Elemacy\Modules\Forms\Services\PublishedFormDefinitionResolver;
-use Elemacy\Modules\Forms\Services\SubmissionService;
-use Elemacy\Modules\Forms\Services\SubmissionValidator;
-use Elemacy\Modules\Forms\Services\SubmissionRateLimiter;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\HttpException;
+use Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionService;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionValidator;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionRateLimiter;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 
 require_once __DIR__ . '/IntegrationTestCase.php';

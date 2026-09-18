@@ -26,7 +26,7 @@ class ConditionRepository
 
     /**
      * @param array $rules ConditionRuleDTOs and/or their array form.
-     * @throws \Elemacy\Core\Exceptions\ValidationException Unsupported input
+     * @throws \Elemacy\Http\Exceptions\ValidationException Unsupported input
      *   (neither a ConditionRuleDTO nor an array) rejects the whole write —
      *   the previously stored targeting is left untouched, never partially
      *   overwritten with the supported entries alone.

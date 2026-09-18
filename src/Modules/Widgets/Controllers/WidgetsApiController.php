@@ -4,9 +4,9 @@ namespace Elemacy\Modules\Widgets\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\HttpException;
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Exceptions\HttpException;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\Modules\Widgets\Resources\WidgetListResource;
 use Elemacy\Modules\Widgets\Services\WidgetService;
 

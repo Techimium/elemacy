@@ -12,7 +12,7 @@ export interface Elemacy {
     contract_version: string;
 }
 
-/** The admin extension bridge's declared capabilities (design.md D12) — a
+/** The admin extension bridge's declared capabilities — a
  * consumer feature-detects against this array instead of branching solely
  * on `version`, so a future Free release can add or drop an individual
  * capability without every consumer needing a major version bump. */

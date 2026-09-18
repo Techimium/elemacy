@@ -6,9 +6,8 @@ defined('ABSPATH') || exit;
 
 /**
  * Layout/behavior control keys shared by PopupDocument (writer) and
- * DocumentDisplay (reader) — a persisted contract, so renaming a literal in only
- * one place would orphan saved popups. Style-tab keys aren't here: Elementor's
- * own CSS consumes them via `selectors`, so they have no separate reader.
+ * DocumentDisplay (reader) — a persisted contract, so renaming a literal in
+ * only one place would orphan saved popups.
  */
 final class DisplayKeys
 {

@@ -42,7 +42,7 @@ interface PopupFormProps {
     /** Whether to show the publish/draft status select (Edit modal only). */
     showStatus?: boolean;
     /**
-     * The currently saved popup's own type availability (task 10.4) —
+     * The currently saved popup's own type availability —
      * presentational only, not part of the submitted form values, so it is a
      * separate prop rather than a `defaultValues` field.
      */

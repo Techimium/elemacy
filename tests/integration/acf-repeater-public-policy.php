@@ -2,7 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Exceptions\ValidationException;
+use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use ElemacyPro\Extensions\LoopDataSources\AcfRepeaterDataSource;
 

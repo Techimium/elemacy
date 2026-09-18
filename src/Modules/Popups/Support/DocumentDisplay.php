@@ -10,10 +10,6 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * Reads display/behavior settings off the popup's Elementor document
  * (registered in PopupDocument::register_controls) and maps them into the
  * engine.js `display` config shape.
- *
- * Only behavior + overlay appearance live here; width is handled by the
- * document's generated post CSS and is intentionally omitted (z-index is
- * needed for the modal-stack's own JS ordering, so it is included below).
  */
 class DocumentDisplay
 {
@@ -21,7 +17,7 @@ class DocumentDisplay
     protected static $cache = [];
 
     /**
-     * Drops one popup's memoized display config (task 11.3) — used when its
+     * Drops one popup's memoized display config — used when its
      * settings change within the same request (e.g. a resolve-then-edit
      * sequence) or the acting site changes mid-request, so a later call for
      * the same id re-reads the document instead of returning stale settings.
@@ -32,7 +28,7 @@ class DocumentDisplay
     }
 
     /**
-     * Drops every popup's memoized display config (task 11.2) — used on a
+     * Drops every popup's memoized display config — used on a
      * site switch, since a popup id from the previous site could otherwise
      * collide with one on the new site.
      */

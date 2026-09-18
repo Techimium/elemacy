@@ -5,16 +5,9 @@ namespace Elemacy\Core\Capabilities;
 defined('ABSPATH') || exit;
 
 /**
- * Whether a registered capability (condition, rule, trigger, popup type,
- * loop source, ...) can execute at all, kept separate from what it decides.
- *
- * A capability can be available and still legitimately evaluate false for
- * the current request (e.g. "this specific post" not matching the current
- * page) — that is a predicate result, not an availability problem. And an
- * item with no configured capabilities has nothing to require, which is
- * not the same as one whose only configured capability cannot run. Every
- * consumer that needs to suspend dependent content on D5 grounds reports
- * that through this value object instead of collapsing it into a boolean.
+ * Whether a registered capability (condition, rule, trigger, popup type, loop
+ * source, ...) can execute at all, kept separate from what it decides. See
+ * docs/ARCHITECTURE.md § Shared domains.
  */
 final class FeatureAvailability
 {

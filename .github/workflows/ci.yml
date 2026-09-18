@@ -40,8 +40,8 @@ jobs:
       - name: Unit tests
         run: php tests/php/run.php
 
-      - name: Architecture dependency boundaries
-        run: php tests/architecture/dependency-boundaries.php
+      - name: Architecture check
+        run: php tests/architecture/check.php
 
   admin-app:
     name: Admin app — typecheck, lint, build
@@ -207,8 +207,21 @@ jobs:
       - name: Verify installed archive
         working-directory: elemacy
         run: php tests/integration/run.php --exclude-group requires-acf-pro
+      - name: WordPress.org Plugin Check on the installed archive
+        # Error-level findings fail the release; warnings are reported and, when
+        # accepted with a reason, recorded in docs/RELEASE.md.
+        working-directory: elemacy
+        run: |
+          SITE=$(dirname "$ELEMACY_TEST_ENV")/wordpress
+          # The disposable site blocks outbound HTTP, so fetch the checker here and install the local file.
+          curl --fail --silent --show-error --location https://downloads.wordpress.org/plugin/plugin-check.latest-stable.zip -o /tmp/plugin-check.zip
+          wp --path="$SITE" plugin install /tmp/plugin-check.zip --activate
+          wp --path="$SITE" plugin check elemacy --format=table | tee build/plugin-check.txt
+          if grep -qP '^\d+\t\d+\tERROR\t' build/plugin-check.txt; then echo 'Plugin Check reported errors'; exit 1; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: elemacy-package-${{ github.sha }}
-          path: elemacy/build/*.zip*
+          path: |
+            elemacy/build/*.zip*
+            elemacy/build/plugin-check.txt

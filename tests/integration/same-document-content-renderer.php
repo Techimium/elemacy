@@ -2,7 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
-use Elemacy\Core\Integrations\Elementor\SameDocumentContentRenderer;
+use Elemacy\Elementor\Compatibility\SameDocumentContentRenderer;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 

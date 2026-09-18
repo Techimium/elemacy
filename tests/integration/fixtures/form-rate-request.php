@@ -1,8 +1,8 @@
 <?php
 require dirname(__DIR__) . '/bootstrap.php';
 try {
-    (new \Elemacy\Modules\Forms\Services\SubmissionRateLimiter())->consume($argv[1]);
+    (new \Elemacy\Modules\Widgets\Forms\Services\SubmissionRateLimiter())->consume($argv[1]);
     echo 'accepted';
-} catch (\Elemacy\Core\Exceptions\HttpException $error) {
+} catch (\Elemacy\Http\Exceptions\HttpException $error) {
     echo 'limited';
 }

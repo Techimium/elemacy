@@ -4,10 +4,10 @@ namespace Elemacy\Modules\Widgets\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\ValidationException;
-use Elemacy\Core\Http\SiteRequest as Request;
-use Elemacy\Core\Http\SiteResponse;
-use Elemacy\Modules\Forms\Services\SubmissionService;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Http\SiteRequest as Request;
+use Elemacy\Http\SiteResponse;
+use Elemacy\Modules\Widgets\Forms\Services\SubmissionService;
 
 /** Transport coordination only; saved form policy, validation and actions belong to Forms. */
 class AjaxFormController
