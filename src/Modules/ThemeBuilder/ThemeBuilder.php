@@ -30,6 +30,11 @@ class ThemeBuilder extends Module
         return 'theme-builder';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Theme Builder', 'elemacy');

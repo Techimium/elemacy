@@ -18,6 +18,7 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Admin\AdminScripts;
 use Elemacy\Core\Cache\PageCachePurger;
 use Elemacy\Core\Capabilities\FeatureAvailability;
+use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 use Elemacy\Core\CompatibilityChecker;
 use Elemacy\Core\Container;
 use Elemacy\Core\Contracts\ServiceProviderInterface;
@@ -25,6 +26,7 @@ use Elemacy\Elementor\Controls\Query\QueryControlManager;
 use Elemacy\Core\Elemacy;
 use Elemacy\Core\FrontendScripts;
 use Elemacy\Core\Module;
+use Elemacy\Core\ModuleCatalog;
 use Elemacy\Core\ModuleManager;
 use Elemacy\Core\Admin\PluginLinks;
 use Elemacy\Elementor\Preview\PreviewAssets;
@@ -81,6 +83,7 @@ use Elemacy\Modules\DynamicTags\Services\User;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
+use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
@@ -617,6 +620,92 @@ check('Elemacy::init(): a second (duplicate) call attaches nothing a second time
         && did_action(Hooks::LOADED_ACTION) === $loaded_before;
 });
 
+/**
+ * Deliberately does NOT guard its own boot(): the point of these tests is
+ * that the composition root, not the provider, is what makes a second boot
+ * pass a no-op.
+ */
+final class FixtureUnguardedProvider implements ServiceProviderInterface
+{
+    /** @var string[] */
+    public static array $boots = [];
+
+    private string $label;
+
+    public function __construct(string $label)
+    {
+        $this->label = $label;
+    }
+
+    public function register(Container $container): void {}
+
+    public function boot(): void
+    {
+        self::$boots[] = $this->label;
+    }
+}
+
+check('Elemacy::boot_providers() boots a provider once across two passes even though the provider does not guard itself', static function () use ($elemacy) {
+    FixtureUnguardedProvider::$boots = [];
+    $elemacy->register_provider(new FixtureUnguardedProvider('unguarded'));
+
+    $boot = new ReflectionMethod($elemacy, 'boot_providers');
+    $boot->setAccessible(true);
+
+    $boot->invoke($elemacy);
+    $boot->invoke($elemacy);
+
+    // Only the newly-registered provider boots: everything registered before
+    // this point was already booted by the earlier init() tests and is
+    // skipped, which is the tracking working.
+    return FixtureUnguardedProvider::$boots === ['unguarded'];
+});
+
+check('Elemacy::boot_providers() tracks providers by identity, so two instances of one provider class each boot', static function () use ($elemacy) {
+    FixtureUnguardedProvider::$boots = [];
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-a'));
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-b'));
+
+    $boot = new ReflectionMethod($elemacy, 'boot_providers');
+    $boot->setAccessible(true);
+
+    $boot->invoke($elemacy);
+    $boot->invoke($elemacy);
+
+    // Class-keyed tracking would have booted only one of the two.
+    return FixtureUnguardedProvider::$boots === ['twin-a', 'twin-b'];
+});
+
+check('ServiceProviderInterface no longer requires implementations to make boot() idempotent', static function () {
+    $doc = (new ReflectionMethod(ServiceProviderInterface::class, 'boot'))->getDocComment();
+
+    return is_string($doc)
+        && stripos($doc, 'idempotent') === false
+        && stripos($doc, 'at most once') !== false;
+});
+
+check('Neither CoreServiceProvider carries its own boot guard any more, and a repeated boot pass still attaches each hook only once', static function () use ($elemacy) {
+    $free_has_flag = property_exists(CoreServiceProvider::class, 'booted');
+    $pro_provider  = '\\ElemacyPro\\Core\\Providers\\CoreServiceProvider';
+    // Pro is not autoloadable from this suite; assert against its source.
+    $pro_source    = file_get_contents(dirname(ELEMACY_PATH, 1) . '/elemacy-pro/src/Core/Providers/CoreServiceProvider.php');
+    $pro_has_flag  = is_string($pro_source) && strpos($pro_source, '$booted') !== false;
+
+    // The guard these flags used to provide: CoreServiceProvider::boot()
+    // constructs fresh collaborators every call, so their own $registered
+    // flags would not stop a second pass — only the root's tracking does.
+    $admin_enqueue_before = count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []);
+
+    $boot = new ReflectionMethod($elemacy, 'boot_providers');
+    $boot->setAccessible(true);
+    $boot->invoke($elemacy);
+    $boot->invoke($elemacy);
+
+    return $free_has_flag === false
+        && $pro_has_flag === false
+        && count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []) === $admin_enqueue_before;
+});
+
 /* ── Task 6.3: hook attachment moved out of constructors ───────────── */
 
 /**
@@ -673,7 +762,7 @@ check('register_hooks() on each task 6.3 service attaches its hooks, and a secon
     return true;
 });
 
-check('CoreServiceProvider::boot() wires every service\'s native hooks, and a second boot() call attaches nothing further', static function () {
+check('CoreServiceProvider::boot() wires every service\'s native hooks; single-boot is the composition root\'s guarantee, not the provider\'s', static function () {
     $representative_hooks = [
         'admin_enqueue_scripts',
         'wp_enqueue_scripts',
@@ -708,9 +797,14 @@ check('CoreServiceProvider::boot() wires every service\'s native hooks, and a se
 
     $snapshot_after_first_boot = $GLOBALS['__wp_actions'];
 
+    // Calling boot() directly a second time DOES attach again, and that is
+    // the point: boot() builds fresh collaborators every call, so their own
+    // register_hooks() guards cannot cover a repeat pass. Nothing in the
+    // plugin calls boot() directly — Elemacy::boot_providers() owns the
+    // at-most-once guarantee, covered by its own tests above.
     $provider->boot();
 
-    return $GLOBALS['__wp_actions'] === $snapshot_after_first_boot;
+    return $GLOBALS['__wp_actions'] !== $snapshot_after_first_boot;
 });
 
 /* ── Task 6.4: modules obtain collaborators through providers ──────── */
@@ -2102,6 +2196,89 @@ check('ConditionManager still allows a real condition to override a mock of the 
         && $registry->get_availability('mock/locked')->is_available();
 });
 
+check('ConditionManager rejects a mock trying to displace the real condition already holding its name', static function () {
+    $registry = new ConditionManager();
+    $registry->register(new FixedCondition('mock/locked', true));
+
+    try {
+        $registry->register(new FixedMockCondition());
+    } catch (\InvalidArgumentException $e) {
+        // The real implementation stays in place and stays available.
+        return $registry->get('mock/locked') instanceof FixedCondition
+            && $registry->get_availability('mock/locked')->is_available()
+            && strpos($e->getMessage(), 'mock/locked') !== false;
+    }
+
+    return false;
+});
+
+check('RuleManager rejects a mock trying to displace the real rule already holding its name', static function () {
+    $registry = new RuleManager();
+    $registry->register(new NamedFixtureRule('mock/rule', 'Real'));
+
+    try {
+        $registry->register(new FixedMockRule());
+    } catch (\InvalidArgumentException $e) {
+        return $registry->get('mock/rule') instanceof NamedFixtureRule
+            && $registry->get_availability('mock/rule')->is_available();
+    }
+
+    return false;
+});
+
+check('RegistryIdentifierGuard: a mock may still supersede another mock', static function () {
+    try {
+        RegistryIdentifierGuard::assert_registrable(
+            'Condition',
+            'mock/locked',
+            new FixedMockCondition(),
+            new FixedMockCondition()
+        );
+    } catch (\InvalidArgumentException $e) {
+        return false;
+    }
+
+    return true;
+});
+
+check('RegistryIdentifierGuard covers all four replacement branches directionally', static function () {
+    $real_a = new FixedCondition('branch/fixture', true);
+    $real_b = new FixedCondition('branch/fixture', false); // Same class, different content.
+    $mock   = new FixedMockCondition();
+
+    $accepts = static function (?object $existing, object $incoming): bool {
+        try {
+            RegistryIdentifierGuard::assert_registrable('Condition', 'branch/fixture', $existing, $incoming);
+        } catch (\InvalidArgumentException $e) {
+            return false;
+        }
+
+        return true;
+    };
+
+    return $accepts($mock, $real_a)                                     // real supersedes mock
+        && $accepts($real_a, new FixedCondition('branch/fixture', true)) // loose-equal re-registration
+        && !$accepts($real_a, $mock)                                     // mock must not displace real
+        && !$accepts($real_a, $real_b);                                  // real vs real is still a conflict
+});
+
+check('RegistryIdentifierGuard names the unavailable stand-in when a mock is what was rejected', static function () {
+    try {
+        RegistryIdentifierGuard::assert_registrable(
+            'Condition',
+            'mock/locked',
+            new FixedCondition('mock/locked', true),
+            new FixedMockCondition()
+        );
+    } catch (\InvalidArgumentException $e) {
+        // Distinguishes a downgrade attempt from a real-vs-real collision.
+        return strpos($e->getMessage(), 'unavailable stand-in') !== false
+            && strpos($e->getMessage(), 'FixedMockCondition') !== false;
+    }
+
+    return false;
+});
+
 check('RuleManager rejects registering the reserved identifier "id"', static function () {
     try {
         (new RuleManager())->register(new NamedFixtureRule('id'));
@@ -2688,7 +2865,15 @@ check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the
     $ref->invoke($elemacy);
     $after_customization = get_option(OptionKeys::ACTIVE_MODULES);
 
-    return $seeded === ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups']
+    // Compared as a set: the seeded value is whatever the modules themselves
+    // declare via is_default_active(), so its order follows src/Config/modules.php
+    // and is not part of the contract — ModuleManager::init_modules() reads it
+    // with in_array().
+    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
+    sort($expected);
+    sort($seeded);
+
+    return $seeded === $expected
         && $after_customization === [];
 });
 
@@ -2755,9 +2940,151 @@ check('Elemacy activation_actions(): a newly-created site under network activati
 
     do_action('wp_initialize_site', (object) ['blog_id' => 777]);
 
-    return get_option(OptionKeys::ACTIVE_MODULES) === ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups']
+    $seeded   = get_option(OptionKeys::ACTIVE_MODULES);
+    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
+    sort($seeded);
+    sort($expected);
+
+    return $seeded === $expected
         && $GLOBALS['__wp_current_blog_id'] === 1
         && $GLOBALS['__wp_blog_stack'] === [];
+});
+
+/* ── ModuleCatalog + module-owned default activation ───────────────── */
+
+final class FixtureDefaultActiveModule extends Module
+{
+    public function get_name(): string
+    {
+        return 'fixture-default-active';
+    }
+
+    public function get_title(): string
+    {
+        return 'Fixture Default Active';
+    }
+
+    public function get_icon(): string
+    {
+        return '';
+    }
+
+    public function get_description(): string
+    {
+        return '';
+    }
+
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
+    public function boot(): void {}
+}
+
+final class FixtureOptOutModule extends Module
+{
+    public function get_name(): string
+    {
+        return 'fixture-opt-out';
+    }
+
+    public function get_title(): string
+    {
+        return 'Fixture Opt Out';
+    }
+
+    public function get_icon(): string
+    {
+        return '';
+    }
+
+    public function get_description(): string
+    {
+        return '';
+    }
+
+    public function boot(): void {}
+}
+
+check('Module::is_default_active() defaults to false, so a module opts in rather than out', static function () {
+    return (new FixtureTrackedModule('fixture-bare'))->is_default_active() === false
+        && (new FixtureOptOutModule())->is_default_active() === false
+        && (new FixtureDefaultActiveModule())->is_default_active() === true
+        && !(new ReflectionMethod(Module::class, 'is_default_active'))->isAbstract();
+});
+
+check('ModuleCatalog::all() instantiates each configured module once and returns the same instances on a second call', static function () {
+    $catalog = new ModuleCatalog();
+
+    $first  = $catalog->all();
+    $second = $catalog->all();
+
+    return $first === $second
+        && $first !== []
+        && count(array_filter($first, static fn ($m) => $m instanceof Module)) === count($first);
+});
+
+check('ModuleCatalog reads the module config with require, not require_once, so a second catalog in the same request still gets the array', static function () {
+    // The regression this guards: Elemacy seeds a site before it loads
+    // modules. With require_once, whichever of the two read the config file
+    // second would receive true instead of the array, and iterating that is
+    // a runtime error rather than a visible one.
+    $first  = (new ModuleCatalog())->all();
+    $second = (new ModuleCatalog())->all();
+
+    return $first !== []
+        && count($second) === count($first)
+        && count(array_filter($second, static fn ($m) => $m instanceof Module)) === count($second);
+});
+
+check('ModuleCatalog::default_active_slugs() yields exactly the modules declaring themselves default-active', static function () {
+    $slugs = (new ModuleCatalog())->default_active_slugs();
+    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
+    sort($slugs);
+    sort($expected);
+
+    return $slugs === $expected;
+});
+
+check('ModuleCatalog skips a configured class that does not exist or is not a Module, rather than failing', static function () {
+    $catalog = new ModuleCatalog([
+        FixtureDefaultActiveModule::class,
+        'Elemacy\\Nope\\NoSuchModule',
+        ReflectionMethod::class, // exists, but is not a Module.
+        FixtureOptOutModule::class,
+    ]);
+
+    $names = array_map(static fn ($m) => $m->get_name(), $catalog->all());
+
+    return $names === ['fixture-default-active', 'fixture-opt-out'];
+});
+
+check('Elemacy seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () use ($elemacy) {
+    $catalog_property = new ReflectionProperty(Elemacy::class, 'module_catalog');
+    $catalog_property->setAccessible(true);
+    $restore = $catalog_property->getValue($elemacy);
+
+    $catalog_property->setValue($elemacy, new ModuleCatalog([
+        ThemeBuilder::class,
+        FixtureDefaultActiveModule::class,
+        FixtureOptOutModule::class,
+    ]));
+
+    delete_option(OptionKeys::ACTIVE_MODULES);
+
+    $seed = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
+    $seed->setAccessible(true);
+    $seed->invoke($elemacy);
+
+    $seeded = get_option(OptionKeys::ACTIVE_MODULES);
+
+    $catalog_property->setValue($elemacy, $restore); // Shared singleton: leave it as found.
+    delete_option(OptionKeys::ACTIVE_MODULES);
+
+    sort($seeded);
+
+    return $seeded === ['fixture-default-active', 'theme-builder'];
 });
 
 check('Elemacy activation_actions(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($elemacy) {

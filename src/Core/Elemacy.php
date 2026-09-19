@@ -26,9 +26,19 @@ class Elemacy
 {
     protected static $instance = null;
     protected ModuleManager $module_manager;
+    protected ?ModuleCatalog $module_catalog = null;
 
     /** @var ServiceProviderInterface[] */
     protected array $providers = [];
+
+    /**
+     * Providers whose boot() has already run this request. Identity-keyed,
+     * not class-keyed: two instances of one provider class are two distinct
+     * contributions and each boots once.
+     *
+     * @var \SplObjectStorage<ServiceProviderInterface, null>
+     */
+    protected \SplObjectStorage $booted_providers;
 
     /**
      * Guards the whole bootstrap, not only the provider phase: every step in
@@ -39,6 +49,8 @@ class Elemacy
 
     protected function __construct()
     {
+        $this->booted_providers = new \SplObjectStorage();
+
         $this->activation_actions();
         $this->subscribe_own_provider();
         add_action('plugins_loaded', [$this, 'init']);
@@ -90,15 +102,6 @@ class Elemacy
     {
         register_activation_hook(ELEMACY_FILE, function ($network_wide = false) {
             if (is_multisite() && $network_wide) {
-                // Seeds a bounded first batch synchronously — safe even for
-                // a very large network, unlike the previous unbounded
-                // get_sites(['number' => 0]) + synchronous foreach, which
-                // could exceed one request's execution time entirely. Any
-                // site beyond this batch is picked up by
-                // maybe_continue_network_seeding() (ordinary request
-                // traffic resuming the job, the same pattern
-                // Migrator::sync() uses) or, failing that, by that site's
-                // own lazy seeding on its first real visit.
                 update_site_option(self::NETWORK_SEED_OFFSET_OPTION, 0);
                 $this->continue_network_seeding();
 
@@ -187,17 +190,29 @@ class Elemacy
     }
 
     /**
+     * The modules a site is seeded with, asked of the modules themselves
+     * rather than kept as a second list here — so renaming a module cannot
+     * silently break seeding. Consumed as a set; the order is the
+     * configured one.
+     *
      * @return string[]
      */
     protected function default_active_modules(): array
     {
-        return [
-            'theme-builder',
-            'widgets',
-            'custom-css',
-            'dynamic-tags',
-            'popups',
-        ];
+        return $this->module_catalog()->default_active_slugs();
+    }
+
+    /**
+     * Shared by seeding and module loading, so one request instantiates each
+     * module once and the config file is read once.
+     */
+    protected function module_catalog(): ModuleCatalog
+    {
+        if ($this->module_catalog === null) {
+            $this->module_catalog = new ModuleCatalog();
+        }
+
+        return $this->module_catalog;
     }
 
     /**
@@ -220,9 +235,9 @@ class Elemacy
 
     /**
      * A duplicate call (e.g. something re-triggering plugins_loaded, or a
-     * defensive re-boot) must attach nothing a second time — see
-     * $initialized's own doc comment above for why per-provider idempotency
-     * alone does not already guarantee this.
+     * defensive re-boot) must attach nothing a second time. $initialized
+     * covers every step here; $booted_providers separately covers the
+     * provider phase for anything that reaches boot_providers() on its own.
      */
     public function init()
     {
@@ -240,6 +255,7 @@ class Elemacy
         Route::set_namespace('elemacy');
 
         do_action(Hooks::REGISTER_PROVIDERS_ACTION, $this);
+        
         $this->register_providers();
         $this->boot_providers();
 
@@ -297,13 +313,21 @@ class Elemacy
     }
 
     /**
-     * Phase two: attaches WordPress hooks. Each provider's own boot() is
-     * responsible for its own idempotency; calling this twice in one
-     * request is therefore also safe.
+     * Phase two: attaches WordPress hooks. This root, not the provider,
+     * guarantees each provider boots at most once per request — so a
+     * provider (an add-on's included) is correct without defending itself
+     * against a second call. Marked before the call, so a provider whose
+     * boot() throws is not retried into a half-attached state.
      */
     protected function boot_providers(): void
     {
         foreach ($this->providers as $provider) {
+            if ($this->booted_providers->contains($provider)) {
+                continue;
+            }
+
+            $this->booted_providers->attach($provider);
+
             $provider->boot();
         }
     }
@@ -320,18 +344,8 @@ class Elemacy
 
     protected function load_modules()
     {
-        $modules = require_once ELEMACY_PATH . 'src/Config/modules.php';
-
-        foreach ($modules as $module_class) {
-            if (!class_exists($module_class)) {
-                continue;
-            }
-
-            $module = new $module_class();
-
-            if (is_subclass_of($module, Module::class)) {
-                $this->module_manager->register($module);
-            }
+        foreach ($this->module_catalog()->all() as $module) {
+            $this->module_manager->register($module);
         }
 
         do_action(Hooks::REGISTER_MODULES_ACTION, $this->module_manager);
@@ -359,7 +373,7 @@ class Elemacy
      * Register the built-in generic "block" library type owned by Core. Block
      * items are referenced by ID rather than auto-resolved, so the library
      * always has a default type even with every module off; modules push their
-     * own specialized types (e.g.
+     * own specialized types.
      */
     protected function register_block_library_type()
     {

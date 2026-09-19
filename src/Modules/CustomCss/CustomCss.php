@@ -15,6 +15,11 @@ class CustomCss extends Module
         return 'custom-css';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Custom CSS', 'elemacy');

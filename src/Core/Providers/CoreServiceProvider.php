@@ -29,8 +29,6 @@ use Elemacy\TemplateLibrary\TypeRegistry;
  */
 class CoreServiceProvider implements ServiceProviderInterface
 {
-    protected bool $booted = false;
-
     public function register(Container $container): void
     {
         $registries = [
@@ -49,12 +47,6 @@ class CoreServiceProvider implements ServiceProviderInterface
 
     public function boot(): void
     {
-        if ($this->booted) {
-            return;
-        }
-
-        $this->booted = true;
-
         (new AdminScripts())->register_hooks();
         (new FrontendScripts())->register_hooks();
         (new PluginLinks())->register_hooks();

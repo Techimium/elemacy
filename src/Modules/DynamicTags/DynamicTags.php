@@ -14,6 +14,11 @@ class DynamicTags extends Module
         return 'dynamic-tags';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Dynamic Tags', 'elemacy');

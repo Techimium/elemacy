@@ -34,6 +34,11 @@ class Popups extends Module
         return 'popups';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Popups & Floating Elements', 'elemacy');

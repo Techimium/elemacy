@@ -30,9 +30,10 @@ Shared layers never import a feature module. A feature module never imports anot
 ## Boot lifecycle
 
 1. `elemacy.php` loads the autoloader and calls `Elemacy::get_instance()`, which subscribes its own core provider to `Hooks::REGISTER_PROVIDERS_ACTION` and waits for `plugins_loaded`.
-2. `Elemacy::init()` runs once per request. It checks requirements (Elementor present and supported), seeds a site's defaults if missing, fires `REGISTER_PROVIDERS_ACTION` so Free and Pro queue their providers, then runs every provider's `register()` before any provider's `boot()`.
+2. `Elemacy::init()` runs once per request. It checks requirements (Elementor present and supported), seeds a site's defaults if missing, fires `REGISTER_PROVIDERS_ACTION` so Free and Pro queue their providers, then runs every provider's `register()` before any provider's `boot()`. Booting at most once is the composition root's job, not the provider's: `boot_providers()` tracks booted providers by identity, so a provider does not defend itself against a second call and an add-on's provider is correct by default. Two instances of one provider class are two contributions and each boots.
 3. `ModuleManager::init_modules()` reads the active module list, runs every active module's `register()` before any module's `boot()`, then each module's routes and assets. A module is a service provider with an identity: `register()` binds what it shares, `boot()` attaches its hooks.
-4. Registrations that need translated labels (library types, admin menus, data sources, placement resolvers) hook `init`; anything an add-on contributes hooks `Hooks::LOADED_ACTION` or a domain registration action, all of which fire after every module has booted.
+4. Which modules a site starts with is owned by the modules: `Module::is_default_active()` opts a module in, and seeding activates exactly those. `Core\ModuleCatalog` is the single enumeration path shared by seeding and loading — it reads `src/Config/modules.php` with a plain `require` and caches the instantiated modules, because seeding runs before modules load and `require_once` would hand the second reader `true` instead of the array.
+5. Registrations that need translated labels (library types, admin menus, data sources, placement resolvers) hook `init`; anything an add-on contributes hooks `Hooks::LOADED_ACTION` or a domain registration action, all of which fire after every module has booted.
 
 Pro follows the same shape: `ElemacyPro` subscribes a provider to `REGISTER_PROVIDERS_ACTION`, and its extensions register into Free's registries on `LOADED_ACTION`, gated on the license and on the Free module they extend.
 
@@ -44,6 +45,7 @@ The rules:
 
 - Anything the container builds (controllers, application services) declares its dependencies as required constructor parameters. No `?Dependency $x = null` defaults there.
 - Every process-wide registry keeps its `::instance()` accessor for hook callbacks and is also bound in the container by the layer or module that owns it, so a container-built service always receives the populated singleton and never a fresh empty copy.
+- A shared registry accepts a real implementation superseding a mock stand-in, and rejects the reverse. Free ships mocks for the identifiers Pro implements; Pro registers after Free, so the real one wins. A mock arriving after a real implementation can only downgrade a live feature, so `Core\Capabilities\RegistryIdentifierGuard` refuses it rather than trusting registration order.
 - `Container::instance()` is reached for only inside classes that Elementor or WordPress instantiate (widgets, documents, dynamic tags, hook callbacks) and inside bootstrap. Application services never locate their own dependencies.
 - Route and AJAX handlers are resolved through the container lazily, inside the transport error boundary.
 
@@ -89,7 +91,7 @@ Request-level caches (matched popups, resolved templates, display settings) rese
 - Hook names live in `Core\Hooks`; no raw hook string in a consumer.
 - No custom tables. Every stored shape is documented in `docs/STORAGE.md` and changes only through a migration step.
 - Release archives are staged from an explicit manifest with production autoload metadata, verified file by file, and installed into a clean WordPress before publication; unshipped code is not on the release branch.
-- Uninstall deletes only plugin-owned data, through native deletion in bounded batches per site, and never schedules future work.
+- Uninstall deletes only plugin-owned data, through native deletion in bounded batches per site, and never schedules future work. Each plugin's `uninstall.php` runs without either bootstrap or the Composer autoloader, so it loads `Multisite\SiteBatchIterator` by path — which is why that class stays dependency-free (a plain array return, no DTO) and why Pro keeps its own copy rather than referencing Free's.
 - Every phase of a release runs the full gate in `docs/RELEASE.md`.
 
 ## Rationale digest

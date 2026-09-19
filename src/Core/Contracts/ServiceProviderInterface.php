@@ -22,9 +22,9 @@ interface ServiceProviderInterface
 
     /**
      * Attaches this provider's WordPress callbacks at the native phases
-     * they require. Must be idempotent: the composition root may call this
-     * more than once (e.g. a defensive re-boot), and a second call must not
-     * attach any hook a second time.
+     * they require. The composition root guarantees this runs at most once
+     * per request, so an implementation does not need to guard against
+     * being booted twice; one that already does stays correct.
      */
     public function boot(): void;
 }

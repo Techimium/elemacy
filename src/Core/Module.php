@@ -47,6 +47,19 @@ abstract class Module implements ServiceProviderInterface
         return false;
     }
 
+    /**
+     * Whether this module is switched on when a site is seeded, i.e. a site
+     * that has no saved module preferences yet. Each module owns this answer
+     * so that seeding never needs a separate list of slugs to drift out of
+     * sync with get_name(). Unlike is_always_active(), it is only ever
+     * consulted at seeding time: an administrator can disable a
+     * default-active module afterwards like any other.
+     */
+    public function is_default_active(): bool
+    {
+        return false;
+    }
+
     public function is_headless(): bool
     {
         return false;

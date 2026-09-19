@@ -39,6 +39,11 @@ class Widgets extends Module
         return 'widgets';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Widgets', 'elemacy');
