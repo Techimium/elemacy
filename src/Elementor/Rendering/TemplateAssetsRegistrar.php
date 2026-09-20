@@ -14,6 +14,12 @@ use Elemacy\Elementor\Compatibility\Capabilities;
 class TemplateAssetsRegistrar
 {
     /**
+     * Prepended to a stylesheet's id to take it out of the pattern the editor
+     * canvas discards; see keep_in_editor_canvas().
+     */
+    protected const EDITOR_CANVAS_ID_PREFIX = 'elemacy-';
+
+    /**
      * @var array<int, int> Post IDs already registered this request, keyed by id.
      */
     protected array $registered_ids = [];
@@ -53,6 +59,7 @@ class TemplateAssetsRegistrar
 
         add_action('wp_enqueue_scripts', [$this, 'collect']);
         add_filter('elementor/document/related_posts', [$this, 'get_related_posts'], 10, 2);
+        add_filter('style_loader_tag', [$this, 'keep_in_editor_canvas'], 10, 2);
     }
 
     /**
@@ -129,6 +136,69 @@ class TemplateAssetsRegistrar
     public function get_prepared(int $id, string $context, string $placement): ?string
     {
         return $this->renderer->get_prepared($id, $context, $placement);
+    }
+
+    /**
+     * Handler for WordPress's `style_loader_tag` filter. In the Elementor
+     * editor's preview frame, keeps a registered template's atomic stylesheet
+     * from being discarded by the canvas.
+     *
+     * Once the edited document has atomic styles of its own, the editor renders
+     * them in the browser and removes every `local-<id>-<context>-<breakpoint>-css`
+     * link from the frame. That pattern carries no document id, so it also
+     * removes the server-rendered atomic CSS of a header, footer or other
+     * template that only renders on this page — and nothing replaces it, so the
+     * template loses its styles the moment an atomic element is added. Giving a
+     * registered template's link a different id takes it out of that pattern;
+     * the stylesheet itself is untouched. The edited document's own link is
+     * left alone: the editor takes that one over, and removing it is right.
+     *
+     * @param string $tag    The <link> tag about to be printed.
+     * @param string $handle The stylesheet's registered handle.
+     * @return string
+     */
+    public function keep_in_editor_canvas($tag, $handle)
+    {
+        if (!is_string($tag) || !is_string($handle) || 1 !== preg_match('/^local-(\d+)-/', $handle, $match)) {
+            return $tag;
+        }
+
+        $id = (int) $match[1];
+        $edited_id = $this->editor_preview_document_id();
+
+        if (null === $edited_id || $id === $edited_id || !isset($this->registered_ids[$id])) {
+            return $tag;
+        }
+
+        $renamed = preg_replace(
+            '/(\sid=([\'"]))(' . preg_quote($handle . '-css', '/') . ')\2/',
+            '${1}' . self::EDITOR_CANVAS_ID_PREFIX . '${3}${2}',
+            $tag,
+            1
+        );
+
+        return is_string($renamed) ? $renamed : $tag;
+    }
+
+    /**
+     * The document being edited when this request is the editor's preview
+     * frame; null on every other request.
+     *
+     * @return int|null
+     */
+    protected function editor_preview_document_id(): ?int
+    {
+        if (!$this->capabilities->plugin_loaded()) {
+            return null;
+        }
+
+        $preview = \Elementor\Plugin::instance()->preview ?? null;
+
+        if (!is_object($preview) || !$preview->is_preview_mode()) {
+            return null;
+        }
+
+        return (int) $preview->get_post_id();
     }
 
     /**

@@ -114,12 +114,10 @@ class TemplateService
 
         $templates = [];
 
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $templates[] = $this->create_dto(get_post());
-            }
-            wp_reset_postdata();
+        // Not the_post(): it leaves a global post that wp_reset_postdata() cannot clear
+        // when the main query has none.
+        foreach ($query->posts as $post) {
+            $templates[] = $this->create_dto($post);
         }
 
         return new PaginatedResultDTO($templates, (int) $query->found_posts, (int) $query->max_num_pages, $page, $per_page);

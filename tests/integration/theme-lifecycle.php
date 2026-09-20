@@ -5,6 +5,7 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Tests\Integration\Fixtures\LibraryDocument;
+use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
@@ -36,6 +37,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
     private ThemeLifecycleHarness $harness;
     private int $post_id;
     private array $owned = [];
+    private array $owned_terms = [];
 
     protected function setUp(): void
     {
@@ -55,6 +57,9 @@ final class ThemeLifecycleTest extends IntegrationTestCase
                 wp_delete_post($id, true);
             }
             wp_delete_post($this->post_id, true);
+            foreach (array_reverse($this->owned_terms) as $term_id) {
+                wp_delete_term($term_id, 'category');
+            }
         } finally {
             $this->harness->restore();
             parent::tearDown();
@@ -125,6 +130,129 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         self::assertSame(1, $third_party_head, 'A third-party wp_head callback must still fire exactly once.');
         self::assertSame(1, $third_party_footer, 'A third-party wp_footer callback must still fire exactly once.');
         $this->assertSingleDocumentShell($html);
+    }
+
+    public function testPopupPreviewRendersWithoutTheSiteHeaderAndFooter(): void
+    {
+        $this->create_header('Elemacy Preview header');
+        $this->create_footer('Elemacy Preview footer');
+        $popup = $this->documents->create('Elemacy preview popup', 'popup', 'publish', LibraryDocument::heading('Elemacy popup body marker'));
+        $this->owned[] = $popup;
+
+        // A popup preview is served through Elementor Canvas. The generic adapter
+        // injects the header on wp_body_open, which Canvas fires: the path that used
+        // to leak the header into a popup.
+        // That every ordinary page still gets its header is asserted by the other
+        // tests in this class; this one is deliberately a single render, since the
+        // generic adapter require_once's header.php and its sibling tests share
+        // this process.
+        $this->harness->switch_theme('elemacy-fixture');
+        $preview = $this->harness->render(get_permalink($popup));
+
+        self::assertStringContainsString('Elemacy popup body marker', $preview, 'The popup preview must render the popup itself: ' . $preview);
+        self::assertSame(0, substr_count($preview, 'Elemacy Preview header'), 'A popup preview is a standalone canvas: the site header must not render beside it.');
+        self::assertSame(0, substr_count($preview, 'Elemacy Preview footer'), 'A popup preview must not render the site footer either.');
+        self::assertStringNotContainsString('<div class="elemacy-force-stretched-header">', $preview, 'No empty full-width header wrapper may be left in the page.');
+    }
+
+    public function testATemplateIsNeverRenderedAsItsOwnHeaderOrFooter(): void
+    {
+        // No conditions, so each is the global fallback and would resolve for the
+        // very request that edits it. Elementor's Full Width layout then asks for
+        // the header/footer around the template and refuses to render it inside
+        // itself ("The Template ID cannot be the same as the currently edited
+        // template"). Deliberately resolution only: a real render would need the
+        // generic adapter's require_once'd header.php.
+        $header = $this->create_header('Elemacy Self header');
+        $footer = $this->create_footer('Elemacy Self footer');
+
+        $request = new RequestSimulator();
+
+        try {
+            $manager = ThemeBuilderManager::instance();
+
+            $request->visit(get_permalink($header));
+            self::assertNull($manager->get_header_id(), 'The header being edited must not be rendered as its own header.');
+            self::assertSame($footer, $manager->get_footer_id(), 'The site footer still renders around the header being edited.');
+
+            $request->visit(get_permalink($footer));
+            self::assertSame($header, $manager->get_header_id(), 'The site header still renders around the footer being edited.');
+            self::assertNull($manager->get_footer_id(), 'The footer being edited must not be rendered as its own footer.');
+
+            $request->visit(get_permalink($this->post_id));
+            self::assertSame($header, $manager->get_header_id(), 'An ordinary page still gets the header.');
+            self::assertSame($footer, $manager->get_footer_id(), 'An ordinary page still gets the footer.');
+        } finally {
+            $request->restore();
+        }
+    }
+
+    public function testAnArchiveKeepsItsHeaderWhenTheQueriedObjectIdMatchesATemplateId(): void
+    {
+        $header = $this->create_header('Elemacy Archive header');
+        $footer = $this->create_footer('Elemacy Archive footer');
+
+        $term = wp_insert_term('Elemacy archive term ' . wp_generate_uuid4(), 'category');
+        self::assertIsArray($term, 'Could not create the fixture category.');
+        $this->owned_terms[] = (int) $term['term_id'];
+        // An archive with no posts is a 404, which is not the request under test.
+        wp_set_post_terms($this->post_id, [(int) $term['term_id']], 'category');
+
+        $link = get_term_link((int) $term['term_id'], 'category');
+        self::assertIsString($link, 'Could not build the fixture category link.');
+
+        $request = new RequestSimulator();
+
+        try {
+            $request->visit($link);
+            self::assertTrue(is_category(), 'The fixture request must really be a category archive.');
+            self::assertFalse(is_singular(), 'A category archive is not a singular request.');
+
+            // On an archive get_queried_object_id() is a TERM id — on an author
+            // archive, a user id. Those are numbered independently of posts, so a
+            // site can perfectly well have a term carrying its header template's
+            // number, and a template-vs-queried-object comparison that does not
+            // first establish the request is *for* a library post would drop the
+            // header from that one archive. Forcing the number is the only
+            // arranged part of this request; everything else is a real archive.
+            // get_queried_object() resolves lazily and rewrites queried_object_id
+            // as it goes, so let it resolve the real term first, then renumber.
+            $GLOBALS['wp_query']->get_queried_object();
+            $GLOBALS['wp_query']->queried_object_id = $header;
+            self::assertSame($header, (int) get_queried_object_id(), 'Sanity: the collision must actually be in place.');
+
+            $manager = ThemeBuilderManager::instance();
+            self::assertSame($header, $manager->get_header_id(), 'A category archive keeps its header even when a term carries the header template\'s number.');
+
+            $GLOBALS['wp_query']->queried_object_id = $footer;
+            self::assertSame($footer, $manager->get_footer_id(), 'The same holds for the footer.');
+        } finally {
+            $request->restore();
+        }
+    }
+
+    public function testElementorCanvasPageRendersWithoutTheSiteHeaderAndFooter(): void
+    {
+        $this->create_header('Elemacy Canvas header');
+        $this->create_footer('Elemacy Canvas footer');
+        $page = wp_insert_post([
+            'post_type' => 'page', 'post_status' => 'publish',
+            'post_title' => 'Canvas page', 'post_content' => 'Canvas page body marker.',
+            'meta_input' => ['_wp_page_template' => 'elementor_canvas'],
+        ], true);
+        self::assertIsInt($page);
+        $this->owned[] = $page;
+
+        // Like Elementor Pro's Theme Builder, Canvas is a blank page: the generic
+        // adapter used to print the header on wp_body_open, which Canvas fires.
+        $this->harness->switch_theme('elemacy-fixture');
+        $html = $this->harness->render(get_permalink($page));
+
+        self::assertStringContainsString('elementor-template-canvas', $html, 'The page must actually be served through Elementor Canvas: ' . $html);
+        self::assertStringContainsString('Canvas page body marker.', $html, 'The page content must still render.');
+        self::assertSame(0, substr_count($html, 'Elemacy Canvas header'), 'No site header on an Elementor Canvas page.');
+        self::assertSame(0, substr_count($html, 'Elemacy Canvas footer'), 'No site footer on an Elementor Canvas page.');
+        self::assertStringNotContainsString('<div class="elemacy-force-stretched-header">', $html, 'No empty full-width header wrapper may be left in the page.');
     }
 
     public function testDedicatedAdapterRemovesOnlyItsOwnCallbackAndPreservesThirdPartyHooks(): void

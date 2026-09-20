@@ -23,6 +23,9 @@ use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryRepository;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
+use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
+use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
+use Elemacy\Modules\ThemeBuilder\DTO\TemplateListFilterDTO;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
@@ -293,6 +296,62 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
         self::assertNull($caught, 'Updating a type to the value it already has must not throw.');
         self::assertSame('section', get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true));
+    }
+
+    /* ── Listing must not disturb the request's global post ─────────── */
+
+    public function testListingTemplatesNeverLeavesAGlobalPostBehind(): void
+    {
+        $block = Container::instance()->make(BlockTemplateService::class);
+        $popups = Container::instance()->make(PopupService::class);
+        $templates = Container::instance()->make(TemplateService::class);
+
+        $this->own($block->create(CreateBlockTemplateDTO::from_array(['title' => 'Listing loop A', 'type' => 'loop', 'status' => 'publish']))->id);
+        $this->own($block->create(CreateBlockTemplateDTO::from_array(['title' => 'Listing loop B', 'type' => 'loop', 'status' => 'publish']))->id);
+        $this->own($popups->create(CreatePopupDTO::from_array(['title' => 'Listing popup', 'type' => 'popup', 'status' => 'publish']))->id);
+        $this->own($templates->create(CreateTemplateDTO::from_array(['title' => 'Listing template', 'type' => 'single', 'status' => 'publish']))->id);
+
+        // An Elementor editor render_widget request: the main query is a preview
+        // query with no current post. wp_reset_postdata() only restores the main
+        // query's post, so a listing that used the_post() would leave the last
+        // template it listed as the global post, and a Loop widget rendering its
+        // item template would then hit Elementor's "Template ID cannot be the same
+        // as the currently edited template".
+        $saved = [$GLOBALS['wp_query'] ?? null, $GLOBALS['wp_the_query'] ?? null, $GLOBALS['post'] ?? null];
+        $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'] = new \WP_Query();
+        unset($GLOBALS['post']);
+
+        try {
+            $listings = [
+                'block templates' => static function () use ($block) {
+                    return $block->get_all(BlockTemplateListFilterDTO::from_array([]));
+                },
+                'block templates (unbounded)' => static function () use ($block) {
+                    return $block->get_all_unbounded(BlockTemplateListFilterDTO::from_array([]));
+                },
+                'popups' => static function () use ($popups) {
+                    return $popups->get_all(PopupListFilterDTO::from_array([]));
+                },
+                'theme templates' => static function () use ($templates) {
+                    return $templates->get_all(TemplateListFilterDTO::from_array([]));
+                },
+            ];
+
+            foreach ($listings as $what => $list) {
+                $result = $list();
+                $items = is_array($result) ? $result : $result->items;
+
+                self::assertNotEmpty($items, "Sanity: the $what listing must return the items created above.");
+                self::assertFalse(get_the_ID(), "Listing $what must not leave a global post behind.");
+            }
+        } finally {
+            [$GLOBALS['wp_query'], $GLOBALS['wp_the_query']] = [$saved[0], $saved[1]];
+            if (null !== $saved[2]) {
+                $GLOBALS['post'] = $saved[2];
+            } else {
+                unset($GLOBALS['post']);
+            }
+        }
     }
 
     /* ── Wrong-group writes: must already fail without mutation ─────── */

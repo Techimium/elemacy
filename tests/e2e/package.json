@@ -5,7 +5,8 @@
     "scripts": {
         "test": "node run-popups.mjs",
         "test:builders": "node run-builders.mjs",
-        "test:popup-assets": "node run-popup-assets.mjs"
+        "test:popup-assets": "node run-popup-assets.mjs",
+        "test:editor-template-styles": "node run-editor-template-styles.mjs"
     },
     "devDependencies": {
         "playwright-core": "^1.49.0"

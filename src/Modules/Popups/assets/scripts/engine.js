@@ -204,6 +204,15 @@
 		}
 		content.classList.add('elemacy-popup__box');
 
+		// The author's content scrolls in its own element so the box never clips
+		// the close button when it is positioned outside the popup.
+		var scroller = document.createElement('div');
+		scroller.className = 'elemacy-popup__scroll';
+		while (content.firstChild) {
+			scroller.appendChild(content.firstChild);
+		}
+		content.appendChild(scroller);
+
 		// Auto-injected close button when enabled. It carries the
 		// `elemacy-close-popup` class so the delegated click handler closes it.
 		if (display.close && display.close.button) {

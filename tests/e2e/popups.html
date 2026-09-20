@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <title>Elemacy popups engine harness</title>
+<style>
+/* Stand-in for the popup's generated Elementor post CSS: the selector shape the
+   close button's "Distance From Edge" control emits (PopupDocument's $btn) for a
+   negative value. It is deliberately declared BEFORE popups.css, as on a real
+   site, so it only wins by specificity, not by source order. */
+.elementor-108 button.elemacy-popup__close,
+.elementor-109 button.elemacy-popup__close{top:-30px;right:-30px}
+</style>
 <link rel="stylesheet" href="popups.css">
 <style>.spacer{height:3000px}</style>
 </head>
@@ -57,12 +65,33 @@
     </template>
   </div>
 
+  <!-- 108-110: close button placement fixtures (outside on a floating popup and a
+       modal; default offset on a modal whose content is taller than the viewport) -->
+  <div class="elemacy-popup elemacy-popup-108 elemacy-popup--floating" data-elemacy-popup-id="108" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-108" style="width:320px"><p>floating content</p></div>
+    </template>
+  </div>
+  <div class="elemacy-popup elemacy-popup-109 elemacy-popup--popup" data-elemacy-popup-id="109" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup I" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-109" style="width:400px"><p>modal content</p></div>
+    </template>
+  </div>
+  <div class="elemacy-popup elemacy-popup-110 elemacy-popup--popup" data-elemacy-popup-id="110" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup J" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-110" style="width:400px"><div style="height:1800px">tall content</div></div>
+    </template>
+  </div>
+
   <button type="button" class="open-b">open popup B (click trigger)</button>
   <button type="button" class="elemacy-open-popup" data-popup-id="102">explicit open B</button>
   <button type="button" class="open-d">open popup D (click trigger)</button>
   <button type="button" class="open-e">open popup E (click trigger)</button>
   <button type="button" class="open-f">open popup F (click trigger)</button>
   <button type="button" class="open-g">open popup G (click trigger)</button>
+  <button type="button" class="open-h">open popup H (click trigger)</button>
+  <button type="button" class="open-i">open popup I (click trigger)</button>
+  <button type="button" class="open-j">open popup J (click trigger)</button>
 
   <div class="spacer"></div>
 
@@ -168,6 +197,45 @@
             prevent_body_scroll: true, z_index: 9999
           },
           storage_key: 'elemacy_popup_107'
+        },
+        {
+          id: 108, type: 'floating', modal: false,
+          triggers: [{ type: 'click', selector: '.open-h' }],
+          rules: [],
+          display: {
+            position: 'bottom-right', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_108'
+        },
+        {
+          id: 109, type: 'popup', modal: true,
+          triggers: [{ type: 'click', selector: '.open-i' }],
+          rules: [],
+          display: {
+            position: 'center', sticky: false,
+            overlay: { enabled: true, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_109'
+        },
+        {
+          id: 110, type: 'popup', modal: true,
+          triggers: [{ type: 'click', selector: '.open-j' }],
+          rules: [],
+          display: {
+            position: 'center', sticky: false,
+            overlay: { enabled: true, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_110'
         }
       ],
       i18n: { close: 'Close' }

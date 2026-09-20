@@ -133,12 +133,12 @@ class BlockTemplateService
     {
         $templates = [];
 
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $templates[] = $this->create_dto(get_post());
-            }
-            wp_reset_postdata();
+        // Walk the result directly. the_post() would leave the last template as the
+        // global post, and wp_reset_postdata() cannot undo that when the main query
+        // has no current post (an Elementor editor render): a Loop widget listing its
+        // item templates would then find itself "inside" one of them.
+        foreach ($query->posts as $post) {
+            $templates[] = $this->create_dto($post);
         }
 
         return $templates;

@@ -86,9 +86,11 @@ class ThemeBuilderManager
      */
     public function register_template_assets(TemplateAssetsRegistrar $registrar): void
     {
+        $canvas = $this->is_canvas_template();
+
         $placements = [
-            'header' => $this->get_header_id(),
-            'footer' => $this->get_footer_id(),
+            'header' => $canvas ? null : $this->get_header_id(),
+            'footer' => $canvas ? null : $this->get_footer_id(),
             'location' => $this->get_location_template_id(),
         ];
 
@@ -145,7 +147,7 @@ class ThemeBuilderManager
      */
     public function get_header_id()
     {
-        return $this->resolver->resolve('header');
+        return $this->excluding_edited_template($this->resolver->resolve('header'));
     }
 
     /**
@@ -155,7 +157,41 @@ class ThemeBuilderManager
      */
     public function get_footer_id()
     {
-        return $this->resolver->resolve('footer');
+        return $this->excluding_edited_template($this->resolver->resolve('footer'));
+    }
+
+    /**
+     * A template is never its own header or footer. While one is edited or
+     * previewed the request is for that template, and rendering it inside
+     * itself is what Elementor's recursion guard refuses ("The Template ID
+     * cannot be the same as the currently edited template").
+     *
+     * Deliberately scoped to a request *for* a library post: only then is
+     * get_queried_object_id() a post id at all. On an archive it is a term id,
+     * and on an author archive a user id — separate numbering from post ids,
+     * so an unscoped comparison would drop the header from any archive whose
+     * term merely happened to carry a resolved template's number.
+     */
+    protected function excluding_edited_template(?int $id): ?int
+    {
+        if (null === $id || !is_singular(LibraryPostType::POST_TYPE)) {
+            return $id;
+        }
+
+        return $id === (int) get_queried_object_id() ? null : $id;
+    }
+
+    /**
+     * Whether Elementor is serving this request through its Canvas template.
+     * Canvas is a blank page, so — as with Elementor Pro's Theme Builder — no
+     * header or footer renders on it. canvas.php tags the body with this class
+     * as its first statement, ahead of wp_head() and wp_body_open() (where the
+     * generic adapters print the header), and it is present however the request
+     * reached Canvas: a page template, the Kit default, or a popup preview.
+     */
+    protected function is_canvas_template(): bool
+    {
+        return in_array('elementor-template-canvas', get_body_class(), true);
     }
 
     /**
@@ -203,7 +239,7 @@ class ThemeBuilderManager
      */
     public function render_header(): void
     {
-        if (!empty($this->rendered_locations['header'])) {
+        if (!empty($this->rendered_locations['header']) || $this->is_canvas_template()) {
             return;
         }
 
@@ -224,7 +260,7 @@ class ThemeBuilderManager
      */
     public function render_footer(): void
     {
-        if (!empty($this->rendered_locations['footer'])) {
+        if (!empty($this->rendered_locations['footer']) || $this->is_canvas_template()) {
             return;
         }
 

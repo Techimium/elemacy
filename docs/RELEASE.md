@@ -35,7 +35,8 @@ python3 tests/integration/setup.py --private-mysql --wordpress-source /path/to/w
 export ELEMACY_TEST_ENV=/tmp/elemacy-integration-<token>/environment.json   # printed by setup
 php tests/integration/run.php --exclude-group requires-acf-pro              # drop the flag with ACF Pro
 cd tests/e2e && node run-builders.mjs && node run-loop-pagination.mjs \
-    && node run-popup-assets.mjs && node run-form-submissions.mjs
+    && node run-popup-assets.mjs && node run-form-submissions.mjs \
+    && node run-editor-template-styles.mjs
 ```
 
 Tear the site down afterwards:

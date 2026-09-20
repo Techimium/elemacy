@@ -171,6 +171,7 @@ jobs:
           node run-popup-assets.mjs
           node run-loop-pagination.mjs
           node run-form-submissions.mjs
+          node run-editor-template-styles.mjs
 
   package:
     name: Verify the generated Free archive

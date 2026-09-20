@@ -382,6 +382,87 @@ await check('scroll lock fully releases once the last modal from this block clos
 
 await page.evaluate(() => window.ElemacyPopups.close(103));
 
+/* ── Close button placement: a button positioned outside the popup must still
+   render and be clickable there (the box must not clip it), and long content
+   must scroll without moving it. 108/109 push the button outside via CSS the
+   way a negative "Distance From Edge" does; 110 keeps the default offset. ── */
+const closeGeometry = (id) => page.evaluate((pid) => {
+  const box = document.querySelector(`[data-elemacy-popup-id="${pid}"] .elemacy-popup__box`);
+  const btn = box.querySelector(':scope > .elemacy-popup__close');
+  const scroller = box.querySelector(':scope > .elemacy-popup__scroll');
+  const b = box.getBoundingClientRect();
+  const c = btn.getBoundingClientRect();
+  const cx = c.left + c.width / 2;
+  const cy = c.top + c.height / 2;
+  return {
+    box: { l: b.left, t: b.top, r: b.right, b: b.bottom, h: b.height },
+    btn: { l: c.left, t: c.top, r: c.right, b: c.bottom },
+    centerOutsideBox: cx > b.right || cx < b.left || cy < b.top || cy > b.bottom,
+    hitIsButton: document.elementFromPoint(cx, cy) === btn,
+    boxOverflow: getComputedStyle(box).overflow,
+    hasScroller: !!scroller,
+    scrollerOverflowY: scroller ? getComputedStyle(scroller).overflowY : null,
+    scrollerScrollable: scroller ? scroller.scrollHeight > scroller.clientHeight : false,
+    scrollTop: scroller ? scroller.scrollTop : null,
+  };
+}, id);
+
+await page.evaluate(() => window.ElemacyPopups.open(108));
+await page.waitForTimeout(50);
+const g108 = await closeGeometry(108);
+await check('floating: a close button placed outside the popup is not clipped by the box', async () =>
+  g108.centerOutsideBox && g108.hitIsButton);
+await page.evaluate(() => window.ElemacyPopups.close(108));
+
+await page.evaluate(() => window.ElemacyPopups.open(109));
+await page.waitForTimeout(50);
+const g109 = await closeGeometry(109);
+await check('modal: a close button placed outside the popup is not clipped by the box', async () =>
+  g109.centerOutsideBox && g109.hitIsButton);
+await check('the popup box is a plain frame (no overflow) and its content lives in its own scroll element', async () =>
+  g109.boxOverflow === 'visible' && g109.hasScroller);
+await page.evaluate(() => window.ElemacyPopups.close(109));
+
+await page.evaluate(() => window.ElemacyPopups.open(110));
+await page.waitForTimeout(50);
+const g110 = await closeGeometry(110);
+await check('default offset: the close button sits inside the popup top-right corner, 10px in', async () =>
+  !g110.centerOutsideBox
+  && Math.abs((g110.box.r - g110.btn.r) - 10) <= 1
+  && Math.abs((g110.btn.t - g110.box.t) - 10) <= 1);
+await check('tall content: the box stays within the viewport limit and its content scrolls in the scroll element', async () =>
+  g110.box.h <= 800 - 40 + 1 && g110.scrollerOverflowY === 'auto' && g110.scrollerScrollable);
+await page.evaluate(() => {
+  const scroller = document.querySelector('.elemacy-popup-110 .elemacy-popup__scroll');
+  if (scroller) scroller.scrollTop = 300;
+});
+const g110scrolled = await closeGeometry(110);
+await check('scrolling the content (by 300px) leaves the close button where it was', async () =>
+  g110scrolled.scrollTop === 300
+  && Math.abs(g110scrolled.btn.t - g110.btn.t) < 0.5 && Math.abs(g110scrolled.btn.l - g110.btn.l) < 0.5);
+await page.evaluate(() => window.ElemacyPopups.close(110));
+
+/* ── The default run hides scrollbars (headless default), which is exactly the
+   condition where a button-over-scrollbar overlap cannot show. Re-check the
+   tall popup in a browser that draws classic scrollbars. ── */
+const scrollbarBrowser = await chromium.launch({ ...launchOptions, ignoreDefaultArgs: ['--hide-scrollbars'] });
+const scrollbarPage = await (await scrollbarBrowser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
+await scrollbarPage.goto(base + '/');
+await scrollbarPage.evaluate(() => { window.ElemacyPopups.close(101); window.ElemacyPopups.open(110); });
+await scrollbarPage.waitForTimeout(150);
+const sb = await scrollbarPage.evaluate(() => {
+  const box = document.querySelector('.elemacy-popup-110 .elemacy-popup__box');
+  const scroller = box.querySelector(':scope > .elemacy-popup__scroll');
+  const btn = box.querySelector(':scope > .elemacy-popup__close');
+  return {
+    scrollbarWidth: scroller.offsetWidth - scroller.clientWidth,
+    overlap: btn.getBoundingClientRect().right - (scroller.getBoundingClientRect().left + scroller.clientWidth),
+  };
+});
+await scrollbarBrowser.close();
+await check('classic scrollbars are actually drawn in this check (otherwise it proves nothing)', async () => sb.scrollbarWidth > 0);
+await check('a visible scrollbar on a tall popup does not sit under the default-offset close button', async () => sb.overlap <= 0.5);
+
 await check('no page errors across all loads', async () => errors.length === 0);
 
 console.log(results.join('\n'));

@@ -116,12 +116,10 @@ class PopupService
 
         $popups = [];
 
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $popups[] = $this->create_dto(get_post());
-            }
-            wp_reset_postdata();
+        // Not the_post(): it leaves a global post that wp_reset_postdata() cannot clear
+        // when the main query has none.
+        foreach ($query->posts as $post) {
+            $popups[] = $this->create_dto($post);
         }
 
         return new PaginatedResultDTO($popups, (int) $query->found_posts, (int) $query->max_num_pages, $page, $per_page);

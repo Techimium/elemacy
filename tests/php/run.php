@@ -297,6 +297,11 @@ final class TestableEditorPreview extends EditorPreview
     {
         return $this->overlay_css();
     }
+
+    public function get_close_base_css(): string
+    {
+        return $this->close_base_css();
+    }
 }
 
 /* ── Core\Container fixtures ─────────────────────────────────────── */
@@ -387,6 +392,15 @@ check('popup preview wrapper adds no visual decoration', static function () {
         && false === strpos($css, 'box-shadow');
 });
 
+check('popup preview hides the close button while the popup document is empty', static function () {
+    $css = (new TestableEditorPreview())->get_close_base_css();
+
+    return false !== strpos(
+        $css,
+        '[data-elementor-type="elemacy_popup"]:has(.elementor-section-wrap:empty) .elemacy-popup__close{display:none;}'
+    );
+});
+
 check('popup frontend wrapper adds no visual decoration', static function () {
     $css = file_get_contents(
         dirname(__DIR__, 2) . '/src/Modules/Popups/assets/styles/popups.css'
@@ -399,6 +413,57 @@ check('popup frontend wrapper adds no visual decoration', static function () {
     return false === strpos($box_css, 'background')
         && false === strpos($box_css, 'border-radius')
         && false === strpos($box_css, 'box-shadow');
+});
+
+check('close button controls outrank the popups.css fallback rule for the button', static function () {
+    $root = dirname(__DIR__, 2);
+    $php  = file_get_contents($root . '/src/Modules/Popups/Documents/PopupDocument.php');
+    $css  = file_get_contents($root . '/src/Modules/Popups/assets/styles/popups.css');
+
+    if (!preg_match('/CLOSE_BUTTON_SELECTOR = \'([^\']+)\';/', $php, $control)
+        || !preg_match('/^(\.elemacy-popup \.elemacy-popup__close)\s*\{/m', $css, $base)) {
+        return false;
+    }
+
+    // [ids, classes/attributes/pseudo-classes, element types]; arrays compare lexicographically.
+    $specificity = static function (string $selector): array {
+        $selector = str_replace('{{WRAPPER}}', '.elementor-1', $selector);
+        preg_match_all('/#[\w-]+/', $selector, $ids);
+        preg_match_all('/\.[\w-]+|\[[^\]]*\]|(?<!:):(?!:)[\w-]+/', $selector, $classes);
+        preg_match_all('/(?:^|[\s>+~])([a-zA-Z][\w-]*)/', $selector, $types);
+
+        return [count($ids[0]), count($classes[0]), count($types[0])];
+    };
+
+    // Both rules ship in different stylesheets and popups.css loads last on the
+    // site, so a tie lets the fallback silently beat the author's settings.
+    return $specificity($control[1]) > $specificity($base[1]);
+});
+
+check('the Distance From Edge slider can actually reach outside the popup', static function () {
+    $php = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/Popups/Documents/PopupDocument.php');
+
+    // Placing the close button outside the popup is the whole point of the
+    // negative range, and it is only reachable from the UI if the slider's own
+    // minimum is negative. Elementor strips 'range' from a control's registered
+    // args outside the editor and the fast harness stubs Elementor, so the
+    // source is where this is observable.
+    if (!preg_match('/\'elemacy_close_offset\',.*?\'range\'\s*=>\s*\[\s*\'px\'\s*=>\s*\[(.*?)\]/s', $php, $range)) {
+        return false;
+    }
+
+    return preg_match('/\'min\'\s*=>\s*(-?\d+)/', $range[1], $min) && (int) $min[1] < 0;
+});
+
+check('every close button rule the document emits goes through that one selector', static function () {
+    $php = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/Popups/Documents/PopupDocument.php');
+
+    // The Close Button toggle lives in the display section and the look/size
+    // controls in the style section; a bare selector left behind in either is a
+    // rule that loses the tie to popups.css on the frontend while still winning
+    // in the editor, which is exactly the split this selector exists to close.
+    return false === strpos($php, "'{{WRAPPER}} .elemacy-popup__close'")
+        && substr_count($php, 'self::CLOSE_BUTTON_SELECTOR') >= 2;
 });
 
 check('popup overlay blur defaults preserve existing appearance', static function () {
@@ -1007,6 +1072,23 @@ final class FakeElementorFrontend
     }
 }
 
+final class FakeElementorPreview
+{
+    public function __construct(private bool $preview_mode, private int $post_id)
+    {
+    }
+
+    public function is_preview_mode(): bool
+    {
+        return $this->preview_mode;
+    }
+
+    public function get_post_id(): int
+    {
+        return $this->post_id;
+    }
+}
+
 check('renderer delegates to Elementor when loaded', static function () {
     \Elementor\Plugin::$instance = new \Elementor\Plugin();
     \Elementor\Plugin::$instance->frontend = new FakeElementorFrontend();
@@ -1122,6 +1204,81 @@ check('registrar wires related_posts to merge registered ids only for the curren
     $GLOBALS['__current_post_id'] = 0;
 
     return $for_queried_post === [9, 606] && $for_other_post === [9];
+});
+
+/**
+ * WordPress prints <link rel='stylesheet' id='{handle}-css' …>; the editor
+ * canvas removes every link whose id matches local-<id>-…-css.
+ */
+function template_stylesheet_tag(string $handle, string $quote = "'"): string
+{
+    return "<link rel={$quote}stylesheet{$quote} id={$quote}{$handle}-css{$quote} href={$quote}https://example.test/{$handle}.css?ver=1{$quote} media={$quote}all{$quote} />\n";
+}
+
+/**
+ * Runs $assertion with a registrar that has template 707 registered, on a
+ * request that is (or is not) the editor's preview frame for $edited_id, then
+ * puts the shared Elementor stub back the way it was.
+ */
+function with_editor_canvas_registrar(bool $preview_mode, int $edited_id, callable $assertion): bool
+{
+    reset_template_assets_hooks();
+    unset($GLOBALS['__wp_actions']['style_loader_tag']);
+
+    $elementor = \Elementor\Plugin::instance();
+    $previous_preview = $elementor->preview;
+    $elementor->preview = new FakeElementorPreview($preview_mode, $edited_id);
+
+    try {
+        $registrar = new TemplateAssetsRegistrar();
+        $registrar->register_hooks();
+        $registrar->register(707);
+
+        return (bool) $assertion();
+    } finally {
+        $elementor->preview = $previous_preview;
+    }
+}
+
+check('registrar renames a registered template\'s atomic stylesheet id inside the editor preview, leaving the rest of the tag intact', static function () {
+    return with_editor_canvas_registrar(true, 55, static function () {
+        $single = template_stylesheet_tag('local-707-preview-desktop');
+        $double = template_stylesheet_tag('local-707-preview-desktop', '"');
+
+        $filtered_single = apply_filters('style_loader_tag', $single, 'local-707-preview-desktop', '', 'all');
+        $filtered_double = apply_filters('style_loader_tag', $double, 'local-707-preview-desktop', '', 'all');
+
+        return $filtered_single === str_replace("id='local-707-", "id='elemacy-local-707-", $single)
+            && $filtered_double === str_replace('id="local-707-', 'id="elemacy-local-707-', $double);
+    });
+});
+
+check('registrar leaves the atomic stylesheet of the document being edited alone — the editor takes that one over', static function () {
+    return with_editor_canvas_registrar(true, 707, static function () {
+        $tag = template_stylesheet_tag('local-707-preview-desktop');
+
+        return apply_filters('style_loader_tag', $tag, 'local-707-preview-desktop', '', 'all') === $tag;
+    });
+});
+
+check('registrar leaves atomic stylesheets untouched outside the editor preview', static function () {
+    return with_editor_canvas_registrar(false, 0, static function () {
+        $tag = template_stylesheet_tag('local-707-preview-desktop');
+
+        return apply_filters('style_loader_tag', $tag, 'local-707-preview-desktop', '', 'all') === $tag;
+    });
+});
+
+check('registrar only renames stylesheets of templates it registered, and only local atomic ones', static function () {
+    return with_editor_canvas_registrar(true, 55, static function () {
+        $unregistered = template_stylesheet_tag('local-808-preview-desktop');
+        $global_classes = template_stylesheet_tag('global-preview-desktop');
+        $classic = template_stylesheet_tag('elementor-post-707');
+
+        return apply_filters('style_loader_tag', $unregistered, 'local-808-preview-desktop', '', 'all') === $unregistered
+            && apply_filters('style_loader_tag', $global_classes, 'global-preview-desktop', '', 'all') === $global_classes
+            && apply_filters('style_loader_tag', $classic, 'elementor-post-707', '', 'all') === $classic;
+    });
 });
 
 /* ── Core\Rendering\AtomicStylesRenderer (Elementor atomic classes

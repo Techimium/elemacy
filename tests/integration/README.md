@@ -65,6 +65,10 @@ Run `php tests/integration/run.php --filter FormSubmissionsTest` with `ELEMACY_T
 
 Run `node tests/e2e/run-form-submissions.mjs` for ordinary page, Theme Builder header, and hydrated popup submissions, including server field errors and frontend recovery. `node tests/e2e/run-popup-assets.mjs` additionally checks popup assets, child-widget hydration, submission acceptance, and reopening. Set `ELEMACY_CHROMIUM` if Chromium is not in Playwright's default cache. Run browser and database suites sequentially against each disposable environment. The reports are retained beside its manifest.
 
+## Editor canvas and template styles
+
+Run `node tests/e2e/run-editor-template-styles.mjs` to open a page in the real Elementor editor whose Theme Builder header and footer are authored with atomic elements, add atomic elements to the page, and check the header and footer keep their computed styles. It switches the disposable site to the fixture theme and restores the previous theme with its own fixture documents in `finally`.
+
 ## Native uninstall lifecycle
 
 Use a disposable site only. With `ELEMACY_TEST_ENV` pointing to its manifest, run:

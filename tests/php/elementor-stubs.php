@@ -23,6 +23,9 @@ class Plugin
     /** @var object|null */
     public $editor;
 
+    /** @var object|null */
+    public $preview;
+
     /** @var \Elementor\Core\Documents_Manager */
     public $documents;
 

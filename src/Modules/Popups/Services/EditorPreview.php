@@ -137,11 +137,13 @@ class EditorPreview
     /**
      * Structural styles for the injected close button. Visibility comes from the
      * Close Button toggle (display) and all look/size from the Close Button
-     * style controls, so everything previews live.
+     * style controls, so everything previews live. The button stays hidden until
+     * the popup has content, whatever the toggle says.
      */
     protected function close_base_css(): string
     {
         return '.elemacy-popup__close{position:absolute;display:none;z-index:2;align-items:center;'
-            . 'justify-content:center;box-sizing:border-box;padding:0;margin:0;line-height:1;cursor:pointer;}';
+            . 'justify-content:center;box-sizing:border-box;padding:0;margin:0;line-height:1;cursor:pointer;}'
+            . '[data-elementor-type="elemacy_popup"]:has(.elementor-section-wrap:empty) .elemacy-popup__close{display:none;}';
     }
 }

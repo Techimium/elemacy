@@ -35,9 +35,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
 
             // Primary injection point.
             add_action('wp_body_open', function () use ($manager) {
-                echo '<div class="elemacy-force-stretched-header">';
-                $manager->render_header();
-                echo '</div>';
+                $this->print_stretched_header($manager);
             }, 5);
 
             /**
@@ -46,9 +44,7 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
              * can call it if needed without breaking markup.
              */
             add_action(Hooks::THEME_BUILDER_FALLBACK_HEADER_ACTION, function () use ($manager) {
-                echo '<div class="elemacy-force-stretched-header">';
-                $manager->render_header();
-                echo '</div>';
+                $this->print_stretched_header($manager);
             }, 10);
         }
 
@@ -108,6 +104,24 @@ class GlobalCompatibility implements ThemeCompatibilityInterface
 
                 wp_add_inline_style($handle, $css);
             }, 50);
+        }
+    }
+
+    /**
+     * Prints the stretched wrapper only around a header that actually rendered:
+     * the wrapper is 100vw wide, so an empty one (Canvas pages render no header,
+     * and a second request for an already-rendered header prints nothing) would
+     * leave a full-width element in the page.
+     */
+    private function print_stretched_header(ThemeBuilderManager $manager): void
+    {
+        ob_start();
+        $manager->render_header();
+        $header = (string) ob_get_clean();
+
+        if ('' !== $header) {
+            // PHPCS - already escaped by Elementor.
+            echo '<div class="elemacy-force-stretched-header">' . $header . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
     }
 }

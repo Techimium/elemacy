@@ -59,6 +59,8 @@ final class ThemeLifecycleHarness
 
     private array $construction_baseline = [];
     private array $theme_baseline = [];
+    /** @var string[] Elementor's per-request frontend body classes before any simulated render. */
+    private array $body_classes_baseline = [];
     private string $previous_theme;
     private RequestSimulator $request;
 
@@ -66,6 +68,7 @@ final class ThemeLifecycleHarness
     {
         $this->construction_baseline = $this->snapshot();
         $this->theme_baseline = $this->construction_baseline;
+        $this->body_classes_baseline = $this->elementor_body_classes();
         $this->previous_theme = get_stylesheet();
         $this->request = new RequestSimulator();
     }
@@ -138,6 +141,7 @@ final class ThemeLifecycleHarness
         $wp_scripts = null;
         $this->restore_snapshot($this->theme_baseline);
         $this->reset_theme_builder_manager();
+        $this->set_elementor_body_classes($this->body_classes_baseline);
 
         $this->request->visit($url);
         $baseline_level = ob_get_level();
@@ -166,6 +170,7 @@ final class ThemeLifecycleHarness
     public function restore(): void
     {
         $this->restore_snapshot($this->construction_baseline);
+        $this->set_elementor_body_classes($this->body_classes_baseline);
         $this->request->restore();
         switch_theme($this->previous_theme);
     }
@@ -212,5 +217,29 @@ final class ThemeLifecycleHarness
         $property = new \ReflectionProperty(\Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager::class, 'rendered_locations');
         $property->setAccessible(true);
         $property->setValue(\Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager::instance(), []);
+    }
+
+    /**
+     * Elementor's frontend keeps its body classes for the life of the PHP
+     * process; canvas.php adds `elementor-template-canvas` to them. A real
+     * request is one process, but this harness simulates many, so a Canvas
+     * render would otherwise make every later render look like Canvas.
+     *
+     * @return string[]
+     */
+    private function elementor_body_classes(): array
+    {
+        $property = new \ReflectionProperty(\Elementor\Frontend::class, 'body_classes');
+        $property->setAccessible(true);
+
+        return (array) $property->getValue(\Elementor\Plugin::$instance->frontend);
+    }
+
+    /** @param string[] $classes */
+    private function set_elementor_body_classes(array $classes): void
+    {
+        $property = new \ReflectionProperty(\Elementor\Frontend::class, 'body_classes');
+        $property->setAccessible(true);
+        $property->setValue(\Elementor\Plugin::$instance->frontend, $classes);
     }
 }
