@@ -27,4 +27,3 @@ class NeveCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

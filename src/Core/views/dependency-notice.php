@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @var array{title:string,message:string,action_url:?string,button_label:string} $data
  */

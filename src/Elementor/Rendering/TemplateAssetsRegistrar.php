@@ -5,6 +5,7 @@ namespace Elemacy\Elementor\Rendering;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
+use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Compatibility\Capabilities;
 
 /**
@@ -57,6 +58,9 @@ class TemplateAssetsRegistrar
 
         $this->registered = true;
 
+        RequestState::register(self::class, function (): void {
+            $this->registered_ids = [];
+        });
         add_action('wp_enqueue_scripts', [$this, 'collect']);
         add_filter('elementor/document/related_posts', [$this, 'get_related_posts'], 10, 2);
         add_filter('style_loader_tag', [$this, 'keep_in_editor_canvas'], 10, 2);
@@ -107,7 +111,7 @@ class TemplateAssetsRegistrar
     }
 
     /**
-     * register's CSS bridging plus a full early render of $id for ($context,
+     * The CSS bridging of register(), plus a full early render of $id for ($context,
      * $placement), so its widgets' interactive dependencies are queued before
      * this request's asset-output deadlines and the resulting fragment can be
      * emitted later — via TemplateRenderer's own get_prepared(), with no need to

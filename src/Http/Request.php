@@ -141,8 +141,9 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
+     * @param array $data The request data.
      * @param array $rules The validation rules.
-     * @throws ValidationException
+     * @throws ValidationException When the data fails a rule.
      *
      * @return Validator
      */
@@ -163,6 +164,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
+     * @param array $data The request data.
      * @param array $filters The filters to apply.
      * @return Sanitizer
      */
@@ -295,7 +297,7 @@ class Request implements BaseRequest
      *
      * @param string $key The key to retrieve.
      * @param string $type Optional type to cast the result to: int, float, bool, string, array with proper sanitization.
-     * @param mixed $default_value Default value if the key doesn't exist.
+     * @param mixed  $default_value Default value if the key doesn't exist.
      * @return mixed|null
      */
     public function get(string $key, string $type, $default_value = null)
@@ -312,7 +314,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -326,7 +328,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
@@ -340,7 +342,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
@@ -354,7 +356,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -368,7 +370,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -382,7 +384,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -396,7 +398,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -410,7 +412,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -424,7 +426,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -438,7 +440,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -452,7 +454,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -466,7 +468,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string   $key The key to retrieve.
      * @param int|null $default_value Default value if the key doesn't exist.
      * @return int|null
      */
@@ -481,7 +483,7 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param bool $default_value Default value if the key doesn't exist.
+     * @param bool   $default_value Default value if the key doesn't exist.
      * @return bool
      */
     public function get_bool(string $key, bool $default_value = false)
@@ -494,7 +496,7 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string     $key The key to retrieve.
      * @param float|null $default_value Default value if the key doesn't exist.
      * @return float|null
      */
@@ -509,7 +511,7 @@ class Request implements BaseRequest
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float $default_value Default value if the key doesn't exist.
+     * @param float  $default_value Default value if the key doesn't exist.
      * @return float
      */
     public function get_money(string $key, $default_value = 0)
@@ -522,12 +524,12 @@ class Request implements BaseRequest
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string     $key The key to retrieve.
      * @param array|null $default_value Default value if the key doesn't exist.
      * @return array|null
      */
     public function get_array(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::ARRAY , $default_value);
+        return $this->get($key, Sanitizer::ARRAY, $default_value);
     }
 }

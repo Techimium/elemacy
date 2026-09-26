@@ -16,6 +16,9 @@ final class PaginationContextSigner
     private const PURPOSE = 'elemacy_loop_context';
 
     /**
+     * @param int    $owner_id The document that owns the loop widget.
+     * @param string $widget_id The loop widget's Elementor element id.
+     * @param string $fingerprint The saved widget definition's fingerprint.
      * @param string $type Registered placement key (see PlacementResolverRegistry).
      * @param array  $facts Host facts already verified by that placement's resolver.
      * @return string Opaque token matching PublicLoopRequest's context shape.
@@ -54,21 +57,25 @@ final class PaginationContextSigner
             throw self::unavailable();
         }
 
-        if (!is_array($claims)
+        if (
+            !is_array($claims)
             || ($claims['blog_id'] ?? null) !== get_current_blog_id()
             || ($claims['expires'] ?? 0) < time()
             || ($claims['owner_id'] ?? null) !== $owner_id
             || ($claims['widget_id'] ?? null) !== $widget_id
             || !isset($claims['fingerprint']) || !is_string($claims['fingerprint']) || !hash_equals($claims['fingerprint'], $fingerprint)
             || !isset($claims['type']) || !is_string($claims['type'])
-            || !isset($claims['facts']) || !is_array($claims['facts'])) {
+            || !isset($claims['facts']) || !is_array($claims['facts'])
+        ) {
             throw self::unavailable();
         }
 
         $host = (int) ($claims['host_id'] ?? 0);
         $lineage = $claims['type'] === 'nested_loop' ? ($claims['facts']['lineage'] ?? []) : [];
-        if (!is_array($lineage) || count($lineage) > 10
-            || ($claims['type'] === 'nested_loop' && (!$lineage || end($lineage) !== $owner_id))) {
+        if (
+            !is_array($lineage) || count($lineage) > 10
+            || ($claims['type'] === 'nested_loop' && (!$lineage || end($lineage) !== $owner_id))
+        ) {
             throw self::unavailable();
         }
         foreach (array_unique(array_merge($host ? [$host] : [], $lineage)) as $id) {
@@ -91,7 +98,7 @@ final class PaginationContextSigner
 
     private static function encode(string $json): string
     {
-        return rtrim(strtr(base64_encode($json), '+/', '-_'), '=');
+        return rtrim(strtr(base64_encode($json), '+/', '-_'), '='); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- URL-safe encoding of a signed, public token.
     }
 
     /** @throws ValidationException On non-base64url input. */
@@ -100,7 +107,7 @@ final class PaginationContextSigner
         if (!preg_match('/\A[A-Za-z0-9_-]+\z/', $encoded)) {
             throw self::unavailable();
         }
-        $decoded = base64_decode(strtr($encoded, '-_', '+/'), true);
+        $decoded = base64_decode(strtr($encoded, '-_', '+/'), true); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes the URL-safe token encoded above; its signature is verified before use.
         if (false === $decoded) {
             throw self::unavailable();
         }

@@ -13,7 +13,6 @@ use DateTime;
  */
 class DateFormatRule extends BaseRule
 {
-
     /**
      * Determine if the value is a valid date in the given format.
      *

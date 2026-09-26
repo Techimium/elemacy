@@ -67,7 +67,7 @@ class ConditionRuleDTO extends DTO
      *
      * @param array $rules
      * @return self[]
-     * @throws ValidationException
+     * @throws ValidationException When an entry is neither a ConditionRuleDTO nor an array.
      */
     public static function collection_or_fail(array $rules): array
     {

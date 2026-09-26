@@ -44,6 +44,8 @@ class Elemacy
      * Guards the whole bootstrap, not only the provider phase: every step in
      * init — provider registration/boot, module loading, route/admin- menu
      * registration — assumes it runs exactly once per request.
+     *
+     * @var bool
      */
     protected bool $initialized = false;
 
@@ -94,9 +96,9 @@ class Elemacy
      * The site-count-independent option a bounded network activation leaves
      * behind when more sites remain than fit in one batch.
      */
-    const NETWORK_SEED_OFFSET_OPTION = 'elemacy_network_seed_offset';
+    public const NETWORK_SEED_OFFSET_OPTION = 'elemacy_network_seed_offset';
 
-    const NETWORK_SEED_BATCH_SIZE = 100;
+    public const NETWORK_SEED_BATCH_SIZE = 100;
 
     public function activation_actions()
     {
@@ -154,7 +156,7 @@ class Elemacy
         $offset = (int) get_site_option(self::NETWORK_SEED_OFFSET_OPTION, 0);
 
         $result = (new SiteBatchIterator())->process_batch(
-            function (int $site_id): void {
+            function (): void {
                 $this->seed_site();
             },
             $offset,
@@ -255,7 +257,7 @@ class Elemacy
         Route::set_namespace('elemacy');
 
         do_action(Hooks::REGISTER_PROVIDERS_ACTION, $this);
-        
+
         $this->register_providers();
         $this->boot_providers();
 
@@ -296,7 +298,11 @@ class Elemacy
             do_action(Hooks::VERSION_UPDATED_ACTION, (string) $installed_version, ELEMACY_VERSION);
         }
 
-        (new Migrator())->sync($is_fresh_install);
+        // Data migrations do not run here. A migration that reasons about a
+        // stored identifier asks the registry that owns it what it means, and
+        // no registry is populated yet at `plugins_loaded` — they register on
+        // `init`. Migrator owns that scheduling.
+        (new Migrator())->schedule($is_fresh_install);
     }
 
     /**

@@ -32,7 +32,7 @@ final class FixtureCatalogTest extends IntegrationTestCase
             self::assertSame(['header', 'single', 'footer'], array_keys($catalog['locations']));
             foreach ($catalog['locations'] as $location => $id) {
                 self::assertSame($location, get_post_meta($id, '_elemacy_template_type', true));
-                self::assertSame($location === 'single' ? 'elemacy_single' : 'wp-page', get_post_meta($id, '_elementor_template_type', true));
+                self::assertSame(['header' => 'elemacy_header', 'footer' => 'elemacy_footer', 'single' => 'elemacy_single'][$location], get_post_meta($id, '_elementor_template_type', true));
             }
             self::assertSame('section', get_post_meta($catalog['library']['wrong_type'], '_elemacy_template_type', true));
             self::assertSame('header', get_post_meta($catalog['library']['wrong_group'], '_elemacy_template_type', true));

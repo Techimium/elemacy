@@ -2,8 +2,6 @@
 
 namespace Elemacy\Tests\Integration\Fixtures;
 
-use Elemacy\TemplateLibrary\TemplateResolver;
-use ReflectionProperty;
 use WP;
 use WP_Query;
 
@@ -15,6 +13,28 @@ use WP_Query;
  */
 final class RequestSimulator
 {
+    /**
+     * Hooks a theme compatibility adapter registers on. visit() fires 'wp',
+     * where CompatibilityManager::boot() registers a fresh adapter every
+     * time; a real request's process ends after one, but here the closures
+     * would accumulate across every later test — and the generic adapter's
+     * get_header closure prints a whole document shell. restore() puts these
+     * back exactly as they were before the first visit().
+     *
+     * 'render_block_core/template-part' is where BlockThemeCompatibility
+     * attaches. Left untracked, a second render with the same block theme
+     * accumulates a second closure; the later one re-hits
+     * ThemeBuilderManager's once-per-request render guard and overwrites the
+     * first closure's correct output with its own empty return.
+     */
+    public const ADAPTER_HOOKS = [
+        'get_header', 'get_footer', 'wp_body_open', 'wp_enqueue_scripts',
+        'astra_header', 'astra_footer', 'template_redirect', 'hello_elementor_header_footer',
+        'render_block_core/template-part',
+    ];
+
+    /** @var array<string, \WP_Hook|null> */
+    private array $previous_hooks = [];
     private $previous_query;
     private $previous_the_query;
     private $previous_wp;
@@ -35,6 +55,10 @@ final class RequestSimulator
             $this->previous_query = $wp_query;
             $this->previous_the_query = $wp_the_query;
             $this->previous_wp = $wp;
+            $this->previous_hooks = [];
+            foreach (self::ADAPTER_HOOKS as $hook) {
+                $this->previous_hooks[$hook] = isset($GLOBALS['wp_filter'][$hook]) ? clone $GLOBALS['wp_filter'][$hook] : null;
+            }
             $this->visited = true;
         }
 
@@ -59,37 +83,25 @@ final class RequestSimulator
         $GLOBALS['wp']->private_query_vars = $private_query_vars;
 
         // Before, not after, main(): main() itself fires the 'wp' action,
-        // which (via CompatibilityManager::boot()) already resolves
-        // TemplateResolver types and checks did_action('wp_body_open') for
-        // this simulated request — resetting only afterward would still
-        // hand that first, request-defining resolution a stale value from
-        // whatever visit() ran before this one.
+        // where CompatibilityManager::boot() already checks
+        // did_action('wp_body_open') for this simulated request.
         $this->resetPerRequestMemoization();
 
         $GLOBALS['wp']->main($parts['query'] ?? '');
     }
 
     /**
-     * TemplateResolver::resolve() and PopupManager's matched-popup cache
-     * memoize for the lifetime of a real WordPress request, which normally
-     * ends the PHP process. Simulating several requests in one long-lived
-     * PHPUnit process needs an explicit reset so a later visit() is not
-     * served a stale resolution from an earlier one.
+     * Resets what a real request starts from but this process carries over.
+     * The plugin's own request-scoped caches (resolved templates, matched
+     * popups, prepared fragments, render-once guards) are deliberately *not*
+     * reset here: Core\RequestState flushes them as the first `wp` callback,
+     * which main() fires, exactly as it would between two pages of a
+     * long-running process.
      */
     private function resetPerRequestMemoization(): void
     {
-        $resolved = new ReflectionProperty(TemplateResolver::class, 'resolved');
-        $resolved->setAccessible(true);
-        $resolved->setValue(null, []);
-
-        if (class_exists(\Elemacy\Modules\Popups\Services\PopupManager::class)) {
-            $matched = new ReflectionProperty(\Elemacy\Modules\Popups\Services\PopupManager::class, 'matched');
-            $matched->setAccessible(true);
-            $matched->setValue(\Elemacy\Modules\Popups\Services\PopupManager::instance(), null);
-        }
-
         // did_action() counts are global and, on a real request, never reset
-        // (each request is its own process) — code like GlobalCompatibility's
+        // (each request is its own process) — the Theme Builder shell views'
         // `did_action('wp_body_open') || wp_body_open()` fallback relies on
         // that count starting at zero. Only clearing per-request document
         // lifecycle hooks here — never e.g. 'init'/'plugins_loaded', whose
@@ -108,6 +120,13 @@ final class RequestSimulator
         $GLOBALS['wp_query'] = $this->previous_query;
         $GLOBALS['wp_the_query'] = $this->previous_the_query;
         $GLOBALS['wp'] = $this->previous_wp;
+        foreach ($this->previous_hooks as $hook => $previous) {
+            if (null === $previous) {
+                unset($GLOBALS['wp_filter'][$hook]);
+            } else {
+                $GLOBALS['wp_filter'][$hook] = clone $previous;
+            }
+        }
         $this->visited = false;
         wp_reset_postdata();
     }

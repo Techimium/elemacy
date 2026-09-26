@@ -42,7 +42,7 @@ class ThemeBuilderController
                 'results' => TemplateListResource::collection($result->items),
                 'pagination' => $result->pagination(),
             ],
-            'message' => __('Templates retrieved successfully', 'elemacy')
+            'message' => __('Templates retrieved successfully', 'elemacy'),
         ]);
     }
 
@@ -52,7 +52,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'data' => TemplateResource::make($template),
-            'message' => __('Template retrieved successfully', 'elemacy')
+            'message' => __('Template retrieved successfully', 'elemacy'),
         ]);
     }
 
@@ -62,7 +62,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'message' => __('Template created successfully', 'elemacy'),
-            'data' => TemplateResource::make($template)
+            'data' => TemplateResource::make($template),
         ], Response::CREATED);
     }
 
@@ -72,7 +72,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'message' => __('Template updated successfully', 'elemacy'),
-            'data' => TemplateResource::make($template)
+            'data' => TemplateResource::make($template),
         ]);
     }
 
@@ -82,7 +82,7 @@ class ThemeBuilderController
 
         return Response::create()->json([
             'message' => __('Template duplicated successfully', 'elemacy'),
-            'data' => TemplateResource::make($template)
+            'data' => TemplateResource::make($template),
         ], Response::CREATED);
     }
 
@@ -91,7 +91,7 @@ class ThemeBuilderController
         $this->service->delete((int) $id);
 
         return Response::create()->json([
-            'message' => __('Template deleted successfully', 'elemacy')
+            'message' => __('Template deleted successfully', 'elemacy'),
         ]);
     }
 }

@@ -58,7 +58,7 @@ class TriggerDTO extends DTO
      *
      * @param array $triggers
      * @return self[]
-     * @throws \Elemacy\Http\Exceptions\ValidationException
+     * @throws \Elemacy\Http\Exceptions\ValidationException When an entry is not a valid trigger.
      */
     public static function collection_or_fail(array $triggers): array
     {

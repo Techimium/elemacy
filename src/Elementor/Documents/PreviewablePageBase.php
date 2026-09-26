@@ -15,11 +15,11 @@ use Elementor\Core\DocumentTypes\PageBase;
  */
 abstract class PreviewablePageBase extends PageBase
 {
-    const PREVIEW_SECTION = 'elemacy_preview_section';
-    const PREVIEW_APPLY   = 'elemacy_preview_apply';
+    public const PREVIEW_SECTION = 'elemacy_preview_section';
+    public const PREVIEW_APPLY   = 'elemacy_preview_apply';
 
     // The Apply button dispatches this on Elementor's editor channel; preview-bridge.js listens.
-    const APPLY_EVENT = 'elemacy:preview:apply';
+    public const APPLY_EVENT = 'elemacy:preview:apply';
 
     /**
      * Subclasses add their content pickers here (post selector, search term, …).

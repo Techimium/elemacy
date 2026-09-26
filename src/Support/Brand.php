@@ -32,7 +32,7 @@ class Brand
     /** White badge; WordPress recolors the fill for its admin menu states. */
     public static function data_uri(): string
     {
-        return 'data:image/svg+xml;base64,' . base64_encode(self::svg_mark(20, 'white'));
+        return 'data:image/svg+xml;base64,' . base64_encode(self::svg_mark(20, 'white')); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- The admin menu icon must be a data URI of the plugin's own SVG.
     }
 
     /**

@@ -55,7 +55,11 @@ final class SubmissionValidator
                     }
                 }
             }
-            if (!empty($field['required']) && (!$items || !array_filter($items, static function ($item): bool { return is_string($item) && trim($item) !== ''; }))) {
+            if (
+                !empty($field['required']) && (!$items || !array_filter($items, static function ($item): bool {
+                    return is_string($item) && trim($item) !== '';
+                }))
+            ) {
                 $errors[(string) $id] = esc_html__('This field is required.', 'elemacy');
             }
             if (!isset($errors[(string) $id])) {

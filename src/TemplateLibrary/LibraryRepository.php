@@ -47,7 +47,7 @@ class LibraryRepository
 
     /**
      * @param array $post_fields wp_insert_post()'s own $postarr, minus post_type (pinned here).
-     * @throws HttpException
+     * @throws HttpException When WordPress refuses the insert.
      */
     public function insert(array $post_fields): int
     {
@@ -63,8 +63,9 @@ class LibraryRepository
     }
 
     /**
+     * @param int   $id The library item to update.
      * @param array $post_fields wp_update_post()'s own $postarr, minus ID (pinned here).
-     * @throws HttpException
+     * @throws HttpException When WordPress refuses the update.
      */
     public function update(int $id, array $post_fields): void
     {
@@ -80,7 +81,7 @@ class LibraryRepository
     }
 
     /**
-     * @throws HttpException
+     * @throws HttpException When WordPress refuses the delete.
      */
     public function delete(int $id): void
     {
@@ -98,7 +99,7 @@ class LibraryRepository
     }
 
     /**
-     * update_post_meta() returns false when the given value already matches
+     * WordPress's update_post_meta() returns false when the given value already matches
      * what is stored — nothing was wrong, there was simply nothing to write.
      * Callers must never treat that as a failure; this wrapper intentionally
      * has no return value so nothing here is tempted to.

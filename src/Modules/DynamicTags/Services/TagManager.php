@@ -59,7 +59,6 @@ use Elemacy\Modules\DynamicTags\Tags\WooCommerce\ProductStock;
 
 class TagManager
 {
-
     protected static $instance;
 
     public function __construct()
@@ -148,7 +147,7 @@ class TagManager
         $tags_manager->register_group(
             'elemacy',
             [
-                'title' => esc_html__('Elemacy', 'elemacy')
+                'title' => esc_html__('Elemacy', 'elemacy'),
             ]
         );
 
@@ -156,7 +155,7 @@ class TagManager
             $tags_manager->register_group(
                 'elemacy-woocommerce',
                 [
-                    'title' => esc_html__('Elemacy WooCommerce', 'elemacy')
+                    'title' => esc_html__('Elemacy WooCommerce', 'elemacy'),
                 ]
             );
         }

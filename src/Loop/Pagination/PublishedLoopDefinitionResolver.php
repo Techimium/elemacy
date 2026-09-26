@@ -15,12 +15,14 @@ use JsonException;
  */
 final class PublishedLoopDefinitionResolver
 {
-    const UNAVAILABLE = PublicRenderPolicy::UNAVAILABLE;
+    public const UNAVAILABLE = PublicRenderPolicy::UNAVAILABLE;
 
     /** @var PublicRenderPolicy */
     private PublicRenderPolicy $policy;
 
-    /** @param PublicRenderPolicy $policy Native document eligibility. */
+    /**
+     * @param PublicRenderPolicy $policy Native document eligibility.
+     */
     public function __construct(PublicRenderPolicy $policy)
     {
         $this->policy = $policy;
@@ -67,8 +69,10 @@ final class PublishedLoopDefinitionResolver
             throw self::unavailable();
         }
         $element = $this->find_element($tree, $widget_id);
-        if ('widget' !== ($element['elType'] ?? null) || 'elemacy-loop-grid' !== ($element['widgetType'] ?? null)
-            || !isset($element['settings']) || !is_array($element['settings'])) {
+        if (
+            'widget' !== ($element['elType'] ?? null) || 'elemacy-loop-grid' !== ($element['widgetType'] ?? null)
+            || !isset($element['settings']) || !is_array($element['settings'])
+        ) {
             throw self::unavailable();
         }
         $settings = $element['settings'];
@@ -127,8 +131,10 @@ final class PublishedLoopDefinitionResolver
         if (is_int($value) && $value > 0) {
             return $value;
         }
-        if (is_string($value) && preg_match('/\A[1-9][0-9]*\z/', $value)
-            && (string) (int) $value === $value) {
+        if (
+            is_string($value) && preg_match('/\A[1-9][0-9]*\z/', $value)
+            && (string) (int) $value === $value
+        ) {
             return (int) $value;
         }
         throw self::unavailable();

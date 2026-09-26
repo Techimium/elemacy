@@ -30,14 +30,14 @@ use WP_Query;
  */
 class BlockTemplateService
 {
-    const GROUP = 'block';
+    public const GROUP = 'block';
 
     /**
      * Default page size when the request omits (or under/over-shoots) per_page.
      *
      * @var int
      */
-    const DEFAULT_PER_PAGE = 20;
+    public const DEFAULT_PER_PAGE = 20;
 
     protected LibraryRepository $repository;
     protected DocumentWriter $writer;
@@ -229,6 +229,7 @@ class BlockTemplateService
     }
 
     /**
+     * @param int                                                                                                $id
      * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
      */
     protected function notify(int $id, string $action): void

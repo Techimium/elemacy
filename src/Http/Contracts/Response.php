@@ -2,7 +2,7 @@
 
 namespace Elemacy\Http\Contracts;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 /**
  * Contract for sending structured JSON responses.
@@ -28,7 +28,7 @@ interface Response
      * @since 1.0.0
      *
      * @param string $data The response data.
-     * @param int   $code Optional. HTTP status code. Default Response::OK.
+     * @param int    $code Optional. HTTP status code. Default Response::OK.
      * @return static
      */
     public function text(string $data, int $code = 200);

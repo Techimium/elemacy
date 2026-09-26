@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Hooks;
+use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
@@ -68,6 +69,7 @@ class ThemeBuilderManager
      */
     public function register_hooks()
     {
+        RequestState::register(self::class, [$this, 'forget_rendered_locations']);
         add_filter('template_include', [$this, 'override_template'], 99);
         add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, [$this, 'register_template_assets']);
 
@@ -223,13 +225,19 @@ class ThemeBuilderManager
     }
 
     /**
-     * Request-local locations already rendered, so header/footer output
-     * exactly once no matter which compatibility adapter hook fires it —
-     * one instance per request; never shared across sites or preview scopes.
+     * Locations already rendered this page, so header/footer output exactly
+     * once no matter which compatibility adapter hook fires it. Cleared per
+     * page through Core\RequestState.
      *
      * @var array<string, bool>
      */
     protected array $rendered_locations = [];
+
+    /** Lets the next page render its header and footer again. */
+    public function forget_rendered_locations(): void
+    {
+        $this->rendered_locations = [];
+    }
 
     /**
      * Render the header template content only (no document wrapper), at

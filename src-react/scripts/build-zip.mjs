@@ -77,7 +77,9 @@ async function vendor() {
       foreach ($paths as $target) if (!is_dir($target)) throw new RuntimeException('Missing autoload directory.');
     }
   `, staging], staging);
-  for (const name of ['composer.json', 'composer.lock']) await fs.rm(path.join(staging, name));
+  // composer.json stays beside vendor/ so the package describes its own dependencies;
+  // the lock also pins development packages that are not shipped.
+  await fs.rm(path.join(staging, 'composer.lock'));
 }
 
 async function zip(filename, files) {

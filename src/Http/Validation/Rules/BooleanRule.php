@@ -12,8 +12,8 @@ defined('ABSPATH') || exit;
 class BooleanRule extends BaseRule
 {
     /**
-     * check for strict data type 
-     * 
+     * Check for strict data type
+     *
      * @var bool
      */
     protected $check_strict_data_type = true;
@@ -27,13 +27,13 @@ class BooleanRule extends BaseRule
     {
         $value = $this->value;
 
-        // Normalize string values that represent booleans
+        // Normalize string values that represent booleans.
         if (is_string($value)) {
             $value = strtolower($value);
             return in_array($value, ['true', 'false', '1', '0'], true);
         }
 
-        // Accept actual booleans and integer equivalents
+        // Accept actual booleans and integer equivalents.
         if (is_bool($value) || $value === 1 || $value === 0) {
             return true;
         }

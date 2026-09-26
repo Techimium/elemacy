@@ -41,7 +41,7 @@ class AtomicStylesRenderer
      * dynamic-tag-bound value somewhere in them, scoped under
      * $selector_prefix instead of the default `.elementor` prefix.
      *
-     * @param int $post_id
+     * @param int    $post_id
      * @param string $selector_prefix
      * @return string
      */
@@ -79,7 +79,7 @@ class AtomicStylesRenderer
      * style definition, checked as one unit — never split apart) matches
      * $want_dynamic, merged into one flat array.
      *
-     * @param int $post_id
+     * @param int  $post_id
      * @param bool $want_dynamic
      * @return array
      */

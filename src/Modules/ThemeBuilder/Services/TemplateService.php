@@ -34,14 +34,14 @@ use WP_Query;
  */
 class TemplateService
 {
-    const GROUP = 'theme';
+    public const GROUP = 'theme';
 
     /**
      * Default page size when the request omits (or under/over-shoots) per_page.
      *
      * @var int
      */
-    const DEFAULT_PER_PAGE = 20;
+    public const DEFAULT_PER_PAGE = 20;
 
     protected ConditionRepository $conditions;
     protected LibraryRepository $repository;
@@ -218,6 +218,7 @@ class TemplateService
     }
 
     /**
+     * @param int                                                                                                $id
      * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
      */
     protected function notify(int $id, string $action): void

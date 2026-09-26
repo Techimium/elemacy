@@ -11,5 +11,5 @@ defined('ABSPATH') || exit;
  */
 class MetaKeys
 {
-    const TEMPLATE_TYPE = '_elemacy_template_type';
+    public const TEMPLATE_TYPE = '_elemacy_template_type';
 }

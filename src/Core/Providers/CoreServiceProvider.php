@@ -11,13 +11,16 @@ use Elemacy\Core\Admin\AdminScripts;
 use Elemacy\Core\Container;
 use Elemacy\Core\Contracts\ServiceProviderInterface;
 use Elemacy\Core\FrontendScripts;
+use Elemacy\Core\RequestState;
 use Elemacy\Core\Admin\PluginLinks;
 use Elemacy\Elementor\Controls\Query\QueryControlManager;
 use Elemacy\Elementor\Preview\PreviewAssets;
 use Elemacy\Elementor\Preview\PreviewManager;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
+use Elemacy\Loop\Rendering\LoopItemStyles;
 use Elemacy\TemplateLibrary\LibraryBootstrap;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -47,6 +50,10 @@ class CoreServiceProvider implements ServiceProviderInterface
 
     public function boot(): void
     {
+        RequestState::register_hooks();
+        RequestState::register(TemplateRenderer::class, [TemplateRenderer::class, 'reset']);
+        RequestState::register(LoopItemStyles::class, [LoopItemStyles::class, 'reset']);
+
         (new AdminScripts())->register_hooks();
         (new FrontendScripts())->register_hooks();
         (new PluginLinks())->register_hooks();

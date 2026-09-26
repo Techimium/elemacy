@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Core\Hooks;
+use Elemacy\Core\RequestState;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 
 /**
@@ -62,7 +63,7 @@ class LibraryBootstrap
         // (create/update/duplicate/delete) uniformly — redundant with the
         // native hooks above for the common case, but the one signal that
         // still fires if a future write path ever skips wp_update_post().
-        add_action(Hooks::LIBRARY_CHANGED_ACTION, static function (LibraryChanged $event): void {
+        add_action(Hooks::LIBRARY_CHANGED_ACTION, static function (): void {
             (new ResolverCache())->invalidate();
             TemplateResolver::reset();
         });
@@ -97,6 +98,8 @@ class LibraryBootstrap
             ResolverCache::forget_memo();
             TemplateResolver::reset();
         });
+
+        RequestState::register(TemplateResolver::class, [TemplateResolver::class, 'reset']);
     }
 
     /**

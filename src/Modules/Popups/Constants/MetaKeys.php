@@ -10,6 +10,6 @@ defined('ABSPATH') || exit;
  */
 class MetaKeys
 {
-    const TRIGGERS = '_elemacy_popup_triggers';
-    const RULES    = '_elemacy_popup_rules';
+    public const TRIGGERS = '_elemacy_popup_triggers';
+    public const RULES    = '_elemacy_popup_rules';
 }

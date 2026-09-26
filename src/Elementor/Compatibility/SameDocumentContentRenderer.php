@@ -91,8 +91,8 @@ class SameDocumentContentRenderer
      * matches $target — bounded so a genuinely corrupted stack can never
      * hang the request, same guard TemplateRenderer::restore_state() uses.
      *
-     * @param object   $documents
-     * @param mixed    $target
+     * @param object $documents
+     * @param mixed  $target
      * @return void
      */
     protected function restore_document_stack($documents, $target): void

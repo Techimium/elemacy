@@ -52,7 +52,7 @@ interface LoopDataSourceInterface
      * the shape get_items expects for the given page.
      *
      * @param array $raw_settings
-     * @param int $paged
+     * @param int   $paged
      * @return array
      */
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array;

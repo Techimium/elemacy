@@ -41,4 +41,3 @@ class BBThemeCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

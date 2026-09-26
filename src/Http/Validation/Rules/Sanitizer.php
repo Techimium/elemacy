@@ -64,6 +64,7 @@ class Sanitizer extends BaseRule
                 break;
             case 'title':
                 $this->value = sanitize_title($this->value);
+                break;
             case 'file-name':
                 $this->value = sanitize_file_name($this->value);
                 break;

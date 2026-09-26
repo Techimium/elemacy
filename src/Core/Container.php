@@ -36,9 +36,10 @@ class Container
     protected array $resolving = [];
 
     /**
-     * use instance().
+     * Use instance().
      */
-    protected function __construct() {}
+    protected function __construct() {
+    }
 
     /**
      * Returns the shared Container instance.
@@ -70,8 +71,8 @@ class Container
      * concrete class name whose construction a factory (rather than plain
      * reflection) should own.
      *
-     * @param class-string $contract
-     * @param callable(self): object $factory
+     * @param class-string             $contract
+     * @param callable(self): object   $factory
      * @param self::SHARED|self::FRESH $lifetime
      * @throws Exception If $lifetime is neither SHARED nor FRESH.
      */
@@ -127,12 +128,13 @@ class Container
     }
 
     /**
+     * @param string                   $class_name The class to build.
      * @param self::SHARED|self::FRESH $default_lifetime Lifetime to use when
      *   $class_name has no explicit binding: FRESH for make()'s own
      *   top-level call, SHARED for singleton()'s and for every auto-wired
      *   nested dependency — an explicit binding's own registered lifetime
      *   always takes priority over this default.
-     * @throws Exception
+     * @throws Exception When $class_name depends on itself, directly or through its dependencies.
      */
     protected function resolve(string $class_name, string $default_lifetime): object
     {

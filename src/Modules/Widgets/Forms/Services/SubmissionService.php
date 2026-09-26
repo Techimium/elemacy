@@ -15,7 +15,12 @@ final class SubmissionService
     private SubmissionRateLimiter $limiter;
     private array $actions;
 
-    /** @param FormActionInterface[] $actions Supported synchronous actions, keyed by their authored identifiers. */
+    /**
+     * @param PublishedFormDefinitionResolver $definitions
+     * @param SubmissionValidator             $validator
+     * @param SubmissionRateLimiter           $limiter
+     * @param FormActionInterface[]           $actions Supported synchronous actions, keyed by their authored identifiers.
+     */
     public function __construct(PublishedFormDefinitionResolver $definitions, SubmissionValidator $validator, SubmissionRateLimiter $limiter, array $actions)
     {
         $this->definitions = $definitions;

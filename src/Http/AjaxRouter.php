@@ -16,9 +16,9 @@ use Elemacy\Core\Container;
 
 class AjaxRouter
 {
-    const USER_GUEST = 'guest';
-    const USER_AUTH = 'auth';
-    const USER_PUBLIC = 'public';
+    public const USER_GUEST = 'guest';
+    public const USER_AUTH = 'auth';
+    public const USER_PUBLIC = 'public';
 
     protected ?string $capability = null;
 
@@ -204,18 +204,22 @@ class AjaxRouter
     protected static function send_error_response(Throwable $error)
     {
         if ($error instanceof ValidationException) {
-            return SiteResponse::instance()->json_error([
+            SiteResponse::instance()->json_error([
                 'message' => $error->getMessage(),
                 'errors' => $error->get_errors(),
             ], $error->getCode() ? $error->getCode() : 422);
+
+            return;
         }
 
         // HttpExceptions carry a client-safe, translated message; surface it.
         if ($error instanceof HttpException) {
-            return SiteResponse::instance()->json_error([
+            SiteResponse::instance()->json_error([
                 'message' => $error->getMessage(),
                 'errors' => [],
             ], $error->getCode() ? $error->getCode() : Response::INTERNAL_SERVER_ERROR);
+
+            return;
         }
 
         // Anything else is unexpected — log it and return a generic message
@@ -224,7 +228,7 @@ class AjaxRouter
             error_log('[Elemacy] ' . get_class($error) . ': ' . $error->getMessage()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
 
-        return SiteResponse::instance()->json_error([
+        SiteResponse::instance()->json_error([
             'message' => esc_html__('Something went wrong. Please try again.', 'elemacy'),
             'errors' => [],
         ], Response::INTERNAL_SERVER_ERROR);

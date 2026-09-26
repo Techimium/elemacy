@@ -11,7 +11,7 @@ use WP_Post_Type;
 /** Elementor document for Archive templates. */
 class ArchiveDocument extends PreviewablePageBase
 {
-    const PREVIEW_POST_TYPE = 'elemacy_preview_post_type';
+    public const PREVIEW_POST_TYPE = 'elemacy_preview_post_type';
 
     public static function get_type()
     {

@@ -122,12 +122,35 @@ namespace Elementor\Core\Base;
 /**
  * Faithful to the real class's get_main_id()/get_elements_data() shape - the
  * only members PostContent's document-identity check and
- * ElementTreeWalker::walk() actually call.
+ * ElementTreeWalker::walk() actually call, plus the get_properties() defaults
+ * a document subclass narrows in its own override.
  */
 class Document
 {
     /** @var int */
     protected $main_id;
+
+    /**
+     * The real class's default property set, copied verbatim for the keys a
+     * document subclass reads or overrides. A document that narrows one of
+     * these must see the same starting value the real Elementor gives it.
+     */
+    public static function get_properties()
+    {
+        return [
+            'has_elements' => true,
+            'is_editable' => true,
+            'edit_capability' => '',
+            'show_in_finder' => true,
+            'show_on_admin_bar' => true,
+            'support_kit' => false,
+            'show_navigator' => true,
+            'allow_adding_widgets' => true,
+            'support_page_layout' => true,
+            'show_copy_and_share' => false,
+            'allow_closing_remote_library' => true,
+        ];
+    }
 
     /** @var array */
     public $elements_data = [];
@@ -195,5 +218,25 @@ class Dynamic_Prop_Type
     public static function is_dynamic_prop_value($value): bool
     {
         return isset($value['$$type']) && 'dynamic' === $value['$$type'];
+    }
+}
+
+namespace Elementor\Core\DocumentTypes;
+
+/**
+ * Stand-in for the page document base Theme Builder's chrome documents
+ * extend: only the static property surface those subclasses narrow, plus the
+ * `admin_tab_group`/`support_wp_page_templates` the real class adds.
+ */
+abstract class PageBase extends \Elementor\Core\Base\Document
+{
+    public static function get_properties()
+    {
+        $properties = parent::get_properties();
+
+        $properties['admin_tab_group'] = '';
+        $properties['support_wp_page_templates'] = true;
+
+        return $properties;
     }
 }

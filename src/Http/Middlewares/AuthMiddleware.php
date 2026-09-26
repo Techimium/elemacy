@@ -2,7 +2,7 @@
 
 namespace Elemacy\Http\Middlewares;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use Elemacy\Http\Contracts\Middleware;
 use Elemacy\Http\Contracts\Request;

@@ -16,9 +16,9 @@ use WP_Post;
  */
 class QueryService
 {
-    const OBJECT_POST = 'post';
+    public const OBJECT_POST = 'post';
 
-    const MAX_RESULTS = 30;
+    public const MAX_RESULTS = 30;
 
     /**
      * @param array<string, mixed> $autocomplete The control's autocomplete config.

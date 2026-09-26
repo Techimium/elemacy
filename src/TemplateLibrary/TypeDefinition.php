@@ -17,12 +17,16 @@ class TypeDefinition
     /**
      * Coarse family used for resolution and admin grouping, e.g. 'theme' or
      * 'popup'.
+     *
+     * @var string
      */
     public string $group;
 
     /**
      * Slug of the module that owns this type, so the admin can mark items whose
      * module is currently inactive.
+     *
+     * @var string
      */
     public string $module;
 

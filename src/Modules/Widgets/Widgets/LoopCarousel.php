@@ -65,7 +65,7 @@ class LoopCarousel extends BaseWidget
         $this->register_query_section();
         $this->register_carousel_settings_section();
         $this->register_carousel_style_section();
-        // Since pagination in carousel is handled by swiper, we add its styles
+        // Since pagination in carousel is handled by swiper, we add its styles.
         $this->register_navigation_style_section();
         $this->register_pagination_style_section();
     }
@@ -562,9 +562,9 @@ class LoopCarousel extends BaseWidget
             echo '</div>';
         }
 
-        echo '</div>'; // End swiper-wrapper
+        echo '</div>'; // End swiper-wrapper.
 
-        // Render Navigation Elements
+        // Render Navigation Elements.
         if (in_array($settings['navigation'], ['both', 'pagination'], true)) {
             echo '<div class="swiper-pagination"></div>';
         }
@@ -574,8 +574,8 @@ class LoopCarousel extends BaseWidget
             echo '<div class="elemacy-swiper-button elemacy-swiper-button-next swiper-button-next"><i class="eicon-chevron-right"></i></div>';
         }
 
-        echo '</div>'; // End swiper element
-        echo '</div>'; // End elemacy-loop-carousel-container
+        echo '</div>'; // End swiper element.
+        echo '</div>'; // End elemacy-loop-carousel-container.
     }
 
     /**

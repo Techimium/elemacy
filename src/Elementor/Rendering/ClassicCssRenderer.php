@@ -20,9 +20,11 @@ class ClassicCssRenderer
     protected Capabilities $capabilities;
 
     /**
-     * has_dynamic_settings()'s classic-owned element traversal — no longer routed through the optional Atomic Widgets
+     * The classic-owned element traversal behind has_dynamic_settings() — no longer routed through the optional Atomic Widgets
      * module (see docs/ELEMENTOR-COMPATIBILITY.md's history of that
      * dependency).
+     *
+     * @var ElementTreeWalker
      */
     protected ElementTreeWalker $element_tree;
 
@@ -33,20 +35,20 @@ class ClassicCssRenderer
     }
 
     /**
-     * render_base() outcome: Elementor already wrote this post's CSS to a
+     * A render_base() outcome: Elementor already wrote this post's CSS to a
      * cached, cache-busted file on disk — the caller should reference it by
      * URL instead of inlining its content.
      */
     public const DELIVERY_LINK = 'link';
 
     /**
-     * render_base() outcome: this post's CSS must be printed as literal CSS
+     * A render_base() outcome: this post's CSS must be printed as literal CSS
      * text (no external file exists for it, or none should be trusted).
      */
     public const DELIVERY_INLINE = 'inline';
 
     /**
-     * render_base() outcome: there is no CSS to deliver for this post.
+     * A render_base() outcome: there is no CSS to deliver for this post.
      */
     public const DELIVERY_NONE = 'none';
 
@@ -127,8 +129,10 @@ class ClassicCssRenderer
         // trust that blindly: a missing file here (e.g. an
         // uploads/ directory that didn't survive a migration) must fall
         // back to inline, never a broken <link>.
-        if (\Elementor\Core\Files\CSS\Post::CSS_STATUS_FILE === $meta['status']
-            && file_exists($css_file->get_path())) {
+        if (
+            \Elementor\Core\Files\CSS\Post::CSS_STATUS_FILE === $meta['status']
+            && file_exists($css_file->get_path())
+        ) {
             return [
                 'type' => self::DELIVERY_LINK,
                 'content' => $css_file->get_url(),

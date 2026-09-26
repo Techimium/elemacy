@@ -15,7 +15,7 @@ final class RuleTriggerParams
     private const RESERVED_KEYS = ['type', 'id'];
 
     /**
-     * @throws ValidationException
+     * @throws ValidationException When the params do not match the rule's or trigger's schema.
      */
     public static function assert_valid(string $field, array $params): void
     {

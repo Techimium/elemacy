@@ -20,7 +20,7 @@ class AdminScripts
      * (window.ElemacyShared's fields, the readiness event) can stay stable
      * across many releases, or need to change within one.
      */
-    const CONTRACT_VERSION = '1.0.0';
+    public const CONTRACT_VERSION = '1.0.0';
 
     /**
      * Attaches this class's WordPress hooks. Idempotent: a second call does
@@ -41,7 +41,7 @@ class AdminScripts
         }
 
         add_action('admin_enqueue_scripts', [$this, 'enqueue']);
-        add_action('script_loader_tag', [$this, 'update_script_type'], 10, 3);
+        add_action('script_loader_tag', [$this, 'update_script_type'], 10, 2);
     }
 
     public function enqueue_global_assets()
@@ -114,7 +114,7 @@ class AdminScripts
             ? untrailingslashit(ELEMACY_VITE_DEV_SERVER)
             : 'http://localhost:5173';
 
-        // Vite client (HMR websocket)
+        // Vite client (HMR websocket).
         wp_enqueue_script(
             'elemacy-vite-client',
             $dev_server . '/@vite/client',
@@ -123,7 +123,7 @@ class AdminScripts
             true
         );
 
-        // App entry (e.g. main.jsx)
+        // App entry (e.g. main.jsx).
         wp_enqueue_script(
             'elemacy-admin-app',
             $dev_server . '/src/main.tsx',
@@ -133,7 +133,7 @@ class AdminScripts
         );
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
 
-        // React Refresh preamble as inline module
+        // React Refresh preamble as inline module.
         $preamble = sprintf(
             '
             import RefreshRuntime from "%s/@react-refresh";
@@ -148,7 +148,7 @@ class AdminScripts
         wp_add_inline_script('elemacy-admin-app', $preamble, 'before');
     }
 
-    public function update_script_type($tag, $handle, $src)
+    public function update_script_type($tag, $handle)
     {
         if (in_array($handle, ['elemacy-vite-client', 'elemacy-admin-app'], true)) {
             $tag = str_replace('<script', '<script type="module"', $tag);

@@ -30,4 +30,3 @@ class OceanWPCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

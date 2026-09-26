@@ -50,8 +50,8 @@ class CompatibilityManager
      * (stylesheet or template directory name). A later registration for the
      * same slug replaces the earlier one.
      *
-     * @param string                                    $theme_slug
-     * @param class-string<ThemeCompatibilityInterface> $adapter_class
+     * @param string $theme_slug
+     * @param string $adapter_class A ThemeCompatibilityInterface class name.
      * @return void
      */
     public function register(string $theme_slug, string $adapter_class): void

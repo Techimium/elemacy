@@ -45,7 +45,7 @@ final class EmailAction implements FormActionInterface
 
         $form_fields = isset($settings['form_fields']) && is_array($settings['form_fields']) ? $settings['form_fields'] : [];
 
-        // Handle [all-fields] and specific field shortcodes
+        // Handle [all-fields] and specific field shortcodes.
         if (strpos($content, '[all-fields]') !== false) {
             $all_fields_text = '';
             foreach ($form_fields as $index => $field) {
@@ -58,7 +58,7 @@ final class EmailAction implements FormActionInterface
             $content = str_replace('[all-fields]', $all_fields_text, $content);
         }
 
-        // Handle specific field shortcodes
+        // Handle specific field shortcodes.
         foreach ($form_fields as $index => $field) {
             $val = isset($form_data[$index]) ? $form_data[$index] : '';
             if (is_array($val)) {
@@ -67,22 +67,24 @@ final class EmailAction implements FormActionInterface
 
             $field_val = esc_html($val);
 
-            // Replace by Index [field_0]
+            // Replace by Index [field_0].
             $content = str_replace('[field_' . $index . ']', $field_val, $content);
 
-            // Replace by Custom ID [name]
+            // Replace by Custom ID [name].
             if (!empty($field['custom_id'])) {
                 $content = str_replace('[' . $field['custom_id'] . ']', $field_val, $content);
             }
         }
 
-        // Also handle Reply-To if it's a field ID or email
+        // Also handle Reply-To if it's a field ID or email.
         if (!empty($settings['email_reply_to'])) {
-            // If reply_to is an index of form_fields
+            // If reply_to is an index of form_fields.
             foreach ($form_fields as $index => $field) {
-                if (($field['label'] ?? '') === $settings['email_reply_to'] ||
+                if (
+                    ($field['label'] ?? '') === $settings['email_reply_to'] ||
                     (string) $index === (string) $settings['email_reply_to'] ||
-                    (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])) {
+                    (!empty($field['custom_id']) && $field['custom_id'] === $settings['email_reply_to'])
+                ) {
                     $reply_to = isset($form_data[$index]) && is_string($form_data[$index]) ? sanitize_email($form_data[$index]) : '';
                     break;
                 }

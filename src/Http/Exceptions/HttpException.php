@@ -15,6 +15,7 @@ use Exception;
  */
 class HttpException extends Exception
 {
+    // phpcs:ignore Generic.CodeAnalysis.UselessOverridingMethod.Found -- Changes the default code from 0 to 500.
     public function __construct(string $message = '', int $status = Response::INTERNAL_SERVER_ERROR)
     {
         parent::__construct($message, $status);

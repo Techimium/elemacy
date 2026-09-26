@@ -13,6 +13,11 @@
  *    src/Modules/ reference Elementor's own PHP namespace.
  * 3. Production source and shipped assets never reference planning
  *    artifacts (design documents, task numbers, change names).
+ * 4. Every persisted identifier in persisted-identifiers.php is still
+ *    declared where it says, unless a migration still names it: a rename
+ *    ships with the Core\Migrator step that rewrites the stored value.
+ *    ELEMACY_PERSISTED_IDENTIFIERS points at another list (used to plant a
+ *    rename).
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -81,6 +86,38 @@ foreach (['src', 'assets', 'src-react/src'] as $tree) {
     }
 }
 
+$without_comments = static function (string $path): string {
+    $code = '';
+
+    foreach (token_get_all((string) file_get_contents($path)) as $token) {
+        if (!is_array($token)) {
+            $code .= $token;
+        } elseif (T_COMMENT !== $token[0] && T_DOC_COMMENT !== $token[0]) {
+            $code .= $token[1];
+        }
+    }
+
+    return $code;
+};
+
+$migrations = $without_comments($plugin_root . 'src/Core/Migrator.php');
+foreach (glob($plugin_root . 'src/Core/Migrations/*.php') ?: [] as $migration) {
+    $migrations .= $without_comments($migration);
+}
+
+$identifiers = require (getenv('ELEMACY_PERSISTED_IDENTIFIERS') ?: __DIR__ . '/persisted-identifiers.php');
+
+foreach ($identifiers as $identifier) {
+    $path = $plugin_root . $identifier['file'];
+    $quoted = "'" . $identifier['id'] . "'";
+    $declared = is_file($path)
+        && 1 === preg_match($identifier['declaration'] ?? '/' . preg_quote($quoted, '/') . '/', $without_comments($path));
+
+    if (!$declared && false === strpos($migrations, $quoted)) {
+        $violations[] = sprintf('[persisted identifier] %s is no longer declared in %s and no migration names it; a rename ships a Core\\Migrator step (docs/CONTRACTS.md § Permanent identifiers)', $quoted, $identifier['file']);
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -88,9 +125,9 @@ if ($violations) {
         fwrite(STDERR, '  - ' . $violation . "\n");
     }
 
-    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, and keep planning references in docs/. There is no allowlist.\n");
+    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, and migrate stored values you rename. There is no allowlist.\n");
 
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary and planning-reference rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference and persisted-identifier rules all pass.\n";

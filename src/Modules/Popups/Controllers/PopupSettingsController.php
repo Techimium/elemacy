@@ -14,14 +14,14 @@ use Elemacy\Modules\Popups\Services\TriggerManager;
 
 class PopupSettingsController
 {
-    public function types(Request $request)
+    public function types(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.
     {
         return Response::create()->json([
             'data' => PopupManager::instance()->get_available_popup_types(),
         ]);
     }
 
-    public function triggers(Request $request)
+    public function triggers(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.
     {
         return Response::create()->json([
             'data' => TriggerTypeResource::collection(
@@ -30,7 +30,7 @@ class PopupSettingsController
         ]);
     }
 
-    public function rules(Request $request)
+    public function rules(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.
     {
         return Response::create()->json([
             'data' => RuleTypeResource::collection(

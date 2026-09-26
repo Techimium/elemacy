@@ -159,7 +159,7 @@ class PostsQuery
             'orderby' => $orderby,
             'order' => $order,
             'paged' => $paged,
-            'pagination_type' => 'ajax', // any non-empty value: gates paged/offset handling in build_query_args
+            'pagination_type' => 'ajax', // any non-empty value: gates paged/offset handling in build_query_args.
             'exclude_current_post' => 'yes' === ($raw_settings['exclude_current_post'] ?? '') ? 'yes' : 'no',
             'current_post_id' => !empty($raw_settings['current_post_id']) ? (int) $raw_settings['current_post_id'] : 0,
         ];

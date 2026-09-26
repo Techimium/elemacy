@@ -6,40 +6,39 @@ use Elementor\Modules\DynamicTags\Module;
 use Elemacy\Modules\DynamicTags\Services\Woo;
 
 if (!defined('ABSPATH')) {
-	exit;
+    exit;
 }
 
 class ProductPrice extends Tag
 {
+    public function get_name()
+    {
+        return 'elemacy-product-price';
+    }
 
-	public function get_name()
-	{
-		return 'elemacy-product-price';
-	}
+    public function get_title()
+    {
+        return esc_html__('Product Price', 'elemacy');
+    }
 
-	public function get_title()
-	{
-		return esc_html__('Product Price', 'elemacy');
-	}
+    public function get_group()
+    {
+        return 'elemacy-woocommerce';
+    }
 
-	public function get_group()
-	{
-		return 'elemacy-woocommerce';
-	}
+    public function get_categories()
+    {
+        return [Module::TEXT_CATEGORY];
+    }
 
-	public function get_categories()
-	{
-		return [Module::TEXT_CATEGORY];
-	}
+    public function render()
+    {
+        $product = Woo::get_product();
 
-	public function render()
-	{
-		$product = Woo::get_product();
+        if (!$product) {
+            return;
+        }
 
-		if (!$product) {
-			return;
-		}
-
-		echo wp_kses_post($product->get_price_html());
-	}
+        echo wp_kses_post($product->get_price_html());
+    }
 }

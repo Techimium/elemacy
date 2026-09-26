@@ -25,6 +25,7 @@ class ConditionRepository
     }
 
     /**
+     * @param int   $post_id The library item whose targeting is replaced.
      * @param array $rules ConditionRuleDTOs and/or their array form.
      * @throws \Elemacy\Http\Exceptions\ValidationException Unsupported input
      *   (neither a ConditionRuleDTO nor an array) rejects the whole write —

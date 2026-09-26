@@ -49,7 +49,7 @@ class PopupResource extends Resource
      * so the admin app can identify an unavailable saved condition/rule/trigger
      * instead of it merely appearing unset.
      *
-     * @param array<int, array{type: string}> $entries
+     * @param array<int, array{type: string}>                                  $entries
      * @param callable(string): \Elemacy\Core\Capabilities\FeatureAvailability $resolve
      * @return array<int, array<string, mixed>>
      */

@@ -4,6 +4,17 @@ Stored identifiers, saved names, HTTP paths and hook names that saved sites, Pro
 
 `F/` is the Elemacy plugin root; `P/` is the Elemacy Pro root. Paths without a prefix are relative to F.
 
+## Permanent identifiers
+
+These are written into sites' databases and saved Elementor data. Renaming one silently breaks every site that stored the old value, so a rename is never a refactor: it ships a `Core\Migrator` step, in the same change, that rewrites the stored value.
+
+- **Module slugs**: `theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`, stored in `elemacy_active_modules`.
+- **Template type names**: every stored `_elemacy_template_type` value in § Library types and Elementor document names.
+- **Elementor document type names**: every stored `_elementor_template_type` value in the same table.
+- **Stored meta and option keys**: every key in § Storage ownership.
+
+`tests/architecture/check.php` enforces this. `tests/architecture/persisted-identifiers.php` lists each identifier with the source file that declares it, and the check fails when an identifier is no longer declared there unless a migration under `src/Core/Migrations/` still names it.
+
 ## Storage ownership
 
 | Key or identifier | Existing owner / contract |
@@ -61,7 +72,9 @@ The same registration contributes query controls and standalone preview. `templa
 | --- | --- | --- |
 | `block` | `section` | `wp-page` |
 | `block` | `loop` | `elemacy_loop` |
-| `theme` | `header`, `footer`, `404` | `wp-page` fallback |
+| `theme` | `header` | `elemacy_header` |
+| `theme` | `footer` | `elemacy_footer` |
+| `theme` | `404` | `wp-page` fallback |
 | `theme` | `single` | `elemacy_single` |
 | `theme` | `archive` | `elemacy_archive` |
 | `theme` | `search` | `elemacy_search` |
@@ -116,7 +129,7 @@ Both actions serve guests and authenticated users. The public nonce is request h
 
 Free owns the admin mount `#elemacy_root` and the `window.ElemacyShared` bridge (contract version `AdminScripts::CONTRACT_VERSION`, the `elemacy:admin-ready` event). Popup bootstrap globals are `window.elemacyPopups` and Pro's `window.elemacyPopupsAnalytics`. Version these surfaces deliberately; never rename them for tidiness.
 
-Pro's license policy (`P/CONTRIBUTING.md`, `Core/License/LicenseManager.php`) is a contract: a formerly valid license keeps a 14-day grace window, a never-valid installation is gated immediately, transport failures keep the cached state, and Pro conditions register regardless of entitlement.
+Pro's license policy (`P/CONTRIBUTING.md`, `Core/License/LicenseManager.php`) is a contract: a formerly valid license keeps a 14-day grace window, a never-valid installation is gated immediately, transport failures keep the cached state, and every Pro capability — conditions included — registers only while the license is active (see `P/DEVELOPER.md`).
 
 ## Public hook inventory
 
@@ -138,7 +151,7 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `FRONTEND_SCRIPT_DATA_FILTER` | `elemacy/filter/frontend_script_data` |
 | `WIDGETS_REGISTER_FILTER` | `elemacy/filter/widgets/register` |
 | `THEME_BUILDER_TEMPLATE_TYPES_FILTER` | `elemacy/filter/theme_builder/template_types` |
-| `THEME_BUILDER_FALLBACK_HEADER_ACTION` | `elemacy/action/theme_builder/fallback_header` |
+| `THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER` | `elemacy/filter/theme_builder/suppress_native_chrome` |
 | `THEME_BUILDER_LOCATIONS_REGISTER_ACTION` | `elemacy/action/theme_builder/locations/register` |
 | `THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION` | `elemacy/action/theme_builder/compatibility/register` |
 | `LOOP_DATA_SOURCES_REGISTER_ACTION` | `elemacy/action/loop/data_sources/register` |
@@ -153,3 +166,13 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `POPUP_DUPLICATE_EXCLUDED_META_FILTER` | `elemacy/filter/popups/duplicate_excluded_meta` |
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `elemacy/action/popups/triggers/register` |
 | `POPUP_RULES_REGISTER_ACTION` | `elemacy/action/popups/rules/register` |
+
+### Opting a theme out of native chrome replacement
+
+On a classic theme without a dedicated adapter, a configured Header or Footer template replaces the theme's own `header.php` or `footer.php`: the theme's file is loaded and its output discarded (see `docs/ARCHITECTURE.md` § Native chrome replacement). Markup the theme opens in `header.php` is discarded with it: on themes that open their layout wrappers there and close them in `footer.php` (most `_s`-based themes, Twenty Twenty-One among them), replacing only one side leaves those wrappers unbalanced, and a theme whose content template closes markup its `header.php` opened can break outright. `THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER` is the escape hatch. It is applied once per side per request, with `true` and the side (`'header'` or `'footer'`). Returning `false` leaves that side to the theme: the theme's own chrome renders and the Elemacy template for that side does not. The other side is unaffected.
+
+```php
+add_filter('elemacy/filter/theme_builder/suppress_native_chrome', function (bool $suppress, string $side): bool {
+    return 'header' === $side ? false : $suppress;
+}, 10, 2);
+```

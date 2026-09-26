@@ -60,8 +60,6 @@ class Search extends BaseWidget
         $this->register_lightbox_style_section();
     }
 
-    // ─── Content Controls ────────────────────────────────────────────────────
-
     private function register_search_form_section(): void
     {
         $this->start_controls_section('section_search_form', [
@@ -190,8 +188,6 @@ class Search extends BaseWidget
 
         $this->end_controls_section();
     }
-
-    // ─── Style Controls ──────────────────────────────────────────────────────
 
     private function register_input_style_section(): void
     {
@@ -683,8 +679,6 @@ class Search extends BaseWidget
         $this->end_controls_section();
     }
 
-    // ─── Rendering ───────────────────────────────────────────────────────────
-
     protected function render(): void
     {
         $settings = $this->get_settings_for_display();
@@ -760,8 +754,6 @@ class Search extends BaseWidget
         <?php
     }
 
-    // ─── Render Partials ─────────────────────────────────────────────────────
-
     private function render_submit_button(array $settings): void
     {
         $button_type = $settings['button_type'] ?? 'icon';
@@ -823,8 +815,6 @@ class Search extends BaseWidget
             );
         }
     }
-
-    // ─── Private Helpers ─────────────────────────────────────────────────────
 
     private function resolve_skin(array $settings): string
     {

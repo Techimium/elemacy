@@ -2,7 +2,7 @@
 
 namespace Elemacy\Http\Middlewares;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use Elemacy\Http\Contracts\Middleware;
 use Elemacy\Http\Contracts\Request;
@@ -20,7 +20,7 @@ class AdminMiddleware implements Middleware
      *
      * @since 1.0.0
      *
-     * @param Request $request The incoming request instance.
+     * @param Request  $request The incoming request instance.
      * @param callable $next The next middleware in the chain.
      * @return mixed The result of the next middleware or a response.
      */

@@ -12,9 +12,9 @@ class ConditionSearchService
     protected const LIMIT = 20;
 
     /**
-     * @param array    $config   The condition's search config (entity + scope).
-     * @param string   $query    Free-text query typed in the combobox.
-     * @param int[]    $includes Specific IDs to resolve (used to hydrate saved values).
+     * @param array  $config   The condition's search config (entity + scope).
+     * @param string $query    Free-text query typed in the combobox.
+     * @param int[]  $includes Specific IDs to resolve (used to hydrate saved values).
      * @return array<int, array{value: string, label: string}>
      */
     public function search(array $config, string $query, array $includes = []): array

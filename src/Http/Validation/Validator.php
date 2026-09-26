@@ -72,11 +72,11 @@ class Validator
     }
 
     /**
-     * apply if we need to validate a field rules if the callback is resolved.
+     * Apply if we need to validate a field rules if the callback is resolved.
      *
-     * @param string|array $field   The fields to validate
-     * @param string $rules         The validation rules to applied if $callback returns true.
-     * @param callable $callback    The callback to check if the field should be validated
+     * @param string|array $field   The fields to validate.
+     * @param string       $rules         The validation rules to applied if $callback returns true.
+     * @param callable     $callback    The callback to check if the field should be validated.
      *
      * @return static
      */
@@ -127,7 +127,7 @@ class Validator
      * Validate the data against the defined rules.
      *
      * @return bool
-     * @throws ValidationException
+     * @throws ValidationException When any field fails its rules, carrying every error.
      */
     public function validate()
     {
@@ -191,7 +191,7 @@ class Validator
      *                                          of the original data array.
      *
      * @param array $key_segments               The remaining parts (split by '.') of the rule key that
-     *                                          still need to be resolved. e.g. 'items.*.id' would be  ['items', '*', 'id']
+     *                                          still need to be resolved, e.g. 'items.*.id' is ['items', '*', 'id'].
      *
      * @param array $traversed_path_stack       The stack of key_segments already traversed so far. This is used
      *                                          to reconstruct the current dot-notated key (e.g., 'items.0.id')
@@ -204,7 +204,7 @@ class Validator
      */
     protected function traverse_and_validate($current_data, $key_segments, $traversed_path_stack, $rules)
     {
-        // when all segments have been traversed
+        // when all segments have been traversed.
         if (empty($key_segments)) {
             $traversed_key = implode('.', $traversed_path_stack);
             $this->apply_rules($rules, $traversed_key, $current_data);
@@ -246,7 +246,7 @@ class Validator
                 $rules
             );
         } else {
-            // Field missing, still run rules to trigger "required" failure
+            // Field missing, still run rules to trigger "required" failure.
             $traversed_key = implode('.', array_merge($traversed_path_stack, [$segment]));
             $this->apply_rules($rules, $traversed_key, null, true);
         }
@@ -255,10 +255,10 @@ class Validator
     /**
      * Applies a set of rules to a given value.
      *
-     * @param array  $rules      An array of validation rules to apply.
-     * @param string $traversed_key   The dot-notated key of the value being validated.
-     * @param mixed|null  $value      The value being validated.
-     * @param bool  $is_field_missing  Whether the field being validated is missing from request.
+     * @param array      $rules      An array of validation rules to apply.
+     * @param string     $traversed_key   The dot-notated key of the value being validated.
+     * @param mixed|null $value      The value being validated.
+     * @param bool       $is_field_missing  Whether the field being validated is missing from request.
      *
      * @return void
      */
@@ -296,7 +296,7 @@ class Validator
                 $strict_rule_validations[$rule] = [
                     'is_valid' => $rule_instance->is_valid(),
                     'message' => $rule_instance->get_error_message(),
-                    'traversed_key' => $traversed_key
+                    'traversed_key' => $traversed_key,
                 ];
 
                 continue;
@@ -321,7 +321,7 @@ class Validator
     /**
      * Validate strict rules.
      * check is there any rule is true then return true otherwise false and set errors
-     * 
+     *
      * @param array $strict_validations
      * @return bool
      */
@@ -363,13 +363,13 @@ class Validator
     /**
      * Get the rule class instance.
      *
-     * @param string|Rule  $rule
-     * @param string $key
-     * @param mixed  $value
-     * @param array  $all_applied_rules
-     * 
+     * @param string|Rule $rule
+     * @param string      $key
+     * @param mixed       $value
+     * @param array       $all_applied_rules
+     *
      * @return Rule
-     * @throws InvalidValidationRuleException
+     * @throws InvalidValidationRuleException When the rule names no known rule class.
      */
     protected function get_rule_class($rule, $key, $value, $all_applied_rules)
     {
@@ -397,8 +397,8 @@ class Validator
      * Set the error message for a given key in the errors array.
      * The key can be a dot-notated string, e.g. `user.email`.
      *
-     * @param string $key   The key to set the error
-     * @param string $error_msg The error message
+     * @param string $key   The key to set the error.
+     * @param string $error_msg The error message.
      * @return void
      */
     public function add_error($key, $error_msg)

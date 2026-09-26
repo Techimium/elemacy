@@ -16,7 +16,7 @@ final class TemplateRecursionGuard
     /** @var int[] Outermost first; the last entry is the template rendering right now. */
     private static array $stack = [];
 
-    /** @throws TemplateRecursionException if $template_id is already an active ancestor, or entering it would exceed MAX_DEPTH. */
+    /** @throws TemplateRecursionException If $template_id is already an active ancestor, or entering it would exceed MAX_DEPTH. */
     public static function enter(int $template_id): void
     {
         if (in_array($template_id, self::$stack, true)) {

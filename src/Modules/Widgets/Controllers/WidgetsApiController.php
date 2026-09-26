@@ -25,13 +25,13 @@ class WidgetsApiController
      * @param Request $request The incoming REST request.
      * @return Response
      */
-    public function index(Request $request)
+    public function index(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.
     {
         $widgets = $this->service->get_all_widgets();
 
         return Response::create()->json([
             'data' => WidgetListResource::collection($widgets),
-            'message' => __('Widgets retrieved successfully', 'elemacy')
+            'message' => __('Widgets retrieved successfully', 'elemacy'),
         ]);
     }
 
@@ -57,7 +57,7 @@ class WidgetsApiController
         $this->service->toggle_widget($name, $action);
 
         return Response::create()->json([
-            'message' => __('Widget toggled successfully', 'elemacy')
+            'message' => __('Widget toggled successfully', 'elemacy'),
         ]);
     }
 }

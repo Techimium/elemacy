@@ -20,32 +20,32 @@ final class PageCachePurger
             wp_cache_flush();
         }
 
-        // WP Rocket
+        // WP Rocket.
         if (function_exists('rocket_clean_domain')) {
             rocket_clean_domain();
         }
 
-        // W3 Total Cache
+        // W3 Total Cache.
         if (function_exists('w3tc_flush_all')) {
             w3tc_flush_all();
         }
 
-        // WP Super Cache
+        // WP Super Cache.
         if (function_exists('wp_cache_clear_cache')) {
             wp_cache_clear_cache();
         }
 
-        // LiteSpeed Cache
+        // LiteSpeed Cache.
         if (class_exists('LiteSpeed\Purge')) {
             do_action('litespeed_purge_all');
         }
 
-        // SiteGround Optimizer
+        // SiteGround Optimizer.
         if (function_exists('sg_cachepress_purge_cache')) {
             sg_cachepress_purge_cache();
         }
 
-        // WP Engine
+        // WP Engine.
         if (method_exists('WpeCommon', 'purge_memcached')) {
             \WpeCommon::purge_memcached();
         }

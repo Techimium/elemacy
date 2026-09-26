@@ -4,6 +4,8 @@ namespace Elemacy\Conditions\Mock;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\Specificity;
+use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Conditions\MockCondition;
 use Elemacy\Conditions\Support\Taxonomies;
 use WP_Taxonomy;
@@ -51,5 +53,11 @@ class InTaxonomy extends MockCondition
     {
         /* translators: %s: taxonomy singular name, e.g. "Category". */
         return sprintf(__('In %s', 'elemacy'), $this->singular);
+    }
+
+    /** One term with a value; any term of the taxonomy without one. */
+    public function get_specificity(ConditionRuleDTO $rule): int
+    {
+        return Specificity::narrowed($rule->value, Specificity::OBJECT, Specificity::TYPE);
     }
 }

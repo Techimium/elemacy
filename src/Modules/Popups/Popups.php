@@ -9,6 +9,7 @@ use Elemacy\Core\Container;
 use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Documents\DocumentManager;
+use Elemacy\Modules\Popups\Documents\PopupDocument;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 use Elemacy\Modules\Popups\Services\Placement\PopupPlacementResolver;
 use Elemacy\Modules\Popups\Services\PopupDisplayResolver;
@@ -137,8 +138,12 @@ class Popups extends Module
                 PopupTypes::FLOATING => __('Floating Element', 'elemacy'),
             ];
 
+            // Every popup type is backed by the same popup document. Declared
+            // here rather than only passed at write time, so the registry — not
+            // one service's call site — is what says which Elementor document a
+            // popup type resolves to.
             foreach ($types as $name => $label) {
-                $registry->register(new TypeDefinition($name, $label, 'popup', $this->get_name()));
+                $registry->register(new TypeDefinition($name, $label, 'popup', $this->get_name(), PopupDocument::class));
             }
         });
     }

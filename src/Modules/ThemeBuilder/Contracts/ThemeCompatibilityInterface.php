@@ -11,4 +11,3 @@ interface ThemeCompatibilityInterface
     /** Register theme-specific header/footer overrides. */
     public function register(ThemeBuilderManager $manager): void;
 }
-

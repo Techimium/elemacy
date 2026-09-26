@@ -84,7 +84,7 @@ class DependencyNotice
         ]);
     }
 
-    private function view(array $data): void
+    private function view(array $data): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Read by the required view.
     {
         require ELEMACY_PATH . 'src/Core/views/dependency-notice.php';
     }

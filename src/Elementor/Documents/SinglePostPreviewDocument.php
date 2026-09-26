@@ -16,7 +16,7 @@ use Elemacy\Elementor\Controls\Query\QueryService;
  */
 abstract class SinglePostPreviewDocument extends PreviewablePageBase
 {
-    const PREVIEW_POST = 'elemacy_preview_post';
+    public const PREVIEW_POST = 'elemacy_preview_post';
 
     protected function register_preview_controls(): void
     {

@@ -26,7 +26,7 @@ abstract class Resource implements Arrayable, Jsonable
     /**
      * Create a new resource instance, or return null if the resource is null.
      *
-     * @param mixed $resource The resource to create a new instance of.
+     * @param mixed $resource_data The resource to create a new instance of.
      *
      * @return array|null
      */
@@ -101,7 +101,7 @@ abstract class Resource implements Arrayable, Jsonable
      * Dynamically pass method calls of the underlying resource to the caller.
      *
      * @param string $method The name of the method to access.
-     * @param array $args The arguments to pass to the method.
+     * @param array  $args The arguments to pass to the method.
      *
      * @return mixed The return value of the accessed method.
      */

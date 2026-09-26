@@ -14,7 +14,7 @@ use Elementor\Controls_Manager;
  */
 class SearchDocument extends PreviewablePageBase
 {
-    const PREVIEW_TERM = 'elemacy_preview_search_term';
+    public const PREVIEW_TERM = 'elemacy_preview_search_term';
 
     public static function get_type()
     {

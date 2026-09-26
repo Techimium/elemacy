@@ -30,7 +30,7 @@ class PreviewManager
      * @param PreviewContextProviderInterface|null $loop_provider Defaults to
      *        the Loop-owned implementation — this class itself never
      *        imports a concrete Loop class, only this Core-owned contract
-     *.
+     * .
      */
     public function __construct(?PreviewContextProviderInterface $loop_provider = null)
     {

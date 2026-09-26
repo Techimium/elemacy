@@ -161,7 +161,8 @@ class AcfAccordion extends Widget_Accordion
         $id_int   = substr($this->get_id_int(), 0, 3);
         ?>
         <div class="elementor-accordion" role="tablist">
-            <?php foreach ($settings['tabs'] as $index => $item) :
+            <?php
+            foreach ($settings['tabs'] as $index => $item) :
                 $tab_count = $index + 1;
 
                 $tab_title_setting_key   = $this->get_repeater_setting_key('tab_title', 'tabs', $index);
@@ -199,13 +200,16 @@ class AcfAccordion extends Widget_Accordion
                         <?php endif; ?>
                         <a class="elementor-accordion-title" tabindex="0"><?php echo esc_html($item['tab_title']); ?></a>
                     </<?php Utils::print_validated_html_tag($settings['title_html_tag']); ?>>
-                    <div <?php $this->print_render_attribute_string($tab_content_setting_key); ?>><?php
+                    <div <?php $this->print_render_attribute_string($tab_content_setting_key); ?>>
+                    <?php
                         $this->print_text_editor($item['tab_content']);
-                    ?></div>
+                    ?>
+                    </div>
                 </div>
             <?php endforeach; ?>
 
-            <?php if (!empty($settings['faq_schema']) && 'yes' === $settings['faq_schema']) :
+            <?php
+            if (!empty($settings['faq_schema']) && 'yes' === $settings['faq_schema']) :
                 $json = [
                     '@context'   => 'https://schema.org',
                     '@type'      => 'FAQPage',

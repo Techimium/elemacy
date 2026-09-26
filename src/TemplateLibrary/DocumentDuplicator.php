@@ -39,12 +39,14 @@ class DocumentDuplicator
     }
 
     /**
-     * @param string[] $extra_excluded_meta Additional keys this specific caller already knows to
-     *   exclude on top of this class's own base exclusions and the shared filter below — e.g.
-     *   PopupService merging in the pre-existing Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER result.
+     * @param int         $id The library item to duplicate.
+     * @param string      $group The library group it must belong to.
+     * @param string[]    $extra_excluded_meta Additional keys this specific caller already knows to
+     *      exclude on top of this class's own base exclusions and the shared filter below — e.g.
+     *      PopupService merging in the pre-existing Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER result.
      * @param string|null $document_type See {@see DocumentWriter::create()} — an explicit override
      *   for a group whose Elementor document type is a group-wide constant rather than per type.
-     * @throws \Elemacy\Http\Exceptions\NotFoundException
+     * @throws \Elemacy\Http\Exceptions\NotFoundException When $id is not an item of $group.
      */
     public function duplicate(int $id, string $group, array $extra_excluded_meta = [], ?string $document_type = null): int
     {

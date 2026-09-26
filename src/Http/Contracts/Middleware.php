@@ -2,7 +2,7 @@
 
 namespace Elemacy\Http\Contracts;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 /**
  * Contract for middleware that can intercept and authorize API requests.
@@ -16,7 +16,7 @@ interface Middleware
      *
      * @since 1.0.0
      *
-     * @param Request $request The incoming request instance.
+     * @param Request  $request The incoming request instance.
      * @param callable $next The next middleware in the chain.
      * @return mixed The result of the next middleware or a redirect response.
      */
