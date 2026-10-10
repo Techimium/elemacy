@@ -13,13 +13,13 @@ use Elemacy\Http\Route;
 
 /**
  * The composition root: connects the plugin's parts in order and holds no
- * feature logic itself. Site setup lives in SiteInstaller; everything Core
- * attaches to WordPress lives in CoreServiceProvider's bootstraps.
+ * feature logic itself. Site setup lives in SiteInstaller, module loading in
+ * ModuleLoader; everything Core attaches to WordPress lives in
+ * CoreServiceProvider's bootstraps.
  */
 class Elemacy
 {
     protected static $instance = null;
-    protected ModuleManager $module_manager;
 
     /** @var ServiceProviderInterface[] */
     protected array $providers = [];
@@ -100,9 +100,7 @@ class Elemacy
 
         $this->load_textdomain();
         $this->site_installer()->sync_version();
-        $this->init_module_manager();
-        $this->load_modules();
-        $this->init_modules();
+        Container::instance()->make(ModuleLoader::class)->load();
 
         do_action(Hooks::LOADED_ACTION);
     }
@@ -136,32 +134,14 @@ class Elemacy
         }
     }
 
-    public function init_module_manager()
-    {
-        $this->module_manager = new ModuleManager();
-    }
-
+    /**
+     * The container-shared manager ModuleLoader loads into. Safe to call
+     * before init() or after a failed requirements check: it then returns a
+     * manager that simply has no modules.
+     */
     public function get_module_manager(): ModuleManager
     {
-        return $this->module_manager;
-    }
-
-    /**
-     * Reads the same shared catalog SiteInstaller seeds from, so one request
-     * instantiates each module once and reads the config file once.
-     */
-    protected function load_modules()
-    {
-        foreach (Container::instance()->singleton(ModuleCatalog::class)->all() as $module) {
-            $this->module_manager->register($module);
-        }
-
-        do_action(Hooks::REGISTER_MODULES_ACTION, $this->module_manager);
-    }
-
-    protected function init_modules()
-    {
-        $this->module_manager->init_modules();
+        return Container::instance()->singleton(ModuleManager::class);
     }
 
     protected function site_installer(): SiteInstaller

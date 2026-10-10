@@ -688,6 +688,25 @@ add_action(Hooks::REGISTER_PROVIDERS_ACTION, static function (Elemacy $elemacy) 
 do_action('elementor/loaded'); // check_requirements() gates the whole bootstrap on this.
 $elemacy = Elemacy::get_instance();
 
+// Filled by the REGISTER_MODULES_ACTION listener and the pre-init check
+// below, then compared against the manager init() actually loaded into.
+$fixture_modules_action_manager = null;
+$fixture_pre_init_manager = null;
+
+add_action(Hooks::REGISTER_MODULES_ACTION, static function (ModuleManager $manager) use (&$fixture_modules_action_manager) {
+    $fixture_modules_action_manager = $manager;
+});
+
+check('Elemacy::get_module_manager() before init() returns an empty manager rather than throwing', static function () use ($elemacy, &$fixture_pre_init_manager) {
+    try {
+        $fixture_pre_init_manager = $elemacy->get_module_manager();
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    return $fixture_pre_init_manager instanceof ModuleManager && $fixture_pre_init_manager->get_modules() === [];
+});
+
 check('Elemacy::init(): first call registers every provider before booting any of them, then fires LOADED_ACTION and subscribes the native init-hook library-type registrations', static function () use ($elemacy) {
     FixtureOrderTrackingProvider::$log = [];
     $loaded_before = did_action(Hooks::LOADED_ACTION);
@@ -700,6 +719,33 @@ check('Elemacy::init(): first call registers every provider before booting any o
         && did_action(Hooks::LOADED_ACTION) === $loaded_before + 1
         && count($GLOBALS['__wp_actions']['init'][5] ?? []) === $init_p5_before + 1
         && count($GLOBALS['__wp_actions']['init'][20] ?? []) === $init_p20_before + 1;
+});
+
+check('Elemacy::init() loads modules into the one container-shared manager: the instance get_module_manager() returned before init(), and the one REGISTER_MODULES_ACTION listeners receive', static function () use ($elemacy, &$fixture_pre_init_manager, &$fixture_modules_action_manager) {
+    $manager = $elemacy->get_module_manager();
+
+    return $manager === $fixture_pre_init_manager
+        && $manager === $fixture_modules_action_manager
+        && $manager === Container::instance()->singleton(ModuleManager::class)
+        && $manager->get_modules() !== [];
+});
+
+check('ModuleLoader builds from a container with no bindings at all and receives that container\'s shared ModuleManager and ModuleCatalog', static function () {
+    $bare = (new ReflectionClass(Container::class))->newInstanceWithoutConstructor();
+
+    try {
+        $loader = $bare->make(\Elemacy\Core\ModuleLoader::class);
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    $modules = new ReflectionProperty($loader, 'modules');
+    $modules->setAccessible(true);
+    $catalog = new ReflectionProperty($loader, 'catalog');
+    $catalog->setAccessible(true);
+
+    return $modules->getValue($loader) === $bare->singleton(ModuleManager::class)
+        && $catalog->getValue($loader) === $bare->singleton(ModuleCatalog::class);
 });
 
 check('Elemacy::init(): a second (duplicate) call attaches nothing a second time', static function () use ($elemacy) {
