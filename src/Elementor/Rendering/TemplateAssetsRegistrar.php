@@ -34,14 +34,10 @@ class TemplateAssetsRegistrar
 
     protected Capabilities $capabilities;
 
-    /**
-     * @param TemplateRenderer|null $renderer
-     * @param Capabilities|null     $capabilities
-     */
-    public function __construct(?TemplateRenderer $renderer = null, ?Capabilities $capabilities = null)
+    public function __construct(TemplateRenderer $renderer, Capabilities $capabilities)
     {
-        $this->renderer = $renderer ?? new TemplateRenderer();
-        $this->capabilities = $capabilities ?? new Capabilities();
+        $this->renderer = $renderer;
+        $this->capabilities = $capabilities;
     }
 
     /**

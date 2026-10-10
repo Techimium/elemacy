@@ -466,7 +466,7 @@ final class ChromeDocumentsTest extends IntegrationTestCase
         add_action('elementor/post/render', $observe);
 
         try {
-            (new \Elemacy\Elementor\Rendering\TemplateAssetsRegistrar())->register((int) $header);
+            \Elemacy\Core\Container::instance()->make(\Elemacy\Elementor\Rendering\TemplateAssetsRegistrar::class)->register((int) $header);
         } finally {
             remove_action('elementor/post/render', $observe);
         }

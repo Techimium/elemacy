@@ -155,7 +155,7 @@ function delete_site_option($key)
 }
 
 /**
- * Elemacy::activation_actions()'s wp_initialize_site listener checks this
+ * SiteInstaller::seed_new_site() (the wp_initialize_site listener) checks this
  * before seeding a newly-created site, guarding against network-activating
  * plugins that a given site opted out of. Defaults to true (the common
  * case a network-activated plugin's own new-site hook actually runs under)

@@ -3,8 +3,10 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Core\Constants\OptionKeys;
+use Elemacy\Core\Container;
 use Elemacy\Core\Elemacy;
 use Elemacy\Core\ModuleCatalog;
+use Elemacy\Core\SiteInstaller;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 
@@ -22,9 +24,7 @@ final class ModuleSeedingTest extends IntegrationTestCase
         delete_option(OptionKeys::ACTIVE_MODULES);
 
         try {
-            $seed = new \ReflectionMethod(Elemacy::class, 'maybe_seed_current_site');
-            $seed->setAccessible(true);
-            $seed->invoke(Elemacy::get_instance());
+            Container::instance()->singleton(SiteInstaller::class)->seed_current_site_if_missing();
 
             $seeded = get_option(OptionKeys::ACTIVE_MODULES, null);
             $catalog = new ModuleCatalog();

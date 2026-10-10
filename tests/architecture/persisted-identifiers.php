@@ -32,7 +32,7 @@ return [
     $returned('popups', 'src/Modules/Popups/Popups.php'),
 
     // Template type names (_elemacy_template_type).
-    $type('section', 'src/Core/Elemacy.php'),
+    $type('section', 'src/TemplateLibrary/LibraryBootstrap.php'),
     $type('loop', 'src/Modules/Widgets/Widgets.php'),
     $type('header', 'src/Modules/ThemeBuilder/ThemeBuilder.php'),
     $type('footer', 'src/Modules/ThemeBuilder/ThemeBuilder.php'),

@@ -10,9 +10,10 @@ use Elemacy\Core\RequestState;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 
 /**
- * Wires the always-on parts of the template library: the CPT, the per-request
- * candidate-cache invalidation, the one-time data migration, and keeping the
- * library CPT out of display-condition target lists.
+ * Wires the always-on parts of the template library: the CPT, the built-in
+ * library types, the per-request candidate-cache invalidation, the one-time
+ * data migration, and keeping the library CPT out of display-condition target
+ * lists.
  */
 class LibraryBootstrap
 {
@@ -32,8 +33,30 @@ class LibraryBootstrap
 
         LibraryPostType::register();
 
+        $this->register_types();
         $this->register_cache_invalidation();
         $this->exclude_from_conditions();
+    }
+
+    /**
+     * Core owns the generic "section" block type, so the library always has a
+     * default type even with every module off; it is referenced by ID rather
+     * than auto-resolved. Modules register their own specialized types at
+     * the default `init` priority, and add-ons contribute more through
+     * LIBRARY_TYPES_REGISTER_ACTION at priority 20 — after the modules, and
+     * never on plugins_loaded, which would load translations too early.
+     */
+    protected function register_types(): void
+    {
+        add_action('init', static function (): void {
+            TypeRegistry::instance()->register(
+                new TypeDefinition('section', __('Section', 'elemacy'), 'block', 'core')
+            );
+        }, 5);
+
+        add_action('init', static function (): void {
+            do_action(Hooks::LIBRARY_TYPES_REGISTER_ACTION, TypeRegistry::instance());
+        }, 20);
     }
 
     /**

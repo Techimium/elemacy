@@ -6,7 +6,6 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Elementor\Contracts\PreviewContextProviderInterface;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
-use Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
 use Elementor\Plugin;
 use WP_Query;
 
@@ -27,14 +26,13 @@ class PreviewManager
     protected PreviewContextProviderInterface $loop_provider;
 
     /**
-     * @param PreviewContextProviderInterface|null $loop_provider Defaults to
-     *        the Loop-owned implementation — this class itself never
-     *        imports a concrete Loop class, only this Core-owned contract
-     * .
+     * @param PreviewContextProviderInterface $loop_provider Bound to the
+     *        Loop-owned implementation by CoreServiceProvider — this class
+     *        depends only on the contract, never on a concrete Loop class.
      */
-    public function __construct(?PreviewContextProviderInterface $loop_provider = null)
+    public function __construct(PreviewContextProviderInterface $loop_provider)
     {
-        $this->loop_provider = $loop_provider ?? new LoopItemPreviewContextProvider();
+        $this->loop_provider = $loop_provider;
     }
 
     /**

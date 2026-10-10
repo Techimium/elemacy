@@ -2,6 +2,7 @@
 
 namespace Elemacy\Tests\Integration;
 
+use Elemacy\Elementor\Compatibility\Capabilities;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 
@@ -242,7 +243,7 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
             $fired_for[] = (int) $id;
         });
 
-        $registrar = new TemplateAssetsRegistrar();
+        $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
         $prepared = $registrar->prepare($document, 'test', 'registrar-1');
 
         self::assertContains($document, $fired_for, 'prepare() must still bridge classic/atomic CSS via register(), exactly as register() alone already does.');
@@ -251,7 +252,7 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
         // A fresh TemplateRenderer/TemplateAssetsRegistrar instance shares the
         // same request-scoped cache, so emission never needs to hold onto the
         // specific registrar instance that ran preparation.
-        self::assertSame($prepared, (new TemplateAssetsRegistrar())->get_prepared($document, 'test', 'registrar-1'));
+        self::assertSame($prepared, (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->get_prepared($document, 'test', 'registrar-1'));
         self::assertSame($prepared, (new TemplateRenderer())->get_prepared($document, 'test', 'registrar-1'));
     }
 }

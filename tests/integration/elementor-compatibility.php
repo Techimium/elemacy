@@ -275,7 +275,7 @@ final class ElementorCompatibilityTest extends IntegrationTestCase
         $host = $this->documents->create('Compat: related-posts host');
         $registered = $this->documents->create('Compat: related-posts dependency');
 
-        $registrar = new \Elemacy\Elementor\Rendering\TemplateAssetsRegistrar();
+        $registrar = \Elemacy\Core\Container::instance()->make(\Elemacy\Elementor\Rendering\TemplateAssetsRegistrar::class);
         $registrar->register_hooks();
         $registrar->register($registered);
 

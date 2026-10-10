@@ -29,6 +29,7 @@ use Elemacy\Core\FrontendScripts;
 use Elemacy\Core\Module;
 use Elemacy\Core\ModuleCatalog;
 use Elemacy\Core\ModuleManager;
+use Elemacy\Core\SiteInstaller;
 use Elemacy\Core\Admin\PluginLinks;
 use Elemacy\Elementor\Preview\PreviewAssets;
 use Elemacy\Elementor\Preview\PreviewManager;
@@ -623,6 +624,31 @@ final class FixtureOrderTrackingProvider implements ServiceProviderInterface
     }
 }
 
+/**
+ * Deliberately does NOT guard its own boot(): the point of the tests using
+ * it is that the composition root, not the provider, is what makes a repeated
+ * bootstrap boot nothing a second time.
+ */
+final class FixtureUnguardedProvider implements ServiceProviderInterface
+{
+    /** @var string[] */
+    public static array $boots = [];
+
+    private string $label;
+
+    public function __construct(string $label)
+    {
+        $this->label = $label;
+    }
+
+    public function register(Container $container): void {}
+
+    public function boot(): void
+    {
+        self::$boots[] = $this->label;
+    }
+}
+
 check('CoreServiceProvider::register() does no eager work (no hooks attached, no options changed)', static function () {
     $actions_before = $GLOBALS['__wp_actions'];
     $options_before = $GLOBALS['__wp_options'];
@@ -654,6 +680,9 @@ check('CoreServiceProvider::register() binds every shared registry to its ::inst
 add_action(Hooks::REGISTER_PROVIDERS_ACTION, static function (Elemacy $elemacy) {
     $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-a'));
     $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-b'));
+    // Two instances of one class: two contributions, each must boot.
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-a'));
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-b'));
 });
 
 do_action('elementor/loaded'); // check_requirements() gates the whole bootstrap on this.
@@ -686,59 +715,14 @@ check('Elemacy::init(): a second (duplicate) call attaches nothing a second time
         && did_action(Hooks::LOADED_ACTION) === $loaded_before;
 });
 
-/**
- * Deliberately does NOT guard its own boot(): the point of these tests is
- * that the composition root, not the provider, is what makes a second boot
- * pass a no-op.
- */
-final class FixtureUnguardedProvider implements ServiceProviderInterface
-{
-    /** @var string[] */
-    public static array $boots = [];
+check('Elemacy::init(): repeated calls boot a provider that does not guard itself only once, and two providers of one class each boot', static function () use ($elemacy) {
+    // The twins were booted by the first init() above; every init() since,
+    // including these, is a no-op for them.
+    $elemacy->init();
+    $elemacy->init();
 
-    private string $label;
-
-    public function __construct(string $label)
-    {
-        $this->label = $label;
-    }
-
-    public function register(Container $container): void {}
-
-    public function boot(): void
-    {
-        self::$boots[] = $this->label;
-    }
-}
-
-check('Elemacy::boot_providers() boots a provider once across two passes even though the provider does not guard itself', static function () use ($elemacy) {
-    FixtureUnguardedProvider::$boots = [];
-    $elemacy->register_provider(new FixtureUnguardedProvider('unguarded'));
-
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
-
-    // Only the newly-registered provider boots: everything registered before
-    // this point was already booted by the earlier init() tests and is
-    // skipped, which is the tracking working.
-    return FixtureUnguardedProvider::$boots === ['unguarded'];
-});
-
-check('Elemacy::boot_providers() tracks providers by identity, so two instances of one provider class each boot', static function () use ($elemacy) {
-    FixtureUnguardedProvider::$boots = [];
-    $elemacy->register_provider(new FixtureUnguardedProvider('twin-a'));
-    $elemacy->register_provider(new FixtureUnguardedProvider('twin-b'));
-
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
-
-    // Class-keyed tracking would have booted only one of the two.
+    // Class-keyed tracking would have booted only one of the two; no run-once
+    // guard at all would have booted each again.
     return FixtureUnguardedProvider::$boots === ['twin-a', 'twin-b'];
 });
 
@@ -750,7 +734,7 @@ check('ServiceProviderInterface no longer requires implementations to make boot(
         && stripos($doc, 'at most once') !== false;
 });
 
-check('Neither CoreServiceProvider carries its own boot guard any more, and a repeated boot pass still attaches each hook only once', static function () use ($elemacy) {
+check('Neither CoreServiceProvider carries its own boot guard any more, and a repeated init() still attaches each hook only once', static function () use ($elemacy) {
     $free_has_flag = property_exists(CoreServiceProvider::class, 'booted');
     $pro_provider  = '\\ElemacyPro\\Core\\Providers\\CoreServiceProvider';
     // Pro is not autoloadable from this suite; assert against its source.
@@ -759,13 +743,12 @@ check('Neither CoreServiceProvider carries its own boot guard any more, and a re
 
     // The guard these flags used to provide: CoreServiceProvider::boot()
     // constructs fresh collaborators every call, so their own $registered
-    // flags would not stop a second pass — only the root's tracking does.
+    // flags would not stop a second pass — only the root's run-once init()
+    // does.
     $admin_enqueue_before = count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []);
 
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
+    $elemacy->init();
+    $elemacy->init();
 
     return $free_has_flag === false
         && $pro_has_flag === false
@@ -775,8 +758,8 @@ check('Neither CoreServiceProvider carries its own boot guard any more, and a re
 /* ── Task 6.3: hook attachment moved out of constructors ───────────── */
 
 /**
- * Every shared bootstrap/manager CoreServiceProvider::boot() constructs
- * directly, now split into a hook-free constructor plus an idempotent
+ * Every shared bootstrap/manager CoreServiceProvider::boot() builds through
+ * the container, each split into a hook-free constructor plus an idempotent
  * register_hooks() (design.md D7).
  */
 $fixture_63_classes = [
@@ -789,13 +772,15 @@ $fixture_63_classes = [
     PreviewAssets::class,
     QueryControlManager::class,
     TemplateAssetsRegistrar::class,
+    \Elemacy\Core\Admin\CoreAdminMenu::class,
+    \Elemacy\Http\HttpBootstrap::class,
 ];
 
 check('constructing any of the task 6.3 bootstrap/manager services attaches no WordPress hooks', static function () use ($fixture_63_classes) {
     foreach ($fixture_63_classes as $class) {
         $before = $GLOBALS['__wp_actions'];
 
-        new $class();
+        Container::instance()->make($class);
 
         if ($GLOBALS['__wp_actions'] !== $before) {
             return false;
@@ -807,7 +792,7 @@ check('constructing any of the task 6.3 bootstrap/manager services attaches no W
 
 check('register_hooks() on each task 6.3 service attaches its hooks, and a second call on the same instance attaches nothing more', static function () use ($fixture_63_classes) {
     foreach ($fixture_63_classes as $class) {
-        $instance = new $class();
+        $instance = Container::instance()->make($class);
         $before = $GLOBALS['__wp_actions'];
 
         $instance->register_hooks();
@@ -866,8 +851,8 @@ check('CoreServiceProvider::boot() wires every service\'s native hooks; single-b
     // Calling boot() directly a second time DOES attach again, and that is
     // the point: boot() builds fresh collaborators every call, so their own
     // register_hooks() guards cannot cover a repeat pass. Nothing in the
-    // plugin calls boot() directly — Elemacy::boot_providers() owns the
-    // at-most-once guarantee, covered by its own tests above.
+    // plugin calls boot() directly — Elemacy::init(), which runs once per
+    // request, owns the at-most-once guarantee, covered by its tests above.
     $provider->boot();
 
     return $GLOBALS['__wp_actions'] !== $snapshot_after_first_boot;
@@ -1130,7 +1115,7 @@ check('registrar collect() passes itself to the collect action, and register() f
         $registrar->register(101);
     });
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->register_hooks();
 
     do_action('wp_enqueue_scripts');
@@ -1154,7 +1139,7 @@ check('registrar registers before a simulated priority-20 style pass runs', stat
         $seen_at_priority_20 = $registered;
     }, 20);
 
-    (new TemplateAssetsRegistrar())->register_hooks();
+    (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->register_hooks();
 
     do_action('wp_enqueue_scripts');
 
@@ -1169,7 +1154,7 @@ check('registrar registers nothing when nothing is collected', static function (
         $fired = true;
     });
 
-    (new TemplateAssetsRegistrar())->collect();
+    (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->collect();
 
     return false === $fired;
 });
@@ -1180,7 +1165,7 @@ check('registrar collect() force-enqueues Elementor base frontend assets only wh
     \Elementor\Plugin::$instance = new \Elementor\Plugin();
     \Elementor\Plugin::$instance->frontend = new FakeElementorFrontend();
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->collect();
     $calls_with_nothing_registered = \Elementor\Plugin::$instance->frontend->calls;
 
@@ -1195,7 +1180,7 @@ check('registrar collect() force-enqueues Elementor base frontend assets only wh
 check('registrar wires related_posts to merge registered ids only for the currently queried post', static function () {
     reset_template_assets_hooks();
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->register_hooks();
     $registrar->register(606);
 
@@ -1231,7 +1216,7 @@ function with_editor_canvas_registrar(bool $preview_mode, int $edited_id, callab
     $elementor->preview = new FakeElementorPreview($preview_mode, $edited_id);
 
     try {
-        $registrar = new TemplateAssetsRegistrar();
+        $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
         $registrar->register_hooks();
         $registrar->register(707);
 
@@ -2796,8 +2781,8 @@ check('Migrator::schedule() defers the sync to init rather than running it inlin
 check('Migrator schedules its sync after every library-type registration, never before', static fn() =>
     Migrator::SYNC_PRIORITY > 20 && Migrator::SYNC_PRIORITY > 10 && Migrator::SYNC_PRIORITY > 5);
 
-check('Elemacy and ElemacyPro both schedule their schema sync instead of running it during plugins_loaded', static function () {
-    $free = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Elemacy.php');
+check('Free (SiteInstaller) and ElemacyPro both schedule their schema sync instead of running it during plugins_loaded', static function () {
+    $free = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/SiteInstaller.php');
 
     if (false !== strpos($free, '->sync(') || false === strpos($free, '->schedule($is_fresh_install)')) {
         return false;
@@ -3661,14 +3646,31 @@ check('SiteBatchIterator::process_batch() with a sub-one limit does nothing', st
     return $result === ['processed' => 0, 'has_more' => false] && $GLOBALS['__wp_current_blog_id'] === 1;
 });
 
-/* ── Task 11.7: Elemacy — bounded network seeding + lazy per-site fallback ── */
+/* ── Task 11.7: SiteInstaller — bounded network seeding + lazy per-site fallback ── */
 
-check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($elemacy) {
+// The same shared instance Elemacy itself resolved at construction.
+$installer = Container::instance()->singleton(SiteInstaller::class);
+
+check('SiteInstaller builds from a container with no bindings at all (activation and plugins_loaded@1 run before any provider registers), sharing one ModuleCatalog', static function () {
+    $bare = (new ReflectionClass(Container::class))->newInstanceWithoutConstructor();
+
+    try {
+        $installer = $bare->singleton(SiteInstaller::class);
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    $catalog = new ReflectionProperty($installer, 'catalog');
+    $catalog->setAccessible(true);
+
+    return $installer instanceof SiteInstaller
+        && $catalog->getValue($installer) === $bare->singleton(ModuleCatalog::class);
+});
+
+check('SiteInstaller::seed_current_site_if_missing() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($installer) {
     delete_option(OptionKeys::ACTIVE_MODULES);
 
-    $ref = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
-    $ref->setAccessible(true);
-    $ref->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
 
     $seeded = get_option(OptionKeys::ACTIVE_MODULES);
 
@@ -3678,7 +3680,7 @@ check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the
     // (including deliberately disabling every module, an empty array,
     // which is falsy but must still count as "already seeded").
     update_option(OptionKeys::ACTIVE_MODULES, []);
-    $ref->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
     $after_customization = get_option(OptionKeys::ACTIVE_MODULES);
 
     // Compared as a set: the seeded value is whatever the modules themselves
@@ -3693,44 +3695,44 @@ check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the
         && $after_customization === [];
 });
 
-check('Elemacy::maybe_continue_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = false;
-    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 5);
+    update_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, 5);
 
-    $elemacy->maybe_continue_network_seeding();
+    $installer->resume_network_seeding();
 
-    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION) === 5;
+    return get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION) === 5;
 });
 
-check('Elemacy::maybe_continue_network_seeding() does nothing when no network seed is in progress', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() does nothing when no network seed is in progress', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = true;
-    delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
+    delete_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION);
     $GLOBALS['__wp_multisite_sites'] = [9001, 9002]; // would be processed if this ran.
 
-    $elemacy->maybe_continue_network_seeding();
+    $installer->resume_network_seeding();
 
-    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false) === false;
+    return get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false) === false;
 });
 
-check('Elemacy::maybe_continue_network_seeding() resumes a network of over 100 sites in bounded batches across separate requests, never in one unbounded pass', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() resumes a network of over 100 sites in bounded batches across separate requests, never in one unbounded pass', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = true;
     $GLOBALS['__wp_multisite_sites'] = range(20001, 20000 + 150); // 150 sites, > NETWORK_SEED_BATCH_SIZE (100).
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
-    // Mirrors what activation_actions()'s own registration hook closure does
+    // Mirrors what SiteInstaller::activate() does
     // for a network activation: seed the offset at 0, then run one bounded
     // pass — leaving the job interrupted with 50 sites still unseeded.
-    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 0);
+    update_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, 0);
 
-    $elemacy->maybe_continue_network_seeding(); // The activation request's own first bounded pass.
-    $offset_after_first_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding(); // The activation request's own first bounded pass.
+    $offset_after_first_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
-    $elemacy->maybe_continue_network_seeding(); // A later request's plugins_loaded resumes it.
-    $offset_after_second_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding(); // A later request's plugins_loaded resumes it.
+    $offset_after_second_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
     // A third call must be a safe no-op: the job is already gone.
-    $elemacy->maybe_continue_network_seeding();
-    $offset_after_third_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding();
+    $offset_after_third_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
     return $offset_after_first_pass === 100
         && $offset_after_second_pass === false
@@ -3739,20 +3741,19 @@ check('Elemacy::maybe_continue_network_seeding() resumes a network of over 100 s
         && $GLOBALS['__wp_blog_stack'] === [];
 });
 
-check('Elemacy activation_actions(): a newly-created site under network activation is seeded via wp_initialize_site, switching and restoring the blog context', static function () use ($elemacy) {
+check('SiteInstaller::register_hooks(): a newly-created site under network activation is seeded via wp_initialize_site, switching and restoring the blog context', static function () use ($installer) {
     $GLOBALS['__wp_plugin_active_for_network'] = true;
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
-    delete_option(OptionKeys::ACTIVE_MODULES); // So seed_site()'s add_option() below is observable.
+    delete_option(OptionKeys::ACTIVE_MODULES); // So the seeding add_option() below is observable.
 
     // An earlier, unrelated CompatibilityChecker test deliberately wipes
     // $GLOBALS['__wp_actions'] entirely to isolate its own assertions, which
     // also discards the wp_initialize_site listener this instance's
-    // constructor registered back at bootstrap. Re-registering here (a
-    // second call to this same public, idempotent-registration method) is
-    // what makes the listener present again to dispatch below, regardless
-    // of that earlier wipe.
-    $elemacy->activation_actions();
+    // constructor registered back at bootstrap. Re-registering here is what
+    // makes the listener present again to dispatch below, regardless of that
+    // earlier wipe.
+    $installer->register_hooks();
 
     do_action('wp_initialize_site', (object) ['blog_id' => 777]);
 
@@ -3876,26 +3877,23 @@ check('ModuleCatalog skips a configured class that does not exist or is not a Mo
     return $names === ['fixture-default-active', 'fixture-opt-out'];
 });
 
-check('Elemacy seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () use ($elemacy) {
-    $catalog_property = new ReflectionProperty(Elemacy::class, 'module_catalog');
-    $catalog_property->setAccessible(true);
-    $restore = $catalog_property->getValue($elemacy);
-
-    $catalog_property->setValue($elemacy, new ModuleCatalog([
-        ThemeBuilder::class,
-        FixtureDefaultActiveModule::class,
-        FixtureOptOutModule::class,
-    ]));
+check('SiteInstaller seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () {
+    $installer = new SiteInstaller(
+        new ModuleCatalog([
+            ThemeBuilder::class,
+            FixtureDefaultActiveModule::class,
+            FixtureOptOutModule::class,
+        ]),
+        new SiteBatchIterator(),
+        new Migrator()
+    );
 
     delete_option(OptionKeys::ACTIVE_MODULES);
 
-    $seed = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
-    $seed->setAccessible(true);
-    $seed->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
 
     $seeded = get_option(OptionKeys::ACTIVE_MODULES);
 
-    $catalog_property->setValue($elemacy, $restore); // Shared singleton: leave it as found.
     delete_option(OptionKeys::ACTIVE_MODULES);
 
     sort($seeded);
@@ -3903,12 +3901,12 @@ check('Elemacy seeds a default-active module contributed to the catalog alongsid
     return $seeded === ['fixture-default-active', 'theme-builder'];
 });
 
-check('Elemacy activation_actions(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($elemacy) {
+check('SiteInstaller::register_hooks(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($installer) {
     $GLOBALS['__wp_plugin_active_for_network'] = false;
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
     delete_option(OptionKeys::ACTIVE_MODULES);
-    $elemacy->activation_actions();
+    $installer->register_hooks();
 
     do_action('wp_initialize_site', (object) ['blog_id' => 778]);
 
@@ -3924,7 +3922,7 @@ $GLOBALS['__wp_multisite'] = false;
 $GLOBALS['__wp_multisite_sites'] = [];
 $GLOBALS['__wp_blog_stack'] = [];
 $GLOBALS['__wp_current_blog_id'] = 1;
-delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
+delete_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION);
 
 /* ── Sanitizer rules ────────────────────────────────────────────── */
 
@@ -4640,13 +4638,27 @@ check('PreviewManager stores an injected PreviewContextProviderInterface instead
     return $ref->getValue($manager) === $fixture_provider;
 });
 
-check('PreviewManager with no injected provider defaults to Loop\Preview\LoopItemPreviewContextProvider (the same behavior as before this contract existed)', static function () {
-    $manager = new PreviewManager();
+check('The container builds PreviewManager with Loop\Preview\LoopItemPreviewContextProvider, bound to the contract by CoreServiceProvider', static function () {
+    (new CoreServiceProvider())->register(Container::instance());
+    $manager = Container::instance()->make(PreviewManager::class);
 
     $ref = new ReflectionProperty(PreviewManager::class, 'loop_provider');
     $ref->setAccessible(true);
 
     return $ref->getValue($manager) instanceof \Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
+});
+
+check('PreviewManager depends only on the preview contract and imports no Elemacy\\Loop class', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Elementor/Preview/PreviewManager.php');
+
+    return false === strpos($source, 'Elemacy\\Loop\\');
+});
+
+check('CoreServiceProvider builds every bootstrap through the container rather than with new', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Providers/CoreServiceProvider.php');
+
+    return false === strpos($source, '(new ')
+        && substr_count($source, '$container->make(') === 11;
 });
 
 check('Core\Preview\PreviewManager and Core\Documents\PreviewablePageBase source files import no concrete Elemacy\Modules\Widgets class', static function () {
