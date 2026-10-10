@@ -5700,6 +5700,28 @@ check('tests/architecture/check.php fails on an Elementor API reference outside 
     return 1 === $exit_code && false !== strpos(implode("\n", $output), 'ZZElementorBoundaryFixture.php');
 });
 
+/* ── Support\ConfigList ─────────────────────────────────────────────── */
+
+check('ConfigList::instances() instantiates class-strings, passes instances through and drops entries of another type, in order', static function () {
+    $ready = new \ArrayObject(['ready']);
+    $file = tempnam(sys_get_temp_dir(), 'elemacy-config-list-');
+
+    file_put_contents($file, '<?php return [\ArrayObject::class, $GLOBALS["__config_list_ready"], \SplStack::class, 42];');
+    $GLOBALS['__config_list_ready'] = $ready;
+
+    try {
+        $instances = \Elemacy\Support\ConfigList::instances($file, \ArrayObject::class);
+    } finally {
+        unlink($file);
+        unset($GLOBALS['__config_list_ready']);
+    }
+
+    return 2 === count($instances)
+        && $instances[0] instanceof \ArrayObject
+        && 0 === count($instances[0])
+        && $ready === $instances[1];
+});
+
 require __DIR__ . '/transport-policy.php';
 
 conclude();

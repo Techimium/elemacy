@@ -166,6 +166,7 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `POPUP_DUPLICATE_EXCLUDED_META_FILTER` | `elemacy/filter/popups/duplicate_excluded_meta` |
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `elemacy/action/popups/triggers/register` |
 | `POPUP_RULES_REGISTER_ACTION` | `elemacy/action/popups/rules/register` |
+| `DYNAMIC_TAGS_REGISTER_ACTION` | `elemacy/action/dynamic_tags/register` |
 
 ### Opting a theme out of native chrome replacement
 

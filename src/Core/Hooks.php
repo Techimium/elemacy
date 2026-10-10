@@ -110,4 +110,10 @@ final class Hooks
     // Fired so add-ons can register popup triggers / rules (passes the manager).
     public const POPUP_TRIGGERS_REGISTER_ACTION = 'elemacy/action/popups/triggers/register';
     public const POPUP_RULES_REGISTER_ACTION    = 'elemacy/action/popups/rules/register';
+
+    // Dynamic Tags.
+    // Fired after free registers its dynamic tags and groups, so add-ons can
+    // register their own (passes Elementor's dynamic tags manager). A tag
+    // registered under a built-in tag's name replaces it.
+    public const DYNAMIC_TAGS_REGISTER_ACTION = 'elemacy/action/dynamic_tags/register';
 }

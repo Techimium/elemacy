@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Contracts\RuleInterface;
 use Elemacy\Modules\Popups\Contracts\TriggerInterface;
+use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
 
 /**
@@ -38,12 +39,8 @@ class TriggerRuleBootstrap
     {
         $manager = $this->triggers;
 
-        foreach (require Utils::get_plugin_path('src/Modules/Popups/Config/triggers.php') as $entry) {
-            $trigger = is_string($entry) ? new $entry() : $entry;
-
-            if ($trigger instanceof TriggerInterface) {
-                $manager->register($trigger);
-            }
+        foreach (ConfigList::instances(Utils::get_plugin_path('src/Modules/Popups/Config/triggers.php'), TriggerInterface::class) as $trigger) {
+            $manager->register($trigger);
         }
 
         do_action(Hooks::POPUP_TRIGGERS_REGISTER_ACTION, $manager);
@@ -53,12 +50,8 @@ class TriggerRuleBootstrap
     {
         $manager = $this->rules;
 
-        foreach (require Utils::get_plugin_path('src/Modules/Popups/Config/rules.php') as $entry) {
-            $rule = is_string($entry) ? new $entry() : $entry;
-
-            if ($rule instanceof RuleInterface) {
-                $manager->register($rule);
-            }
+        foreach (ConfigList::instances(Utils::get_plugin_path('src/Modules/Popups/Config/rules.php'), RuleInterface::class) as $rule) {
+            $manager->register($rule);
         }
 
         do_action(Hooks::POPUP_RULES_REGISTER_ACTION, $manager);
