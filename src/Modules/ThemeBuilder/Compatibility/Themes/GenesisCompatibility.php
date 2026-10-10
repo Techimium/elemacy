@@ -82,4 +82,3 @@ class GenesisCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

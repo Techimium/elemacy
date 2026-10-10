@@ -34,7 +34,7 @@ final class ThemeBuilderPlacementResolver implements PlacementResolverInterface
         if (null !== $type && $resolver->resolve($type) === $owner_id) {
             return [
                 'location' => $type,
-                'query' => $this->query_facts()
+                'query' => $this->query_facts(),
             ];
         }
 

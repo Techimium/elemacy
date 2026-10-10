@@ -27,12 +27,14 @@ class DocumentWriter
     }
 
     /**
-     * @param array $post_fields wp_insert_post()'s own $postarr (post_type is pinned by the repository).
+     * @param string      $group The library group being written.
+     * @param array       $post_fields wp_insert_post()'s own $postarr (post_type is pinned by the repository).
+     * @param string      $type The template type within that group.
      * @param string|null $document_type Overrides the registry-resolved Elementor document type —
      *   for a group whose document type is a group-wide constant regardless of which registered
      *   type is selected (e.g. popups: every type shares 'elemacy_popup') rather than resolved
      *   per type (blocks/theme templates, via each type's own registered document class).
-     * @throws ValidationException
+     * @throws ValidationException When $type is not registered for $group.
      */
     public function create(string $group, array $post_fields, string $type = '', ?string $document_type = null): int
     {
@@ -64,15 +66,18 @@ class DocumentWriter
     {
         try {
             $this->repository->delete($post_id);
-        } catch (\Throwable $cleanup_error) {
+        } catch (\Throwable $cleanup_error) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Deliberate, see below.
             // Deliberately ignored: see this method's own doc comment.
         }
     }
 
     /**
-     * @param array $post_fields wp_update_post()'s own $postarr (ID is pinned by the repository).
+     * @param int         $id The library item to update.
+     * @param string      $group The library group it must belong to.
+     * @param array       $post_fields wp_update_post()'s own $postarr (ID is pinned by the repository).
+     * @param string|null $type A new template type, or null to keep the current one.
      * @param string|null $document_type See {@see create()}.
-     * @throws NotFoundException|ValidationException
+     * @throws NotFoundException|ValidationException When $id is not an item of $group, or $type is not registered for it.
      */
     public function update(int $id, string $group, array $post_fields, ?string $type = null, ?string $document_type = null): WP_Post
     {
@@ -92,7 +97,7 @@ class DocumentWriter
     }
 
     /**
-     * @throws NotFoundException
+     * @throws NotFoundException When $id is not an item of $group.
      */
     public function owned_or_fail(int $id, string $group): WP_Post
     {
@@ -128,7 +133,7 @@ class DocumentWriter
     }
 
     /**
-     * @throws ValidationException
+     * @throws ValidationException When $type is not registered for $group.
      */
     protected function assert_valid_type(string $group, string $type): void
     {

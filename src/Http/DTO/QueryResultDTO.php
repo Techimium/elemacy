@@ -30,7 +30,7 @@ class QueryResultDTO extends DTO
     /**
      * Serialize a list of results to the plain `[{id, text}, ...]` shape select2 expects.
      *
-     * @param iterable<self> $results
+     * @param iterable $results QueryResultDTO instances.
      *
      * @return array<int, array{id: int|string, text: string}>
      */

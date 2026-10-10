@@ -122,6 +122,11 @@ function switch_to_blog($site_id)
     return true;
 }
 
+function get_current_blog_id()
+{
+    return $GLOBALS['__wp_current_blog_id'];
+}
+
 function restore_current_blog()
 {
     $GLOBALS['__wp_current_blog_id'] = array_pop($GLOBALS['__wp_blog_stack']) ?? 1;
@@ -150,7 +155,7 @@ function delete_site_option($key)
 }
 
 /**
- * Elemacy::activation_actions()'s wp_initialize_site listener checks this
+ * SiteInstaller::seed_new_site() (the wp_initialize_site listener) checks this
  * before seeding a newly-created site, guarding against network-activating
  * plugins that a given site opted out of. Defaults to true (the common
  * case a network-activated plugin's own new-site hook actually runs under)
@@ -184,6 +189,13 @@ function do_action($hook, ...$args)
             $callback(...array_slice($args, 0, $accepted_args));
         }
     }
+}
+
+function remove_all_actions($hook, $priority = false)
+{
+    unset($GLOBALS['__wp_actions'][$hook]);
+
+    return true;
 }
 
 function add_filter($hook, $callback, $priority = 10, $accepted_args = 1)
@@ -300,7 +312,7 @@ function wp_body_open()
 function locate_template($template_names, $load = false, $require_once = true, $args = array())
 {
     if ($load && isset($GLOBALS['__locate_template_stub'])) {
-        ($GLOBALS['__locate_template_stub'])();
+        ($GLOBALS['__locate_template_stub'])($template_names);
     }
 
     if (!empty($GLOBALS['__locate_template_missing'])) {
@@ -559,6 +571,25 @@ class WP_Term
                 $this->$key = $value;
             }
         }
+    }
+}
+
+/**
+ * Minimal stand-in for WordPress's taxonomy object: the `name` and `labels`
+ * members the taxonomy-scoped conditions read, faithful to the real class's
+ * shape for those.
+ */
+class WP_Taxonomy
+{
+    public $name = '';
+    public $label = '';
+    public $labels;
+
+    public function __construct(string $name, string $singular = '')
+    {
+        $this->name = $name;
+        $this->label = $singular !== '' ? $singular : $name;
+        $this->labels = (object) ['singular_name' => $this->label];
     }
 }
 

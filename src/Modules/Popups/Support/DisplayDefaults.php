@@ -8,8 +8,8 @@ use Elemacy\Core\Hooks;
 
 class DisplayDefaults
 {
-    const DEFAULT_OVERLAY_BLUR = 0;
-    const MAX_OVERLAY_BLUR     = 40;
+    public const DEFAULT_OVERLAY_BLUR = 0;
+    public const MAX_OVERLAY_BLUR     = 40;
 
     /**
      * Default DisplaySettings for a given popup type.

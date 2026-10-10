@@ -85,7 +85,7 @@ class DocumentDisplay
             : (float) ($def['overlay']['blur'] ?? DisplayDefaults::DEFAULT_OVERLAY_BLUR);
         $overlay_blur = max(0, min(DisplayDefaults::MAX_OVERLAY_BLUR, $overlay_blur));
 
-        return static::$cache[$id] = [
+        static::$cache[$id] = [
             'position'  => isset($settings[DisplayKeys::POSITION]) && '' !== $settings[DisplayKeys::POSITION]
                 ? $settings[DisplayKeys::POSITION]
                 : $def['position'],
@@ -127,5 +127,7 @@ class DocumentDisplay
                 ? (int) $settings[DisplayKeys::Z_INDEX]
                 : (int) $def['z_index'],
         ];
+
+        return static::$cache[$id];
     }
 }

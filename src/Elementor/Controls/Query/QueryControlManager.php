@@ -16,11 +16,11 @@ use Elementor\Controls_Manager;
  */
 class QueryControlManager
 {
-    const AUTOCOMPLETE_ACTION = 'elemacy_query_autocomplete';
-    const TITLES_ACTION       = 'elemacy_query_titles';
+    public const AUTOCOMPLETE_ACTION = 'elemacy_query_autocomplete';
+    public const TITLES_ACTION       = 'elemacy_query_titles';
 
-    const SCRIPT_HANDLE = 'elemacy-query-control';
-    const RELATIVE_PATH = 'assets/editor/query-control.js';
+    public const SCRIPT_HANDLE = 'elemacy-query-control';
+    public const RELATIVE_PATH = 'assets/editor/query-control.js';
 
     protected QueryService $service;
     protected bool $registered = false;

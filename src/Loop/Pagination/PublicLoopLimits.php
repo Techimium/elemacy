@@ -10,7 +10,7 @@ use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
 /** Shared bounds for public source policies and their initial paginated output. */
 final class PublicLoopLimits
 {
-    const MAX_ITEMS = 100;
+    public const MAX_ITEMS = 100;
 
     /**
      * @param mixed $value Saved count; zero/empty/unlimited becomes the bounded maximum.
@@ -76,7 +76,7 @@ final class PublicLoopLimits
         if (isset($settings[$key]) && 'yes' === ($settings['pagination_ajax'] ?? '')) {
             try {
                 $settings[$key] = self::page_size($settings[$key]);
-            } catch (ValidationException $error) {
+            } catch (ValidationException $error) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Deliberate, see below.
                 // Malformed authored value: leave it for the source's own
                 // validation to handle exactly as before this change.
             }

@@ -29,7 +29,12 @@
             <file>placement-resolvers.php</file>
             <file>acf-repeater-public-policy.php</file>
             <file>acf-repeater-query-pagination.php</file>
+            <file>template-precedence.php</file>
             <file>theme-lifecycle.php</file>
+            <file>native-chrome-replacement.php</file>
+            <file>chrome-documents.php</file>
+            <file>atomic-rendering.php</file>
+            <file>pro-entitlement.php</file>
             <file>foreign-document-assets.php</file>
             <file>popup-required-capability-suspension.php</file>
             <file>popup-rule-trigger-params-guard.php</file>
@@ -38,7 +43,9 @@
             <file>availability-repair-round-trip.php</file>
             <file>condition-registry-extension.php</file>
             <file>library-persistence.php</file>
+            <file>module-seeding.php</file>
             <file>template-rendering-preparation.php</file>
+            <file>request-state.php</file>
             <file>shared-preparation-across-placements.php</file>
             <file>elementor-compatibility.php</file>
             <file>same-document-content-renderer.php</file>

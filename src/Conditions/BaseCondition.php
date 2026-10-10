@@ -4,8 +4,20 @@ namespace Elemacy\Conditions;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\DTO\ConditionRuleDTO;
+
 abstract class BaseCondition implements ConditionInterface
 {
+    /**
+     * The broadest level, so a condition that never declares one — including a
+     * third party's — still registers and still matches, and simply never
+     * outranks a condition that does declare one.
+     */
+    public function get_specificity(ConditionRuleDTO $rule): int
+    {
+        return Specificity::SITE;
+    }
+
     public function get_sub_values(): array
     {
         return [];

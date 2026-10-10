@@ -40,4 +40,3 @@ class AstraCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

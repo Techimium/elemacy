@@ -35,15 +35,15 @@ use WP_Query;
  */
 class PopupService
 {
-    const GROUP = 'popup';
-    const DOCUMENT_TYPE = 'elemacy_popup';
+    public const GROUP = 'popup';
+    public const DOCUMENT_TYPE = 'elemacy_popup';
 
     /**
      * Default page size when the request omits (or under/over-shoots) per_page.
      *
      * @var int
      */
-    const DEFAULT_PER_PAGE = 20;
+    public const DEFAULT_PER_PAGE = 20;
 
     protected ConditionRepository $conditions;
     protected LibraryRepository $repository;
@@ -240,6 +240,7 @@ class PopupService
     }
 
     /**
+     * @param int                                                                                                $id
      * @param LibraryChanged::CREATED|LibraryChanged::UPDATED|LibraryChanged::DUPLICATED|LibraryChanged::DELETED $action
      */
     protected function notify(int $id, string $action): void

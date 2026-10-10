@@ -98,11 +98,11 @@ interface Request
      */
     public function get(string $key, string $type, $default_value = null);
 
-    /** 
+    /**
      * Check if the request has the provided key
-     * 
+     *
      * @since 1.0.0
-     * 
+     *
      * @param string $key
      * @return bool
      */
@@ -113,8 +113,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
     public function get_string(string $key, $default_value = null);
@@ -124,8 +124,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
     public function get_date(string $key, $default_value = null);
@@ -135,8 +135,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
     public function get_datetime(string $key, $default_value = null);
@@ -146,8 +146,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_text(string $key, $default_value = null);
@@ -157,8 +157,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_html(string $key, $default_value = null);
@@ -168,8 +168,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_email(string $key, $default_value = null);
@@ -179,8 +179,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_url(string $key, $default_value = null);
@@ -190,8 +190,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_key(string $key, $default_value = null);
@@ -201,8 +201,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_title(string $key, $default_value = null);
@@ -212,8 +212,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_file_name(string $key, $default_value = null);
@@ -223,8 +223,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param string|null  $default_value Default value if the key doesn't exist.
+     * @param string      $key The key to retrieve.
+     * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
     public function get_mime_type(string $key, $default_value = null);
@@ -234,8 +234,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param int|null  $default_value Default value if the key doesn't exist.
+     * @param string   $key The key to retrieve.
+     * @param int|null $default_value Default value if the key doesn't exist.
      * @return int|null
      */
     public function get_int(string $key, $default_value = null);
@@ -246,7 +246,7 @@ interface Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param bool  $default_value Default value if the key doesn't exist.
+     * @param bool   $default_value Default value if the key doesn't exist.
      * @return bool
      */
     public function get_bool(string $key, bool $default_value = false);
@@ -256,8 +256,8 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
-     * @param float|null  $default_value Default value if the key doesn't exist.
+     * @param string     $key The key to retrieve.
+     * @param float|null $default_value Default value if the key doesn't exist.
      * @return float|null
      */
     public function get_float(string $key, $default_value = null);
@@ -268,7 +268,7 @@ interface Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float $default_value Default value if the key doesn't exist.
+     * @param float  $default_value Default value if the key doesn't exist.
      * @return float
      */
     public function get_money(string $key, $default_value = 0);
@@ -278,7 +278,7 @@ interface Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string     $key The key to retrieve.
      * @param array|null $default_value Default value if the key doesn't exist.
      * @return array|null
      */

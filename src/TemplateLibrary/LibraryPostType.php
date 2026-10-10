@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 class LibraryPostType
 {
-    const POST_TYPE = 'elemacy_library';
+    public const POST_TYPE = 'elemacy_library';
 
     public static function register(): void
     {

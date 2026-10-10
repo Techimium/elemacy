@@ -16,12 +16,12 @@ class Str
     protected static $increment_styles = [
         'dash' => [
             '/-(\d+)$/',
-            '-%d'
+            '-%d',
         ],
         'regular' => [
             ['/\((\d+)\)$/', '/\(\d+\)$/'],
-            [' (%d)', '(%d)']
-        ]
+            [' (%d)', '(%d)'],
+        ],
     ];
 
     /**
@@ -59,7 +59,7 @@ class Str
      * @param string $style The style of the increment. Available styles are 'dash' and 'regular'.
      *
      * @return string The incremented string.
-     * 
+     *
      * @since 1.0.0
      */
     public static function increment($value, $style = 'dash')
@@ -70,14 +70,16 @@ class Str
             $search_regex = reset($style[0]);
             $replace_regex = end($style[0]);
         } else {
-            $search_regex = $replace_regex = $style[0];
+            $search_regex = $style[0];
+            $replace_regex = $style[0];
         }
 
         if (is_array($style[1])) {
             $old_format = reset($style[1]);
             $new_format = end($style[1]);
         } else {
-            $old_format = $new_format = $style[1];
+            $old_format = $style[1];
+            $new_format = $style[1];
         }
 
         if (preg_match($search_regex, $value, $matches)) {
@@ -142,10 +144,5 @@ class Str
         }
 
         return static::substr($value, 0, $limit);
-    }
-
-    public static function to_base64($value)
-    {
-        return base64_encode($value);
     }
 }

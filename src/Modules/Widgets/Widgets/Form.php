@@ -511,7 +511,7 @@ class Form extends BaseWidget
                 ],
             ]
         );
-        
+
         $this->add_control(
             'field_placeholder_color',
             [
@@ -756,35 +756,37 @@ class Form extends BaseWidget
             ]
         );
 
-        $this->add_control('message_border_type',
-        [
-			'label' => esc_html__( 'Border Type', 'elemacy' ),
-			'type' => Controls_Manager::SELECT,
-			'options' => [
-				'' => esc_html__( 'Default', 'elemacy' ),
-				'none' => esc_html__( 'None', 'elemacy' ),
-				'solid' => esc_html__( 'Solid', 'elemacy' ),
-				'double' => esc_html__( 'Double', 'elemacy' ),
-				'dotted' => esc_html__( 'Dotted', 'elemacy' ),
-				'dashed' => esc_html__( 'Dashed', 'elemacy' ),
-				'groove' => esc_html__( 'Groove', 'elemacy' ),
-			],
-			'selectors' => [
-				'{{SELECTOR}} .elemacy-message' => 'border-style: {{VALUE}};',
-			],
-		]);
+        $this->add_control(
+            'message_border_type',
+            [
+                'label' => esc_html__('Border Type', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
+                'options' => [
+                    '' => esc_html__('Default', 'elemacy'),
+                    'none' => esc_html__('None', 'elemacy'),
+                    'solid' => esc_html__('Solid', 'elemacy'),
+                    'double' => esc_html__('Double', 'elemacy'),
+                    'dotted' => esc_html__('Dotted', 'elemacy'),
+                    'dashed' => esc_html__('Dashed', 'elemacy'),
+                    'groove' => esc_html__('Groove', 'elemacy'),
+                ],
+                'selectors' => [
+                    '{{SELECTOR}} .elemacy-message' => 'border-style: {{VALUE}};',
+                ],
+            ]
+        );
 
         $this->add_responsive_control(
             'message_border_width',
             [
-                'label' => esc_html__( 'Border Width', 'elemacy' ),
+                'label' => esc_html__('Border Width', 'elemacy'),
                 'type' => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', 'rem', 'vw', 'custom' ],
+                'size_units' => ['px', 'em', 'rem', 'vw', 'custom'],
                 'selectors' => [
                     '{{SELECTOR}} .elemacy-message' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
                 'responsive' => true,
             ]
@@ -871,7 +873,7 @@ class Form extends BaseWidget
                     '{{WRAPPER}} .elemacy-message-success' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -919,7 +921,7 @@ class Form extends BaseWidget
                     '{{WRAPPER}} .elemacy-message-danger' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -950,7 +952,7 @@ class Form extends BaseWidget
         try {
             $form_context = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver::class)
                 ->context((int) $document_id, $this->get_id());
-        } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+        } catch (\Elemacy\Http\Exceptions\ValidationException $error) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Deliberate, see below.
             // An editor may render an unsaved/draft widget; it cannot mint a public placement proof.
         }
 
@@ -968,7 +970,8 @@ class Form extends BaseWidget
                 </div>
                 <?php wp_nonce_field('elemacy_widgets_form_submit', '_wpnonce'); ?>
 
-                <?php foreach ($settings['form_fields'] as $index => $field) :
+                <?php
+                foreach ($settings['form_fields'] as $index => $field) :
                     $field_id = 'field_' . $index;
                     $this->add_render_attribute('field_wrapper_' . $index, [
                         'class' => [
@@ -1008,7 +1011,8 @@ class Form extends BaseWidget
                                 $options = explode("\n", $field['options']);
                                 ?>
                                 <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
-                                    <?php foreach ($options as $option) :
+                                    <?php
+                                    foreach ($options as $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
                                         $value = isset($option_parts[1]) ? $option_parts[1] : $label;
@@ -1026,7 +1030,8 @@ class Form extends BaseWidget
                                 $type = $field['type'];
                                 ?>
                                 <div class="elemacy-field-subgroup">
-                                    <?php foreach ($options as $opt_index => $option) :
+                                    <?php
+                                    foreach ($options as $opt_index => $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
                                         $value = isset($option_parts[1]) ? $option_parts[1] : $label;
@@ -1038,7 +1043,7 @@ class Form extends BaseWidget
                                                 name="form_field[<?php echo esc_attr($index); ?>]<?php echo 'checkbox' === $type ? '[]' : ''; ?>" 
                                                 id="<?php echo esc_attr($sub_id); ?>" 
                                                 value="<?php echo esc_attr(trim($value)); ?>"
-                                                <?php echo esc_attr( $field['required'] ? 'required' : '' ); ?>
+                                                <?php echo esc_attr($field['required'] ? 'required' : ''); ?>
                                             >
                                             <label for="<?php echo esc_attr($sub_id); ?>"><?php echo esc_html(trim($label)); ?></label>
                                         </div>
@@ -1070,6 +1075,6 @@ class Form extends BaseWidget
 
     protected function content_template()
     {
-        // For editor live preview if needed
+        // For editor live preview if needed.
     }
 }

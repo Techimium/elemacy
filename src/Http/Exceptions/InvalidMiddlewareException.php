@@ -2,7 +2,7 @@
 
 namespace Elemacy\Http\Exceptions;
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
 use Exception;
 

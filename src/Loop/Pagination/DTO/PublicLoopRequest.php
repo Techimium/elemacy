@@ -14,12 +14,12 @@ use stdClass;
  */
 final class PublicLoopRequest
 {
-    const VERSION = 1;
-    const MAX_PAGE = 10000;
-    const MAX_CONTEXT_BYTES = 8192;
-    const MAX_REQUEST_BYTES = 12288;
-    const INVALID_REQUEST = 'elemacy_loop_invalid_request';
-    const REFRESH_REQUIRED = 'elemacy_loop_refresh_required';
+    public const VERSION = 1;
+    public const MAX_PAGE = 10000;
+    public const MAX_CONTEXT_BYTES = 8192;
+    public const MAX_REQUEST_BYTES = 12288;
+    public const INVALID_REQUEST = 'elemacy_loop_invalid_request';
+    public const REFRESH_REQUIRED = 'elemacy_loop_refresh_required';
 
     /** @var int */
     private int $owner_id;
@@ -88,16 +88,22 @@ final class PublicLoopRequest
         if (array_diff(array_keys(get_object_vars($claims)), $allowed)) {
             throw self::invalid();
         }
-        if (!isset($claims->owner_id) || !is_int($claims->owner_id) || $claims->owner_id < 1
-            || !isset($claims->page) || !is_int($claims->page) || $claims->page < 1 || $claims->page > self::MAX_PAGE) {
+        if (
+            !isset($claims->owner_id) || !is_int($claims->owner_id) || $claims->owner_id < 1
+            || !isset($claims->page) || !is_int($claims->page) || $claims->page < 1 || $claims->page > self::MAX_PAGE
+        ) {
             throw self::invalid();
         }
-        if (!isset($claims->widget_id) || !is_string($claims->widget_id)
-            || !preg_match('/\A[A-Za-z0-9_-]{1,64}\z/', $claims->widget_id)) {
+        if (
+            !isset($claims->widget_id) || !is_string($claims->widget_id)
+            || !preg_match('/\A[A-Za-z0-9_-]{1,64}\z/', $claims->widget_id)
+        ) {
             throw self::invalid();
         }
-        if (!isset($claims->fingerprint) || !is_string($claims->fingerprint)
-            || !preg_match('/\A[a-f0-9]{64}\z/', $claims->fingerprint)) {
+        if (
+            !isset($claims->fingerprint) || !is_string($claims->fingerprint)
+            || !preg_match('/\A[a-f0-9]{64}\z/', $claims->fingerprint)
+        ) {
             throw self::invalid();
         }
         if (property_exists($claims, 'context')) {

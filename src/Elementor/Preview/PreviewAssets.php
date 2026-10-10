@@ -15,7 +15,7 @@ use Elementor\Plugin;
  */
 class PreviewAssets
 {
-    const RELATIVE_PATH = 'assets/editor/preview-bridge.js';
+    public const RELATIVE_PATH = 'assets/editor/preview-bridge.js';
 
     protected bool $registered = false;
 

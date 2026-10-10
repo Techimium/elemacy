@@ -19,7 +19,7 @@ use WP_Post;
 /** Shared native document eligibility and explicit source-policy enforcement. */
 final class PublicRenderPolicy
 {
-    const UNAVAILABLE = 'elemacy_loop_unavailable';
+    public const UNAVAILABLE = 'elemacy_loop_unavailable';
 
     /** @var TypeRegistry */
     private TypeRegistry $types;
@@ -29,12 +29,12 @@ final class PublicRenderPolicy
     private PlacementResolverRegistry $placements;
 
     /**
-     * @param TypeRegistry                    $types Populated library types.
-     * @param LoopDataSourceRegistry          $sources Currently available sources.
-     * @param PlacementResolverRegistry|null  $placements Defaults to the shared
-     *                                        instance — every existing caller
-     *                                        (LoopGrid included) constructs this
-     *                                        class with only the first two args.
+     * @param TypeRegistry                   $types Populated library types.
+     * @param LoopDataSourceRegistry         $sources Currently available sources.
+     * @param PlacementResolverRegistry|null $placements Defaults to the shared
+     *                                       instance — every existing caller
+     *                                       (LoopGrid included) constructs this
+     *                                       class with only the first two args.
      */
     public function __construct(TypeRegistry $types, LoopDataSourceRegistry $sources, ?PlacementResolverRegistry $placements = null)
     {
@@ -73,11 +73,13 @@ final class PublicRenderPolicy
     {
         $template = $this->public_post($id);
         $loop_type = $this->types->get('loop');
-        if (!$loop_type || 'block' !== $loop_type->group
+        if (
+            !$loop_type || 'block' !== $loop_type->group
             || LibraryPostType::POST_TYPE !== $template->post_type
             || 'loop' !== get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true)
             || 'elemacy_loop' !== get_post_meta($id, '_elementor_template_type', true)
-            || 'builder' !== get_post_meta($id, '_elementor_edit_mode', true)) {
+            || 'builder' !== get_post_meta($id, '_elementor_edit_mode', true)
+        ) {
             throw self::unavailable();
         }
         return $template;
@@ -144,7 +146,7 @@ final class PublicRenderPolicy
      * owning document; visitors get nothing.
      *
      * @param array $settings Raw author settings.
-     * @param int $owner_id The document rendering the widget.
+     * @param int   $owner_id The document rendering the widget.
      * @return string
      */
     public function describe_ineligibility(array $settings, int $owner_id): string

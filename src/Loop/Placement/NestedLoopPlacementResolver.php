@@ -13,7 +13,7 @@ use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
  */
 final class NestedLoopPlacementResolver implements PlacementResolverInterface
 {
-    const MAX_DEPTH = 10;
+    public const MAX_DEPTH = 10;
 
     public function get_key(): string
     {

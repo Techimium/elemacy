@@ -22,4 +22,3 @@ class BlocksyCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

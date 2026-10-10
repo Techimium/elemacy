@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name: Elemacy
  * Plugin URI: https://elemacy.com

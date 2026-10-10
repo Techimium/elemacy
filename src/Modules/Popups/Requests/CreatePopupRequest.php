@@ -56,7 +56,7 @@ class CreatePopupRequest extends Request
     }
 
     /**
-     * rules()/filters() only check that params is an array; a params shape
+     * The rules() and filters() only check that params is an array; a params shape
      * that tries to smuggle a reserved discriminator key is
      * rejected here, at the request boundary, before the popup is ever
      * saved — the same check RuleDTO/TriggerDTO::collection_or_fail() runs

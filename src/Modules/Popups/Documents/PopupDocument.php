@@ -63,7 +63,9 @@ class PopupDocument extends PageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+    /**
+     * Forces Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {

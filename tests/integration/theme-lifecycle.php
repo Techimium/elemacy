@@ -152,7 +152,6 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         self::assertStringContainsString('Elemacy popup body marker', $preview, 'The popup preview must render the popup itself: ' . $preview);
         self::assertSame(0, substr_count($preview, 'Elemacy Preview header'), 'A popup preview is a standalone canvas: the site header must not render beside it.');
         self::assertSame(0, substr_count($preview, 'Elemacy Preview footer'), 'A popup preview must not render the site footer either.');
-        self::assertStringNotContainsString('<div class="elemacy-force-stretched-header">', $preview, 'No empty full-width header wrapper may be left in the page.');
     }
 
     public function testATemplateIsNeverRenderedAsItsOwnHeaderOrFooter(): void
@@ -252,7 +251,6 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         self::assertStringContainsString('Canvas page body marker.', $html, 'The page content must still render.');
         self::assertSame(0, substr_count($html, 'Elemacy Canvas header'), 'No site header on an Elementor Canvas page.');
         self::assertSame(0, substr_count($html, 'Elemacy Canvas footer'), 'No site footer on an Elementor Canvas page.');
-        self::assertStringNotContainsString('<div class="elemacy-force-stretched-header">', $html, 'No empty full-width header wrapper may be left in the page.');
     }
 
     public function testDedicatedAdapterRemovesOnlyItsOwnCallbackAndPreservesThirdPartyHooks(): void
@@ -283,11 +281,12 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
     public function testGenericThemeWithBodyOpenRendersElemacyHeaderOnce(): void
     {
-        // The header also carries a widget whose own output happens to reuse
-        // a common class name ("site-header") deep inside the rendered
-        // content — task 2.5: GlobalCompatibility's suppression CSS must be
-        // scoped so it can never reach into builder-authored content like
-        // this, only the theme's own near-root chrome.
+        // The header also carries a widget whose own output reuses a common
+        // theme class name ("site-header") deep inside the rendered content:
+        // replacing the theme's chrome must never touch builder content.
+        // Discard, one-sided replacement and hook integrity are covered in
+        // native-chrome-replacement.php, which renders each page in its own
+        // process.
         $nested_marker = 'Elemacy nested site-header marker';
         $header = $this->create_header_with_nested_site_header_marker('Elemacy Generic header', $nested_marker);
         $footer = $this->create_footer('Elemacy Generic footer');
@@ -297,13 +296,9 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
         self::assertSame(1, substr_count($html, 'Elemacy Generic header'), 'Header must render exactly once: ' . $html);
         self::assertSame(1, substr_count($html, 'Elemacy Generic footer'), 'Footer must render exactly once.');
-        // GlobalCompatibility cannot safely remove unidentified native chrome,
-        // only CSS-hide it — the native markup itself remains in the HTML.
-        self::assertSame(1, substr_count($html, 'fixture-native-header'), 'Native chrome remains in the markup (CSS-hidden, not removed).');
-        self::assertStringContainsString('.elemacy-force-stretched-header', $html, 'A suppression stylesheet must be present.');
-        self::assertStringContainsString($nested_marker, $html, 'Builder content bearing a reused ".site-header" class must still render in the markup: ' . $html);
-        self::assertMatchesRegularExpression('/:is\([^)]*\)\s*>\s*\.site-header/', $html, 'The suppression rule for .site-header must be scoped with a child combinator off the near-root selector list.');
-        self::assertDoesNotMatchRegularExpression('/(?<!>)\s\.site-header\s*\{/', $html, 'There must be no unscoped ".site-header { ... }" rule that could reach nested builder content.');
+        self::assertSame(0, substr_count($html, 'fixture-native-header'), "The theme's own header is not in the response.");
+        self::assertSame(0, substr_count($html, 'fixture-native-footer'), "The theme's own footer is not in the response.");
+        self::assertStringContainsString($nested_marker, $html, 'Builder content bearing a reused ".site-header" class must still render: ' . $html);
         $this->assertSingleDocumentShell($html);
     }
 

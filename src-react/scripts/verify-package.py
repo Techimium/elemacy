@@ -6,7 +6,10 @@ Beyond the archive itself this checks that the plugin header version, the runtim
 CI pins, that the readme changelog has a section for this version, that the WordPress.org listing assets
 the deploy workflow publishes exist, and that every shipped file carrying a third-party license header is
 covered by docs/THIRD-PARTY.md. `--root` points the source-level checks at another plugin root (used to
-exercise deliberately broken inputs); the archive is always checked as given.
+exercise deliberately broken inputs); the archive is always checked as given. The archive must ship
+composer.json whenever it ships vendor/, and must have been built from a clean tree at exactly the revision
+being released (`--release-revision`, default the root's HEAD): an artifact built from an older revision is
+stale and rejected.
 """
 import argparse
 import hashlib
@@ -24,6 +27,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('--check-missing-tools', action='store_true')
 parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent.parent.parent, help='Plugin root for the source-level release checks.')
+parser.add_argument('--release-revision', help='Commit being released. Defaults to the root\'s HEAD.')
 args = parser.parse_args()
 archive = args.archive.resolve()
 root = args.root.resolve()
@@ -50,8 +54,26 @@ with zipfile.ZipFile(archive) as package:
         if name.endswith('.map'):
             fail('Source map shipped: ' + name)
     licensed = [n[len(slug) + 1:] for n in names if n.endswith(('.js', '.css', '.php')) and LICENSE_HEADER.search(package.read(n))]
+    if any(n.startswith(slug + '/vendor/') for n in names) and slug + '/composer.json' not in names:
+        fail('vendor/ is shipped without the composer.json that describes it.')
 if hashlib.sha256(archive.read_bytes()).hexdigest() != evidence['zipSha256']:
     fail('Archive checksum mismatch.')
+
+# --- source revision -------------------------------------------------------------
+def git(*command):
+    return subprocess.run(['git', '-C', str(root), *command], capture_output=True, text=True)
+
+release = args.release_revision or git('rev-parse', 'HEAD').stdout.strip()
+built = evidence.get('revision') or ''
+if not release:
+    fail('Cannot determine the revision being released; pass --release-revision.')
+elif evidence.get('dirty'):
+    fail(f'Archive was built from a working tree with uncommitted changes (at {built[:12]}); rebuild from the committed revision {release[:12]}.')
+elif built != git('rev-parse', release).stdout.strip():
+    if git('merge-base', '--is-ancestor', built, release).returncode == 0:
+        fail(f'Archive is stale: built from {built[:12]}, older than the revision being released ({release[:12]}).')
+    else:
+        fail(f'Archive was built from {built[:12] or "an unrecorded revision"}, not the revision being released ({release[:12]}).')
 
 # --- version consistency -------------------------------------------------------
 main_file = root / f'{slug}.php'
@@ -117,4 +139,4 @@ if problems:
     for problem in problems:
         print(' - ' + problem, file=sys.stderr)
     sys.exit(1)
-print(f'{slug}: {len(names)} files verified; checksum, exclusions, versions, readme, listing assets and third-party inventory all pass.')
+print(f'{slug}: {len(names)} files verified; checksum, exclusions, composer manifest, source revision, versions, readme, listing assets and third-party inventory all pass.')

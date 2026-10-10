@@ -15,7 +15,7 @@ use WP_Query;
  */
 class ResolverCache
 {
-    const OPTION = 'elemacy_library_index';
+    public const OPTION = 'elemacy_library_index';
 
     /**
      * Small autoloaded counter, separate from the (non-autoloaded) index
@@ -24,7 +24,7 @@ class ResolverCache
      * still running and discard its own result instead of overwriting
      * fresher data.
      */
-    const GENERATION_OPTION = 'elemacy_library_index_generation';
+    public const GENERATION_OPTION = 'elemacy_library_index_generation';
 
     /**
      * Bounded expiring mutex (a WordPress transient, so it recovers on its
@@ -33,8 +33,8 @@ class ResolverCache
      * against a stale overwrite is the generation check above, not this
      * lock, so losing the race to acquire it is always safe to skip.
      */
-    const LOCK_KEY = 'elemacy_library_index_rebuild_lock';
-    const LOCK_TTL = 30;
+    public const LOCK_KEY = 'elemacy_library_index_rebuild_lock';
+    public const LOCK_TTL = 30;
 
     /**
      * @var array<string, array<int, array{id:int, conditions:array}>>|null
@@ -55,7 +55,9 @@ class ResolverCache
         $index = get_option(self::OPTION, null);
 
         if (is_array($index)) {
-            return static::$memo = $index;
+            static::$memo = $index;
+
+            return $index;
         }
 
         // Cache miss: every caller still gets a correct, freshly-built index
@@ -77,7 +79,9 @@ class ResolverCache
             }
         }
 
-        return static::$memo = $index;
+        static::$memo = $index;
+
+        return $index;
     }
 
     public function invalidate(): void
@@ -177,7 +181,7 @@ class ResolverCache
             // ID DESC breaks ties between candidates sharing the same date
             // (e.g. bulk-imported together) deterministically — SQL's ORDER
             // BY date alone does not guarantee stable ordering for ties
-            //. Preserves existing newest-match precedence.
+            // . Preserves existing newest-match precedence.
             'orderby'        => [
                 'date' => 'DESC',
                 'ID'   => 'DESC',

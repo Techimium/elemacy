@@ -8,10 +8,9 @@ use InvalidArgumentException;
 
 /**
  * Class Sanitizer.
- * 
+ *
  * @since 1.0.0
  */
-
 class Sanitizer
 {
     /**
@@ -19,119 +18,119 @@ class Sanitizer
      *
      * @var string
      */
-    const TRIM = 'trim';
+    public const TRIM = 'trim';
 
     /**
      * Sanitize the value as text.
      *
      * @var string
      */
-    const TEXT = 'text';
+    public const TEXT = 'text';
 
     /**
      * Sanitize the rich text content.
      *
      * @var string
      */
-    const RICH_TEXT = 'rich-text';
+    public const RICH_TEXT = 'rich-text';
 
     /**
      * Sanitize the value as textarea.
      *
      * @var string
      */
-    const TEXTAREA = 'textarea';
+    public const TEXTAREA = 'textarea';
 
     /**
      * Sanitize the value as email.
      *
      * @var string
      */
-    const EMAIL = 'email';
+    public const EMAIL = 'email';
 
     /**
      * Sanitize the value as username.
      *
      * @var string
      */
-    const USERNAME = 'username';
+    public const USERNAME = 'username';
 
     /**
      * Sanitize the value as url.
      *
      * @var string
      */
-    const URL = 'url';
+    public const URL = 'url';
 
     /**
      * Sanitize the value as key.
      *
      * @var string
      */
-    const KEY = 'key';
+    public const KEY = 'key';
 
     /**
      * Sanitize the value as title.
      *
      * @var string
      */
-    const TITLE = 'title';
+    public const TITLE = 'title';
 
     /**
      * Sanitize the value as file name.
      *
      * @var string
      */
-    const FILE_NAME = 'file-name';
+    public const FILE_NAME = 'file-name';
 
     /**
      * Sanitize the value as mime type.
      *
      * @var string
      */
-    const MIME_TYPE = 'mime-type';
+    public const MIME_TYPE = 'mime-type';
 
     /**
      * Sanitize the value as int.
      *
      * @var string
      */
-    const INT = 'int';
+    public const INT = 'int';
 
     /**
      * Sanitize the value as int.
      *
      * @var string
      */
-    const FLOAT = 'float';
+    public const FLOAT = 'float';
 
     /**
      * Sanitize the value as double.
      *
      * @var string
      */
-    const DOUBLE = 'double';
+    public const DOUBLE = 'double';
 
     /**
      * Sanitize the value as money prepared for storage.
      *
      * @var string
      */
-    const MONEY = 'money';
+    public const MONEY = 'money';
 
     /**
      * Sanitize the value as boolean.
      *
      * @var string
      */
-    const BOOL = 'bool';
+    public const BOOL = 'bool';
 
     /**
      * Sanitize the value as array.
      *
      * @var string
      */
-    const ARRAY = 'array';
+    public const ARRAY = 'array';
 
     /**
      * Sanitize the value as an array, recursively cleaning every string leaf
@@ -140,46 +139,46 @@ class Sanitizer
      *
      * @var string
      */
-    const ARRAY_DEEP = 'array-deep';
+    public const ARRAY_DEEP = 'array-deep';
 
     /**
      * Sanitize the value as date.
      *
      * @var string
      */
-    const DATE = 'date';
+    public const DATE = 'date';
 
     /**
      * Sanitize the value as datetime.
      *
      * @var string
      */
-    const DATETIME = 'datetime';
+    public const DATETIME = 'datetime';
 
     /**
      * Input data.
-     * 
+     *
      * @var array<key:int,value:mixed>
      */
     protected $data;
 
     /**
      * Sanitized data.
-     * 
+     *
      * @var array<key:int,value:mixed>
      */
     protected $sanitized_data = [];
 
     /**
      * Sanitization rules.
-     * 
+     *
      * @var array<key:int,value:mixed>
      */
     protected $rules;
 
     /**
      * Create a new Sanitizer instance.
-     * 
+     *
      * @param array $data
      * @param array $rules
      */
@@ -193,7 +192,7 @@ class Sanitizer
 
     /**
      * Get the sanitized data.
-     * 
+     *
      * @return array
      */
     public function get_sanitized_data()
@@ -206,7 +205,7 @@ class Sanitizer
      *
      * @param array $data
      * @param array $rules
-     * 
+     *
      * @return static
      */
     public static function make(array $data = [], array $rules = [])
@@ -216,6 +215,7 @@ class Sanitizer
 
     /**
      * Run sanitizer
+     *
      * @return void
      */
     protected function run_sanitizer()
@@ -230,23 +230,23 @@ class Sanitizer
      * Recursively traverses the input data structure according to a dot-notated rule key,
      * handling wildcard segments (e.g., *) to apply sanitization rules at dynamic levels.
      *
-     * @param mixed $current_data               The current level of data being inspected. This is a portion
-     *                                          of the original data array.
+     * @param mixed  $current_data               The current level of data being inspected. This is a portion
+     *                                           of the original data array.
      *
-     * @param array $key_segments               The remaining parts (split by '.') of the rule key that
-     *                                          still need to be resolved. e.g. 'items.*.id' would be  ['items', '*', 'id']
+     * @param array  $key_segments               The remaining parts (split by '.') of the rule key that
+     *                                           still need to be resolved, e.g. 'items.*.id' is ['items', '*', 'id'].
      *
-     * @param array $traversed_path_stack       The stack of key_segments already traversed so far. This is used
-     *                                          to reconstruct the current dot-notated key (e.g., 'items.0.id')
-     *                                          for both error messages and setting validated values.
+     * @param array  $traversed_path_stack       The stack of key_segments already traversed so far. This is used
+     *                                           to reconstruct the current dot-notated key (e.g., 'items.0.id')
+     *                                           for both error messages and setting validated values.
      *
      * @param string $rule                      A sanitization rule to apply on the current data.
-     * 
+     *
      * @return void
      */
     protected function traverse_and_sanitize($current_data, $key_segments, $traversed_path_stack, $rule)
     {
-        // when all segments have been traversed
+        // when all segments have been traversed.
         if (empty($key_segments)) {
             $this->set_sanitized_data($traversed_path_stack, static::apply_rule($current_data, $rule, $this->data));
             return;
@@ -255,7 +255,7 @@ class Sanitizer
         $segment = array_shift($key_segments);
         if ($segment === '*') {
             if (!is_array($current_data)) {
-                $this->set_sanitized_data($traversed_path_stack, static::apply_rule($current_data, static::ARRAY , $this->data));
+                $this->set_sanitized_data($traversed_path_stack, static::apply_rule($current_data, static::ARRAY, $this->data));
                 return;
             }
 
@@ -301,10 +301,10 @@ class Sanitizer
 
     /**
      * Apply sanitization.
-     * 
-     * @param mixed $value
+     *
+     * @param mixed                $value
      * @param string|Callable|null $type
-     * @param array $data
+     * @param array                $data
      * @return mixed
      */
     public static function apply_rule($value, $type, array $data = [])

@@ -25,7 +25,7 @@ class ElementTreeWalker
      * once per element with its raw `$element_data` array (including a
      * `settings` key).
      *
-     * @param int $post_id
+     * @param int      $post_id
      * @param callable $callback
      * @return void
      */

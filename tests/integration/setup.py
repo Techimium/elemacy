@@ -29,6 +29,9 @@ def main():
     parser.add_argument("--acf-plugin", type=Path)
     parser.add_argument("--hello-elementor-theme", type=Path,
                          help="Optional local Hello Elementor theme checkout, for its own compatibility-adapter fixtures.")
+    parser.add_argument("--theme", type=Path, action="append", default=[],
+                        help="A real theme directory to install under its own name (repeatable), e.g. a classic theme "
+                             "the native-chrome replacement cases then also run against.")
     parser.add_argument("--private-mysql", action="store_true", help="Start an isolated socket-only mysqld under the temporary directory.")
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:
@@ -58,6 +61,14 @@ def main():
         hello_theme = args.hello_elementor_theme.resolve()
         if not (hello_theme / "style.css").is_file():
             parser.error("--hello-elementor-theme must point to a theme directory (with style.css).")
+    fixture_themes = {"elemacy-fixture", "astra", "theme-no-body-open", "theme-location-wrapper", "theme-chrome-assets",
+                      "theme-generic-chrome", "theme-compat-stub", "hello-elementor"}
+    real_themes = [theme.resolve() for theme in args.theme]
+    for theme in real_themes:
+        if not (theme / "style.css").is_file():
+            parser.error("--theme must point to a theme directory (with style.css): " + str(theme))
+        if theme.name in fixture_themes:
+            parser.error("--theme " + theme.name + " would replace a fixture theme of the same name.")
     # Bundled with any real WordPress core source, so this needs no separate
     # flag; block-theme fixtures degrade gracefully (skip, not error) if a
     # --wordpress-source ever ships without it.
@@ -157,10 +168,13 @@ def main():
     # selection logic routes to the real AstraCompatibility adapter — this
     # fixture replicates only Astra's public astra_header/astra_footer hook
     # contract, not its actual theme.
-    for name in ("astra", "theme-no-body-open", "theme-location-wrapper"):
+    for name in ("astra", "theme-no-body-open", "theme-location-wrapper", "theme-chrome-assets",
+                 "theme-generic-chrome", "theme-compat-stub"):
         shutil.copytree(harness / "fixtures" / name, content / "themes" / name)
     if hello_theme:
         shutil.copytree(hello_theme, content / "themes/hello-elementor")
+    for theme in real_themes:
+        shutil.copytree(theme, content / "themes" / theme.name)
     if block_theme:
         shutil.copytree(block_theme, content / "themes" / block_theme.name)
     shutil.copytree(harness / "fixtures/mu-plugins", content / "mu-plugins")
@@ -233,6 +247,7 @@ require_once ABSPATH . 'wp-settings.php';
     print("No development tables or configuration were imported.")
     print("Hello Elementor theme fixtures: " + ("available" if hello_theme else "skipped (no --hello-elementor-theme)"))
     print("Block theme fixtures: " + ("available (" + block_theme.name + ")" if block_theme else "skipped (none bundled with --wordpress-source)"))
+    print("Real themes: " + (", ".join(theme.name for theme in real_themes) or "none (pass --theme)"))
     if private_socket:
         print('Private MySQL socket: ' + private_socket)
         print('Stop this instance with: mysqladmin --no-defaults --socket=' + private_socket + ' --user=root shutdown')

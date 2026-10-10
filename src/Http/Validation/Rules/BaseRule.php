@@ -14,8 +14,8 @@ use Elemacy\Http\Contracts\Rule;
 abstract class BaseRule implements Rule
 {
     /**
-     * check for strict data type 
-     * 
+     * Check for strict data type
+     *
      * @var bool
      */
     protected $check_strict_data_type = false;
@@ -62,7 +62,7 @@ abstract class BaseRule implements Rule
      * @param mixed       $value The value to validate.
      * @param mixed       $rule_value The value to that can be passed to the rule.
      * @param array       $data  The input data.
-     * @param array       $all_applied_rules  All applied rules
+     * @param array       $all_applied_rules  All applied rules.
      */
     public function __construct($key = null, $value = null, $rule_value = null, $data = [], $all_applied_rules = [])
     {
@@ -107,7 +107,7 @@ abstract class BaseRule implements Rule
 
     /**
      * Check if the rule is for a specific data type.
-     * 
+     *
      * @return bool
      */
     public function is_check_strict_data_type()
@@ -130,8 +130,8 @@ abstract class BaseRule implements Rule
     }
 
     /**
-     * ignore rule check if value is empty
-     * 
+     * Ignore rule check if value is empty
+     *
      * @return bool
      */
     protected function ignore_rule_check()
@@ -141,6 +141,7 @@ abstract class BaseRule implements Rule
 
     /**
      * Validate the rule with desired value.
+     *
      * @return bool
      */
     abstract public function validate_rule();

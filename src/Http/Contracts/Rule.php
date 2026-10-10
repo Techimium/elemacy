@@ -39,7 +39,7 @@ interface Rule
     public function get_value();
 
     /**
-     * Check if the rule is for a specific data type. 
+     * Check if the rule is for a specific data type.
      */
     public function is_check_strict_data_type();
 }

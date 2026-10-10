@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 /**
  * Site Response Class
- * 
+ *
  * @since 1.0.0
  */
 class SiteResponse
@@ -29,8 +29,8 @@ class SiteResponse
     /**
      * Send a JSON success response
      *
-     * @param array $data Response data
-     * @param int $status_code HTTP status code
+     * @param array $data Response data.
+     * @param int   $status_code HTTP status code.
      * @return void
      */
     public function json($data = [], $status_code = 200)
@@ -41,8 +41,8 @@ class SiteResponse
     /**
      * Send a redirect response
      *
-     * @param string $url Redirect URL
-     * @param int $status_code HTTP status code (301 or 302)
+     * @param string $url Redirect URL.
+     * @param int    $status_code HTTP status code (301 or 302).
      * @return void
      */
     public function redirect($url, $status_code = 302)
@@ -54,8 +54,8 @@ class SiteResponse
     /**
      * Legacy method for backward compatibility
      *
-     * @param array $data Response data
-     * @param int $status_code HTTP status code
+     * @param array $data Response data.
+     * @param int   $status_code HTTP status code.
      * @return void
      */
     public function success($data = [], $status_code = 200)
@@ -66,8 +66,8 @@ class SiteResponse
     /**
      * Send a JSON error response
      *
-     * @param array $data Error data
-     * @param int $status_code HTTP status code
+     * @param array $data Error data.
+     * @param int   $status_code HTTP status code.
      * @return void
      */
     public function json_error($data = [], $status_code = 400)
@@ -78,8 +78,8 @@ class SiteResponse
     /**
      * Legacy method for backward compatibility
      *
-     * @param array $data Error data
-     * @param int $status_code HTTP status code
+     * @param array $data Error data.
+     * @param int   $status_code HTTP status code.
      * @return void
      */
     public function error($data = [], $status_code = 400)

@@ -291,7 +291,7 @@ class Route
                         return (new $middleware())->handle($request, $next);
                     };
                 },
-                function ($request) {
+                static function () {
                     return true;
                 }
             );
@@ -302,7 +302,7 @@ class Route
         } catch (ValidationException $exception) {
             return new WP_Error('rest_invalid_request', $exception->getMessage(), [
                 'status' => Response::UNPROCESSABLE_ENTITY,
-                'errors' => $exception->get_errors()
+                'errors' => $exception->get_errors(),
             ]);
         } catch (HttpException $exception) {
             $status = (int) $exception->getCode();
@@ -332,8 +332,8 @@ class Route
      * hydrated from the request (a typed Request subclass validates), the rest
      * are resolved from the container or the raw request params.
      *
-     * @param object            $controller   The resolved controller instance.
-     * @param string            $method       The controller method being called.
+     * @param object           $controller   The resolved controller instance.
+     * @param string           $method       The controller method being called.
      * @param \WP_REST_Request $rest_request The incoming REST request.
      * @return mixed[] The arguments to pass to the controller method, in order.
      * @throws Exception If a parameter has a built-in type with no request param to match it.

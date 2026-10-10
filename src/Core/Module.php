@@ -34,13 +34,17 @@ abstract class Module implements ServiceProviderInterface
      */
     abstract public function boot(): void;
 
-    public function register_routes() {}
+    public function register_routes() {
+    }
 
-    public function register_assets() {}
+    public function register_assets() {
+    }
 
-    public function on_enable(): void {}
+    public function on_enable(): void {
+    }
 
-    public function on_disable(): void {}
+    public function on_disable(): void {
+    }
 
     public function is_always_active(): bool
     {

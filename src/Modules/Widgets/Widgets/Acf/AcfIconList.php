@@ -142,7 +142,8 @@ class AcfIconList extends Widget_Icon_List
         }
         ?>
         <ul <?php $this->print_render_attribute_string('icon_list'); ?>>
-            <?php foreach ($settings['icon_list'] as $index => $item) :
+            <?php
+            foreach ($settings['icon_list'] as $index => $item) :
                 $repeater_setting_key = $this->get_repeater_setting_key('text', 'icon_list', $index);
                 $this->add_render_attribute($repeater_setting_key, 'class', 'elementor-icon-list-text');
                 ?>

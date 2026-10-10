@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  */
 class BatchCursor
 {
-    const LOCK_TTL = 30;
+    public const LOCK_TTL = 30;
 
     protected string $name;
     private ?DatabaseLease $lease = null;

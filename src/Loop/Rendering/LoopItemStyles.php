@@ -15,16 +15,29 @@ use Elemacy\Elementor\Rendering\ClassicCssRenderer;
 class LoopItemStyles
 {
     /**
-     * @var array<int, true> Template IDs whose base CSS has already been
-     *                        printed this request.
+     * @var array<string, true> Templates whose base CSS has already been
+     *                           printed this request, keyed by key().
      */
     protected static array $printed_base_css = [];
 
     /**
-     * @var array<int, bool> has_dynamic_content() results, keyed by
-     *                        template ID, cached for the request.
+     * @var array<string, bool> has_dynamic_content() results, keyed by
+     *                           key(), cached for the request.
      */
     protected static array $has_dynamic_content = [];
+
+    /** Forgets every template's printed base CSS and dynamic-content check. */
+    public static function reset(): void
+    {
+        self::$printed_base_css = [];
+        self::$has_dynamic_content = [];
+    }
+
+    /** A template on the acting site: another site's template never shares its markers. */
+    protected static function key(int $template_id): string
+    {
+        return get_current_blog_id() . ':' . $template_id;
+    }
 
     protected ClassicCssRenderer $classic;
 
@@ -47,11 +60,11 @@ class LoopItemStyles
     {
         $this->classic->suppress_automatic_dynamic_css($template_id);
 
-        if (isset(self::$printed_base_css[$template_id])) {
+        if (isset(self::$printed_base_css[self::key($template_id)])) {
             return;
         }
 
-        self::$printed_base_css[$template_id] = true;
+        self::$printed_base_css[self::key($template_id)] = true;
 
         $classic = $this->classic->render_base($template_id);
         $atomic_css = $this->atomic->render_base($template_id);
@@ -76,7 +89,7 @@ class LoopItemStyles
      * style anywhere, so a non-dynamic template costs nothing beyond
      * print_base_css().
      *
-     * @param int $template_id
+     * @param int    $template_id
      * @param string $item_identity
      * @param string $render_selector
      * @return void
@@ -101,13 +114,15 @@ class LoopItemStyles
      */
     protected function has_dynamic_content(int $template_id): bool
     {
-        if (!isset(self::$has_dynamic_content[$template_id])) {
-            self::$has_dynamic_content[$template_id] =
+        $key = self::key($template_id);
+
+        if (!isset(self::$has_dynamic_content[$key])) {
+            self::$has_dynamic_content[$key] =
                 $this->classic->has_dynamic_settings($template_id)
                 || $this->atomic->has_dynamic_styles($template_id);
         }
 
-        return self::$has_dynamic_content[$template_id];
+        return self::$has_dynamic_content[$key];
     }
 
     /**

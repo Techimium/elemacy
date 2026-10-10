@@ -12,8 +12,8 @@ defined('ABSPATH') || exit;
 class IntegerRule extends BaseRule
 {
     /**
-     * check for strict data type 
-     * 
+     * Check for strict data type
+     *
      * @var bool
      */
     protected $check_strict_data_type = true;

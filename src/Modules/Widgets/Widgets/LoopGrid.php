@@ -363,7 +363,7 @@ class LoopGrid extends BaseWidget
 
         $this->start_controls_tabs('pagination_style_tabs');
 
-        // Normal Tab
+        // Normal Tab.
         $this->start_controls_tab('pagination_style_normal', ['label' => esc_html__('Normal', 'elemacy')]);
 
         $this->add_control(
@@ -401,7 +401,7 @@ class LoopGrid extends BaseWidget
 
         $this->end_controls_tab();
 
-        // Hover Tab
+        // Hover Tab.
         $this->start_controls_tab('pagination_style_hover', ['label' => esc_html__('Hover', 'elemacy')]);
 
         $this->add_control(
@@ -439,7 +439,7 @@ class LoopGrid extends BaseWidget
 
         $this->end_controls_tab();
 
-        // Active Tab
+        // Active Tab.
         $this->start_controls_tab('pagination_style_active', ['label' => esc_html__('Active', 'elemacy')]);
 
         $this->add_control(
@@ -573,7 +573,7 @@ class LoopGrid extends BaseWidget
             Container::instance()->singleton(PaginationRenderer::class)->render($settings, $result->max_num_pages);
         }
 
-        echo '</div>'; // End elemacy-loop-builder-grid
+        echo '</div>'; // End elemacy-loop-builder-grid.
     }
 
     /**

@@ -12,8 +12,8 @@ defined('ABSPATH') || exit;
 interface FieldReaderInterface
 {
     /**
-     * @param string            $key Field name (or opaque ACF post-id-shaped key, e.g. "term_5").
-     * @param int|string|false  $post_id Native post ID, an ACF post-id string, or false for the current post/sub-field context.
+     * @param string           $key Field name (or opaque ACF post-id-shaped key, e.g. "term_5").
+     * @param int|string|false $post_id Native post ID, an ACF post-id string, or false for the current post/sub-field context.
      * @return mixed
      */
     public function get_field_value(string $key, $post_id = false);

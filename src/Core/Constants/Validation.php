@@ -40,12 +40,12 @@ class Validation
 {
     /**
      * The rules to validator method map
-     * 
+     *
      * @var array
-     * 
+     *
      * @since 3.3.0
      */
-    const RULE_MAP = [
+    public const RULE_MAP = [
         'required'  => RequiredRule::class,
         'string'    => StringRule::class,
         'array'     => ArrayRule::class,

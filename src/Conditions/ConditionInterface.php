@@ -48,6 +48,19 @@ interface ConditionInterface
     public function applies_to(string $context): bool;
 
     /**
+     * How narrowly this condition targets the request, as one of the
+     * {@see Specificity} levels. Takes the stored rule because a condition's
+     * reach usually depends on its value: a taxonomy archive condition with no
+     * term targets a whole taxonomy, the same condition with a term targets one
+     * archive.
+     *
+     * Only ever consulted for a condition that actually matched, and only for
+     * an inclusion. Resolution compares these to decide which of several
+     * matching templates of one type is the most specific.
+     */
+    public function get_specificity(ConditionRuleDTO $rule): int;
+
+    /**
      * Whether this is a mock stand-in shown in the UI but not functional.
      * A mock is registered by free and overridden by an extension (e.g. pro)
      * that provides the real implementation under the same name.

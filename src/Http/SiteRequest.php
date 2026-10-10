@@ -102,7 +102,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -116,7 +116,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
@@ -130,7 +130,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string
      */
@@ -144,7 +144,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -158,7 +158,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -172,7 +172,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -186,7 +186,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -200,7 +200,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -214,7 +214,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -228,7 +228,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -242,7 +242,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string      $key The key to retrieve.
      * @param string|null $default_value Default value if the key doesn't exist.
      * @return string|null
      */
@@ -256,7 +256,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string   $key The key to retrieve.
      * @param int|null $default_value Default value if the key doesn't exist.
      * @return int|null
      */
@@ -271,7 +271,7 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param bool $default_value Default value if the key doesn't exist.
+     * @param bool   $default_value Default value if the key doesn't exist.
      * @return bool
      */
     public function get_bool(string $key, bool $default_value = false)
@@ -284,7 +284,7 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string     $key The key to retrieve.
      * @param float|null $default_value Default value if the key doesn't exist.
      * @return float|null
      */
@@ -299,7 +299,7 @@ class SiteRequest implements Request
      * @since 1.0.0
      *
      * @param string $key The key to retrieve.
-     * @param float $default_value Default value if the key doesn't exist.
+     * @param float  $default_value Default value if the key doesn't exist.
      * @return float
      */
     public function get_money(string $key, $default_value = 0)
@@ -312,12 +312,12 @@ class SiteRequest implements Request
      *
      * @since 1.0.0
      *
-     * @param string $key The key to retrieve.
+     * @param string     $key The key to retrieve.
      * @param array|null $default_value Default value if the key doesn't exist.
      * @return array|null
      */
     public function get_array(string $key, $default_value = null)
     {
-        return $this->get($key, Sanitizer::ARRAY , $default_value);
+        return $this->get($key, Sanitizer::ARRAY, $default_value);
     }
 }

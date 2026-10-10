@@ -70,7 +70,7 @@ class WidgetService
      * Formats a single widget's config into a DTO for the API response.
      *
      * @param array<string, mixed> $widget The widget config entry.
-     * @param array<string, mixed>  $statuses The stored `name => is_enabled` status map.
+     * @param array<string, mixed> $statuses The stored `name => is_enabled` status map.
      * @return WidgetDTO
      */
     protected function create_dto($widget, $statuses)

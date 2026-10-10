@@ -11,10 +11,7 @@ use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
-use Elemacy\Modules\ThemeBuilder\Documents\ArchiveDocument;
 use Elemacy\Modules\ThemeBuilder\Documents\DocumentManager;
-use Elemacy\Modules\ThemeBuilder\Documents\SearchDocument;
-use Elemacy\Modules\ThemeBuilder\Documents\SingleDocument;
 use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
 use Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -84,23 +81,39 @@ class ThemeBuilder extends Module
      * The template types this module owns. The CPT itself is registered by
      * Core. Hooked on `init` because the labels are translated — calling __
      * before `init` trips WP 6.7's "translation loaded too early" notice.
+     *
+     * Which Elementor document backs each type is read from
+     * Config/documents.php, the same map DocumentManager registers those
+     * documents from, so the registry and Elementor can never disagree about
+     * a type's document. A type absent from that map has no document of its
+     * own and keeps Elementor's built-in page document.
      */
     protected function register_types(): void
     {
         add_action('init', function () {
             $registry = TypeRegistry::instance();
 
-            $types = [
-                'header'  => [__('Header', 'elemacy'), null],
-                'footer'  => [__('Footer', 'elemacy'), null],
-                'single'  => [__('Single', 'elemacy'), SingleDocument::class],
-                'archive' => [__('Archive', 'elemacy'), ArchiveDocument::class],
-                '404'     => [__('404 Page', 'elemacy'), null],
-                'search'  => [__('Search Results', 'elemacy'), SearchDocument::class],
+            $labels = [
+                'header'  => __('Header', 'elemacy'),
+                'footer'  => __('Footer', 'elemacy'),
+                'single'  => __('Single', 'elemacy'),
+                'archive' => __('Archive', 'elemacy'),
+                '404'     => __('404 Page', 'elemacy'),
+                'search'  => __('Search Results', 'elemacy'),
             ];
 
-            foreach ($types as $name => [$label, $document_class]) {
-                $registry->register(new TypeDefinition($name, $label, 'theme', $this->get_name(), $document_class));
+            // `require`, never `require_once`: DocumentManager reads the same
+            // file, and the second reader of a `require_once` gets `true`.
+            $documents = require Utils::get_plugin_path('src/Modules/ThemeBuilder/Config/documents.php');
+
+            foreach ($labels as $name => $label) {
+                $registry->register(new TypeDefinition(
+                    $name,
+                    $label,
+                    'theme',
+                    $this->get_name(),
+                    $documents[$name] ?? null
+                ));
             }
         });
     }

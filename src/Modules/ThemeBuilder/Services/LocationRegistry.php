@@ -28,6 +28,7 @@ class LocationRegistry
     }
 
     /**
+     * @param string   $type The location's template type.
      * @param callable $matches Returns true when the location applies to the
      *                          current request. Evaluated lazily at resolve time.
      */

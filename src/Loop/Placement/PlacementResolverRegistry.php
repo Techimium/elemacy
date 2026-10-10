@@ -59,7 +59,7 @@ final class PlacementResolverRegistry
             if (null !== $facts) {
                 return [
                     'type' => $key,
-                    'facts' => $facts
+                    'facts' => $facts,
                 ];
             }
         }

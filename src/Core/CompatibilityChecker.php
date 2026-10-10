@@ -14,7 +14,7 @@ class CompatibilityChecker
      * fast-harness check, all passing identically to the currently-tested
      * release below.
      */
-    const MIN_ELEMENTOR_VERSION = '3.35.9';
+    public const MIN_ELEMENTOR_VERSION = '3.35.9';
 
     protected static $instance = null;
 

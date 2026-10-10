@@ -896,8 +896,8 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         // they resolve to.
         self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('section'));
         self::assertSame('elemacy_loop', (Container::instance()->make(DocumentWriter::class))->document_type('loop'));
-        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('header'));
-        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('footer'));
+        self::assertSame('elemacy_header', (Container::instance()->make(DocumentWriter::class))->document_type('header'));
+        self::assertSame('elemacy_footer', (Container::instance()->make(DocumentWriter::class))->document_type('footer'));
         self::assertSame('elemacy_single', (Container::instance()->make(DocumentWriter::class))->document_type('single'));
         self::assertSame('elemacy_archive', (Container::instance()->make(DocumentWriter::class))->document_type('archive'));
         self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('404'));

@@ -75,7 +75,7 @@ final class PublishedFormDefinitionResolver
             'revisions' => $revisions,
             'expires' => time() + DAY_IN_SECONDS,
         ];
-        $encoded = rtrim(strtr(base64_encode(wp_json_encode($claims)), '+/', '-_'), '=');
+        $encoded = rtrim(strtr(base64_encode(wp_json_encode($claims)), '+/', '-_'), '='); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- URL-safe encoding of a signed, public token.
         $token = $encoded . '.' . $this->mac($encoded);
         if (strlen($token) > 8192) {
             throw self::unavailable();
@@ -92,11 +92,13 @@ final class PublishedFormDefinitionResolver
         if (count($parts) !== 2 || !hash_equals($this->mac($parts[0]), $parts[1])) {
             throw self::unavailable();
         }
-        $claims = json_decode((string) base64_decode(strtr($parts[0], '-_', '+/'), true), true, 32);
-        if (!is_array($claims) || ($claims['site'] ?? null) !== get_current_blog_id()
+        $claims = json_decode((string) base64_decode(strtr($parts[0], '-_', '+/'), true), true, 32); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes the URL-safe token encoded above; its signature is verified before use.
+        if (
+            !is_array($claims) || ($claims['site'] ?? null) !== get_current_blog_id()
             || ($claims['user'] ?? null) !== get_current_user_id() || ($claims['owner'] ?? null) !== $owner
             || ($claims['widget'] ?? null) !== $widget || ($claims['expires'] ?? 0) < time()
-            || !is_array($claims['revisions'] ?? null) || !isset($claims['revisions'][$owner])) {
+            || !is_array($claims['revisions'] ?? null) || !isset($claims['revisions'][$owner])
+        ) {
             throw self::unavailable();
         }
         foreach ($claims['revisions'] as $id => $revision) {
@@ -117,10 +119,11 @@ final class PublishedFormDefinitionResolver
         }
         try {
             $query = new \WP_Query($claims['query'] + [
-				'posts_per_page' => 1,
-				'no_found_rows' => true
-			]);
-            $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'] = $query; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Scoped host reconstruction, restored in finally.
+                'posts_per_page' => 1,
+                'no_found_rows' => true,
+            ]);
+            $GLOBALS['wp_the_query'] = $query; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Scoped host reconstruction, restored in finally.
+            $GLOBALS['wp_query'] = $query; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Scoped host reconstruction, restored in finally.
             if ($query->post) {
                 $GLOBALS['post'] = $query->post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Scoped host reconstruction, restored in finally.
                 setup_postdata($query->post);
@@ -189,8 +192,10 @@ final class PublishedFormDefinitionResolver
     private function accessible(int $id): void
     {
         $post = get_post($id);
-        if (!$post || post_password_required($post)
-            || ($post->post_status !== 'publish' && !($post->post_status === 'private' && current_user_can('read_post', $id)))) {
+        if (
+            !$post || post_password_required($post)
+            || ($post->post_status !== 'publish' && !($post->post_status === 'private' && current_user_can('read_post', $id)))
+        ) {
             throw self::unavailable();
         }
         if ($post->post_type === 'elemacy_library') {

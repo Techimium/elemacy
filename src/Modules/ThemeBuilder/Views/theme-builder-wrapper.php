@@ -1,7 +1,7 @@
 <?php
 /**
  * Theme Builder Wrapper Template
- * 
+ *
  * This template is used when a Theme Builder template is active.
  */
 
@@ -45,4 +45,3 @@ if ('' !== $elemacy_located_footer && 0 !== strpos($elemacy_located_footer, $ele
 } else {
     require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-support-footer.php';
 }
-?>

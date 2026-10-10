@@ -16,6 +16,9 @@ jobs:
         php: ['7.4', '8.3']
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The release-gate regression builds a deliberately stale artifact from HEAD~1.
+          fetch-depth: 2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -42,6 +45,9 @@ jobs:
 
       - name: Architecture check
         run: php tests/architecture/check.php
+
+      - name: Release gate regressions (stale, dirty and manifest-less archives)
+        run: python3 tests/release/verify-package-test.py
 
   admin-app:
     name: Admin app — typecheck, lint, build
@@ -131,12 +137,20 @@ jobs:
           curl -sSL "https://downloads.wordpress.org/plugin/elementor.${{ matrix.elementor }}.zip" -o elementor.zip
           unzip -q elementor.zip -d wordpress-core/wp-content/plugins
 
+      - name: Download a real classic theme
+        # Pinned like core. Twenty Twenty-One has no dedicated adapter, so the
+        # native-chrome replacement cases run against it through the generic path.
+        run: |
+          curl -sSL "https://downloads.wordpress.org/theme/twentytwentyone.2.9.zip" -o twentytwentyone.zip
+          unzip -q twentytwentyone.zip -d real-themes
+
       - name: Provision disposable environment
         working-directory: elemacy
         run: |
           python3 tests/integration/setup.py \
             --wordpress-source "$GITHUB_WORKSPACE/wordpress-core" \
             --port 8897 \
+            --theme "$GITHUB_WORKSPACE/real-themes/twentytwentyone" \
             --private-mysql | tee /tmp/setup-output.log
           grep '^ELEMACY_TEST_ENV=' /tmp/setup-output.log >> "$GITHUB_ENV"
 

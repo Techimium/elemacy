@@ -14,6 +14,7 @@ use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Conditions\ConditionsBootstrap;
 use Elemacy\Conditions\MockCondition;
+use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Admin\AdminScripts;
 use Elemacy\Core\Cache\PageCachePurger;
@@ -28,6 +29,7 @@ use Elemacy\Core\FrontendScripts;
 use Elemacy\Core\Module;
 use Elemacy\Core\ModuleCatalog;
 use Elemacy\Core\ModuleManager;
+use Elemacy\Core\SiteInstaller;
 use Elemacy\Core\Admin\PluginLinks;
 use Elemacy\Elementor\Preview\PreviewAssets;
 use Elemacy\Elementor\Preview\PreviewManager;
@@ -622,6 +624,31 @@ final class FixtureOrderTrackingProvider implements ServiceProviderInterface
     }
 }
 
+/**
+ * Deliberately does NOT guard its own boot(): the point of the tests using
+ * it is that the composition root, not the provider, is what makes a repeated
+ * bootstrap boot nothing a second time.
+ */
+final class FixtureUnguardedProvider implements ServiceProviderInterface
+{
+    /** @var string[] */
+    public static array $boots = [];
+
+    private string $label;
+
+    public function __construct(string $label)
+    {
+        $this->label = $label;
+    }
+
+    public function register(Container $container): void {}
+
+    public function boot(): void
+    {
+        self::$boots[] = $this->label;
+    }
+}
+
 check('CoreServiceProvider::register() does no eager work (no hooks attached, no options changed)', static function () {
     $actions_before = $GLOBALS['__wp_actions'];
     $options_before = $GLOBALS['__wp_options'];
@@ -653,6 +680,9 @@ check('CoreServiceProvider::register() binds every shared registry to its ::inst
 add_action(Hooks::REGISTER_PROVIDERS_ACTION, static function (Elemacy $elemacy) {
     $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-a'));
     $elemacy->register_provider(new FixtureOrderTrackingProvider('fixture-b'));
+    // Two instances of one class: two contributions, each must boot.
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-a'));
+    $elemacy->register_provider(new FixtureUnguardedProvider('twin-b'));
 });
 
 do_action('elementor/loaded'); // check_requirements() gates the whole bootstrap on this.
@@ -685,59 +715,14 @@ check('Elemacy::init(): a second (duplicate) call attaches nothing a second time
         && did_action(Hooks::LOADED_ACTION) === $loaded_before;
 });
 
-/**
- * Deliberately does NOT guard its own boot(): the point of these tests is
- * that the composition root, not the provider, is what makes a second boot
- * pass a no-op.
- */
-final class FixtureUnguardedProvider implements ServiceProviderInterface
-{
-    /** @var string[] */
-    public static array $boots = [];
+check('Elemacy::init(): repeated calls boot a provider that does not guard itself only once, and two providers of one class each boot', static function () use ($elemacy) {
+    // The twins were booted by the first init() above; every init() since,
+    // including these, is a no-op for them.
+    $elemacy->init();
+    $elemacy->init();
 
-    private string $label;
-
-    public function __construct(string $label)
-    {
-        $this->label = $label;
-    }
-
-    public function register(Container $container): void {}
-
-    public function boot(): void
-    {
-        self::$boots[] = $this->label;
-    }
-}
-
-check('Elemacy::boot_providers() boots a provider once across two passes even though the provider does not guard itself', static function () use ($elemacy) {
-    FixtureUnguardedProvider::$boots = [];
-    $elemacy->register_provider(new FixtureUnguardedProvider('unguarded'));
-
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
-
-    // Only the newly-registered provider boots: everything registered before
-    // this point was already booted by the earlier init() tests and is
-    // skipped, which is the tracking working.
-    return FixtureUnguardedProvider::$boots === ['unguarded'];
-});
-
-check('Elemacy::boot_providers() tracks providers by identity, so two instances of one provider class each boot', static function () use ($elemacy) {
-    FixtureUnguardedProvider::$boots = [];
-    $elemacy->register_provider(new FixtureUnguardedProvider('twin-a'));
-    $elemacy->register_provider(new FixtureUnguardedProvider('twin-b'));
-
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
-
-    // Class-keyed tracking would have booted only one of the two.
+    // Class-keyed tracking would have booted only one of the two; no run-once
+    // guard at all would have booted each again.
     return FixtureUnguardedProvider::$boots === ['twin-a', 'twin-b'];
 });
 
@@ -749,7 +734,7 @@ check('ServiceProviderInterface no longer requires implementations to make boot(
         && stripos($doc, 'at most once') !== false;
 });
 
-check('Neither CoreServiceProvider carries its own boot guard any more, and a repeated boot pass still attaches each hook only once', static function () use ($elemacy) {
+check('Neither CoreServiceProvider carries its own boot guard any more, and a repeated init() still attaches each hook only once', static function () use ($elemacy) {
     $free_has_flag = property_exists(CoreServiceProvider::class, 'booted');
     $pro_provider  = '\\ElemacyPro\\Core\\Providers\\CoreServiceProvider';
     // Pro is not autoloadable from this suite; assert against its source.
@@ -758,13 +743,12 @@ check('Neither CoreServiceProvider carries its own boot guard any more, and a re
 
     // The guard these flags used to provide: CoreServiceProvider::boot()
     // constructs fresh collaborators every call, so their own $registered
-    // flags would not stop a second pass — only the root's tracking does.
+    // flags would not stop a second pass — only the root's run-once init()
+    // does.
     $admin_enqueue_before = count($GLOBALS['__wp_actions']['admin_enqueue_scripts'][10] ?? []);
 
-    $boot = new ReflectionMethod($elemacy, 'boot_providers');
-    $boot->setAccessible(true);
-    $boot->invoke($elemacy);
-    $boot->invoke($elemacy);
+    $elemacy->init();
+    $elemacy->init();
 
     return $free_has_flag === false
         && $pro_has_flag === false
@@ -774,8 +758,8 @@ check('Neither CoreServiceProvider carries its own boot guard any more, and a re
 /* ── Task 6.3: hook attachment moved out of constructors ───────────── */
 
 /**
- * Every shared bootstrap/manager CoreServiceProvider::boot() constructs
- * directly, now split into a hook-free constructor plus an idempotent
+ * Every shared bootstrap/manager CoreServiceProvider::boot() builds through
+ * the container, each split into a hook-free constructor plus an idempotent
  * register_hooks() (design.md D7).
  */
 $fixture_63_classes = [
@@ -788,13 +772,15 @@ $fixture_63_classes = [
     PreviewAssets::class,
     QueryControlManager::class,
     TemplateAssetsRegistrar::class,
+    \Elemacy\Core\Admin\CoreAdminMenu::class,
+    \Elemacy\Http\HttpBootstrap::class,
 ];
 
 check('constructing any of the task 6.3 bootstrap/manager services attaches no WordPress hooks', static function () use ($fixture_63_classes) {
     foreach ($fixture_63_classes as $class) {
         $before = $GLOBALS['__wp_actions'];
 
-        new $class();
+        Container::instance()->make($class);
 
         if ($GLOBALS['__wp_actions'] !== $before) {
             return false;
@@ -806,7 +792,7 @@ check('constructing any of the task 6.3 bootstrap/manager services attaches no W
 
 check('register_hooks() on each task 6.3 service attaches its hooks, and a second call on the same instance attaches nothing more', static function () use ($fixture_63_classes) {
     foreach ($fixture_63_classes as $class) {
-        $instance = new $class();
+        $instance = Container::instance()->make($class);
         $before = $GLOBALS['__wp_actions'];
 
         $instance->register_hooks();
@@ -865,8 +851,8 @@ check('CoreServiceProvider::boot() wires every service\'s native hooks; single-b
     // Calling boot() directly a second time DOES attach again, and that is
     // the point: boot() builds fresh collaborators every call, so their own
     // register_hooks() guards cannot cover a repeat pass. Nothing in the
-    // plugin calls boot() directly — Elemacy::boot_providers() owns the
-    // at-most-once guarantee, covered by its own tests above.
+    // plugin calls boot() directly — Elemacy::init(), which runs once per
+    // request, owns the at-most-once guarantee, covered by its tests above.
     $provider->boot();
 
     return $GLOBALS['__wp_actions'] !== $snapshot_after_first_boot;
@@ -1129,7 +1115,7 @@ check('registrar collect() passes itself to the collect action, and register() f
         $registrar->register(101);
     });
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->register_hooks();
 
     do_action('wp_enqueue_scripts');
@@ -1153,7 +1139,7 @@ check('registrar registers before a simulated priority-20 style pass runs', stat
         $seen_at_priority_20 = $registered;
     }, 20);
 
-    (new TemplateAssetsRegistrar())->register_hooks();
+    (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->register_hooks();
 
     do_action('wp_enqueue_scripts');
 
@@ -1168,7 +1154,7 @@ check('registrar registers nothing when nothing is collected', static function (
         $fired = true;
     });
 
-    (new TemplateAssetsRegistrar())->collect();
+    (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->collect();
 
     return false === $fired;
 });
@@ -1179,7 +1165,7 @@ check('registrar collect() force-enqueues Elementor base frontend assets only wh
     \Elementor\Plugin::$instance = new \Elementor\Plugin();
     \Elementor\Plugin::$instance->frontend = new FakeElementorFrontend();
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->collect();
     $calls_with_nothing_registered = \Elementor\Plugin::$instance->frontend->calls;
 
@@ -1194,7 +1180,7 @@ check('registrar collect() force-enqueues Elementor base frontend assets only wh
 check('registrar wires related_posts to merge registered ids only for the currently queried post', static function () {
     reset_template_assets_hooks();
 
-    $registrar = new TemplateAssetsRegistrar();
+    $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
     $registrar->register_hooks();
     $registrar->register(606);
 
@@ -1230,7 +1216,7 @@ function with_editor_canvas_registrar(bool $preview_mode, int $edited_id, callab
     $elementor->preview = new FakeElementorPreview($preview_mode, $edited_id);
 
     try {
-        $registrar = new TemplateAssetsRegistrar();
+        $registrar = new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities());
         $registrar->register_hooks();
         $registrar->register(707);
 
@@ -1985,8 +1971,13 @@ check('wrapper does not double-fire wp_body_open when the theme header already f
 
 /* ── ThemeBuilder\Compatibility\Themes\GlobalCompatibility ───────── */
 
-final class FixedHeaderThemeBuilderManager extends ThemeBuilderManager
+final class FixedChromeThemeBuilderManager extends ThemeBuilderManager
 {
+    /** @var int|null */
+    public $header_id = 20;
+    /** @var int|null */
+    public $footer_id = 21;
+
     public function __construct()
     {
         parent::__construct(
@@ -1998,61 +1989,282 @@ final class FixedHeaderThemeBuilderManager extends ThemeBuilderManager
         );
     }
 
-    /** @var int */
-    public $render_header_calls = 0;
-
     public function get_header_id()
     {
-        return 20;
+        return $this->header_id;
     }
 
     public function get_footer_id()
     {
-        return null;
+        return $this->footer_id;
     }
+}
 
-    public function render_header(): void
+/**
+ * The real shells are full document views (tested against real WordPress in
+ * tests/integration/theme-lifecycle.php). This records when one would print,
+ * and which shell hooks still had callbacks at that moment.
+ */
+final class RecordingGlobalCompatibility extends GlobalCompatibility
+{
+    /** @var string[] */
+    public $log = [];
+
+    protected function print_shell(string $side): void
     {
-        $this->render_header_calls++;
-        echo '<div class="fixed-header-marker"></div>';
+        $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
+        $this->log[] = 'shell:' . $side . ':' . implode(',', $live);
+        echo '<shell-' . $side . '>';
     }
 }
 
 function reset_global_compat_hooks(): void
 {
-    unset($GLOBALS['__wp_actions']['get_header'], $GLOBALS['__wp_actions']['wp_body_open'], $GLOBALS['__locate_template_stub']);
+    foreach (['get_header', 'get_footer', 'wp_head', 'wp_body_open', 'wp_footer', Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER] as $hook) {
+        unset($GLOBALS['__wp_actions'][$hook]);
+    }
+    unset($GLOBALS['__locate_template_stub'], $GLOBALS['__locate_template_missing']);
     $GLOBALS['__wp_actions_fired']['wp_body_open'] = 0;
 }
 
-check('GlobalCompatibility renders the configured header exactly once when the theme never fires wp_body_open', static function () {
+/** A third-party callback on every shell hook, as another plugin would register. */
+function add_third_party_shell_callbacks(): void
+{
+    foreach (['wp_head', 'wp_body_open', 'wp_footer'] as $hook) {
+        add_action($hook, static function () {
+        });
+    }
+}
+
+check('native chrome suppression defaults to on for both sides', static function () {
     reset_global_compat_hooks();
 
-    $manager = new FixedHeaderThemeBuilderManager();
-    (new GlobalCompatibility())->register($manager);
-    // No __locate_template_stub set — mirrors a theme with no header.php
-    // (or the deprecated theme-compat fallback), which never calls wp_body_open().
+    (new GlobalCompatibility())->register(new FixedChromeThemeBuilderManager());
 
-    ob_start();
-    do_action('get_header');
-    ob_get_clean();
-
-    return $manager->render_header_calls === 1 && did_action('wp_body_open') === 1;
+    return !empty($GLOBALS['__wp_actions']['get_header']) && !empty($GLOBALS['__wp_actions']['get_footer']);
 });
 
-check('GlobalCompatibility does not render the configured header twice when the theme already fires wp_body_open', static function () {
+check('opting one side out of native chrome suppression leaves the other side replaced', static function () {
     reset_global_compat_hooks();
+    $sides = [];
+    add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress, string $side) use (&$sides): bool {
+        $sides[] = $side;
 
-    $manager = new FixedHeaderThemeBuilderManager();
+        return 'header' === $side ? false : $suppress;
+    }, 10, 2);
+
+    (new GlobalCompatibility())->register(new FixedChromeThemeBuilderManager());
+
+    return $sides === ['header', 'footer']
+        && empty($GLOBALS['__wp_actions']['get_header'])
+        && !empty($GLOBALS['__wp_actions']['get_footer']);
+});
+
+check('a side with no configured template is never replaced, and never asks the opt-out filter', static function () {
+    reset_global_compat_hooks();
+    $asked = 0;
+    add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress) use (&$asked): bool {
+        $asked++;
+
+        return $suppress;
+    }, 10, 2);
+    $manager = new FixedChromeThemeBuilderManager();
+    $manager->footer_id = null;
+
     (new GlobalCompatibility())->register($manager);
-    $GLOBALS['__locate_template_stub'] = static function () {
-        wp_body_open(); // simulates the located header.php calling it directly
+
+    return 1 === $asked
+        && !empty($GLOBALS['__wp_actions']['get_header'])
+        && empty($GLOBALS['__wp_actions']['get_footer']);
+});
+
+check('the generic header replacement prints the shell, then neutralizes the head and body-open hooks, then discards the theme header', static function () {
+    reset_global_compat_hooks();
+    add_third_party_shell_callbacks();
+    $compat = new RecordingGlobalCompatibility();
+    $compat->register(new FixedChromeThemeBuilderManager());
+    $GLOBALS['__locate_template_stub'] = static function ($templates) use ($compat) {
+        $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
+        $compat->log[] = 'discard:' . implode('|', (array) $templates) . ':' . implode(',', $live);
+        echo '<native-header>';
     };
 
     ob_start();
-    do_action('get_header');
-    ob_get_clean();
+    get_header();
+    $html = ob_get_clean();
 
-    return $manager->render_header_calls === 1 && did_action('wp_body_open') === 1;
+    return $compat->log === ['shell:header:wp_head,wp_body_open,wp_footer', 'discard:header.php:wp_footer']
+        && '<shell-header>' === $html;
+});
+
+check('the generic footer replacement prints the shell, then neutralizes the footer hook, then discards the theme footer', static function () {
+    reset_global_compat_hooks();
+    add_third_party_shell_callbacks();
+    $compat = new RecordingGlobalCompatibility();
+    $compat->register(new FixedChromeThemeBuilderManager());
+    $GLOBALS['__locate_template_stub'] = static function ($templates) use ($compat) {
+        $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
+        $compat->log[] = 'discard:' . implode('|', (array) $templates) . ':' . implode(',', $live);
+        echo '<native-footer>';
+    };
+
+    ob_start();
+    get_footer();
+    $html = ob_get_clean();
+
+    return $compat->log === ['shell:footer:wp_head,wp_body_open,wp_footer', 'discard:footer.php:wp_head,wp_body_open']
+        && '<shell-footer>' === $html;
+});
+
+check('a named header is discarded through the same template hierarchy get_header() uses', static function () {
+    reset_global_compat_hooks();
+    $compat = new RecordingGlobalCompatibility();
+    $compat->register(new FixedChromeThemeBuilderManager());
+    $located = [];
+    $GLOBALS['__locate_template_stub'] = static function ($templates) use (&$located) {
+        $located = (array) $templates;
+    };
+
+    ob_start();
+    get_header('custom');
+    ob_end_clean();
+
+    return $located === ['header-custom.php', 'header.php'];
+});
+
+check('the generic adapter carries no styling-based suppression', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/GlobalCompatibility.php');
+
+    foreach (['display: none', 'display:none', '100vw', 'wp_add_inline_style', 'site-header', 'masthead'] as $needle) {
+        if (false !== strpos($source, $needle)) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+/* ── Core\RequestState ─────────────────────────────────────────── */
+
+final class CountingElementorFrontend
+{
+    /** @var int[] */
+    public array $rendered = [];
+
+    public function get_builder_content_for_display($id)
+    {
+        $this->rendered[] = (int) $id;
+
+        return '<counted id="' . (int) $id . '" render="' . count($this->rendered) . '">';
+    }
+}
+
+function counting_template_renderer(): CountingElementorFrontend
+{
+    \Elementor\Plugin::$instance = new \Elementor\Plugin();
+    \Elementor\Plugin::$instance->frontend = new CountingElementorFrontend();
+    TemplateRenderer::reset();
+
+    return \Elementor\Plugin::$instance->frontend;
+}
+
+check('RequestState::flush() runs every registered reset, and re-registering a name replaces it', static function () {
+    $log = [];
+    \Elemacy\Core\RequestState::register('zz-first', static function () use (&$log) {
+        $log[] = 'first-old';
+    });
+    \Elemacy\Core\RequestState::register('zz-first', static function () use (&$log) {
+        $log[] = 'first';
+    });
+    \Elemacy\Core\RequestState::register('zz-second', static function () use (&$log) {
+        $log[] = 'second';
+    });
+
+    \Elemacy\Core\RequestState::flush();
+
+    \Elemacy\Core\RequestState::register('zz-first', static function () {
+    });
+    \Elemacy\Core\RequestState::register('zz-second', static function () {
+    });
+
+    return $log === ['first', 'second'];
+});
+
+check('a TemplateRenderer fragment is reused within a request and prepared again after a RequestState flush', static function () {
+    $frontend = counting_template_renderer();
+    \Elemacy\Core\RequestState::register(TemplateRenderer::class, [TemplateRenderer::class, 'reset']);
+    $renderer = new TemplateRenderer();
+
+    $first = $renderer->prepare(501, 'theme-builder', 'header');
+    $again = $renderer->prepare(501, 'theme-builder', 'header');
+    $reused = $frontend->rendered === [501] && $first === $again && $renderer->get_prepared(501, 'theme-builder', 'header') === $first;
+
+    \Elemacy\Core\RequestState::flush();
+
+    return $reused
+        && null === $renderer->get_prepared(501, 'theme-builder', 'header')
+        && $renderer->prepare(501, 'theme-builder', 'header') !== $first
+        && $frontend->rendered === [501, 501];
+});
+
+check('a fragment prepared on one site is never served on another, and is still there when the first site comes back', static function () {
+    $frontend = counting_template_renderer();
+    $renderer = new TemplateRenderer();
+
+    $site_one = $renderer->prepare(502, 'theme-builder', 'header');
+    switch_to_blog(2);
+    $on_site_two = $renderer->get_prepared(502, 'theme-builder', 'header');
+    $site_two = $renderer->prepare(502, 'theme-builder', 'header');
+    restore_current_blog();
+
+    return null === $on_site_two
+        && $site_two !== $site_one
+        && $renderer->get_prepared(502, 'theme-builder', 'header') === $site_one
+        && $frontend->rendered === [502, 502];
+});
+
+check('RequestState flushes as the first wp callback, ahead of every consumer that resolves or prepares a template', static function () {
+    unset($GLOBALS['__wp_actions']['wp']);
+    $log = [];
+    \Elemacy\Core\RequestState::register('zz-order', static function () use (&$log) {
+        $log[] = 'flush';
+    });
+    add_action('wp', static function () use (&$log) {
+        $log[] = 'early consumer';
+    }, -1000);
+    add_action('wp', static function () use (&$log) {
+        $log[] = 'adapter boot';
+    });
+    \Elemacy\Core\RequestState::register_hooks();
+
+    do_action('wp', new stdClass());
+
+    \Elemacy\Core\RequestState::register('zz-order', static function () {
+    });
+    unset($GLOBALS['__wp_actions']['wp']);
+
+    return $log === ['flush', 'early consumer', 'adapter boot'];
+});
+
+check('every request-scoped cache registers its reset with RequestState, and the flush is wired to wp', static function () {
+    $registered = [
+        'src/Core/Providers/CoreServiceProvider.php' => ['RequestState::register_hooks()', 'RequestState::register(TemplateRenderer::class', 'RequestState::register(LoopItemStyles::class'],
+        'src/TemplateLibrary/LibraryBootstrap.php' => ['RequestState::register(TemplateResolver::class'],
+        'src/Elementor/Rendering/TemplateAssetsRegistrar.php' => ['RequestState::register(self::class'],
+        'src/Modules/ThemeBuilder/Services/ThemeBuilderManager.php' => ["RequestState::register(self::class, [\$this, 'forget_rendered_locations'])"],
+        'src/Modules/Popups/Services/PopupManager.php' => ["RequestState::register(self::class, [\$this, 'reset'])"],
+    ];
+
+    foreach ($registered as $file => $needles) {
+        $source = elemacy_code_without_comments(ELEMACY_PATH . $file);
+        foreach ($needles as $needle) {
+            if (false === strpos($source, $needle)) {
+                return false;
+            }
+        }
+    }
+
+    return false !== strpos(elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/RequestState.php'), "add_action('wp', [self::class, 'flush'], PHP_INT_MIN, 0)");
 });
 
 /* ── Core\Capabilities\FeatureAvailability ──────────────────────── */
@@ -2218,6 +2430,438 @@ check('mock (inactive extension) include suspends (pro deactivated → template 
 
 check('mock (inactive extension) exclude suspends rather than failing to veto', static fn() =>
     $evaluator->evaluate([$rule('mock/locked', 'exclude'), $rule('test/yes')]) === false);
+
+/* ── Template precedence: Specificity, condition levels, resolver ── */
+
+/** A condition with a fixed match result and a fixed declared specificity. */
+final class LeveledCondition extends BaseCondition
+{
+    private string $name;
+    private bool $matches;
+    private int $level;
+
+    public function __construct(string $name, bool $matches, int $level)
+    {
+        $this->name    = $name;
+        $this->matches = $matches;
+        $this->level   = $level;
+    }
+
+    public function get_name(): string
+    {
+        return $this->name;
+    }
+
+    public function get_type(): string
+    {
+        return 'general';
+    }
+
+    public function get_label(): string
+    {
+        return $this->name;
+    }
+
+    public function check(ConditionRuleDTO $rule): bool
+    {
+        return $this->matches;
+    }
+
+    public function get_specificity(ConditionRuleDTO $rule): int
+    {
+        return $this->level;
+    }
+}
+
+/** A ResolverCache whose candidate index is supplied directly. */
+final class FixedResolverCache extends \Elemacy\TemplateLibrary\ResolverCache
+{
+    private array $index;
+
+    public function __construct(array $index)
+    {
+        $this->index = $index;
+    }
+
+    public function get_index(): array
+    {
+        return $this->index;
+    }
+}
+
+check('Specificity levels are distinct and ordered ascending from SITE', static function () {
+    $levels = Specificity::levels();
+
+    return $levels === [Specificity::SITE, Specificity::SECTION, Specificity::TYPE, Specificity::OBJECT]
+        && count(array_unique($levels)) === 4
+        && $levels === array_values(array_filter($levels, 'is_int'))
+        && Specificity::SITE === min($levels)
+        && Specificity::OBJECT === max($levels)
+        && $levels[0] < $levels[1] && $levels[1] < $levels[2] && $levels[2] < $levels[3];
+});
+
+check('Specificity::narrowed() returns the narrow level for a value and the broad level for an empty one', static fn() =>
+    Specificity::narrowed('12', Specificity::OBJECT, Specificity::TYPE) === Specificity::OBJECT
+    && Specificity::narrowed('', Specificity::OBJECT, Specificity::TYPE) === Specificity::TYPE);
+
+check('a condition that never declares a specificity still registers, still matches, and reports the broadest level', static function () use ($manager, $evaluator, $rule) {
+    $bare = new FixedCondition('prec/bare', true);
+    $manager->register($bare);
+
+    return !method_exists(FixedCondition::class, 'get_specificity')
+        || true === $evaluator->evaluate([$rule('prec/bare')])
+        && $bare->get_specificity(ConditionRuleDTO::from_array([])) === Specificity::SITE
+        && $evaluator->match([$rule('prec/bare')]) === Specificity::SITE;
+});
+
+check('every built-in Free condition declares the level the documented table gives it', static function () {
+    $empty = ConditionRuleDTO::from_array(['value' => '']);
+    $value = ConditionRuleDTO::from_array(['value' => 'page']);
+
+    return (new \Elemacy\Conditions\General\EntireSite())->get_specificity($empty) === Specificity::SITE
+        && (new \Elemacy\Conditions\Singular\PostType())->get_specificity($empty) === Specificity::SECTION
+        && (new \Elemacy\Conditions\Singular\PostType())->get_specificity($value) === Specificity::TYPE
+        && (new \Elemacy\Conditions\Archive\PostType())->get_specificity($empty) === Specificity::SECTION
+        && (new \Elemacy\Conditions\Archive\PostType())->get_specificity($value) === Specificity::TYPE;
+});
+
+check('every Free mock condition declares the same level its real Pro counterpart will', static function () {
+    $empty = ConditionRuleDTO::from_array(['value' => '']);
+    $value = ConditionRuleDTO::from_array(['value' => '7']);
+
+    $expected = [
+        ['Mock\AllArchives',    $empty, Specificity::SECTION],
+        ['Mock\Blog',           $empty, Specificity::TYPE],
+        ['Mock\NotFound',       $empty, Specificity::TYPE],
+        ['Mock\SearchResults',  $empty, Specificity::TYPE],
+        ['Mock\DateArchive',    $empty, Specificity::TYPE],
+        ['Mock\FrontPage',      $empty, Specificity::OBJECT],
+        ['Mock\ChildOf',        $value, Specificity::OBJECT],
+        ['Mock\AuthorArchive',  $empty, Specificity::TYPE],
+        ['Mock\AuthorArchive',  $value, Specificity::OBJECT],
+        ['Mock\SpecificPost',   $empty, Specificity::SECTION],
+        ['Mock\SpecificPost',   $value, Specificity::OBJECT],
+        ['Mock\ByAuthor',       $empty, Specificity::SECTION],
+        ['Mock\ByAuthor',       $value, Specificity::OBJECT],
+    ];
+
+    foreach ($expected as [$class, $rule_dto, $level]) {
+        $fqcn = '\\Elemacy\\Conditions\\' . $class;
+
+        if ((new $fqcn())->get_specificity($rule_dto) !== $level) {
+            return false;
+        }
+    }
+
+    // The two taxonomy-scoped mocks take the taxonomy in their constructor.
+    return (new \Elemacy\Conditions\Mock\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
+        && (new \Elemacy\Conditions\Mock\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT
+        && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
+        && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT;
+});
+
+$manager->register(new LeveledCondition('prec/site', true, Specificity::SITE));
+$manager->register(new LeveledCondition('prec/section', true, Specificity::SECTION));
+$manager->register(new LeveledCondition('prec/type', true, Specificity::TYPE));
+$manager->register(new LeveledCondition('prec/object', true, Specificity::OBJECT));
+$manager->register(new LeveledCondition('prec/object_nomatch', false, Specificity::OBJECT));
+
+$prec_entry = static function (int $id, array $types): array {
+    return [
+        'id' => $id,
+        'conditions' => array_map(
+            static fn(array $pair): array => [
+                'type' => $pair[0],
+                'operator' => $pair[1] ?? 'include',
+                'value' => '',
+            ],
+            $types
+        ),
+    ];
+};
+
+$prec_resolve = static function (array $entries): ?int {
+    \Elemacy\TemplateLibrary\TemplateResolver::reset();
+
+    return (new \Elemacy\TemplateLibrary\TemplateResolver(
+        new FixedResolverCache(['header' => $entries])
+    ))->resolve('header');
+};
+
+check('ConditionEvaluator::match() reports the highest level among the includes that matched', static fn() =>
+    $evaluator->match([$rule('prec/site'), $rule('prec/type')]) === Specificity::TYPE
+    && $evaluator->match([$rule('prec/site')]) === Specificity::SITE);
+
+check('ConditionEvaluator::match() reports null, not a level, when nothing matched', static fn() =>
+    $evaluator->match([$rule('prec/object_nomatch')]) === null);
+
+check('ConditionEvaluator::match() reports the broadest level for an exclude-only set that does not veto', static fn() =>
+    $evaluator->match([$rule('prec/object_nomatch', 'exclude')]) === Specificity::SITE);
+
+check('precedence: a site-wide header does not override one targeting singular posts', static fn() =>
+    $prec_resolve([$prec_entry(1, [['prec/site']]), $prec_entry(2, [['prec/type']])]) === 2);
+
+check('precedence: a header targeting one specific post beats one targeting its post type', static fn() =>
+    $prec_resolve([$prec_entry(1, [['prec/type']]), $prec_entry(2, [['prec/object']])]) === 2);
+
+check('precedence: the newer but broader header still loses to the older narrower one', static fn() =>
+    // Index order is newest first, so id 9 here is the newer, broader candidate.
+    $prec_resolve([$prec_entry(9, [['prec/site']]), $prec_entry(3, [['prec/object']])]) === 3);
+
+check('precedence: when only the broader header matches, it is the one resolved', static fn() =>
+    $prec_resolve([$prec_entry(1, [['prec/object_nomatch']]), $prec_entry(2, [['prec/site']])]) === 2);
+
+check('precedence: two headers at the same level resolve to exactly one, identically on repeated calls', static function () use ($prec_resolve, $prec_entry) {
+    $entries = [$prec_entry(5, [['prec/type']]), $prec_entry(4, [['prec/type']])];
+    $first   = $prec_resolve($entries);
+
+    return $first === 5 && $prec_resolve($entries) === 5 && $prec_resolve($entries) === 5;
+});
+
+check('precedence: a matching exclusion vetoes the template before any scoring', static fn() =>
+    $prec_resolve([
+        $prec_entry(1, [['prec/object'], ['prec/site', 'exclude']]),
+        $prec_entry(2, [['prec/section']]),
+    ]) === 2);
+
+check('precedence: an exclusion never raises a template above the inclusions it matched on', static fn() =>
+    // id 1 is [Entire Site, exclude Specific Post] — the exclusion does not
+    // match this request, so id 1 still only scores SITE and must lose.
+    $prec_resolve([
+        $prec_entry(1, [['prec/site'], ['prec/object_nomatch', 'exclude']]),
+        $prec_entry(2, [['prec/type']]),
+    ]) === 2);
+
+check('precedence: a conditionless template is the fallback, used only when nothing matched', static function () use ($prec_resolve, $prec_entry) {
+    $with_match = $prec_resolve([['id' => 1, 'conditions' => []], $prec_entry(2, [['prec/site']])]);
+    $no_match   = $prec_resolve([['id' => 1, 'conditions' => []], $prec_entry(2, [['prec/object_nomatch']])]);
+
+    return $with_match === 2 && $no_match === 1;
+});
+
+check('precedence: a condition with no declared level never outranks one that declares a narrow level', static function () use ($manager, $prec_resolve, $prec_entry) {
+    $manager->register(new FixedCondition('prec/undeclared', true));
+
+    return $prec_resolve([$prec_entry(1, [['prec/undeclared']]), $prec_entry(2, [['prec/type']])]) === 2;
+});
+
+check('collect-all resolution is untouched by specificity: every matching popup is still returned', static function () use ($prec_entry) {
+    \Elemacy\TemplateLibrary\TemplateResolver::reset();
+    TypeRegistry::instance()->register(new TypeDefinition('prec_popup', 'Prec Popup', 'popup', 'popups'));
+
+    $resolver = new \Elemacy\TemplateLibrary\TemplateResolver(new FixedResolverCache([
+        'prec_popup' => [$prec_entry(1, [['prec/site']]), $prec_entry(2, [['prec/object']])],
+    ]));
+
+    $matched = $resolver->resolve_group('popup');
+
+    return in_array(1, $matched, true) && in_array(2, $matched, true);
+});
+
+/**
+ * A PHP file's executable code with every comment removed, so a test asserting
+ * that source does NOT contain a construct is not satisfied by a docblock that
+ * merely mentions it.
+ */
+function elemacy_code_without_comments(string $path): string
+{
+    $code = '';
+
+    foreach (token_get_all(file_get_contents($path)) as $token) {
+        if (is_array($token)) {
+            if (T_COMMENT === $token[0] || T_DOC_COMMENT === $token[0]) {
+                continue;
+            }
+
+            $code .= $token[1];
+            continue;
+        }
+
+        $code .= $token;
+    }
+
+    return $code;
+}
+
+/* ── Theme Builder chrome documents (Header / Footer) ────────────── */
+
+check('the Theme Builder document map backs Header and Footer with their own chrome documents', static function () {
+    $documents = require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Config/documents.php';
+
+    return ($documents['header'] ?? null) === \Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument::class
+        && ($documents['footer'] ?? null) === \Elemacy\Modules\ThemeBuilder\Documents\FooterDocument::class
+        && \Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument::get_type() === 'elemacy_header'
+        && \Elemacy\Modules\ThemeBuilder\Documents\FooterDocument::get_type() === 'elemacy_footer';
+});
+
+check('a TypeDefinition built from that map resolves Header and Footer to the chrome document types, not the generic page document', static function () {
+    $documents = require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Config/documents.php';
+
+    $header = new TypeDefinition('header', 'Header', 'theme', 'theme-builder', $documents['header']);
+    $footer = new TypeDefinition('footer', 'Footer', 'theme', 'theme-builder', $documents['footer']);
+    $untyped = new TypeDefinition('404', '404', 'theme', 'theme-builder', $documents['404'] ?? null);
+
+    return $header->get_document_type() === 'elemacy_header'
+        && $footer->get_document_type() === 'elemacy_footer'
+        && $untyped->get_document_type() === null;
+});
+
+check('ThemeBuilder registers its types from the same document map DocumentManager registers documents from, so the two cannot disagree', static function () {
+    $module = file_get_contents(ELEMACY_PATH . 'src/Modules/ThemeBuilder/ThemeBuilder.php');
+    $manager = file_get_contents(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Documents/DocumentManager.php');
+    $path = 'src/Modules/ThemeBuilder/Config/documents.php';
+
+    // Both read the shared map, and neither may `require_once` it — the
+    // second reader of a require_once gets `true` instead of the array.
+    return false !== strpos($module, $path)
+        && false !== strpos($manager, $path)
+        && false === strpos($module, "require_once Utils::get_plugin_path('" . $path)
+        && false === strpos($manager, "require_once Utils::get_plugin_path('" . $path)
+        && false === strpos($module, 'SingleDocument::class');
+});
+
+check('the chrome documents suppress the page-layout control Elementor injects only for documents that declare support for it', static fn() =>
+    \Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument::get_properties()['support_page_layout'] === false
+    && \Elemacy\Modules\ThemeBuilder\Documents\FooterDocument::get_properties()['support_page_layout'] === false
+    && \Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument::get_properties()['support_kit'] === true
+    && \Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument::get_properties()['show_in_library'] === false);
+
+check('the chrome documents do not register PageBase\'s page-level controls: no hide-title, excerpt, featured image, menu order, comments or body style', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Documents/ChromeDocument.php');
+
+    // register_controls() must not chain into PageBase, which is what adds
+    // every one of those controls.
+    if (false !== strpos($source, 'parent::register_controls()')) {
+        return false;
+    }
+
+    foreach (['register_hide_title_control', 'register_post_fields_control', 'register_style_controls'] as $page_level) {
+        if (false !== strpos($source, $page_level)) {
+            return false;
+        }
+    }
+
+    // It must still register the document's own identity/status section and
+    // still fire Elementor's public document-controls extension point.
+    return false !== strpos($source, 'register_document_controls()')
+        && false !== strpos($source, "do_action('elementor/documents/register_controls'");
+});
+
+check('the chrome documents scope their settings CSS to the template\'s own root, not a page body class that never exists for them', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Documents/ChromeDocument.php');
+
+    return false !== strpos($source, "return '.elementor-' . \$this->get_main_id();")
+        && false === strpos($source, 'body.elementor-page-');
+});
+
+check('Migrator::schedule() defers the sync to init rather than running it inline, so a migration sees populated registries', static function () {
+    $migrator = new class extends Migrator {
+        public int $syncs = 0;
+
+        public function sync(bool $is_fresh_install): void
+        {
+            $this->syncs++;
+        }
+    };
+
+    $before = count(array_merge(...array_values($GLOBALS['__wp_actions']['init'] ?? [[]])));
+    $migrator->schedule(false);
+    $after = count(array_merge(...array_values($GLOBALS['__wp_actions']['init'] ?? [[]])));
+
+    // Queued, not run.
+    if ($migrator->syncs !== 0 || $after !== $before + 1) {
+        return false;
+    }
+
+    do_action('init');
+
+    return $migrator->syncs === 1;
+});
+
+check('Migrator schedules its sync after every library-type registration, never before', static fn() =>
+    Migrator::SYNC_PRIORITY > 20 && Migrator::SYNC_PRIORITY > 10 && Migrator::SYNC_PRIORITY > 5);
+
+check('Free (SiteInstaller) and ElemacyPro both schedule their schema sync instead of running it during plugins_loaded', static function () {
+    $free = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/SiteInstaller.php');
+
+    if (false !== strpos($free, '->sync(') || false === strpos($free, '->schedule($is_fresh_install)')) {
+        return false;
+    }
+
+    $pro_path = dirname(ELEMACY_PATH, 1) . '/elemacy-pro/src/Core/ElemacyPro.php';
+
+    if (!is_readable($pro_path)) {
+        return true; // Pro is not checked out beside Free; Free's own half stands.
+    }
+
+    $pro = elemacy_code_without_comments($pro_path);
+
+    return false === strpos($pro, '->sync(') && false !== strpos($pro, '->schedule(false)');
+});
+
+check('the document-type reconciliation asks the registry what a type means instead of naming any type itself', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Migrator.php');
+
+    foreach (["'header'", "'footer'", "'popup'", "'single'", "'loop'", "'elemacy_header'", "'elemacy_footer'"] as $named) {
+        if (false !== strpos($source, $named)) {
+            return false;
+        }
+    }
+
+    return false !== strpos($source, '$writer->document_type($type)')
+        && false !== strpos($source, '$types->get($type)');
+});
+
+/* ── Theme compatibility adapter selection ──────────────────────── */
+
+check('adapter selection is data, not code: every built-in theme adapter is chosen from one slug map, and no adapter class names another', static function () {
+    $manager = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/CompatibilityManager.php');
+
+    // One registration table, one extension point, and the documented
+    // fallback order: exact slug, then block theme, then generic.
+    if (false === strpos($manager, 'Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION')
+        || false === strpos($manager, 'wp_is_block_theme()')
+        || false === strpos($manager, 'GlobalCompatibility')) {
+        return false;
+    }
+
+    // Adding an adapter must never mean editing another one.
+    $directory = ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/';
+    $adapters = array_map(
+        static fn(string $file): string => basename($file, '.php'),
+        glob($directory . '*.php') ?: []
+    );
+
+    foreach ($adapters as $adapter) {
+        $source = elemacy_code_without_comments($directory . $adapter . '.php');
+
+        foreach ($adapters as $other) {
+            // GlobalCompatibility and DefaultCompatibility are the two
+            // fallbacks CompatibilityManager itself selects; no adapter may
+            // reference any sibling, including those.
+            if ($other !== $adapter && false !== strpos($source, $other)) {
+                return false;
+            }
+        }
+    }
+
+    return count($adapters) >= 10;
+});
+
+check('every shipped theme adapter implements the one adapter contract, so registration stays uniform', static function () {
+    $directory = ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/';
+
+    foreach (glob($directory . '*.php') ?: [] as $file) {
+        $source = elemacy_code_without_comments($file);
+
+        if (false === strpos($source, 'implements ThemeCompatibilityInterface')
+            || false === strpos($source, 'public function register(ThemeBuilderManager $manager): void')) {
+            return false;
+        }
+    }
+
+    return true;
+});
 
 /* ── Popups\Services\RuleManager / TriggerManager availability ──── */
 
@@ -3002,14 +3646,31 @@ check('SiteBatchIterator::process_batch() with a sub-one limit does nothing', st
     return $result === ['processed' => 0, 'has_more' => false] && $GLOBALS['__wp_current_blog_id'] === 1;
 });
 
-/* ── Task 11.7: Elemacy — bounded network seeding + lazy per-site fallback ── */
+/* ── Task 11.7: SiteInstaller — bounded network seeding + lazy per-site fallback ── */
 
-check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($elemacy) {
+// The same shared instance Elemacy itself resolved at construction.
+$installer = Container::instance()->singleton(SiteInstaller::class);
+
+check('SiteInstaller builds from a container with no bindings at all (activation and plugins_loaded@1 run before any provider registers), sharing one ModuleCatalog', static function () {
+    $bare = (new ReflectionClass(Container::class))->newInstanceWithoutConstructor();
+
+    try {
+        $installer = $bare->singleton(SiteInstaller::class);
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    $catalog = new ReflectionProperty($installer, 'catalog');
+    $catalog->setAccessible(true);
+
+    return $installer instanceof SiteInstaller
+        && $catalog->getValue($installer) === $bare->singleton(ModuleCatalog::class);
+});
+
+check('SiteInstaller::seed_current_site_if_missing() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($installer) {
     delete_option(OptionKeys::ACTIVE_MODULES);
 
-    $ref = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
-    $ref->setAccessible(true);
-    $ref->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
 
     $seeded = get_option(OptionKeys::ACTIVE_MODULES);
 
@@ -3019,7 +3680,7 @@ check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the
     // (including deliberately disabling every module, an empty array,
     // which is falsy but must still count as "already seeded").
     update_option(OptionKeys::ACTIVE_MODULES, []);
-    $ref->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
     $after_customization = get_option(OptionKeys::ACTIVE_MODULES);
 
     // Compared as a set: the seeded value is whatever the modules themselves
@@ -3034,44 +3695,44 @@ check('Elemacy::maybe_seed_current_site() seeds ACTIVE_MODULES defaults only the
         && $after_customization === [];
 });
 
-check('Elemacy::maybe_continue_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = false;
-    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 5);
+    update_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, 5);
 
-    $elemacy->maybe_continue_network_seeding();
+    $installer->resume_network_seeding();
 
-    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION) === 5;
+    return get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION) === 5;
 });
 
-check('Elemacy::maybe_continue_network_seeding() does nothing when no network seed is in progress', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() does nothing when no network seed is in progress', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = true;
-    delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
+    delete_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION);
     $GLOBALS['__wp_multisite_sites'] = [9001, 9002]; // would be processed if this ran.
 
-    $elemacy->maybe_continue_network_seeding();
+    $installer->resume_network_seeding();
 
-    return get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false) === false;
+    return get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false) === false;
 });
 
-check('Elemacy::maybe_continue_network_seeding() resumes a network of over 100 sites in bounded batches across separate requests, never in one unbounded pass', static function () use ($elemacy) {
+check('SiteInstaller::resume_network_seeding() resumes a network of over 100 sites in bounded batches across separate requests, never in one unbounded pass', static function () use ($installer) {
     $GLOBALS['__wp_multisite'] = true;
     $GLOBALS['__wp_multisite_sites'] = range(20001, 20000 + 150); // 150 sites, > NETWORK_SEED_BATCH_SIZE (100).
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
-    // Mirrors what activation_actions()'s own registration hook closure does
+    // Mirrors what SiteInstaller::activate() does
     // for a network activation: seed the offset at 0, then run one bounded
     // pass — leaving the job interrupted with 50 sites still unseeded.
-    update_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, 0);
+    update_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, 0);
 
-    $elemacy->maybe_continue_network_seeding(); // The activation request's own first bounded pass.
-    $offset_after_first_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding(); // The activation request's own first bounded pass.
+    $offset_after_first_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
-    $elemacy->maybe_continue_network_seeding(); // A later request's plugins_loaded resumes it.
-    $offset_after_second_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding(); // A later request's plugins_loaded resumes it.
+    $offset_after_second_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
     // A third call must be a safe no-op: the job is already gone.
-    $elemacy->maybe_continue_network_seeding();
-    $offset_after_third_pass = get_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION, false);
+    $installer->resume_network_seeding();
+    $offset_after_third_pass = get_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION, false);
 
     return $offset_after_first_pass === 100
         && $offset_after_second_pass === false
@@ -3080,20 +3741,19 @@ check('Elemacy::maybe_continue_network_seeding() resumes a network of over 100 s
         && $GLOBALS['__wp_blog_stack'] === [];
 });
 
-check('Elemacy activation_actions(): a newly-created site under network activation is seeded via wp_initialize_site, switching and restoring the blog context', static function () use ($elemacy) {
+check('SiteInstaller::register_hooks(): a newly-created site under network activation is seeded via wp_initialize_site, switching and restoring the blog context', static function () use ($installer) {
     $GLOBALS['__wp_plugin_active_for_network'] = true;
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
-    delete_option(OptionKeys::ACTIVE_MODULES); // So seed_site()'s add_option() below is observable.
+    delete_option(OptionKeys::ACTIVE_MODULES); // So the seeding add_option() below is observable.
 
     // An earlier, unrelated CompatibilityChecker test deliberately wipes
     // $GLOBALS['__wp_actions'] entirely to isolate its own assertions, which
     // also discards the wp_initialize_site listener this instance's
-    // constructor registered back at bootstrap. Re-registering here (a
-    // second call to this same public, idempotent-registration method) is
-    // what makes the listener present again to dispatch below, regardless
-    // of that earlier wipe.
-    $elemacy->activation_actions();
+    // constructor registered back at bootstrap. Re-registering here is what
+    // makes the listener present again to dispatch below, regardless of that
+    // earlier wipe.
+    $installer->register_hooks();
 
     do_action('wp_initialize_site', (object) ['blog_id' => 777]);
 
@@ -3217,26 +3877,23 @@ check('ModuleCatalog skips a configured class that does not exist or is not a Mo
     return $names === ['fixture-default-active', 'fixture-opt-out'];
 });
 
-check('Elemacy seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () use ($elemacy) {
-    $catalog_property = new ReflectionProperty(Elemacy::class, 'module_catalog');
-    $catalog_property->setAccessible(true);
-    $restore = $catalog_property->getValue($elemacy);
-
-    $catalog_property->setValue($elemacy, new ModuleCatalog([
-        ThemeBuilder::class,
-        FixtureDefaultActiveModule::class,
-        FixtureOptOutModule::class,
-    ]));
+check('SiteInstaller seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () {
+    $installer = new SiteInstaller(
+        new ModuleCatalog([
+            ThemeBuilder::class,
+            FixtureDefaultActiveModule::class,
+            FixtureOptOutModule::class,
+        ]),
+        new SiteBatchIterator(),
+        new Migrator()
+    );
 
     delete_option(OptionKeys::ACTIVE_MODULES);
 
-    $seed = new ReflectionMethod($elemacy, 'maybe_seed_current_site');
-    $seed->setAccessible(true);
-    $seed->invoke($elemacy);
+    $installer->seed_current_site_if_missing();
 
     $seeded = get_option(OptionKeys::ACTIVE_MODULES);
 
-    $catalog_property->setValue($elemacy, $restore); // Shared singleton: leave it as found.
     delete_option(OptionKeys::ACTIVE_MODULES);
 
     sort($seeded);
@@ -3244,12 +3901,12 @@ check('Elemacy seeds a default-active module contributed to the catalog alongsid
     return $seeded === ['fixture-default-active', 'theme-builder'];
 });
 
-check('Elemacy activation_actions(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($elemacy) {
+check('SiteInstaller::register_hooks(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($installer) {
     $GLOBALS['__wp_plugin_active_for_network'] = false;
     $GLOBALS['__wp_current_blog_id'] = 1;
     $GLOBALS['__wp_blog_stack'] = [];
     delete_option(OptionKeys::ACTIVE_MODULES);
-    $elemacy->activation_actions();
+    $installer->register_hooks();
 
     do_action('wp_initialize_site', (object) ['blog_id' => 778]);
 
@@ -3265,7 +3922,7 @@ $GLOBALS['__wp_multisite'] = false;
 $GLOBALS['__wp_multisite_sites'] = [];
 $GLOBALS['__wp_blog_stack'] = [];
 $GLOBALS['__wp_current_blog_id'] = 1;
-delete_site_option(Elemacy::NETWORK_SEED_OFFSET_OPTION);
+delete_site_option(SiteInstaller::NETWORK_SEED_OFFSET_OPTION);
 
 /* ── Sanitizer rules ────────────────────────────────────────────── */
 
@@ -3981,13 +4638,27 @@ check('PreviewManager stores an injected PreviewContextProviderInterface instead
     return $ref->getValue($manager) === $fixture_provider;
 });
 
-check('PreviewManager with no injected provider defaults to Loop\Preview\LoopItemPreviewContextProvider (the same behavior as before this contract existed)', static function () {
-    $manager = new PreviewManager();
+check('The container builds PreviewManager with Loop\Preview\LoopItemPreviewContextProvider, bound to the contract by CoreServiceProvider', static function () {
+    (new CoreServiceProvider())->register(Container::instance());
+    $manager = Container::instance()->make(PreviewManager::class);
 
     $ref = new ReflectionProperty(PreviewManager::class, 'loop_provider');
     $ref->setAccessible(true);
 
     return $ref->getValue($manager) instanceof \Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
+});
+
+check('PreviewManager depends only on the preview contract and imports no Elemacy\\Loop class', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Elementor/Preview/PreviewManager.php');
+
+    return false === strpos($source, 'Elemacy\\Loop\\');
+});
+
+check('CoreServiceProvider builds every bootstrap through the container rather than with new', static function () {
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Providers/CoreServiceProvider.php');
+
+    return false === strpos($source, '(new ')
+        && substr_count($source, '$container->make(') === 11;
 });
 
 check('Core\Preview\PreviewManager and Core\Documents\PreviewablePageBase source files import no concrete Elemacy\Modules\Widgets class', static function () {
@@ -4913,6 +5584,56 @@ check('tests/architecture/check.php fails on a planted planning reference in pro
     }
 
     return 1 === $exit_code && false !== strpos(implode("\n", $output), 'ZZPlanningReferenceFixture.php');
+});
+
+check('tests/architecture/check.php fails when a persisted identifier is renamed without a migration, and names it', static function () {
+    $script = dirname(__DIR__) . '/architecture/check.php';
+    $list = tempnam(sys_get_temp_dir(), 'elemacy-identifiers-');
+    // As if HeaderDocument had been renamed away from a value sites stored.
+    file_put_contents($list, "<?php\nreturn [['id' => 'elemacy_hedaer', 'file' => 'src/Modules/ThemeBuilder/Documents/HeaderDocument.php']];\n");
+
+    $output = [];
+    $exit_code = 0;
+
+    try {
+        exec('ELEMACY_PERSISTED_IDENTIFIERS=' . escapeshellarg($list) . ' php ' . escapeshellarg($script) . ' 2>&1', $output, $exit_code);
+    } finally {
+        unlink($list);
+    }
+
+    return 1 === $exit_code && false !== strpos(implode("\n", $output), "'elemacy_hedaer' is no longer declared in src/Modules/ThemeBuilder/Documents/HeaderDocument.php");
+});
+
+check('tests/architecture/check.php accepts a renamed persisted identifier once a migration names the stored value', static function () {
+    $script = dirname(__DIR__) . '/architecture/check.php';
+    $list = tempnam(sys_get_temp_dir(), 'elemacy-identifiers-');
+    $migration = dirname(__DIR__, 2) . '/src/Core/Migrations/ZZRenameFixture.php';
+    file_put_contents($list, "<?php\nreturn [['id' => 'elemacy_hedaer', 'file' => 'src/Modules/ThemeBuilder/Documents/HeaderDocument.php']];\n");
+    file_put_contents($migration, "<?php\nnamespace Elemacy\\Core\\Migrations;\ndefined('ABSPATH') || exit;\nconst ZZ_RENAMED_FROM = 'elemacy_hedaer';\n");
+
+    $output = [];
+    $exit_code = 0;
+
+    try {
+        exec('ELEMACY_PERSISTED_IDENTIFIERS=' . escapeshellarg($list) . ' php ' . escapeshellarg($script) . ' 2>&1', $output, $exit_code);
+    } finally {
+        unlink($list);
+        unlink($migration);
+    }
+
+    return 0 === $exit_code;
+});
+
+check('every persisted identifier is declared by its own file today, not only kept alive by a migration', static function () {
+    foreach (require dirname(__DIR__) . '/architecture/persisted-identifiers.php' as $identifier) {
+        $pattern = $identifier['declaration'] ?? '/' . preg_quote("'" . $identifier['id'] . "'", '/') . '/';
+
+        if (1 !== preg_match($pattern, elemacy_code_without_comments(ELEMACY_PATH . $identifier['file']))) {
+            return false;
+        }
+    }
+
+    return true;
 });
 
 check('tests/architecture/check.php fails on an Elementor API reference outside src/Elementor and src/Modules', static function () {

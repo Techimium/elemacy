@@ -21,7 +21,9 @@ final class AcfRowScope
      * the same walk AcfRepeaterRowLoopItem::enter() always performed, now
      * preceded by a snapshot so exit() can undo it.
      *
+     * @param string     $field
      * @param int|string $post_id
+     * @param int        $row_index
      */
     public function enter(string $field, $post_id, int $row_index): void
     {

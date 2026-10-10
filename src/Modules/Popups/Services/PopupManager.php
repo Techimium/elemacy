@@ -5,6 +5,7 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
+use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
@@ -83,6 +84,7 @@ class PopupManager
      */
     public function register_hooks(): void
     {
+        RequestState::register(self::class, [$this, 'reset']);
         add_action('wp_enqueue_scripts', [$this, 'maybe_enqueue'], 20);
         add_action('wp_body_open', [$this, 'render_top_bars'], 1);
         add_action('wp_footer', [$this, 'render_footer_popups'], 99);

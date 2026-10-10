@@ -3,7 +3,7 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elementor\Utils;
 
 if (!defined('ABSPATH')) {
-	exit; // Exit if accessed directly.
+    exit; // Exit if accessed directly.
 }
 
 $elemacy_manager = ThemeBuilderManager::instance();
@@ -12,24 +12,24 @@ $elemacy_manager = ThemeBuilderManager::instance();
 <html <?php language_attributes(); ?>>
 
 <head>
-	<meta charset="<?php bloginfo('charset'); ?>">
-	<?php
-	// PHPCS - not a user input.
-	echo Utils::get_meta_viewport('theme-builder'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	?>
-	<?php if (!current_theme_supports('title-tag')): ?>
-		<title>
-			<?php
-			// PHPCS - already escaped by WordPress.
-			echo wp_get_document_title(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			?>
-		</title>
-	<?php endif; ?>
-	<?php wp_head(); ?>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <?php
+    // PHPCS - not a user input.
+    echo Utils::get_meta_viewport('theme-builder'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    ?>
+    <?php if (!current_theme_supports('title-tag')) : ?>
+        <title>
+            <?php
+            // PHPCS - already escaped by WordPress.
+            echo wp_get_document_title(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ?>
+        </title>
+    <?php endif; ?>
+    <?php wp_head(); ?>
 </head>
 
 <body <?php body_class(); ?>>
-	<?php
-	did_action('wp_body_open') || wp_body_open();
-	$elemacy_manager->render_header();
-	?>
+    <?php
+    did_action('wp_body_open') || wp_body_open();
+    $elemacy_manager->render_header();
+    ?>

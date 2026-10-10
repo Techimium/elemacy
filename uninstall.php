@@ -1,6 +1,6 @@
 <?php
-
 /** Native, bounded cleanup of elemacy-owned data. Uninstall deletes data; deactivation retains it. */
+
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
@@ -38,7 +38,8 @@ function elemacy_uninstall_current_site(): void
                 throw new RuntimeException('Native Elemacy document deletion failed.');
             }
         }
-    } while (count($ids) === 100);
+        $batch_full = count($ids) === 100;
+    } while ($batch_full);
 
     $meta_keys = ['_elemacy_template_type', '_elemacy_conditions', '_elemacy_popup_triggers', '_elemacy_popup_rules'];
     foreach ($meta_keys as $key) {
@@ -52,7 +53,8 @@ function elemacy_uninstall_current_site(): void
                     throw new RuntimeException('Owned metadata deletion failed.');
                 }
             }
-        } while (count($ids) === 100);
+            $batch_full = count($ids) === 100;
+        } while ($batch_full);
     }
 
     do {
@@ -79,7 +81,8 @@ function elemacy_uninstall_current_site(): void
                 throw new RuntimeException('Owned option deletion failed.');
             }
         }
-    } while (count($names) === 100);
+        $batch_full = count($names) === 100;
+    } while ($batch_full);
 }
 
 function elemacy_uninstall_all_sites(): void

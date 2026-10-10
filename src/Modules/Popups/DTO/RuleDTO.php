@@ -59,7 +59,7 @@ class RuleDTO extends DTO
      *
      * @param array $rules
      * @return self[]
-     * @throws ValidationException
+     * @throws ValidationException When an entry is not a valid rule.
      */
     public static function collection_or_fail(array $rules): array
     {

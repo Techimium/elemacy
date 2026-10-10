@@ -13,7 +13,7 @@ use Elementor\Control_Select2;
  */
 class QueryControl extends Control_Select2
 {
-    const TYPE = 'elemacy_query';
+    public const TYPE = 'elemacy_query';
 
     public function get_type()
     {

@@ -76,8 +76,10 @@ class AtomicElementsAdapter
             return false;
         }
 
-        if ($this->capabilities->atomic_dynamic_prop_type()
-            && \Elementor\Modules\AtomicWidgets\DynamicTags\Dynamic_Prop_Type::is_dynamic_prop_value($value)) {
+        if (
+            $this->capabilities->atomic_dynamic_prop_type()
+            && \Elementor\Modules\AtomicWidgets\DynamicTags\Dynamic_Prop_Type::is_dynamic_prop_value($value)
+        ) {
             return true;
         }
 

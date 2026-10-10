@@ -33,29 +33,23 @@ namespace Elemacy\Tests\Integration\Fixtures;
 final class ThemeLifecycleHarness
 {
     /**
-     * Hooks a compatibility adapter itself registers on — reset between
-     * switches/renders so a previous theme's adapter closures never
-     * accumulate or leak into a later one. Deliberately excludes wp_head
-     * and wp_footer: no adapter in this rewrite hooks either directly (a
-     * theme's own <?php wp_footer(); ?> call — where third-party plugins,
-     * and this harness's own test-added marker callbacks, hook — is a
-     * different thing entirely and must never be reset here).
+     * Reset between switches/renders so a previous theme's adapter closures
+     * never accumulate or leak into a later one: RequestSimulator::ADAPTER_HOOKS,
+     * which lists every hook an adapter registers on. Deliberately excludes
+     * wp_head and wp_footer: no adapter adds callbacks to either, and tests add
+     * their own third-party markers there before switching theme, which a
+     * reset to the switch-time snapshot would wipe. See RENDER_SCOPED_HOOKS.
      */
-    private const TRACKED_HOOKS = [
-        'get_header', 'get_footer', 'wp_body_open', 'wp_enqueue_scripts',
-        'astra_header', 'astra_footer', 'template_redirect', 'hello_elementor_header_footer',
-        // BlockThemeCompatibility::register() attaches here on every real
-        // 'wp' action firing (CompatibilityManager::boot()), i.e. every
-        // render() this harness simulates — never removed on its own since
-        // a real request's process only ever runs boot() once. Without
-        // tracking it, a second render() using the same block theme (in
-        // this test or a later one, same long-lived process) accumulates a
-        // second closure on this hook; the filter chain's later closure
-        // then re-hits ThemeBuilderManager's own once-per-request render
-        // guard and overwrites the first closure's correct output with its
-        // own empty return.
-        'render_block_core/template-part',
-    ];
+    private const TRACKED_HOOKS = RequestSimulator::ADAPTER_HOOKS;
+
+    /**
+     * Shell hooks the generic adapter empties with remove_all_actions() once
+     * its own shell has run them — safe in a real request, which ends right
+     * after, but in this process it would strip every later test's wp_head/
+     * wp_footer (and so wp_enqueue_scripts). Restored after each render() to
+     * exactly what was there before it, test-added callbacks included.
+     */
+    private const RENDER_SCOPED_HOOKS = ['wp_head', 'wp_footer'];
 
     private array $construction_baseline = [];
     private array $theme_baseline = [];
@@ -140,9 +134,9 @@ final class ThemeLifecycleHarness
         $wp_styles = null;
         $wp_scripts = null;
         $this->restore_snapshot($this->theme_baseline);
-        $this->reset_theme_builder_manager();
         $this->set_elementor_body_classes($this->body_classes_baseline);
 
+        $shell_hooks = $this->snapshot(self::RENDER_SCOPED_HOOKS);
         $this->request->visit($url);
         $baseline_level = ob_get_level();
         ob_start();
@@ -162,6 +156,7 @@ final class ThemeLifecycleHarness
                 ob_end_flush();
             }
             $html = ob_get_clean();
+            $this->restore_snapshot($shell_hooks);
         }
 
         return $html;
@@ -169,18 +164,21 @@ final class ThemeLifecycleHarness
 
     public function restore(): void
     {
+        $this->request->restore();
         $this->restore_snapshot($this->construction_baseline);
         $this->set_elementor_body_classes($this->body_classes_baseline);
-        $this->request->restore();
         switch_theme($this->previous_theme);
     }
 
-    /** @return array<string, \WP_Hook|null> */
-    private function snapshot(): array
+    /**
+     * @param string[]|null $hooks Defaults to TRACKED_HOOKS.
+     * @return array<string, \WP_Hook|null>
+     */
+    private function snapshot(?array $hooks = null): array
     {
         global $wp_filter;
         $snapshot = [];
-        foreach (self::TRACKED_HOOKS as $hook) {
+        foreach ($hooks ?? self::TRACKED_HOOKS as $hook) {
             $snapshot[$hook] = isset($wp_filter[$hook]) ? clone $wp_filter[$hook] : null;
         }
 
@@ -191,32 +189,13 @@ final class ThemeLifecycleHarness
     private function restore_snapshot(array $snapshot): void
     {
         global $wp_filter;
-        foreach (self::TRACKED_HOOKS as $hook) {
+        foreach (array_keys($snapshot) as $hook) {
             if (null === $snapshot[$hook]) {
                 unset($wp_filter[$hook]);
             } else {
                 $wp_filter[$hook] = clone $snapshot[$hook];
             }
         }
-    }
-
-    /**
-     * ThemeBuilderManager is a singleton whose render_header()/render_footer()
-     * track "already rendered this request" in an instance property
-     * (design.md D2's exactly-once guard) — correct for a real request,
-     * where the whole process (and so the singleton) is thrown away
-     * afterward, but not reset between this harness's own simulated
-     * requests within one process, which would otherwise make every render
-     * after the first silently skip header/footer entirely.
-     */
-    private function reset_theme_builder_manager(): void
-    {
-        if (!class_exists(\Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager::class)) {
-            return;
-        }
-        $property = new \ReflectionProperty(\Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager::class, 'rendered_locations');
-        $property->setAccessible(true);
-        $property->setValue(\Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager::instance(), []);
     }
 
     /**

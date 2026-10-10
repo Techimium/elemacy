@@ -57,7 +57,7 @@ class PopupDisplayResolver
                 continue;
             }
 
-            // A published popup with no Elementor elements is never shown
+            // A published popup with no Elementor elements is never shown.
             if (!$this->has_content($popup)) {
                 continue;
             }
@@ -84,8 +84,10 @@ class PopupDisplayResolver
     /** Server-side eligibility independent of frontend display orchestration/query matching. */
     public function is_runtime_eligible(PopupDTO $popup): bool
     {
-        if ($popup->status !== 'publish' || post_password_required((int) $popup->id)
-            || !$this->has_content($popup) || !$this->passes_required_capabilities($popup)) {
+        if (
+            $popup->status !== 'publish' || post_password_required((int) $popup->id)
+            || !$this->has_content($popup) || !$this->passes_required_capabilities($popup)
+        ) {
             return false;
         }
         foreach ($popup->conditions as $condition) {

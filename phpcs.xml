@@ -1,72 +1,123 @@
 <?xml version="1.0"?>
 
-<ruleset name="Strict WordPress Plugin Ruleset (PHP 7+)">
+<ruleset name="Elemacy">
     <description>
-        Enforces only the WordPress Coding Standards, Security, and I18n rules
-        required for submitting plugins to WordPress.org, assuming minimum PHP 7.x.
-        Silences external standards.
+        WordPress Coding Standards for everything WordPress-specific (security,
+        escaping, i18n, API use, documentation correctness) and PSR-12 for
+        layout. A sniff is excluded only by name, only where it contradicts
+        that layout or the documentation policy below, and each exclusion
+        says why. Identical in Elemacy and Elemacy Pro apart from the text
+        domain.
     </description>
 
-<!-- Scan only PHP files -->
-<file>.</file>
-<arg name="extensions" value="php"/>
+    <file>.</file>
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
 
-<!-- Exclude common ignored folders -->
-<exclude-pattern>*/vendor/*</exclude-pattern>
-<exclude-pattern>*/node_modules/*</exclude-pattern>
-<exclude-pattern>*/assets/*</exclude-pattern>
-<exclude-pattern>*/build/*</exclude-pattern>
-<exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/assets/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
 
-<!-- WordPress Core Coding Standards -->
-<rule ref="WordPress-Core"/>
-<rule ref="WordPress-Docs"/>
-<rule ref="WordPress-Extra"/>
+    <!-- PHP version floor: flag any syntax or function newer than the minimum supported PHP. -->
+    <config name="testVersion" value="7.4-"/>
+    <rule ref="PHPCompatibilityWP"/>
 
-<!-- PHP version floor: flag any syntax/functions newer than the minimum supported PHP. -->
-<config name="testVersion" value="7.4-"/>
-<rule ref="PHPCompatibilityWP"/>
+    <rule ref="WordPress-Extra">
+        <!-- Layout is PSR-12: four-space indentation, never tabs. -->
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent"/>
+        <!-- Measures alignment against tab stops, which do not exist in space-indented code. -->
+        <exclude name="Universal.WhiteSpace.PrecisionAlignment"/>
 
-<!-- Enforce proper i18n with the plugin's text domain -->
-<rule ref="WordPress.WP.I18n">
-    <properties>
-        <property name="text_domain" type="array">
-            <element value="elemacy"/>
-        </property>
-    </properties>
-</rule>
+        <!-- PSR-12 puts no spaces inside call, control-structure, cast or index
+             parentheses; PSR2.Methods.FunctionCallSignature,
+             PSR12.ControlStructures.ControlStructureSpacing and
+             PSR12.Operators.OperatorSpacing check the same places. -->
+        <exclude name="PEAR.Functions.FunctionCallSignature"/>
+        <exclude name="WordPress.WhiteSpace.ControlStructureSpacing"/>
+        <exclude name="WordPress.WhiteSpace.OperatorSpacing"/>
+        <exclude name="WordPress.WhiteSpace.CastStructureSpacing"/>
+        <exclude name="WordPress.Arrays.ArrayKeySpacingRestrictions"/>
 
-<!-- Security: escaping, sanitization, discouraged functions -->
-<rule ref="WordPress.Security.EscapeOutput"/>
-<rule ref="WordPress.Security.ValidatedSanitizedInput"/>
-<rule ref="WordPress.PHP.DiscouragedPHPFunctions"/>
+        <!-- PSR-12 opens class and function bodies on their own line. -->
+        <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
+        <exclude name="Generic.Classes.OpeningBraceSameLine"/>
 
-<!-- Disable rules not required for WP plugin review -->
-<rule ref="WordPress.Files.FileName">
-    <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
-    <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
-</rule>
-<rule ref="Generic.Arrays"><severity>0</severity></rule>
-<rule ref="NormalizedArrays.Arrays"><severity>0</severity></rule>
-<rule ref="WordPress.WhiteSpace"><severity>0</severity></rule>
-<rule ref="PEAR.Functions.FunctionCallSignature"><severity>0</severity></rule>
-<rule ref="WordPress.PHP.DiscouragedPHPFunctions"><severity>0</severity></rule>
-<rule ref="WordPress.PHP.YodaConditions"><severity>0</severity></rule>
-<rule ref="Universal.Arrays.DisallowShortArraySyntax"><severity>0</severity></rule>
-<rule ref="WordPress.Arrays.MultipleStatementAlignment"><severity>0</severity></rule>
-<rule ref="WordPress.Arrays.ArrayKeySpacingRestrictions"><severity>0</severity></rule>
-<rule ref="Generic.NamingConventions.UpperCaseConstantName.ClassConstantNotUpperCase"><severity>0</severity></rule>
-<rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing"><severity>0</severity></rule>
+        <!-- Short array syntax is the house style. -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
 
-<!-- Silence all non-WordPress standards -->
-<rule ref="PEAR"><severity>0</severity></rule>
-<rule ref="Squiz"><severity>0</severity></rule>
-<rule ref="Generic"><severity>0</severity></rule>
-<rule ref="PSR1"><severity>0</severity></rule>
-<rule ref="PSR2"><severity>0</severity></rule>
-<rule ref="PSR12"><severity>0</severity></rule>
+        <!-- Aligning `=` and `=>` into columns makes every added key rewrite its neighbours. -->
+        <exclude name="WordPress.Arrays.MultipleStatementAlignment"/>
+        <exclude name="Generic.Formatting.MultipleStatementAlignment"/>
 
-<!-- CLI args -->
-<arg name="colors"/>
+        <!-- Comparisons read left to right; assignment-in-condition is caught by Generic.CodeAnalysis.AssignmentInCondition. -->
+        <exclude name="WordPress.PHP.YodaConditions"/>
 
+        <!-- Class files follow PSR-4 (ClassName.php), which Composer autoloads. -->
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+
+    <rule ref="WordPress-Docs">
+        <!-- A docblock is written where it explains something the signature does
+             not. Its presence is not required; every docblock that exists is
+             still checked for correctness (parameter names, types, @throws). -->
+        <exclude name="Squiz.Commenting.FileComment.Missing"/>
+        <exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
+        <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment"/>
+        <exclude name="Squiz.Commenting.VariableComment.Missing"/>
+        <exclude name="Generic.Commenting.DocComment.MissingShort"/>
+        <!-- Only checks that @throws tags are present, and reads a named
+             constructor (throw SomeClass::reason()) as throwing SomeClass. -->
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag"/>
+    </rule>
+
+    <rule ref="PSR12">
+        <!-- WordPress functions and methods are snake_case. -->
+        <exclude name="PSR1.Methods.CamelCapsMethodName"/>
+        <!-- Every file guards against direct access (defined('ABSPATH') || exit) before declaring its symbol. -->
+        <exclude name="PSR1.Files.SideEffects"/>
+        <!-- The WordPress Coding Standards set no line length; long lines are translated strings, URLs and prose. -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+
+    <!-- WordPress-Core configures these for its own spacing style; set them to PSR-12's. -->
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="indent" value="4"/>
+            <property name="tabIndent" value="false"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.Functions.FunctionDeclarationArgumentSpacing">
+        <properties>
+            <property name="equalsSpacing" value="1"/>
+            <property name="requiredSpacesAfterOpen" value="0"/>
+            <property name="requiredSpacesBeforeClose" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing">
+        <properties>
+            <property name="spacing" value="0"/>
+            <property name="ignoreNewlines" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="NormalizedArrays.Arrays.ArrayBraceSpacing">
+        <properties>
+            <property name="spacesSingleLine" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- Declared once: serialize, obfuscation, runtime-configuration and system-call functions. -->
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions"/>
+
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="elemacy"/>
+            </property>
+        </properties>
+    </rule>
 </ruleset>

@@ -44,7 +44,9 @@ class LoopDocument extends PreviewablePageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+    /**
+     * Forces Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -60,7 +62,7 @@ class LoopDocument extends PreviewablePageBase
         parent::__construct($data);
     }
 
-    const PREVIEW_DATA_SOURCE = 'preview_data_source';
+    public const PREVIEW_DATA_SOURCE = 'preview_data_source';
 
     protected function register_preview_controls(): void
     {

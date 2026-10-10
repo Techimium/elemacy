@@ -15,8 +15,14 @@ php tests/php/run.php
 # Coding standards and PHP compatibility (both plugins)
 vendor/bin/phpcs -q
 
-# Architecture check: layering, Elementor boundary, no planning references (F)
+# Architecture check: layering, Elementor boundary, no planning references,
+# no persisted identifier renamed without a migration (F)
 php tests/architecture/check.php
+
+# Release-gate regressions: verify-package.py rejects stale, dirty and manifest-less
+# archives (F); verify-endpoints.py rejects unreachable and wrong-shape answers (P)
+python3 tests/release/verify-package-test.py        # F
+python3 tests/release/verify-endpoints-test.py      # P
 
 # Static popup runtime suites (needs Chromium; ELEMACY_CHROMIUM overrides Playwright's cache)
 cd tests/e2e && node run-popups.mjs        # F
@@ -61,13 +67,18 @@ cd tests/e2e && node run-admin-contract.mjs   # F
 
 ## 3. Package
 
+Commit first: an archive is only accepted when it was built from a clean tree at exactly the revision being released.
+
 ```bash
 cd src-react && npm run build:zip                                            # F and P
 python3 src-react/scripts/verify-package.py build/elemacy-<version>.zip --check-missing-tools
 python3 src-react/scripts/verify-package.py build/elemacy-pro-<version>.zip --check-missing-tools   # from P
+python3 src-react/scripts/verify-endpoints.py                                # from P
 ```
 
-`verify-package.py` checks the archive against its manifest and checksum, that no development, test or unshipped file is inside, that the plugin header `Version`, `ELEMACY_VERSION` and the readme `Stable tag` are identical, that the readme `Tested up to` matches the WordPress version the CI matrix ran, that the readme changelog has a `= <version> =` section, that the WordPress.org listing assets exist, and that every shipped file carrying a third-party license header is listed in `docs/THIRD-PARTY.md`.
+`verify-package.py` checks the archive against its manifest and checksum, that it was built from a clean tree at the revision being released (`--release-revision`, default `HEAD`; an older revision is rejected as stale), that `composer.json` ships beside `vendor/`, that no development, test or unshipped file is inside, that the plugin header `Version`, `ELEMACY_VERSION` and the readme `Stable tag` are identical, that the readme `Tested up to` matches the WordPress version the CI matrix ran, that the readme changelog has a `= <version> =` section, that the WordPress.org listing assets exist, and that every shipped file carrying a third-party license header is listed in `docs/THIRD-PARTY.md`.
+
+`verify-endpoints.py` probes Pro's license activation, license revalidation and update endpoints (URLs read from `LicenseManager::API_URL` and `Updater::API_URL`) with a deliberately invalid key, and fails unless each answers HTTP 200 with a JSON object in the shape the plugin reads. A Pro artifact is not accepted while it fails.
 
 ## 4. WordPress.org readiness
 
@@ -85,7 +96,7 @@ wp --path=/tmp/elemacy-integration-<token>/wordpress plugin check elemacy --form
 
 Zero error-level findings is the bar. Warnings that are accepted with a reason are listed in section 7 below; anything else is fixed before release.
 
-The readme changelog names every user-visible change: limits, fail-closed behaviour, and any step an operator must take after upgrading.
+From the first release after 1.0.0 on, the readme changelog names every user-visible change: limits, fail-closed behaviour, and any step an operator must take after upgrading. The 1.0.0 entry is a plain feature list: no earlier version exists to upgrade from.
 
 ## 5. Deploy
 
@@ -93,7 +104,6 @@ The readme changelog names every user-visible change: limits, fail-closed behavi
 
 ## 6. Operator notes for 1.0.0
 
-- After upgrading, purge any full-page cache. The Loop Grid AJAX request format changed; a cached page shows a "refresh the page" notice on the first pagination click until the cache is refreshed.
 - The inline notice shown in place of a loop that visitors cannot see appears only for users who can edit the page. Full-page caches serve guests, so the notice never reaches a cached page.
 - A Loop Item template that is not published renders nothing for visitors.
 - AJAX-paginated loops show at most 100 items per page; "0" or "unlimited" become 100.
@@ -112,7 +122,6 @@ Plugin Check 1.0.0 run on the built archive (report kept beside the archive as `
 | `WordPress.DB.SlowDBQuery.slow_db_query_meta_query` | `TemplateLibrary/Services/BlockTemplateService.php`, `Modules/ThemeBuilder/Services/TemplateService.php`, `Modules/Popups/Services/PopupService.php` | Listings of the single library post type filtered by its type discriminator meta, paginated and bounded by the library's size. Frontend lookups go through `ResolverCache`, not these queries. |
 | `WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_*` | `Loop/Sources/PostsQuery.php`, `TermsQuery.php`, `UsersQuery.php`, `Modules/Widgets/Widgets/SiteLogo.php` | "Exclude the current post / term / user" is an authored loop option with a single-id exclusion, and the public loop page size is capped at 100. |
 | `PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound` | `Core/Elemacy.php` | Kept so the bundled `languages/` catalog also loads on installations that do not receive WordPress.org language packs. |
-| `missing_composer_json_file` | archive root | The archive ships only the production autoloader. `composer.json` is intentionally not shipped because it references development-only packages that are not in the archive. |
 | `mismatched_plugin_name` | `readme.txt` | The listing title carries the product description ("Elemacy — All-in-One Elementor Addon…") while the plugin header stays "Elemacy" for the Plugins screen. Change both together if the listing name should match exactly. |
 
 ## 8. Post-review steps
@@ -128,6 +137,7 @@ The 1.0.0 cleanup is handed off on the `release/1.0.0` branch of both repositori
 | Architecture check | 0 violations |
 | Integration suite (disposable site, WP 7.1 pins, Elementor 4.2.3, free ACF) | 210 tests, 0 failures, 6 skipped (ACF Pro group) |
 | Browser suites (builders, loop pagination, popup assets, form submissions) | 4 + 7 + 13 + 13 pass |
+| Dedicated theme adapters on real installs (2026-09-27, after the generic path was rewritten) | Astra 4.14.0, GeneratePress 3.6.1, Hello Elementor 3.5.1: header and footer replaced through each adapter, each Elemacy template rendered once, none of the theme's own header/footer markup left (Astra's remaining matches are CSS selectors only; GeneratePress keeps its `.site-footer` wrapper as the footer position), one document shell, each third-party head/body-open/footer callback run once. OceanWP, Kadence, Neve, Blocksy and Storefront are on WordPress.org but were not installed; Genesis and the Beaver Builder theme are commercial. |
 | Installed archive pair on Elementor 4.2.3 and 3.35.9 | 210 tests, 0 failures each; all four browser suites pass on both |
 | `verify-package.py` | F 451 files, P 78 files, all checks pass |
 | Plugin Check 1.0.0 on `build/elemacy-1.0.0.zip` | 0 errors, 88 warnings, all accepted in section 7; report at `build/plugin-check.txt` |

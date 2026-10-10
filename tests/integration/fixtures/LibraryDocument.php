@@ -12,8 +12,8 @@ final class LibraryDocument
         $document_types = [
             'section' => 'wp-page',
             'loop' => 'elemacy_loop',
-            'header' => 'wp-page',
-            'footer' => 'wp-page',
+            'header' => 'elemacy_header',
+            'footer' => 'elemacy_footer',
             'single' => 'elemacy_single',
             'archive' => 'elemacy_archive',
             'search' => 'elemacy_search',

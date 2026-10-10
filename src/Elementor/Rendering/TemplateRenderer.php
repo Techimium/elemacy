@@ -15,11 +15,19 @@ use Elemacy\Elementor\Compatibility\Capabilities;
 class TemplateRenderer
 {
     /**
-     * This request's prepared fragments, keyed by cache_key.
+     * This request's prepared fragments, keyed by cache_key(), which names
+     * the acting site: a fragment prepared for one site is never served on
+     * another. Cleared per page through Core\RequestState.
      *
      * @var array<string, string>
      */
     protected static array $prepared = [];
+
+    /** Drops every prepared fragment. */
+    public static function reset(): void
+    {
+        self::$prepared = [];
+    }
 
     protected Capabilities $capabilities;
 
@@ -112,7 +120,7 @@ class TemplateRenderer
      */
     protected function cache_key(int $id, string $context, string $placement): string
     {
-        return $id . '|' . $context . '|' . $placement;
+        return get_current_blog_id() . '|' . $id . '|' . $context . '|' . $placement;
     }
 
     /**
