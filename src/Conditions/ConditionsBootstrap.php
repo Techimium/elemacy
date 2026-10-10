@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Conditions\ConditionInterface;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Core\Hooks;
+use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
 
 /**
@@ -37,12 +38,8 @@ class ConditionsBootstrap
     {
         $manager = ConditionManager::instance();
 
-        foreach (require Utils::get_plugin_path('src/Config/conditions.php') as $entry) {
-            $condition = is_string($entry) ? new $entry() : $entry;
-
-            if ($condition instanceof ConditionInterface) {
-                $manager->register($condition);
-            }
+        foreach (ConfigList::instances(Utils::get_plugin_path('src/Config/conditions.php'), ConditionInterface::class) as $condition) {
+            $manager->register($condition);
         }
 
         do_action(Hooks::CONDITIONS_REGISTER_ACTION, $manager);

@@ -41,6 +41,6 @@ class DynamicTags extends Module
 
     public function boot(): void
     {
-        TagManager::init();
+        (new TagManager())->register_hooks();
     }
 }
