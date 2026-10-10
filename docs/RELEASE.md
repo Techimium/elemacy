@@ -8,15 +8,19 @@ Paths: `F` is `wp-content/plugins/elemacy`, `P` is `wp-content/plugins/elemacy-p
 
 Run at every phase boundary of a change and before packaging.
 
+Both plugins declare PHP 7.4. The authority for that floor is CI's `php -l` on PHP 7.4 (the `PHP 7.4 — lint, standards, unit tests` job in each repo's `ci.yml`): **the revision being released must have that job green in both repos.** No local PHP 7.4 is assumed; the architecture check's token scan is the fast local net and cannot see every construct (constructor promotion, named arguments, union types, `mixed`).
+
 ```bash
 # Fast harness (both plugins)
 php tests/php/run.php
 
-# Coding standards and PHP compatibility (both plugins)
+# Coding standards (both plugins). PHPCompatibility is 9.x, which predates
+# PHP 8: it cannot flag PHP 8-only syntax, so it is not the PHP 7.4 guard.
 vendor/bin/phpcs -q
 
 # Architecture check: layering, Elementor boundary, no planning references,
-# no persisted identifier renamed without a migration (F)
+# no persisted identifier renamed without a migration, every built-in dynamic
+# tag prefixed `elemacy-`, and no PHP 8-only token in shipped PHP (F)
 php tests/architecture/check.php
 
 # Release-gate regressions: verify-package.py rejects stale, dirty and manifest-less

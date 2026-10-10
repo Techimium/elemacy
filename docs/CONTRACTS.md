@@ -12,8 +12,16 @@ These are written into sites' databases and saved Elementor data. Renaming one s
 - **Template type names**: every stored `_elemacy_template_type` value in § Library types and Elementor document names.
 - **Elementor document type names**: every stored `_elementor_template_type` value in the same table.
 - **Stored meta and option keys**: every key in § Storage ownership.
+- **Elementor widget names and loop data-source keys**: every value in § Saved module, widget and data-source names, saved as `widgetType` and `data_source` in `_elementor_data`.
+- **Dynamic tag names**: every value in § Dynamic tag names, saved inside `[elementor-tag name="..."]` references.
 
 `tests/architecture/check.php` enforces this. `tests/architecture/persisted-identifiers.php` lists each identifier with the source file that declares it, and the check fails when an identifier is no longer declared there unless a migration under `src/Core/Migrations/` still names it.
+
+### Released defaults are frozen too
+
+Elementor saves document, element and dynamic tag settings with `toJSON({remove: ["default"]})`: a setting left at its control's default is not stored at all. Changing a released control's `default` therefore silently changes every saved site that never touched that control. Add a new control (or a new option value) instead of changing a default.
+
+The same holds for a module's `Module::is_default_active()`: `elemacy_active_modules` stores only explicit choices, so flipping a released module's declared default changes every site that never toggled it.
 
 ## Storage ownership
 
@@ -27,13 +35,14 @@ These are written into sites' databases and saved Elementor data. Renaming one s
 | `_elemacy_popup_rules` | Same owner and shape as triggers, with rule-owned parameter values |
 | `_elemacy_popup_impressions` | Pro `Extensions/Popups/Services/AnalyticsService.php`; impression counter |
 | `_elemacy_popup_conversions` | Same Pro owner; conversion counter |
-| `elemacy_active_modules` | `src/Core/Constants/OptionKeys.php`; array of module slugs |
+| `elemacy_active_modules` | `src/Core/Constants/OptionKeys.php`; `slug => bool` map of explicit administrator choices only; an absent module follows its declared default, and a stored list of slugs (pre-release shape) reads as that active set |
 | `elemacy_db_version` | Same owner; currently a release-version string, despite its schema-oriented name |
-| `elemacy_library_index` | `src/TemplateLibrary/ResolverCache.php`; rebuildable published candidate index, **non-autoloaded in code** |
+| `elemacy_schema_version` | `src/Core/Constants/OptionKeys.php`; completed Free data migrations, advanced only by `Core\Migrator` |
+| `elemacy_library_index` | `src/TemplateLibrary/ResolverCache.php`; rebuildable published candidate index, **non-autoloaded in code**, stored as `{shape, index}`; any `shape` other than `ResolverCache::SHAPE` is a miss and is rebuilt |
 | `elemacy_widgets` | `src/Modules/Widgets/Services/WidgetService.php`; widget status map, built through `Utils::with_prefix('widgets')` |
 | `elemacy_pro_license_key` | Pro `Core/License/LicenseManager.php`; stored license key; never include its value in fixtures/logs |
 | `elemacy_pro_license_status` | Same owner; `{valid, expires, plan, grace_start}` with defaults supplied on read |
-| `elemacy_form_throttle_*` | Free form submission transient prefix |
+| `elemacy_form_limit_*` | Free form submission rate-limit rows (options, non-autoloaded, HMAC of the IP) |
 | `elemacy_pro_update` | Pro updater transient/cache identifier |
 | `elemacy_pro_license_revalidate` | Pro license cron hook; existing daily revalidation |
 
@@ -65,6 +74,64 @@ The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Preserve the 
 | Pro `AcfRepeaterDataSource` | `acf_repeater` |
 
 The same registration contributes query controls and standalone preview. `template_id`, the Elementor element `id`, source query settings and `preview_data_source` are saved document values; public pagination requests never carry them. Loop Carousel has no AJAX pagination feature.
+
+## Dynamic tag names
+
+Every built-in tag is registered under a name starting with `elemacy-`, because Elementor's tag registry is keyed by name alone and an unprefixed name can replace, or be replaced by, another plugin's tag (Elementor Pro ships `post-url` and `post-excerpt`). `tests/architecture/check.php` rejects a built-in tag whose `get_name()` lacks the prefix. The catalog authority is `src/Modules/DynamicTags/Config/tags.php`; the `elemacy-woocommerce` group registers only while WooCommerce is active.
+
+| Tag group | Tag class under `Modules/DynamicTags/Tags` | Stored tag name |
+| --- | --- | --- |
+| `elemacy` | `Base/PostTitle` | `elemacy-post-title` |
+| `elemacy` | `Base/PostContent` | `elemacy-post-content` |
+| `elemacy` | `Base/PostExcerpt` | `elemacy-post-excerpt` |
+| `elemacy` | `Base/PostDate` | `elemacy-post-date` |
+| `elemacy` | `Base/PostCustomField` | `elemacy-post-custom-field` |
+| `elemacy` | `Base/PostUrl` | `elemacy-post-url` |
+| `elemacy` | `Base/PostFeaturedImage` | `elemacy-post-featured-image` |
+| `elemacy` | `Base/PostTerms` | `elemacy-post-terms` |
+| `elemacy` | `Base/CommentsNumber` | `elemacy-comments-number` |
+| `elemacy` | `Base/PageTitle` | `elemacy-page-title` |
+| `elemacy` | `Base/SiteLogo` | `elemacy-site-logo` |
+| `elemacy` | `Base/SiteTagline` | `elemacy-site-tagline` |
+| `elemacy` | `Base/SiteTitle` | `elemacy-site-title` |
+| `elemacy` | `Base/SiteUrl` | `elemacy-site-url` |
+| `elemacy` | `Archive/ArchiveTitle` | `elemacy-archive-title` |
+| `elemacy` | `Archive/ArchiveDescription` | `elemacy-archive-description` |
+| `elemacy` | `Archive/ArchiveUrl` | `elemacy-archive-url` |
+| `elemacy` | `Taxonomy/TermName` | `elemacy-term-name` |
+| `elemacy` | `Taxonomy/TermDescription` | `elemacy-term-description` |
+| `elemacy` | `Taxonomy/TermUrl` | `elemacy-term-url` |
+| `elemacy` | `Taxonomy/TermCount` | `elemacy-term-count` |
+| `elemacy` | `Taxonomy/TermCustomField` | `elemacy-term-custom-field` |
+| `elemacy` | `Author/AuthorName` | `elemacy-author-name` |
+| `elemacy` | `Author/AuthorInfo` | `elemacy-author-info` |
+| `elemacy` | `Author/AuthorUrl` | `elemacy-author-url` |
+| `elemacy` | `Author/AuthorProfilePicture` | `elemacy-author-profile-picture` |
+| `elemacy` | `User/UserName` | `elemacy-user-name` |
+| `elemacy` | `User/UserDescription` | `elemacy-user-description` |
+| `elemacy` | `User/UserAvatar` | `elemacy-user-avatar` |
+| `elemacy` | `User/UserUrl` | `elemacy-user-url` |
+| `elemacy` | `User/UserLogin` | `elemacy-user-login` |
+| `elemacy` | `User/UserEmail` | `elemacy-user-email` |
+| `elemacy` | `User/UserPostCount` | `elemacy-user-post-count` |
+| `elemacy` | `Utility/Shortcode` | `elemacy-shortcode` |
+| `elemacy` | `Utility/RequestParameter` | `elemacy-request-parameter` |
+| `elemacy` | `Utility/CurrentDateTime` | `elemacy-current-date-time` |
+| `elemacy` | `Utility/ContactUrl` | `elemacy-contact-url` |
+| `elemacy` | `Acf/AcfField` | `elemacy-acf-field` |
+| `elemacy` | `Acf/AcfColor` | `elemacy-acf-color` |
+| `elemacy` | `Acf/AcfDateTime` | `elemacy-acf-date-time` |
+| `elemacy` | `Acf/AcfGallery` | `elemacy-acf-gallery` |
+| `elemacy` | `Acf/AcfImage` | `elemacy-acf-image` |
+| `elemacy` | `Acf/AcfNumber` | `elemacy-acf-number` |
+| `elemacy` | `Acf/AcfUrl` | `elemacy-acf-url` |
+| `elemacy-woocommerce` | `WooCommerce/ProductPrice` | `elemacy-product-price` |
+| `elemacy-woocommerce` | `WooCommerce/ProductSku` | `elemacy-product-sku` |
+| `elemacy-woocommerce` | `WooCommerce/ProductStock` | `elemacy-product-stock` |
+| `elemacy-woocommerce` | `WooCommerce/ProductRating` | `elemacy-product-rating` |
+| `elemacy-woocommerce` | `WooCommerce/ProductShortDescription` | `elemacy-product-short-description` |
+| `elemacy-woocommerce` | `WooCommerce/ProductGallery` | `elemacy-product-gallery` |
+| `elemacy-woocommerce` | `WooCommerce/ProductAddToCartUrl` | `elemacy-product-add-to-cart-url` |
 
 ## Library types and Elementor document names
 

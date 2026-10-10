@@ -18,6 +18,15 @@ class ResolverCache
     public const OPTION = 'elemacy_library_index';
 
     /**
+     * The stored entry structure this code reads and writes, persisted next
+     * to the index. A stored index carrying any other value — or none — was
+     * written by another release (older or newer), so it is never
+     * interpreted: it is a miss and gets rebuilt. Bump this whenever an
+     * index entry's structure changes; a cache is rebuilt, never migrated.
+     */
+    public const SHAPE = 1;
+
+    /**
      * Small autoloaded counter, separate from the (non-autoloaded) index
      * option itself — bumped on every invalidate() so a rebuild started
      * under an older generation can detect a newer one landed while it was
@@ -52,12 +61,16 @@ class ResolverCache
             return static::$memo;
         }
 
-        $index = get_option(self::OPTION, null);
+        $stored = get_option(self::OPTION, null);
 
-        if (is_array($index)) {
-            static::$memo = $index;
+        if (
+            is_array($stored)
+            && self::SHAPE === ($stored['shape'] ?? null)
+            && is_array($stored['index'] ?? null)
+        ) {
+            static::$memo = $stored['index'];
 
-            return $index;
+            return $stored['index'];
         }
 
         // Cache miss: every caller still gets a correct, freshly-built index
@@ -72,7 +85,7 @@ class ResolverCache
         if ($this->acquire_lock()) {
             try {
                 if (!$this->generation_changed($generation)) {
-                    update_option(self::OPTION, $index, false);
+                    update_option(self::OPTION, $this->envelope($index), false);
                 }
             } finally {
                 $this->release_lock();
@@ -124,7 +137,7 @@ class ResolverCache
                 return;
             }
 
-            update_option(self::OPTION, $index, false);
+            update_option(self::OPTION, $this->envelope($index), false);
             static::$memo = $index;
         } finally {
             $this->release_lock();
@@ -150,6 +163,18 @@ class ResolverCache
     protected function release_lock(): void
     {
         delete_transient(self::LOCK_KEY);
+    }
+
+    /**
+     * @param array<string, array<int, array{id:int, conditions:array}>> $index
+     * @return array{shape:int, index:array<string, array<int, array{id:int, conditions:array}>>}
+     */
+    protected function envelope(array $index): array
+    {
+        return [
+            'shape' => self::SHAPE,
+            'index' => $index,
+        ];
     }
 
     /**

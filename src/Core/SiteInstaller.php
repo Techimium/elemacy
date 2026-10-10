@@ -31,13 +31,11 @@ class SiteInstaller
 
     public const NETWORK_SEED_BATCH_SIZE = 100;
 
-    protected ModuleCatalog $catalog;
     protected SiteBatchIterator $sites;
     protected Migrator $migrator;
 
-    public function __construct(ModuleCatalog $catalog, SiteBatchIterator $sites, Migrator $migrator)
+    public function __construct(SiteBatchIterator $sites, Migrator $migrator)
     {
-        $this->catalog = $catalog;
         $this->sites = $sites;
         $this->migrator = $migrator;
     }
@@ -121,9 +119,9 @@ class SiteInstaller
         // Unlike seed_site(), no rewrite-rules flush: by the time a site
         // reaches its own normal request, the library CPT is already
         // registered through this plugin's ordinary per-request bootstrap
-        // (independent of activation), so only the module-defaults option
+        // (independent of activation), so only the module-preferences option
         // itself was actually missing.
-        add_option(OptionKeys::ACTIVE_MODULES, $this->catalog->default_active_slugs());
+        add_option(OptionKeys::ACTIVE_MODULES, []);
     }
 
     /**
@@ -169,15 +167,16 @@ class SiteInstaller
     }
 
     /**
-     * Seeds one site's defaults — exactly the modules that declare themselves
-     * default-active, asked of the modules rather than kept as a second list
-     * here. `flush_rewrite_rules()` is unreliable inside a switched blog, so
+     * Seeds one site's defaults: module preferences with no recorded choice,
+     * so every module follows the default it declares itself (see
+     * ModuleManager) and none is frozen at today's answer.
+     * `flush_rewrite_rules()` is unreliable inside a switched blog, so
      * network paths drop the `rewrite_rules` option instead — that site
      * regenerates them (with the library CPT registered) on its next request.
      */
     protected function seed_site(bool $flush_now = false): void
     {
-        add_option(OptionKeys::ACTIVE_MODULES, $this->catalog->default_active_slugs());
+        add_option(OptionKeys::ACTIVE_MODULES, []);
 
         if ($flush_now) {
             LibraryPostType::register_post_type();

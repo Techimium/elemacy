@@ -9,13 +9,10 @@ defined('ABSPATH') || exit;
  * read the configured class list, keep the classes that exist and really are
  * modules, and instantiate each one once.
  *
- * Two callers need that list at different points of a single request —
- * site seeding (which runs before the module manager exists, and at
- * activation runs outside the request lifecycle entirely) and module
- * loading. Routing both through one cached catalog is what makes reading
- * the config file with a plain `require` correct: `require_once` would hand
- * the second reader `true` instead of the array, and iterating that is a
- * runtime error rather than a visible one.
+ * The config file is read with a plain `require`, never `require_once`:
+ * a second catalog in the same request would otherwise receive `true`
+ * instead of the array, and iterating that is a runtime error rather than a
+ * visible one.
  */
 class ModuleCatalog
 {
@@ -56,26 +53,6 @@ class ModuleCatalog
         }
 
         return $this->modules;
-    }
-
-    /**
-     * The slugs of the modules that declare themselves active by default —
-     * what a site with no saved module preferences is seeded with. Returned
-     * in configured order; callers treat it as a set.
-     *
-     * @return string[]
-     */
-    public function default_active_slugs(): array
-    {
-        $slugs = [];
-
-        foreach ($this->all() as $module) {
-            if ($module->is_default_active()) {
-                $slugs[] = $module->get_name();
-            }
-        }
-
-        return $slugs;
     }
 
     /**

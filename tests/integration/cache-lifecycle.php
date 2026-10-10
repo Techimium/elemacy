@@ -75,6 +75,66 @@ final class CacheLifecycleTest extends IntegrationTestCase
         );
     }
 
+    /** Stores $value as the persisted index and drops every in-request layer, as a fresh request would see it. */
+    private function persistIndexAsIfFromAnotherRelease($value): void
+    {
+        update_option(ResolverCache::OPTION, $value, false);
+        ResolverCache::forget_memo();
+        TemplateResolver::reset();
+    }
+
+    public function testABareIndexWithoutAShapeIsTreatedAsAbsentAndReplaced(): void
+    {
+        $id = $this->popup('Cache lifecycle: bare legacy index');
+        $phantom = PHP_INT_MAX;
+
+        $this->persistIndexAsIfFromAnotherRelease(['popup' => [['id' => $phantom, 'conditions' => []]]]);
+
+        $resolved = TemplateResolver::instance()->resolve_group('popup');
+        $stored = get_option(ResolverCache::OPTION);
+
+        self::assertContains($id, $resolved, 'The same request must resolve from a freshly built index.');
+        self::assertNotContains($phantom, $resolved, 'A stored value without a shape must never be read as an index.');
+        self::assertSame(ResolverCache::SHAPE, $stored['shape'] ?? null, 'The stored value is replaced with the current shape.');
+    }
+
+    public function testAnIndexInAnotherShapeIsTreatedAsAbsentAndReplaced(): void
+    {
+        $id = $this->popup('Cache lifecycle: other-shape index');
+        $phantom = PHP_INT_MAX;
+
+        // A newer release's shape on older code (a downgrade), or an older one's after an upgrade.
+        $this->persistIndexAsIfFromAnotherRelease([
+            'shape' => ResolverCache::SHAPE + 1,
+            'index' => ['popup' => [['id' => $phantom, 'conditions' => []]]],
+        ]);
+
+        $resolved = TemplateResolver::instance()->resolve_group('popup');
+        $stored = get_option(ResolverCache::OPTION);
+
+        self::assertContains($id, $resolved, 'The same request must resolve from a freshly built index.');
+        self::assertNotContains($phantom, $resolved, 'An index in another shape must never be interpreted.');
+        self::assertSame(ResolverCache::SHAPE, $stored['shape'] ?? null, 'The stored value is replaced with the current shape.');
+    }
+
+    public function testAnIndexInTheCurrentShapeIsUsedAsStored(): void
+    {
+        $listed = $this->popup('Cache lifecycle: current-shape listed');
+        $unlisted = $this->popup('Cache lifecycle: current-shape unlisted');
+        $envelope = [
+            'shape' => ResolverCache::SHAPE,
+            'index' => ['popup' => [['id' => $listed, 'conditions' => []]]],
+        ];
+
+        $this->persistIndexAsIfFromAnotherRelease($envelope);
+
+        $resolved = TemplateResolver::instance()->resolve_group('popup');
+
+        self::assertContains($listed, $resolved, 'A current-shape index is read as the candidate source.');
+        self::assertNotContains($unlisted, $resolved, 'Nothing is rebuilt while the stored index has the current shape.');
+        self::assertSame($envelope, get_option(ResolverCache::OPTION), 'A current-shape index is left exactly as stored.');
+    }
+
     public function testUnrelatedMetadataDoesNotForceARebuild(): void
     {
         $id = $this->popup('Cache lifecycle: unrelated metadata');

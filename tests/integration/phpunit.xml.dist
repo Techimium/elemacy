@@ -55,6 +55,7 @@
             <file>analytics-tracking.php</file>
             <file>migration-leases.php</file>
             <file>dynamic-tags-registration.php</file>
+            <file>post-excerpt-tag.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

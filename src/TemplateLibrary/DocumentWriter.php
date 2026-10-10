@@ -118,7 +118,9 @@ class DocumentWriter
      */
     public function document_type(string $type): string
     {
-        return $this->types->get($type)?->get_document_type() ?? 'wp-page';
+        $definition = $this->types->get($type);
+
+        return ($definition !== null ? $definition->get_document_type() : null) ?? 'wp-page';
     }
 
     /**

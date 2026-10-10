@@ -13,7 +13,7 @@ class PostExcerpt extends Tag
 {
     public function get_name()
     {
-        return 'post-excerpt';
+        return 'elemacy-post-excerpt';
     }
 
     public function get_title()
@@ -100,9 +100,13 @@ class PostExcerpt extends Tag
             return;
         }
 
-        $max_length = (int) $settings['max_length'];
+        // Excerpt Length has no default: blank (or zero) means the whole excerpt.
+        $max_length = (int) ($settings['max_length'] ?? 0);
         $excerpt = $this->get_post_excerpt($settings, $post);
-        $excerpt = $this->trim_words($excerpt, $max_length);
+
+        if ($max_length > 0) {
+            $excerpt = $this->trim_words($excerpt, $max_length);
+        }
 
         echo wp_kses_post($excerpt);
     }

@@ -118,6 +118,62 @@ foreach ($identifiers as $identifier) {
     }
 }
 
+// Saved content names a dynamic tag by its registered name, and Elementor's
+// tag registry is keyed by that name alone: an unprefixed built-in tag can
+// replace (or be replaced by) another plugin's tag of the same name.
+$tag_files = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($plugin_root . 'src/Modules/DynamicTags/Tags', FilesystemIterator::SKIP_DOTS)
+);
+
+foreach ($tag_files as $file_info) {
+    if ('php' !== $file_info->getExtension()) {
+        continue;
+    }
+
+    $relative_path = ltrim(str_replace($plugin_root, '', $file_info->getPathname()), '/');
+    $code = $without_comments($file_info->getPathname());
+
+    if (!preg_match('/function\s+get_name\s*\(/', $code)) {
+        continue;
+    }
+
+    if (!preg_match('/function\s+get_name\s*\([^)]*\)[^{]*\{\s*return\s+\'([^\']*)\'\s*;/', $code, $match)) {
+        $violations[] = sprintf('[dynamic tag name] %s: get_name() must return a string literal', $relative_path);
+    } elseif (0 !== strpos($match[1], 'elemacy-')) {
+        $violations[] = sprintf("[dynamic tag name] %s: '%s' must start with 'elemacy-' so it never shares a registered name with another plugin's tag", $relative_path, $match[1]);
+    }
+}
+
+// The plugin declares PHP 7.4, where these tokens do not parse. PHPCS's
+// PHPCompatibility 9.x predates PHP 8 and cannot see them; CI's PHP 7.4
+// `php -l` stays the authority, this is the fast local net. On a 7.4 runner
+// the constants are undefined and the scan is a no-op.
+$php8_tokens = [];
+foreach (['T_NULLSAFE_OBJECT_OPERATOR', 'T_MATCH', 'T_ATTRIBUTE', 'T_ENUM', 'T_READONLY'] as $token_name) {
+    if (defined($token_name)) {
+        $php8_tokens[constant($token_name)] = $token_name;
+    }
+}
+
+$shipped_php = [$plugin_root . 'elemacy.php', $plugin_root . 'uninstall.php'];
+foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($plugin_root . 'src', FilesystemIterator::SKIP_DOTS)) as $file_info) {
+    if ('php' === $file_info->getExtension()) {
+        $shipped_php[] = $file_info->getPathname();
+    }
+}
+
+foreach ($php8_tokens ? $shipped_php : [] as $path) {
+    $relative_path = ltrim(str_replace($plugin_root, '', $path), '/');
+
+    // TOKEN_PARSE: a keyword used as a name (a method called match()) is a
+    // plain identifier, which 7.4 accepts, rather than the PHP 8 construct.
+    foreach (token_get_all((string) file_get_contents($path), TOKEN_PARSE) as $token) {
+        if (is_array($token) && isset($php8_tokens[$token[0]])) {
+            $violations[] = sprintf('[PHP 7.4 syntax floor] %s:%d: %s does not parse on PHP 7.4', $relative_path, $token[2], $php8_tokens[$token[0]]);
+        }
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -130,4 +186,4 @@ if ($violations) {
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference and persisted-identifier rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, dynamic-tag-name and PHP 7.4 syntax-floor rules all pass.\n";

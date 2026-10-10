@@ -30,11 +30,28 @@ final class ModuleSeedingTest extends IntegrationTestCase
             $catalog = new ModuleCatalog();
             $current = array_map(static fn($module): string => $module->get_name(), $catalog->all());
 
-            self::assertIsArray($seeded, 'Seeding must write the active-modules option.');
-            self::assertSame($catalog->default_active_slugs(), $seeded, 'A new site is seeded with exactly the default-active modules.');
-            self::assertSame([], array_values(array_diff($seeded, $current)), 'Every seeded slug is a current module slug.');
+            self::assertSame([], $seeded, 'Seeding writes the module-preferences option with no recorded choice, so every module follows its declared default.');
             self::assertSame(['theme-builder', 'dynamic-tags', 'widgets', 'custom-css', 'popups'], $current, 'The module slugs are the permanent ones recorded in docs/CONTRACTS.md.');
-            self::assertNotContains('custom_css', $seeded, 'No pre-release slug is ever seeded.');
+        } finally {
+            if (null === $previous) {
+                delete_option(OptionKeys::ACTIVE_MODULES);
+            } else {
+                update_option(OptionKeys::ACTIVE_MODULES, $previous);
+            }
+        }
+    }
+
+    public function testAToggleStoresOnlyCurrentSlugsAsExplicitChoices(): void
+    {
+        $previous = get_option(OptionKeys::ACTIVE_MODULES, null);
+        $manager = Elemacy::get_instance()->get_module_manager();
+
+        try {
+            update_option(OptionKeys::ACTIVE_MODULES, []);
+            $manager->disable_module('popups');
+            $manager->enable_module('popups');
+
+            self::assertSame(['popups' => true], get_option(OptionKeys::ACTIVE_MODULES), 'A toggle records one explicit current-slug choice and nothing else.');
         } finally {
             if (null === $previous) {
                 delete_option(OptionKeys::ACTIVE_MODULES);

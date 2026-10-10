@@ -52,6 +52,7 @@ use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Http\Sanitizer;
 use Elemacy\Modules\DynamicTags\Tags\Base\PostContent;
+use Elemacy\Modules\DynamicTags\Tags\Base\PostExcerpt;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\Rules\BaseRule;
@@ -1001,6 +1002,220 @@ check('ModuleManager with no modules registered at all still resolves an empty a
     return [] === $manager->get_active_modules();
 });
 
+/* ── Module preferences: explicit per-module choices over declared defaults ── */
+
+/** A module whose default, always-active and mock answers are set per instance, and whose enable/disable hooks log. */
+final class FixtureChoiceModule extends Module
+{
+    /** @var string[] */
+    public static array $events = [];
+
+    private string $name;
+    private bool $default_active;
+    private bool $always_active;
+    private bool $mock;
+
+    public function __construct(string $name, bool $default_active = false, bool $always_active = false, bool $mock = false)
+    {
+        $this->name = $name;
+        $this->default_active = $default_active;
+        $this->always_active = $always_active;
+        $this->mock = $mock;
+    }
+
+    public function get_name(): string
+    {
+        return $this->name;
+    }
+
+    public function get_title(): string
+    {
+        return $this->name;
+    }
+
+    public function get_icon(): string
+    {
+        return '';
+    }
+
+    public function get_description(): string
+    {
+        return '';
+    }
+
+    public function is_default_active(): bool
+    {
+        return $this->default_active;
+    }
+
+    public function is_always_active(): bool
+    {
+        return $this->always_active;
+    }
+
+    public function is_mock(): bool
+    {
+        return $this->mock;
+    }
+
+    public function on_enable(): void
+    {
+        self::$events[] = "enable:{$this->name}";
+    }
+
+    public function on_disable(): void
+    {
+        self::$events[] = "disable:{$this->name}";
+    }
+
+    public function boot(): void {}
+}
+
+/** @param FixtureChoiceModule[] $modules */
+$fixture_choice_manager = static function (array $modules): ModuleManager {
+    $manager = new ModuleManager();
+
+    foreach ($modules as $module) {
+        $manager->register($module);
+    }
+
+    return $manager;
+};
+
+check('Module preferences: a freshly seeded site records no per-module choice, and every module follows its declared default', static function () use ($fixture_choice_manager) {
+    delete_option(OptionKeys::ACTIVE_MODULES);
+    Container::instance()->make(SiteInstaller::class)->seed_current_site_if_missing();
+    $seeded = get_option(OptionKeys::ACTIVE_MODULES, null);
+
+    $manager = $fixture_choice_manager([
+        new FixtureChoiceModule('fixture-on', true),
+        new FixtureChoiceModule('fixture-off', false),
+    ]);
+    $manager->init_modules();
+
+    return [] === $seeded
+        && $manager->is_active('fixture-on')
+        && !$manager->is_active('fixture-off');
+});
+
+check('Module preferences: a default-active module added by a later release is active on a site that already recorded choices, and those choices are unchanged', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, ['fixture-existing' => false]);
+
+    $manager = $fixture_choice_manager([
+        new FixtureChoiceModule('fixture-existing', true),
+        new FixtureChoiceModule('fixture-added-later', true),
+    ]);
+    $manager->init_modules();
+
+    return !$manager->is_active('fixture-existing')
+        && $manager->is_active('fixture-added-later')
+        && ['fixture-existing' => false] === get_option(OptionKeys::ACTIVE_MODULES);
+});
+
+check('Module preferences: an administrator\'s choice outlasts the declared default in both directions', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, []);
+    $modules = static fn (): array => [
+        new FixtureChoiceModule('fixture-default-on', true),
+        new FixtureChoiceModule('fixture-default-off', false),
+    ];
+
+    $writer = $fixture_choice_manager($modules());
+    $writer->disable_module('fixture-default-on');
+    $writer->enable_module('fixture-default-off');
+
+    $later = $fixture_choice_manager($modules());
+    $later->init_modules();
+
+    return !$later->is_active('fixture-default-on')
+        && $later->is_active('fixture-default-off');
+});
+
+check('Module preferences: a stored legacy list keeps exactly its listed modules plus always-active ones active', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, ['fixture-listed']);
+
+    $manager = $fixture_choice_manager([
+        new FixtureChoiceModule('fixture-listed', false),
+        new FixtureChoiceModule('fixture-unlisted-default-on', true),
+        new FixtureChoiceModule('fixture-always', false, true),
+    ]);
+    $manager->init_modules();
+
+    return $manager->is_active('fixture-listed')
+        && !$manager->is_active('fixture-unlisted-default-on')
+        && $manager->is_active('fixture-always');
+});
+
+check('Module preferences: the first toggle on a legacy list stores per-module choices that keep the same set active apart from the toggled module', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, ['fixture-listed']);
+
+    $manager = $fixture_choice_manager([
+        new FixtureChoiceModule('fixture-listed', false),
+        new FixtureChoiceModule('fixture-unlisted-default-on', true),
+        new FixtureChoiceModule('fixture-toggled', false),
+        new FixtureChoiceModule('fixture-always', false, true),
+    ]);
+    $manager->enable_module('fixture-toggled');
+
+    $stored = get_option(OptionKeys::ACTIVE_MODULES);
+    ksort($stored);
+
+    return [
+        'fixture-listed' => true,
+        'fixture-toggled' => true,
+        'fixture-unlisted-default-on' => false,
+    ] === $stored;
+});
+
+check('Module preferences: enable/disable record the explicit choice even when it matches the default, and fire on_enable/on_disable only on an effective change', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, []);
+    FixtureChoiceModule::$events = [];
+
+    $manager = $fixture_choice_manager([new FixtureChoiceModule('fixture-hooks', true)]);
+
+    $manager->enable_module('fixture-hooks'); // Already active by default: choice recorded, no event.
+    $recorded = get_option(OptionKeys::ACTIVE_MODULES);
+    $manager->disable_module('fixture-hooks');
+    $manager->disable_module('fixture-hooks'); // Already off: no second event.
+    $manager->enable_module('fixture-hooks');
+
+    return ['fixture-hooks' => true] === $recorded
+        && ['disable:fixture-hooks', 'enable:fixture-hooks'] === FixtureChoiceModule::$events
+        && ['fixture-hooks' => true] === get_option(OptionKeys::ACTIVE_MODULES);
+});
+
+check('Module preferences: toggling an unknown module, or a mock through the admin endpoint, writes nothing', static function () use ($fixture_choice_manager) {
+    update_option(OptionKeys::ACTIVE_MODULES, ['fixture-kept' => true]);
+
+    $unknown_refused = false;
+    try {
+        $fixture_choice_manager([new FixtureChoiceModule('fixture-kept')])->enable_module('fixture-nope');
+    } catch (\Elemacy\Http\Exceptions\ModuleNotFoundException $refused) {
+        $unknown_refused = true;
+    }
+
+    $shared = Elemacy::get_instance()->get_module_manager();
+    $shared->register(new FixtureChoiceModule('fixture-locked-mock', false, false, true));
+    $request = new \Elemacy\Http\Request();
+    $request->action = 'enable';
+
+    $mock_refused = false;
+    try {
+        (new \Elemacy\Core\Admin\ModuleController())->toggle($request, 'fixture-locked-mock');
+    } catch (\Elemacy\Http\Exceptions\HttpException $refused) {
+        $mock_refused = true;
+    } finally {
+        $modules = new ReflectionProperty($shared, 'modules');
+        $modules->setAccessible(true);
+        $registered = $modules->getValue($shared);
+        unset($registered['fixture-locked-mock']);
+        $modules->setValue($shared, $registered);
+    }
+
+    return $unknown_refused
+        && $mock_refused
+        && ['fixture-kept' => true] === get_option(OptionKeys::ACTIVE_MODULES);
+});
+
 /* ── Action hook stub semantics ─────────────────────────────────── */
 
 check('do_action stub fires callbacks in ascending priority order', static function () {
@@ -1077,6 +1292,50 @@ check('PostContent falls back to classic content when \Elementor\Plugin is not l
     $output = ob_get_clean();
 
     return $output === wp_kses_post('<p>Plain content, no Elementor</p>');
+});
+
+/* ── DynamicTags\Tags\Base\PostExcerpt ─────────────────────────────── */
+
+if (!function_exists('get_post')) {
+    /** The current post PostExcerpt::render() reads; tests set $GLOBALS['__current_post']. */
+    function get_post($post = null)
+    {
+        return $GLOBALS['__current_post'] ?? null;
+    }
+}
+
+/** Elementor's real Tag resolves settings for display; the dynamic-tag stub only stores them. */
+final class FixtureDisplayedPostExcerpt extends PostExcerpt
+{
+    public function get_settings_for_display($key = null)
+    {
+        return $this->get_settings($key);
+    }
+}
+
+$fixture_render_excerpt = static function (array $settings): string {
+    $GLOBALS['__current_post'] = (object) ['post_excerpt' => 'one two three four five', 'post_content' => ''];
+
+    ob_start();
+    (new FixtureDisplayedPostExcerpt(['settings' => $settings]))->render();
+    $output = (string) ob_get_clean();
+
+    unset($GLOBALS['__current_post']);
+
+    return $output;
+};
+
+check('PostExcerpt renders the whole excerpt when Excerpt Length is left at its blank default', static function () use ($fixture_render_excerpt) {
+    return 'one two three four five' === $fixture_render_excerpt(['max_length' => '', 'apply_to_post_content' => 'no'])
+        && 'one two three four five' === $fixture_render_excerpt(['max_length' => null, 'apply_to_post_content' => 'no'])
+        && 'one two three four five' === $fixture_render_excerpt(['apply_to_post_content' => 'no']);
+});
+
+check('PostExcerpt trims to Excerpt Length words when one is set, and treats zero or a negative length as no limit', static function () use ($fixture_render_excerpt) {
+    return 'one two' === $fixture_render_excerpt(['max_length' => '2', 'apply_to_post_content' => 'no'])
+        && 'one two three four five' === $fixture_render_excerpt(['max_length' => '9', 'apply_to_post_content' => 'no'])
+        && 'one two three four five' === $fixture_render_excerpt(['max_length' => '0', 'apply_to_post_content' => 'no'])
+        && 'one two three four five' === $fixture_render_excerpt(['max_length' => '-3', 'apply_to_post_content' => 'no']);
 });
 
 /* ── Elementor stand-ins required from here on ──────────────────── */
@@ -3697,7 +3956,7 @@ check('SiteBatchIterator::process_batch() with a sub-one limit does nothing', st
 // The same shared instance Elemacy itself resolved at construction.
 $installer = Container::instance()->singleton(SiteInstaller::class);
 
-check('SiteInstaller builds from a container with no bindings at all (activation and plugins_loaded@1 run before any provider registers), sharing one ModuleCatalog', static function () {
+check('SiteInstaller builds from a container with no bindings at all (activation and plugins_loaded@1 run before any provider registers)', static function () {
     $bare = (new ReflectionClass(Container::class))->newInstanceWithoutConstructor();
 
     try {
@@ -3706,14 +3965,10 @@ check('SiteInstaller builds from a container with no bindings at all (activation
         return false;
     }
 
-    $catalog = new ReflectionProperty($installer, 'catalog');
-    $catalog->setAccessible(true);
-
-    return $installer instanceof SiteInstaller
-        && $catalog->getValue($installer) === $bare->singleton(ModuleCatalog::class);
+    return $installer instanceof SiteInstaller;
 });
 
-check('SiteInstaller::seed_current_site_if_missing() seeds ACTIVE_MODULES defaults only the first time the option has never existed', static function () use ($installer) {
+check('SiteInstaller::seed_current_site_if_missing() seeds ACTIVE_MODULES, with no recorded choice, only the first time the option has never existed', static function () use ($installer) {
     delete_option(OptionKeys::ACTIVE_MODULES);
 
     $installer->seed_current_site_if_missing();
@@ -3722,23 +3977,15 @@ check('SiteInstaller::seed_current_site_if_missing() seeds ACTIVE_MODULES defaul
 
     // A second call — nothing WordPress core itself would ever trigger
     // twice, but exactly what a lazily-caught-up site's own next request
-    // does — must not clobber a value an admin may have since customized
-    // (including deliberately disabling every module, an empty array,
-    // which is falsy but must still count as "already seeded").
-    update_option(OptionKeys::ACTIVE_MODULES, []);
+    // does — must not clobber choices an admin may have since recorded.
+    // Seeding stores no choice at all: every module then follows the
+    // default it declares (ModuleManager), so none is frozen at today's.
+    update_option(OptionKeys::ACTIVE_MODULES, ['popups' => false]);
     $installer->seed_current_site_if_missing();
     $after_customization = get_option(OptionKeys::ACTIVE_MODULES);
 
-    // Compared as a set: the seeded value is whatever the modules themselves
-    // declare via is_default_active(), so its order follows src/Config/modules.php
-    // and is not part of the contract — ModuleManager::init_modules() reads it
-    // with in_array().
-    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
-    sort($expected);
-    sort($seeded);
-
-    return $seeded === $expected
-        && $after_customization === [];
+    return $seeded === []
+        && $after_customization === ['popups' => false];
 });
 
 check('SiteInstaller::resume_network_seeding() does nothing on a single-site install even if a stale network offset exists', static function () use ($installer) {
@@ -3803,12 +4050,9 @@ check('SiteInstaller::register_hooks(): a newly-created site under network activ
 
     do_action('wp_initialize_site', (object) ['blog_id' => 777]);
 
-    $seeded   = get_option(OptionKeys::ACTIVE_MODULES);
-    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
-    sort($seeded);
-    sort($expected);
+    $seeded = get_option(OptionKeys::ACTIVE_MODULES, null);
 
-    return $seeded === $expected
+    return $seeded === []
         && $GLOBALS['__wp_current_blog_id'] === 1
         && $GLOBALS['__wp_blog_stack'] === [];
 });
@@ -3901,8 +4145,9 @@ check('ModuleCatalog reads the module config with require, not require_once, so 
         && count(array_filter($second, static fn ($m) => $m instanceof Module)) === count($second);
 });
 
-check('ModuleCatalog::default_active_slugs() yields exactly the modules declaring themselves default-active', static function () {
-    $slugs = (new ModuleCatalog())->default_active_slugs();
+check('The built-in modules declaring themselves default-active are exactly the five released ones (a released default is frozen: flipping it changes every site without a recorded choice)', static function () {
+    $default_active = array_filter((new ModuleCatalog())->all(), static fn (Module $module): bool => $module->is_default_active());
+    $slugs = array_values(array_map(static fn (Module $module): string => $module->get_name(), $default_active));
     $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
     sort($slugs);
     sort($expected);
@@ -3923,28 +4168,19 @@ check('ModuleCatalog skips a configured class that does not exist or is not a Mo
     return $names === ['fixture-default-active', 'fixture-opt-out'];
 });
 
-check('SiteInstaller seeds a default-active module contributed to the catalog alongside the built-in defaults', static function () {
-    $installer = new SiteInstaller(
-        new ModuleCatalog([
-            ThemeBuilder::class,
-            FixtureDefaultActiveModule::class,
-            FixtureOptOutModule::class,
-        ]),
-        new SiteBatchIterator(),
-        new Migrator()
-    );
+check('A default-active module an extension registers is active on a seeded site, with no recorded choice, whenever it registers', static function () {
+    update_option(OptionKeys::ACTIVE_MODULES, []);
+
+    $manager = new ModuleManager();
+    $manager->register(new FixtureDefaultActiveModule());
+    $manager->register(new FixtureOptOutModule());
+    $manager->init_modules();
+
+    $active = array_keys($manager->get_active_modules());
 
     delete_option(OptionKeys::ACTIVE_MODULES);
 
-    $installer->seed_current_site_if_missing();
-
-    $seeded = get_option(OptionKeys::ACTIVE_MODULES);
-
-    delete_option(OptionKeys::ACTIVE_MODULES);
-
-    sort($seeded);
-
-    return $seeded === ['fixture-default-active', 'theme-builder'];
+    return $active === ['fixture-default-active'];
 });
 
 check('SiteInstaller::register_hooks(): wp_initialize_site does nothing when the plugin is not active for the whole network', static function () use ($installer) {

@@ -20,10 +20,10 @@ final class DynamicTagsRegistrationTest extends IntegrationTestCase
     private const BUILT_IN = [
         'elemacy-post-title' => 'Base\PostTitle',
         'elemacy-post-content' => 'Base\PostContent',
-        'post-excerpt' => 'Base\PostExcerpt',
+        'elemacy-post-excerpt' => 'Base\PostExcerpt',
         'elemacy-post-date' => 'Base\PostDate',
         'elemacy-post-custom-field' => 'Base\PostCustomField',
-        'post-url' => 'Base\PostUrl',
+        'elemacy-post-url' => 'Base\PostUrl',
         'elemacy-post-featured-image' => 'Base\PostFeaturedImage',
         'elemacy-post-terms' => 'Base\PostTerms',
         'elemacy-comments-number' => 'Base\CommentsNumber',

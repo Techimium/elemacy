@@ -12,7 +12,7 @@ class PostUrl extends Data_Tag
 {
     public function get_name()
     {
-        return 'post-url';
+        return 'elemacy-post-url';
     }
 
     public function get_title()
