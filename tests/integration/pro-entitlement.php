@@ -6,6 +6,9 @@ use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Modules\Popups\Services\RuleManager;
+use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\TemplateLibrary\ResolverCache;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
@@ -14,16 +17,15 @@ require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/RequestSimulator.php';
 
 /**
- * Pro display conditions are entitled by the same active-license check as
- * every other Pro capability, and losing entitlement suspends the templates
- * that depend on them rather than widening their targeting.
+ * An active Pro supplies its real conditions, rules, triggers and loop sources
+ * whether or not it is licensed — the license covers updates and support only.
+ * Without Pro, Free's mocks hold the same identifiers and suspend dependent
+ * templates rather than widening their targeting.
  *
- * This environment installs Pro without a license, which is exactly the state
- * under test. The licensed direction is exercised against an isolated
- * ConditionManager/ConditionEvaluator pair rather than the process-wide
- * singletons: a real condition superseding a mock is deliberately one-way
- * (RegistryIdentifierGuard refuses the reverse), so registering the real Pro
- * conditions into the shared registry could not be undone for later scenarios.
+ * This environment installs Pro without a license. The "Pro inactive"
+ * direction is exercised against an isolated ConditionManager/
+ * ConditionEvaluator pair rather than the process-wide singletons, which
+ * already hold Pro's real conditions.
  */
 final class ProEntitlementTest extends IntegrationTestCase
 {
@@ -86,30 +88,39 @@ final class ProEntitlementTest extends IntegrationTestCase
     public function testTheLicenseIsInactiveInThisEnvironment(): void
     {
         self::assertFalse(
-            \ElemacyPro\Core\License\LicenseManager::instance()->is_active(),
-            'This scenario describes the unlicensed state; a license here would invalidate every assertion below.'
+            \ElemacyPro\Core\License\LicenseManager::instance()->is_valid(),
+            'This scenario describes an unlicensed install; a license here would make the assertions below vacuous.'
         );
     }
 
-    public function testNoProConditionIsFunctionalWithoutAnActiveLicense(): void
+    public function testEveryProConditionIsRealAndAvailableWithoutALicense(): void
     {
         $manager = ConditionManager::instance();
 
         foreach (self::PRO_CONDITIONS as $identifier) {
             $condition = $manager->get($identifier);
 
-            self::assertNotNull($condition, $identifier . ' must still be listed, so the UI can show it locked.');
-            self::assertTrue($condition->is_mock(), $identifier . ' must resolve to Free\'s locked mock without a license.');
-            self::assertTrue(
-                $manager->get_availability($identifier)->is_unavailable(),
-                $identifier . ' must report as unavailable without a license.'
-            );
+            self::assertNotNull($condition, $identifier . ' must be registered.');
+            self::assertFalse($condition->is_mock(), $identifier . ' must be Pro\'s real implementation without a license.');
+            self::assertTrue($manager->get_availability($identifier)->is_available(), $identifier . ' must be available.');
         }
     }
 
-    public function testATemplateWhoseOnlyInclusionIsAProConditionIsSuspendedRatherThanShownEverywhere(): void
+    public function testProRulesTriggersAndLoopSourceRegisterWithoutALicense(): void
     {
-        $header = $this->documents->create('Pro gated header', 'header', 'publish');
+        self::assertFalse(RuleManager::instance()->get('devices')->is_mock());
+        self::assertFalse(TriggerManager::instance()->get('scroll')->is_mock());
+
+        if (!function_exists('get_field')) {
+            self::markTestIncomplete('ACF is not active, so Pro registers no ACF Repeater source to check.');
+        }
+
+        self::assertNotNull(LoopDataSourceRegistry::instance()->get('acf_repeater'));
+    }
+
+    public function testATemplateTargetingAProConditionMatchesWithoutALicense(): void
+    {
+        $header = $this->documents->create('Pro condition header', 'header', 'publish');
 
         $this->conditions->save($header, [
             ['type' => 'singular/specific_post', 'value' => (string) $this->posts[0], 'operator' => 'include'],
@@ -121,45 +132,15 @@ final class ProEntitlementTest extends IntegrationTestCase
         $this->request->visit(get_permalink($this->posts[0]));
         TemplateResolver::reset();
 
-        self::assertNull(
-            TemplateResolver::instance()->resolve('header'),
-            'An unavailable Pro condition must suspend the template, not match it.'
-        );
+        self::assertSame($header, TemplateResolver::instance()->resolve('header'), 'The Pro condition must match the page it targets.');
 
         $this->request->visit(home_url('/'));
         TemplateResolver::reset();
 
-        self::assertNull(
-            TemplateResolver::instance()->resolve('header'),
-            'A suspended template must not fall back to matching every page.'
-        );
+        self::assertNull(TemplateResolver::instance()->resolve('header'), 'It must match only what it targets.');
     }
 
-    public function testASuspendedTemplateKeepsItsSavedConditionForRepair(): void
-    {
-        $header = $this->documents->create('Pro gated header keeps config', 'header', 'publish');
-
-        $saved = [
-            ['type' => 'singular/specific_post', 'value' => (string) $this->posts[0], 'operator' => 'include'],
-        ];
-
-        $this->conditions->save($header, $saved);
-
-        (new ResolverCache())->invalidate();
-        TemplateResolver::reset();
-        $this->request->visit(get_permalink($this->posts[0]));
-        TemplateResolver::reset();
-        TemplateResolver::instance()->resolve('header');
-
-        $stored = $this->conditions->get($header);
-
-        self::assertCount(1, $stored);
-        self::assertSame('singular/specific_post', $stored[0]->type);
-        self::assertSame((string) $this->posts[0], $stored[0]->value);
-        self::assertSame('include', $stored[0]->operator);
-    }
-
-    public function testRestoringEntitlementMakesTheSameSavedConditionWorkAgain(): void
+    public function testWithoutProTheSavedConditionIsSuspendedAndWorksAgainWhenProReturns(): void
     {
         $rule = ConditionRuleDTO::from_array([
             'type' => 'singular/specific_post',
@@ -169,28 +150,26 @@ final class ProEntitlementTest extends IntegrationTestCase
 
         $this->request->visit(get_permalink($this->posts[0]));
 
-        // Unlicensed: Free's mock holds the identifier and suspends the rule.
-        $unlicensed = new ConditionManager();
-        $unlicensed->register(new \Elemacy\Conditions\Mock\SpecificPost());
+        // Pro inactive: Free's mock holds the identifier and suspends the rule.
+        $without_pro = new ConditionManager();
+        $without_pro->register(new \Elemacy\Conditions\Mock\SpecificPost());
 
         self::assertFalse(
-            (new ConditionEvaluator($unlicensed))->evaluate([$rule]),
+            (new ConditionEvaluator($without_pro))->evaluate([$rule]),
             'The saved rule must not match while its implementation is unavailable.'
         );
 
-        // Licensed: Pro's real condition supersedes the mock under the same
+        // Pro active: its real condition supersedes the mock under the same
         // identifier, and the very same saved rule now evaluates for real.
-        $licensed = new ConditionManager();
-        $licensed->register(new \Elemacy\Conditions\Mock\SpecificPost());
-        $licensed->register(new \ElemacyPro\Extensions\Conditions\Singular\SpecificPost());
+        $with_pro = new ConditionManager();
+        $with_pro->register(new \Elemacy\Conditions\Mock\SpecificPost());
+        $with_pro->register(new \ElemacyPro\Extensions\Conditions\Singular\SpecificPost());
 
-        $real = $licensed->get('singular/specific_post');
-
-        self::assertFalse($real->is_mock(), 'The real Pro condition must supersede the mock under the same identifier.');
-        self::assertTrue($licensed->get_availability('singular/specific_post')->is_available());
+        self::assertFalse($with_pro->get('singular/specific_post')->is_mock(), 'The real Pro condition must supersede the mock under the same identifier.');
+        self::assertTrue($with_pro->get_availability('singular/specific_post')->is_available());
         self::assertTrue(
-            (new ConditionEvaluator($licensed))->evaluate([$rule]),
-            'With entitlement restored the same saved rule must match, with no re-authoring.'
+            (new ConditionEvaluator($with_pro))->evaluate([$rule]),
+            'With Pro back the same saved rule must match, with no re-authoring.'
         );
     }
 

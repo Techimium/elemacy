@@ -41,7 +41,7 @@ The same holds for a module's `Module::is_default_active()`: `elemacy_active_mod
 | `elemacy_library_index` | `src/TemplateLibrary/ResolverCache.php`; rebuildable published candidate index, **non-autoloaded in code**, stored as `{shape, index}`; any `shape` other than `ResolverCache::SHAPE` is a miss and is rebuilt |
 | `elemacy_widgets` | `src/Modules/Widgets/Services/WidgetService.php`; widget status map, built through `Utils::with_prefix('widgets')` |
 | `elemacy_pro_license_key` | Pro `Core/License/LicenseManager.php`; stored license key; never include its value in fixtures/logs |
-| `elemacy_pro_license_status` | Same owner; `{valid, expires, plan, grace_start}` with defaults supplied on read |
+| `elemacy_pro_license_status` | Same owner; `{valid, expires, plan}` with defaults supplied on read |
 | `elemacy_form_limit_*` | Free form submission rate-limit rows (options, non-autoloaded, HMAC of the IP) |
 | `elemacy_pro_update` | Pro updater transient/cache identifier |
 | `elemacy_pro_license_revalidate` | Pro license cron hook; existing daily revalidation |
@@ -196,7 +196,7 @@ Both actions serve guests and authenticated users. The public nonce is request h
 
 Free owns the admin mount `#elemacy_root` and the `window.ElemacyShared` bridge (contract version `AdminScripts::CONTRACT_VERSION`, the `elemacy:admin-ready` event). Popup bootstrap globals are `window.elemacyPopups` and Pro's `window.elemacyPopupsAnalytics`. Version these surfaces deliberately; never rename them for tidiness.
 
-Pro's license policy (`P/CONTRIBUTING.md`, `Core/License/LicenseManager.php`) is a contract: a formerly valid license keeps a 14-day grace window, a never-valid installation is gated immediately, transport failures keep the cached state, and every Pro capability — conditions included — registers only while the license is active (see `P/DEVELOPER.md`).
+Pro's license policy (`P/CONTRIBUTING.md`, `Core/License/LicenseManager.php`) is a contract: the license entitles a site to updates and support only, every Pro capability registers whenever Pro is active, and revalidation transport failures keep the cached state (see `P/DEVELOPER.md`).
 
 ## Public hook inventory
 
@@ -209,7 +209,6 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `REGISTER_PROVIDERS_ACTION` | `elemacy/action/register_providers` |
 | `VERSION_UPDATED_ACTION` | `elemacy/action/version_updated` |
 | `LIBRARY_DUPLICATE_EXCLUDED_META_FILTER` | `elemacy/filter/library/duplicate_excluded_meta` |
-| `CACHE_PURGE_ACTION` | `elemacy/action/cache/purge` |
 | `LIBRARY_CHANGED_ACTION` | `elemacy/action/library/changed` |
 | `LIBRARY_TYPES_REGISTER_ACTION` | `elemacy/action/library/types/register` |
 | `TEMPLATE_ASSETS_COLLECT_ACTION` | `elemacy/action/template_assets/collect` |

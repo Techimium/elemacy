@@ -52,7 +52,7 @@ final class FeatureAvailability
     /**
      * The identifier resolves to a registered non-functional stand-in
      * (a Mock condition/rule/trigger) because the extension that provides
-     * the real implementation is not currently active or licensed.
+     * the real implementation is not currently active.
      */
     public static function inactive_extension(string $identifier): self
     {

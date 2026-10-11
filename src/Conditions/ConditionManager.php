@@ -48,7 +48,7 @@ class ConditionManager
      * distinguishing an unregistered identifier (e.g. an extension that
      * used to provide it is gone) from one that only resolves to a
      * non-functional mock stand-in (e.g. the extension is present but
-     * inactive/unlicensed) from a real, available condition.
+     * inactive) from a real, available condition.
      */
     public function get_availability(string $name): FeatureAvailability
     {

@@ -28,12 +28,6 @@ final class Hooks
     // honor the pre-existing POPUP_DUPLICATE_EXCLUDED_META_FILTER below.
     public const LIBRARY_DUPLICATE_EXCLUDED_META_FILTER = 'elemacy/filter/library/duplicate_excluded_meta';
 
-    // Fired after PageCachePurger::purge_all() runs (e.g. after a license
-    // activation/deactivation/grace transition changes what a suspended
-    // condition/rule/trigger/type resolves to), so anything else that caches
-    // rendered output can invalidate alongside the supported page caches.
-    public const CACHE_PURGE_ACTION = 'elemacy/action/cache/purge';
-
     // Fired once after a library item's create/update/duplicate/delete is
     // fully complete — authoritative metadata included — passing a single
     // LibraryChanged payload. Cache invalidation and similar listeners

@@ -83,14 +83,14 @@ try {
       await page.locator('.elemacy-pro-compatibility-notice').waitFor();
       assert.equal(await page.locator('#elemacy-pro-app-js').getAttribute('type'), 'elemacy/deferred');
     } else {
-      await page.getByText('Pro features are disabled', { exact: true }).waitFor();
+      await page.getByText('Pro features unlocked', { exact: true }).waitFor();
       assert.equal(await page.locator('#elemacy-pro-app-js').getAttribute('type'), null);
-      const count = await page.getByText('Pro features are disabled', { exact: true }).count();
+      const count = await page.getByText('Pro features unlocked', { exact: true }).count();
       await page.evaluate(() => {
         window.dispatchEvent(new CustomEvent('elemacy:admin-ready'));
         window.dispatchEvent(new CustomEvent('elemacy:admin-ready'));
       });
-      assert.equal(await page.getByText('Pro features are disabled', { exact: true }).count(), count);
+      assert.equal(await page.getByText('Pro features unlocked', { exact: true }).count(), count);
       // Re-executing the loader must not execute the Pro application again.
       await page.addScriptTag({ url: new URL('/wp-content/plugins/elemacy-pro/assets/admin/scripts/elemacy-pro-loader.js', base).href });
       await page.goto(new URL('/wp-admin/admin.php?page=elemacy#/license', base).href);
@@ -128,7 +128,7 @@ wp_set_current_user(${Number(fixture.user)});
 $docs = new Elemacy\\Tests\\Integration\\Fixtures\\LibraryDocument();
 try { $id = $docs->create('Admin contract analytics fixture', 'popup'); }
 catch (Throwable $error) { $docs->cleanup(); throw $error; }
-update_option($key, ['valid' => true, 'plan' => 'integration-fixture', 'expires' => null, 'grace_start' => null]);
+update_option($key, ['valid' => true, 'plan' => 'integration-fixture', 'expires' => null]);
 echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   const activeContext = await browser.newContext();
   await activeContext.addCookies(fixture.cookies.map(cookie => ({ ...cookie, url: base.origin, httpOnly: true })));

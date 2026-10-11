@@ -500,11 +500,8 @@ final class LibraryPersistenceTest extends IntegrationTestCase
     {
         // A fixture contribution to the *existing* POPUP_DUPLICATE_EXCLUDED_META_FILTER
         // — exactly how elemacy-pro's own AnalyticsService declares its two real
-        // counters — rather than depending on elemacy-pro actually being licensed
-        // in this environment (it is installed but unlicensed here, so its own
-        // filter registration, gated behind ElemacyPro::register_extensions()'s
-        // license check, never fires; that gating is a separate, pre-existing
-        // concern this test must not depend on either way).
+        // counters — so this Free test does not depend on whether elemacy-pro
+        // is installed in this environment.
         add_filter(Hooks::POPUP_DUPLICATE_EXCLUDED_META_FILTER, static function (array $keys): array {
             $keys[] = '_elemacy_fixture_popup_impressions';
 

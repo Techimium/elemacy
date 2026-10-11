@@ -28,7 +28,7 @@ uninstall sweeps and the migration runner stay uniform.
 | `elemacy_network_seed_offset` | `Core\SiteInstaller::NETWORK_SEED_OFFSET_OPTION` | site option | `int` offset of a bounded network-activation seed still in progress; deleted when every site is seeded. |
 | `elemacy_<name>` | `Support\Utils::with_prefix()` | varies | Per-module settings (e.g. `elemacy_widgets`, the Widgets on/off map written by `WidgetService`). Build keys only via `Utils::with_prefix()`. |
 | `elemacy_pro_license_key` | `License\LicenseManager` (`OPTION_KEY . '_key'`) | yes | The raw license key string. |
-| `elemacy_pro_license_status` | `License\LicenseManager` (`OPTION_KEY . '_status'`) | yes | `array{ valid: bool, expires: ?string, plan: ?string, grace_start: ?int }`. Read through `get_status()`, which `wp_parse_args()`-merges defaults, so adding a key is backward-compatible; **removing or re-typing one needs a migration**. |
+| `elemacy_pro_license_status` | `License\LicenseManager` (`OPTION_KEY . '_status'`) | yes | `array{ valid: bool, expires: ?string, plan: ?string }`. Read through `get_status()`, which `wp_parse_args()`-merges defaults, so adding a key is backward-compatible; **removing or re-typing one needs a migration**. A `grace_start` key left by a pre-release build is ignored. |
 
 ## Post meta — all on the single `elemacy_library` CPT
 

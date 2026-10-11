@@ -17,7 +17,6 @@ use Elemacy\Conditions\MockCondition;
 use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Admin\AdminScripts;
-use Elemacy\Core\Cache\PageCachePurger;
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 use Elemacy\Core\CompatibilityChecker;
@@ -2644,34 +2643,6 @@ check('a configured-but-unavailable rule is reported, unlike an empty set', stat
 
     return count($unavailable) === 1
         && $unavailable[0]->availability()->get_reason_code() === FeatureAvailability::UNKNOWN_IDENTIFIER;
-});
-
-/* ── Core\Cache\PageCachePurger ──────────────────────────────────── */
-
-if (!function_exists('rocket_clean_domain')) {
-    function rocket_clean_domain()
-    {
-        $GLOBALS['__fixture_rocket_clean_domain_calls'] = ($GLOBALS['__fixture_rocket_clean_domain_calls'] ?? 0) + 1;
-    }
-}
-
-$GLOBALS['__cache_purge_signals'] = [];
-add_action(Hooks::CACHE_PURGE_ACTION, static function () {
-    $GLOBALS['__cache_purge_signals'][] = true;
-});
-
-check('PageCachePurger::purge_all() fires the shared cache-purge action for other code to hook', static function () {
-    $GLOBALS['__cache_purge_signals'] = [];
-    PageCachePurger::purge_all();
-
-    return $GLOBALS['__cache_purge_signals'] === [true];
-});
-
-check('PageCachePurger::purge_all() calls a detected page-cache plugin\'s own purge function', static function () {
-    $GLOBALS['__fixture_rocket_clean_domain_calls'] = 0;
-    PageCachePurger::purge_all();
-
-    return $GLOBALS['__fixture_rocket_clean_domain_calls'] === 1;
 });
 
 /* ── ConditionEvaluator semantics ───────────────────────────────── */
