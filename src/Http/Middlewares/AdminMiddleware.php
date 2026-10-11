@@ -9,14 +9,14 @@ use Elemacy\Http\Contracts\Request;
 use Elemacy\Http\Exceptions\AuthorizationException;
 
 /**
- * Middleware to ensure the user is authenticated.
+ * Middleware to ensure the user can manage options.
  *
  * @since 1.0.0
  */
 class AdminMiddleware implements Middleware
 {
     /**
-     * Handle the incoming request and determine if the user is authenticated.
+     * Handle the incoming request and determine if the user can manage options.
      *
      * @since 1.0.0
      *
@@ -26,7 +26,7 @@ class AdminMiddleware implements Middleware
      */
     public function handle(Request $request, callable $next)
     {
-        if (is_user_logged_in() && current_user_can('manage_options')) {
+        if (current_user_can('manage_options')) {
             return $next($request);
         }
 

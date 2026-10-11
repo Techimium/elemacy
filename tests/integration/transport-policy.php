@@ -4,6 +4,7 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Http\Route;
 use Elemacy\Http\Request;
+use Elemacy\Http\Middlewares\AdminMiddleware;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 
@@ -96,38 +97,47 @@ final class TransportPolicyTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    public function testOmittedPolicyCannotExecuteApplicationWork(): void
+    public function testRouteWithoutMiddlewareIsPublic(): void
     {
-        $diagnostics = [];
-        $capture = static function ($function) use (&$diagnostics): void { $diagnostics[] = $function; };
-        add_action('doing_it_wrong_run', $capture);
-        add_filter('doing_it_wrong_trigger_error', '__return_false');
-        try {
-            Route::get('/omitted', [TransportObservedController::class, 'index'])->register();
-            $response = rest_do_request('/elemacy-policy-fixture/v1/omitted');
-            self::assertGreaterThanOrEqual(400, $response->get_status());
-            self::assertSame(0, TransportObservedController::$executed);
-            self::assertSame(0, TransportObservedController::$constructed);
-            self::assertNotEmpty($diagnostics);
-        } finally {
-            remove_action('doing_it_wrong_run', $capture);
-            remove_filter('doing_it_wrong_trigger_error', '__return_false');
-        }
+        wp_set_current_user(0);
+        Route::get('/open', [TransportObservedController::class, 'index'])->register();
+        self::assertSame(200, rest_do_request('/elemacy-policy-fixture/v1/open')->get_status());
+        self::assertSame(1, TransportObservedController::$executed);
     }
 
     public function testGuestCannotUseAnAdminRouteEvenWithNonce(): void
     {
         wp_set_current_user(0);
-        Route::get('/admin', [TransportObservedController::class, 'index'])->require_capability('manage_options')->register();
+        Route::get('/admin', [TransportObservedController::class, 'index'])->middleware(AdminMiddleware::class)->register();
         $request = new \WP_REST_Request('GET', '/elemacy-policy-fixture/v1/admin');
         $request->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
         self::assertSame(403, rest_do_request($request)->get_status());
         self::assertSame(0, TransportObservedController::$constructed);
     }
 
+    public function testNonAdminCannotUseAnAdminRoute(): void
+    {
+        $subscriber = wp_insert_user([
+            'user_login' => 'elemacy_transport_subscriber', 'user_pass' => wp_generate_password(32),
+            'user_email' => 'elemacy_transport_subscriber@example.invalid', 'role' => 'subscriber',
+        ]);
+        self::assertIsInt($subscriber);
+        try {
+            wp_set_current_user($subscriber);
+            Route::get('/admin', [TransportObservedController::class, 'index'])->middleware(AdminMiddleware::class)->register();
+            $response = rest_do_request('/elemacy-policy-fixture/v1/admin');
+            self::assertSame(403, $response->get_status());
+            self::assertSame('rest_forbidden', $response->get_data()['code']);
+            self::assertSame(0, TransportObservedController::$constructed);
+        } finally {
+            require_once ABSPATH . 'wp-admin/includes/user.php';
+            wp_delete_user($subscriber);
+        }
+    }
+
     public function testNestedGroupsComposeMiddlewareAndFreezeNamespace(): void
     {
-        Route::group(['prefix' => '/outer', 'middleware' => TransportOuterMiddleware::class, 'access' => 'public'], static function (): void {
+        Route::group(['prefix' => '/outer', 'middleware' => TransportOuterMiddleware::class], static function (): void {
             Route::group(['prefix' => '/inner', 'middleware' => TransportInnerMiddleware::class], static function (): void {
                 Route::get('/observed', [TransportObservedController::class, 'index']);
             });
@@ -141,7 +151,7 @@ final class TransportPolicyTest extends IntegrationTestCase
 
     public function testHandlerConstructionThrowableIsAClientSafeResponse(): void
     {
-        Route::get('/broken', [TransportBrokenController::class, 'index'])->public_access()->register();
+        Route::get('/broken', [TransportBrokenController::class, 'index'])->register();
         $response = rest_do_request('/elemacy-policy-fixture/v1/broken');
         self::assertSame(500, $response->get_status());
         self::assertStringNotContainsString('internal-secret', wp_json_encode($response->get_data()));

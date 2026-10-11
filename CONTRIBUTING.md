@@ -55,7 +55,7 @@ Shared layers never import a module; a module never imports another module. `php
 - Text domain is `elemacy`; i18n and escaping are enforced by WPCS.
 - Keys: protected post meta as `_elemacy_*` through `*\Constants\MetaKeys`; options, nonces, transients and CPT slugs as `elemacy_*` (dynamic ones through `Support\Utils::with_prefix()`). Shapes live in `docs/STORAGE.md`; changing one needs a `Migrator` step.
 - Hook names are constants on `Core\Hooks`. Never a raw string.
-- REST routes go through `Http\Route` and declare `public_access()` or `require_capability()`; AJAX through `Http\AjaxRouter` with `for_public()`, `for_guest()`, `for_authenticated()` or `require_capability()`. Never call `register_rest_route` directly.
+- REST routes go through `Http\Route` and are protected by middleware (`AdminMiddleware` for administrative routes); a route without middleware is public. AJAX goes through `Http\AjaxRouter` with `for_public()`, `for_guest()`, `for_authenticated()` or `require_capability()`. Never call `register_rest_route` directly.
 - Anything the container builds (controllers, services) takes its dependencies as required constructor parameters. `Container::instance()` is used only inside classes Elementor or WordPress instantiate (widgets, documents, dynamic tags, hook callbacks) and in bootstrap.
 - Registries keep their `::instance()` and are also bound in the container by their owner's `register()`.
 - Prefer typed DTOs and Resources over raw arrays.
@@ -133,11 +133,10 @@ use Elemacy\Http\Route;
 use Elemacy\Modules\Reviews\Controllers\ReviewController;
 
 Route::get('/reviews', [ReviewController::class, 'index'])
-    ->require_capability('manage_options')
     ->middleware(AdminMiddleware::class);
 ```
 
-The controller receives its services through its constructor. Throw `Http\Exceptions\ValidationException` for bad input; the transport boundary turns every `Throwable` into the safe response envelope. A public endpoint calls `public_access()` and enforces its own application policy; a nonce is not authorization. Frontend AJAX uses `Http\AjaxRouter::add_action(...)->for_public()->with_nonce(...)` in `Config/ajax.php`.
+The controller receives its services through its constructor. Throw `Http\Exceptions\ValidationException` for bad input; the transport boundary turns every `Throwable` into the safe response envelope. A public endpoint attaches no access middleware and enforces its own application policy; a nonce is not authorization. Frontend AJAX uses `Http\AjaxRouter::add_action(...)->for_public()->with_nonce(...)` in `Config/ajax.php`.
 
 ## The Free and Pro seam
 

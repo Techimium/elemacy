@@ -21,8 +21,9 @@ use Elemacy\Core\Container;
 /**
  * Laravel-style facade over register_rest_route for the `elemacy` REST API.
  * Controllers are resolved through the Container and a controller method's
- * first typed parameter is hydrated from the request. Every route requires an
- * explicit access policy. See docs/ARCHITECTURE.md § Transport.
+ * first typed parameter is hydrated from the request. Access is enforced only
+ * by attached middleware; a route without middleware is public. See
+ * docs/ARCHITECTURE.md § Transport.
  */
 class Route
 {
@@ -34,7 +35,6 @@ class Route
     protected static array $group_stack = [];
 
     protected string $namespace = '';
-    protected array $access = [];
     protected string $method = '';
     protected string $endpoint = '';
 
@@ -75,23 +75,6 @@ class Route
     {
         $this->middleware = array_merge($this->middleware, (array) $middleware);
 
-        return $this;
-    }
-
-    /** Declare intentional public access; inherited capability checks still apply. */
-    public function public_access(): self
-    {
-        $this->access[] = 'public';
-        return $this;
-    }
-
-    /** Require a native WordPress capability before resolving application services. */
-    public function require_capability(string $capability): self
-    {
-        if ($capability === '' || $capability === 'public') {
-            throw new \InvalidArgumentException('A nonempty capability is required.');
-        }
-        $this->access[] = $capability;
         return $this;
     }
 
@@ -193,7 +176,7 @@ class Route
     /**
      * Registers a group of routes sharing a prefix and/or middleware.
      *
-     * @param array   $options Group options: `prefix`, `middleware`, and `access` (public or capability).
+     * @param array   $options Group options: `prefix` and `middleware`.
      * @param Closure $closure Defines the routes that belong to the group.
      * @return void
      */
@@ -219,7 +202,7 @@ class Route
     }
 
     /**
-     * Composes every ancestor's prefix, middleware and access policy.
+     * Composes every ancestor's prefix and middleware.
      *
      * @return void
      */
@@ -232,13 +215,6 @@ class Route
             }
             if (!empty($group['middleware'])) {
                 $this->middleware($group['middleware']);
-            }
-            if (isset($group['access'])) {
-                if ($group['access'] === 'public') {
-                    $this->public_access();
-                } else {
-                    $this->require_capability($group['access']);
-                }
             }
         }
         if ($prefixes) {
@@ -253,10 +229,6 @@ class Route
      */
     public function register(): void
     {
-        if (!$this->access) {
-            _doing_it_wrong(__METHOD__, esc_html__('REST routes require an explicit access policy.', 'elemacy'), '1.0.0');
-            return;
-        }
         register_rest_route($this->namespace, $this->get_formatted_endpoint(), [
             'methods' => strtoupper($this->method),
             'callback' => $this->resolve_route(),
@@ -275,14 +247,6 @@ class Route
     public function check_permission($rest_request)
     {
         try {
-            if (!$this->access) {
-                return new WP_Error('rest_forbidden', esc_html__('Access policy is missing.', 'elemacy'), ['status' => 403]);
-            }
-            foreach ($this->access as $policy) {
-                if ($policy !== 'public' && !current_user_can($policy)) {
-                    return new WP_Error('rest_forbidden', esc_html__('You do not have permission for this action.', 'elemacy'), ['status' => 403]);
-                }
-            }
             $request = Request::from_wp_rest_request($rest_request);
             $pipeline = array_reduce(
                 array_reverse($this->middleware),

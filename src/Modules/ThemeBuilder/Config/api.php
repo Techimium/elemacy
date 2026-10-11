@@ -7,10 +7,10 @@ use Elemacy\Http\Middlewares\AdminMiddleware;
 use Elemacy\Http\Route;
 use Elemacy\Modules\ThemeBuilder\Controllers\ThemeBuilderController;
 
-Route::get('/theme-builder/template-types', [ThemeBuilderController::class, 'types'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::get('/theme-builder/templates', [ThemeBuilderController::class, 'index'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::get('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'show'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::post('/theme-builder/templates', [ThemeBuilderController::class, 'store'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::put('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'update'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::post('/theme-builder/templates/{id}/duplicate', [ThemeBuilderController::class, 'duplicate'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
-Route::delete('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'destroy'])->require_capability('manage_options')->middleware(AdminMiddleware::class);
+Route::get('/theme-builder/template-types', [ThemeBuilderController::class, 'types'])->middleware(AdminMiddleware::class);
+Route::get('/theme-builder/templates', [ThemeBuilderController::class, 'index'])->middleware(AdminMiddleware::class);
+Route::get('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'show'])->middleware(AdminMiddleware::class);
+Route::post('/theme-builder/templates', [ThemeBuilderController::class, 'store'])->middleware(AdminMiddleware::class);
+Route::put('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'update'])->middleware(AdminMiddleware::class);
+Route::post('/theme-builder/templates/{id}/duplicate', [ThemeBuilderController::class, 'duplicate'])->middleware(AdminMiddleware::class);
+Route::delete('/theme-builder/templates/{id}', [ThemeBuilderController::class, 'destroy'])->middleware(AdminMiddleware::class);

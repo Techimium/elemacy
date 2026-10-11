@@ -91,7 +91,7 @@ Collect-all resolution (`resolve_group()`, used by popups) is unaffected: every 
 
 ## Transport
 
-Every REST route declares `public_access()` or `require_capability()`; a route without a policy is not registered. Group prefixes, middleware and policies compose through every nesting level. Handlers are built inside the error boundary and every `Throwable` becomes the safe response envelope without a stack trace. The two intentionally public handlers, loop pagination and form submission, apply their own application policies: a nonce is request hygiene, not authorization.
+REST access is enforced only by the middleware attached to a route; a route without middleware is public, so every protected route must attach one (`AdminMiddleware` for administrative routes). Group prefixes and middleware compose through every nesting level. Handlers are built inside the error boundary and every `Throwable` becomes the safe response envelope without a stack trace. The two intentionally public handlers, loop pagination and form submission, apply their own application policies: a nonce is request hygiene, not authorization.
 
 ## Popups
 

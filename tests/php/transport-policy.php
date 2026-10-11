@@ -9,39 +9,30 @@ class TransportRouteProbe extends \Elemacy\Http\Route
 
     public function contract(): array
     {
-        return [$this->namespace, $this->endpoint, $this->middleware, $this->access];
+        return [$this->namespace, $this->endpoint, $this->middleware];
     }
 }
 
-check('Nested route groups preserve all prefixes, middleware and parent policies; namespace is frozen', static function () {
-    TransportRouteProbe::group(['prefix' => '/outer', 'middleware' => 'Outer', 'access' => 'manage_options'], static function () {
-        TransportRouteProbe::group(['prefix' => '/inner', 'middleware' => 'Inner', 'access' => 'public'], static function () {
+check('Nested route groups preserve all prefixes and middleware; namespace is frozen', static function () {
+    TransportRouteProbe::group(['prefix' => '/outer', 'middleware' => 'Outer'], static function () {
+        TransportRouteProbe::group(['prefix' => '/inner', 'middleware' => 'Inner'], static function () {
             TransportRouteProbe::get('/leaf', ['Controller', 'index']);
         });
     });
     TransportRouteProbe::set_namespace('later');
-    return TransportRouteProbe::get_routes()[0]->contract() === ['fixture', '/outer/inner/leaf', ['Outer', 'Inner'], ['manage_options', 'public']];
+    return TransportRouteProbe::get_routes()[0]->contract() === ['fixture', '/outer/inner/leaf', ['Outer', 'Inner']];
 });
 
 check('Throwing route groups restore the registration stack', static function () {
     try {
-        TransportRouteProbe::group(['prefix' => '/failed', 'access' => 'public'], static function () {
+        TransportRouteProbe::group(['prefix' => '/failed', 'middleware' => 'Failed'], static function () {
             throw new \Error('fixture');
         });
     } catch (\Error $error) {
         // Following registration must not inherit failed group state.
     }
     $route = TransportRouteProbe::get('/after', ['Controller', 'index']);
-    return $route->contract() === ['later', '/after', [], []];
-});
-
-check('REST capability declaration rejects an empty capability', static function () {
-    try {
-        TransportRouteProbe::get('/bad', ['Controller', 'index'])->require_capability('');
-    } catch (\InvalidArgumentException $error) {
-        return true;
-    }
-    return false;
+    return $route->contract() === ['later', '/after', []];
 });
 
 class TransportAjaxProbe extends \Elemacy\Http\AjaxRouter
