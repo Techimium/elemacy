@@ -4,13 +4,12 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\SinglePostPreviewDocument;
+use Elemacy\Elementor\Documents\SinglePostPreviewDocument;
 
 /**
- * Elementor document for Single templates. A single template renders one post of
- * its matched type, so it previews against a single real post chosen in Preview
- * Settings. It edits Full Width so the theme/Elemacy header and footer wrap the
- * editable content, like Elementor Pro's theme builder.
+ * Elementor document for Single templates. A single template renders one post
+ * of its matched type, so it previews against a single real post chosen in
+ * Preview Settings.
  */
 class SingleDocument extends SinglePostPreviewDocument
 {

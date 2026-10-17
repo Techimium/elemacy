@@ -51,10 +51,10 @@ class NavMenuWalker extends Walker_Nav_Menu
     /**
      * Starts the element output.
      *
-     * @param string    $output            Used to append additional content (passed by reference).
+     * @param string    $output Used to append additional content (passed by reference).
      * @param \WP_Post  $data_object       Menu item data object.
-     * @param int       $depth             Depth of menu item. Used for padding.
-     * @param \stdClass $args              An object of wp_nav_menu() arguments.
+     * @param int       $depth  Depth of menu item. Used for padding.
+     * @param \stdClass $args   An object of wp_nav_menu() arguments.
      * @param int       $current_object_id Optional. ID of the current menu item. Default 0.
      */
     public function start_el(&$output, $data_object, $depth = 0, $args = null, $current_object_id = 0): void
@@ -95,10 +95,10 @@ class NavMenuWalker extends Walker_Nav_Menu
     /**
      * Ends the element output.
      *
-     * @param string    $output      Used to append additional content (passed by reference).
-     * @param \WP_Post  $data_object Menu item data object.
-     * @param int       $depth       Depth of menu item. Used for padding.
-     * @param \stdClass $args        An object of wp_nav_menu() arguments.
+     * @param string    $output Used to append additional content (passed by reference).
+     * @param \WP_Post  $data_object       Menu item data object.
+     * @param int       $depth  Depth of menu item. Used for padding.
+     * @param \stdClass $args   An object of wp_nav_menu() arguments.
      */
     public function end_el(&$output, $data_object, $depth = 0, $args = null): void
     {

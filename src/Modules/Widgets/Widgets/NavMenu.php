@@ -8,6 +8,7 @@ use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Icons_Manager;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -65,10 +66,6 @@ class NavMenu extends BaseWidget
         $this->register_toggle_close_style_controls();
     }
 
-    // =========================================================================
-    // Content Tab
-    // =========================================================================
-
     protected function register_layout_controls(): void
     {
         $this->start_controls_section('section_layout', [
@@ -124,19 +121,19 @@ class NavMenu extends BaseWidget
             'options'   => [
                 'flex-start'    => [
                     'title' => esc_html__('Start', 'elemacy'),
-                    'icon' => 'eicon-align-start-h'
+                    'icon' => 'eicon-align-start-h',
                 ],
                 'center'        => [
                     'title' => esc_html__('Center', 'elemacy'),
-                    'icon' => 'eicon-align-center-h'
+                    'icon' => 'eicon-align-center-h',
                 ],
                 'flex-end'      => [
                     'title' => esc_html__('End', 'elemacy'),
-                    'icon' => 'eicon-align-end-h'
+                    'icon' => 'eicon-align-end-h',
                 ],
                 'space-between' => [
                     'title' => esc_html__('Justify', 'elemacy'),
-                    'icon' => 'eicon-align-stretch-h'
+                    'icon' => 'eicon-align-stretch-h',
                 ],
             ],
             'default'   => 'flex-start',
@@ -174,12 +171,12 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 200,
-                    'max' => 800
+                    'max' => 800,
                 ],
             ],
             'default'    => [
                 'size' => 320,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-overlay-panel-width: {{SIZE}}{{UNIT}};'],
             'condition'  => [
@@ -221,15 +218,15 @@ class NavMenu extends BaseWidget
             'options'   => [
                 'start'  => [
                     'title' => esc_html__('Start', 'elemacy'),
-                    'icon' => 'eicon-align-start-h'
+                    'icon' => 'eicon-align-start-h',
                 ],
                 'center' => [
                     'title' => esc_html__('Center', 'elemacy'),
-                    'icon' => 'eicon-align-center-h'
+                    'icon' => 'eicon-align-center-h',
                 ],
                 'end'    => [
                     'title' => esc_html__('End', 'elemacy'),
-                    'icon' => 'eicon-align-end-h'
+                    'icon' => 'eicon-align-end-h',
                 ],
             ],
             'default'   => 'end',
@@ -242,7 +239,7 @@ class NavMenu extends BaseWidget
             'type'    => Controls_Manager::ICONS,
             'default' => [
                 'value' => 'eicon-menu-bar',
-                'library' => 'eicon'
+                'library' => 'eicon',
             ],
         ]);
 
@@ -251,16 +248,12 @@ class NavMenu extends BaseWidget
             'type'    => Controls_Manager::ICONS,
             'default' => [
                 'value' => 'eicon-close',
-                'library' => 'eicon'
+                'library' => 'eicon',
             ],
         ]);
 
         $this->end_controls_section();
     }
-
-    // =========================================================================
-    // Style Tab
-    // =========================================================================
 
     protected function register_main_menu_style_controls(): void
     {
@@ -331,12 +324,12 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 80
+                    'max' => 80,
                 ],
             ],
             'default'    => [
                 'size' => 20,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
             'selectors'  => [$list => 'gap: {{SIZE}}{{UNIT}};'],
             'separator'  => 'before',
@@ -399,12 +392,12 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 1,
-                    'max' => 10
+                    'max' => 10,
                 ],
             ],
             'default'    => [
                 'size' => 2,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-pointer-height: {{SIZE}}{{UNIT}};'],
             'condition'  => ['pointer!' => 'none'],
@@ -428,12 +421,12 @@ class NavMenu extends BaseWidget
             'range'     => [
                 'px' => [
                     'min' => 50,
-                    'max' => 1000
+                    'max' => 1000,
                 ],
             ],
             'default'   => [
                 'size' => 300,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-pointer-duration: {{SIZE}}ms;'],
             'condition' => ['pointer!' => 'none'],
@@ -480,12 +473,12 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 40
+                    'max' => 40,
                 ],
             ],
             'default'    => [
                 'size' => 10,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
             'selectors'  => [$menu => 'backdrop-filter: blur({{SIZE}}px); -webkit-backdrop-filter: blur({{SIZE}}px);'],
         ]);
@@ -514,15 +507,15 @@ class NavMenu extends BaseWidget
             'options'   => [
                 'flex-start' => [
                     'title' => esc_html__('Start', 'elemacy'),
-                    'icon' => 'eicon-align-start-h'
+                    'icon' => 'eicon-align-start-h',
                 ],
                 'center'     => [
                     'title' => esc_html__('Center', 'elemacy'),
-                    'icon' => 'eicon-align-center-h'
+                    'icon' => 'eicon-align-center-h',
                 ],
                 'flex-end'   => [
                     'title' => esc_html__('End', 'elemacy'),
-                    'icon' => 'eicon-align-end-h'
+                    'icon' => 'eicon-align-end-h',
                 ],
             ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav.is-open' => '--elemacy-overlay-items-align: {{VALUE}};'],
@@ -534,15 +527,15 @@ class NavMenu extends BaseWidget
             'options'   => [
                 'flex-start' => [
                     'title' => esc_html__('Top', 'elemacy'),
-                    'icon' => 'eicon-v-align-top'
+                    'icon' => 'eicon-v-align-top',
                 ],
                 'center'     => [
                     'title' => esc_html__('Middle', 'elemacy'),
-                    'icon' => 'eicon-v-align-middle'
+                    'icon' => 'eicon-v-align-middle',
                 ],
                 'flex-end'   => [
                     'title' => esc_html__('Bottom', 'elemacy'),
-                    'icon' => 'eicon-v-align-bottom'
+                    'icon' => 'eicon-v-align-bottom',
                 ],
             ],
             'selectors' => ['{{WRAPPER}} .elemacy-nav.is-open' => '--elemacy-overlay-menu-valign: {{VALUE}};'],
@@ -605,7 +598,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 80
+                    'max' => 80,
                 ],
             ],
             'selectors'  => [$list => 'gap: {{SIZE}}{{UNIT}};'],
@@ -692,7 +685,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 40
+                    'max' => 40,
                 ],
             ],
             'selectors'  => [$sub => 'gap: {{SIZE}}{{UNIT}};'],
@@ -729,7 +722,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 1000
+                    'max' => 1000,
                 ],
             ],
             'selectors'  => [$sub => 'min-width: {{SIZE}}{{UNIT}}'],
@@ -752,7 +745,7 @@ class NavMenu extends BaseWidget
                 'right' => 10,
                 'bottom' => 10,
                 'left' => 10,
-                'unit' => 'px'
+                'unit' => 'px',
             ],
         ]);
 
@@ -763,7 +756,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => -20,
-                    'max' => 40
+                    'max' => 40,
                 ],
             ],
             'selectors'  => [$sub => 'margin-top: {{SIZE}}{{UNIT}};'],
@@ -857,7 +850,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 0,
-                    'max' => 60
+                    'max' => 60,
                 ],
             ],
             'selectors'  => [$sub => 'gap: {{SIZE}}{{UNIT}};'],
@@ -950,7 +943,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 10,
-                    'max' => 80
+                    'max' => 80,
                 ],
             ],
             'selectors'  => [
@@ -1034,7 +1027,7 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 10,
-                    'max' => 80
+                    'max' => 80,
                 ],
             ],
             'selectors'  => [
@@ -1081,12 +1074,12 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => -500,
-                    'max' => 500
+                    'max' => 500,
                 ],
             ],
             'default'    => [
                 'unit' => 'px',
-                'size' => 10
+                'size' => 10,
             ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-close-top: {{SIZE}}{{UNIT}};'],
         ]);
@@ -1098,22 +1091,18 @@ class NavMenu extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => -500,
-                    'max' => 500
+                    'max' => 500,
                 ],
             ],
             'default'    => [
                 'unit' => 'px',
-                'size' => 10
+                'size' => 10,
             ],
             'selectors'  => ['{{WRAPPER}} .elemacy-nav' => '--elemacy-close-right: {{SIZE}}{{UNIT}};'],
         ]);
 
         $this->end_controls_section();
     }
-
-    // =========================================================================
-    // Render
-    // =========================================================================
 
     protected function render(): void
     {
@@ -1166,13 +1155,13 @@ class NavMenu extends BaseWidget
 
         $show_toggle = 'yes' === ($settings['show_toggle'] ?? '');
         $show_label  = $show_toggle && 'yes' === ($settings['show_toggle_label'] ?? '') && !empty($settings['toggle_label']);
-?>
+        ?>
         <div <?php $this->print_render_attribute_string('wrapper'); ?>>
-            <?php if ($show_toggle): ?>
+            <?php if ($show_toggle) : ?>
                 <div class="elemacy-nav__backdrop" aria-hidden="true"></div>
             <?php endif; ?>
             <div class="elemacy-nav__inner">
-                <?php if ($show_toggle): ?>
+                <?php if ($show_toggle) : ?>
                     <button class="elemacy-nav__toggle" type="button"
                         aria-expanded="false"
                         aria-controls="<?php echo esc_attr($menu_id); ?>"
@@ -1180,7 +1169,7 @@ class NavMenu extends BaseWidget
                         <span class="elemacy-nav__toggle-icon" aria-hidden="true">
                             <?php Icons_Manager::render_icon($settings['toggle_open_icon'], ['aria-hidden' => 'true']); ?>
                         </span>
-                        <?php if ($show_label): ?>
+                        <?php if ($show_label) : ?>
                             <span class="elemacy-nav__toggle-label">
                                 <?php echo esc_html($settings['toggle_label']); ?>
                             </span>
@@ -1189,7 +1178,7 @@ class NavMenu extends BaseWidget
                 <?php endif; ?>
 
                 <nav <?php $this->print_render_attribute_string('nav'); ?>>
-                    <?php if ($show_toggle): ?>
+                    <?php if ($show_toggle) : ?>
                         <button class="elemacy-nav__toggle-close" type="button"
                             aria-expanded="false"
                             aria-controls="<?php echo esc_attr($menu_id); ?>"
@@ -1206,6 +1195,6 @@ class NavMenu extends BaseWidget
                 </nav>
             </div>
         </div>
-<?php
+        <?php
     }
 }

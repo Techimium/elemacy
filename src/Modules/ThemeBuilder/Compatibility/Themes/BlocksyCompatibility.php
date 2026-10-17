@@ -11,15 +11,14 @@ class BlocksyCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
             add_filter('blocksy:builder:header:enabled', '__return_false');
             add_action('blocksy:header:before', [$manager, 'render_header'], 5);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
             add_filter('blocksy:builder:footer:enabled', '__return_false');
             add_action('blocksy:footer:before', [$manager, 'render_footer'], 5);
         }
     }
 }
-

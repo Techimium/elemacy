@@ -2,13 +2,18 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Services\LoopContext;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\LoopItemStyles;
+use Elemacy\Core\Container;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\DTO\LoopResultDTO;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Rendering\LoopRenderer;
+use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -16,6 +21,14 @@ if (!defined('ABSPATH')) {
 
 class LoopCarousel extends BaseWidget
 {
+    /**
+     * Why visitors cannot see this loop, computed only for a user who can
+     * edit the owning document; null when the loop is eligible.
+     *
+     * @var string|null
+     */
+    private ?string $ineligibility_notice = null;
+
     public function get_name()
     {
         return 'elemacy-loop-carousel';
@@ -52,7 +65,7 @@ class LoopCarousel extends BaseWidget
         $this->register_query_section();
         $this->register_carousel_settings_section();
         $this->register_carousel_style_section();
-        // Since pagination in carousel is handled by swiper, we add its styles
+        // Since pagination in carousel is handled by swiper, we add its styles.
         $this->register_navigation_style_section();
         $this->register_pagination_style_section();
     }
@@ -62,7 +75,7 @@ class LoopCarousel extends BaseWidget
     protected function get_loop_templates()
     {
         if ($this->loop_templates === null) {
-            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
+            $this->loop_templates = Container::instance()->singleton(BlockTemplateService::class)->get_all_unbounded(
                 BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
             );
         }
@@ -525,11 +538,13 @@ class LoopCarousel extends BaseWidget
             return;
         }
 
-        $result = $source->get_items($settings);
+        $result = $this->items_for_display($settings, $source);
 
         if (empty($result->items)) {
             if (Plugin::instance()->editor->is_edit_mode()) {
                 echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
+            } elseif (null !== $this->ineligibility_notice) {
+                echo '<div class="elemacy-loop-notice" role="status">' . esc_html($this->ineligibility_notice) . '</div>';
             }
             return;
         }
@@ -538,34 +553,18 @@ class LoopCarousel extends BaseWidget
         echo '<div class="swiper elemacy-loop-carousel">';
         echo '<div class="swiper-wrapper">';
 
-        $loop_item_styles = new LoopItemStyles();
-        $loop_item_styles->print_base_css($settings['template_id']);
-
-        foreach ($result->items as $item) {
-            LoopContext::push($item);
-
-            try {
-                $item->enter();
-
-                try {
-                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
-
-                    echo '<div class="swiper-slide">';
-                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
-                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-                    echo '</div>';
-                    echo '</div>';
-                } finally {
-                    $item->exit();
-                }
-            } finally {
-                LoopContext::pop();
-            }
+        $renderer = Container::instance()->singleton(LoopRenderer::class);
+        $placement = $this->current_owner_id() . '-' . $this->get_id();
+        $data_source_key = $settings['data_source'] ?? 'posts';
+        foreach ($result->items as $occurrence => $item) {
+            echo '<div class="swiper-slide">';
+            $renderer->render_item((int) $settings['template_id'], $item, $placement, $data_source_key, $occurrence);
+            echo '</div>';
         }
 
-        echo '</div>'; // End swiper-wrapper
+        echo '</div>'; // End swiper-wrapper.
 
-        // Render Navigation Elements
+        // Render Navigation Elements.
         if (in_array($settings['navigation'], ['both', 'pagination'], true)) {
             echo '<div class="swiper-pagination"></div>';
         }
@@ -575,7 +574,51 @@ class LoopCarousel extends BaseWidget
             echo '<div class="elemacy-swiper-button elemacy-swiper-button-next swiper-button-next"><i class="eicon-chevron-right"></i></div>';
         }
 
-        echo '</div>'; // End swiper element
-        echo '</div>'; // End elemacy-loop-carousel-container
+        echo '</div>'; // End swiper element.
+        echo '</div>'; // End elemacy-loop-carousel-container.
+    }
+
+    /**
+     * The document actually rendering this widget right now — a Theme
+     * Builder header/footer, popup, or loop template document Elementor has
+     * switched to, not the viewed page (get_the_ID()), when this widget
+     * lives in one of those.
+     */
+    private function current_owner_id(): int
+    {
+        $document = Plugin::$instance->documents->get_current();
+
+        return $document ? (int) $document->get_main_id() : (int) get_the_ID();
+    }
+
+    /**
+     * Applies the same public eligibility policy the AJAX endpoint enforces to
+     * LoopGrid/AjaxPaginationController to this widget's own classic output —
+     * Loop Carousel has no AJAX pagination feature, but an authored
+     * template/source that has since become inaccessible still must not appear
+     * here.
+     *
+     * @param array                   $settings
+     * @param LoopDataSourceInterface $source
+     * @return LoopResultDTO
+     */
+    private function items_for_display(array $settings, LoopDataSourceInterface $source): LoopResultDTO
+    {
+        if (Plugin::instance()->editor->is_edit_mode()) {
+            return $source->get_items($settings);
+        }
+
+        $policy = Container::instance()->singleton(PublicRenderPolicy::class);
+        $owner_id = $this->current_owner_id();
+
+        try {
+            return $policy->eligible_items($settings, $owner_id);
+        } catch (ValidationException $error) {
+            if (current_user_can('edit_post', $owner_id)) {
+                $this->ineligibility_notice = $policy->describe_ineligibility($settings);
+            }
+
+            return new LoopResultDTO([], 0, 0, false);
+        }
     }
 }

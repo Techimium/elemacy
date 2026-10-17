@@ -6,21 +6,15 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
 
-/**
- * Runs the lookups behind a condition's `search` value input.
- *
- * Conditions declare what to search via {@see \Elemacy\Conditions\ConditionInterface::get_search_config()};
- * this service turns that config into a WordPress query and returns a flat list
- * of `[{value, label}]` options for the admin combobox.
- */
+/** Runs the lookups behind a condition's `search` value input. */
 class ConditionSearchService
 {
     protected const LIMIT = 20;
 
     /**
-     * @param array    $config   The condition's search config (entity + scope).
-     * @param string   $query    Free-text query typed in the combobox.
-     * @param int[]    $includes Specific IDs to resolve (used to hydrate saved values).
+     * @param array  $config   The condition's search config (entity + scope).
+     * @param string $query    Free-text query typed in the combobox.
+     * @param int[]  $includes Specific IDs to resolve (used to hydrate saved values).
      * @return array<int, array{value: string, label: string}>
      */
     public function search(array $config, string $query, array $includes = []): array

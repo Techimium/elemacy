@@ -11,7 +11,7 @@ class OceanWPCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
             add_action('template_redirect', function () {
                 remove_action('ocean_top_bar', 'oceanwp_top_bar_template');
                 remove_action('ocean_header', 'oceanwp_header_template');
@@ -21,7 +21,7 @@ class OceanWPCompatibility implements ThemeCompatibilityInterface
             add_action('ocean_header', [$manager, 'render_header'], 10);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
             add_action('template_redirect', function () {
                 remove_action('ocean_footer', 'oceanwp_footer_template');
             }, 10);
@@ -30,4 +30,3 @@ class OceanWPCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

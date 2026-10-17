@@ -4,21 +4,12 @@ namespace Elemacy\Modules\Widgets\Widgets\Acf;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\Services\AcfRepeaterResolver;
+use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Widget_Image_Gallery;
 
-/**
- * Renders an Elementor image gallery populated from an ACF gallery field.
- *
- * Extends Widget_Image_Gallery so column / link / lightbox / style controls
- * work unchanged. Swaps the default media-picker `wp_gallery` control for a
- * text input pointing at an ACF gallery field, then normalises the field
- * value (which may come back as objects, arrays or IDs depending on the ACF
- * Return Format) into the `[{ id: <attachment_id> }, ...]` shape the parent
- * widget passes to the [gallery] shortcode.
- */
+/** Renders an Elementor image gallery populated from an ACF gallery field. */
 class AcfGallery extends Widget_Image_Gallery
 {
     public function get_name()

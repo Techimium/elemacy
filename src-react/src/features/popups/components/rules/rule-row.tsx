@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
 import { ProBadge } from '@/components/pro-badge';
+import { UnavailableBadge } from '@/components/unavailable-badge';
 import {
     Select,
     SelectContent,
@@ -58,6 +59,8 @@ export function RuleRow({ entry, types, onChange, onRemove }: RuleRowProps) {
                         })}
                     </SelectContent>
                 </Select>
+
+                <UnavailableBadge availability={entry.availability} />
 
                 <Button
                     type="button"

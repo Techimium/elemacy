@@ -9,15 +9,27 @@ if (!defined('ABSPATH')) {
 use Elemacy\Support\Utils;
 
 /**
- * Registers (never enqueues) the shared frontend handles. Widgets and the popup
- * engine declare `elemacy-frontend` / `elemacy-core` as dependencies, so the
- * assets — and the localized `elemacy` config — load only on pages that
+ * Registers (never enqueues) the shared frontend handles. Widgets and the
+ * popup engine declare `elemacy-frontend` / `elemacy-core` as dependencies, so
+ * the assets — and the localized `elemacy` config — load only on pages that
  * actually render something of ours.
  */
 class FrontendScripts
 {
-    public function __construct()
+    protected bool $registered = false;
+
+    /**
+     * Attaches this class's WordPress hooks. Idempotent: a second call does
+     * nothing.
+     */
+    public function register_hooks(): void
     {
+        if ($this->registered) {
+            return;
+        }
+
+        $this->registered = true;
+
         add_action('wp_enqueue_scripts', [$this, 'register']);
     }
 
@@ -30,6 +42,14 @@ class FrontendScripts
     protected function register_scripts()
     {
         wp_register_script('elemacy-frontend', ELEMACY_URL . 'assets/frontend/js/core.js', [], ELEMACY_VERSION, true);
+
+        wp_register_script(
+            'elemacy-elementor-lifecycle',
+            ELEMACY_URL . 'assets/frontend/js/elementor-lifecycle.js',
+            ['jquery'],
+            ELEMACY_VERSION,
+            true
+        );
 
         // Attached at registration: prints whenever the handle is pulled in as
         // a dependency, not only on a direct enqueue.

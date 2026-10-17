@@ -1,116 +1,114 @@
 <?php
-
-/**
- * Removes all Elemacy data when the plugin is deleted.
- *
- * Pro keys (elemacy_pro_*) are left untouched here — Elemacy Pro ships its own
- * uninstall handler so each plugin owns its cleanup. On multisite the cleanup
- * runs on every site, since any site may hold library content.
- */
+/** Native, bounded cleanup of elemacy-owned data. Uninstall deletes data; deactivation retains it. */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-/**
- * Deletes the current site's Elemacy posts, options, and transients.
- */
+// Uninstall must work without either plugin's bootstrap or Composer autoloader.
+require_once __DIR__ . '/src/Core/Multisite/SiteBatchIterator.php';
+
 function elemacy_uninstall_current_site(): void
 {
     global $wpdb;
-
-    // phpcs:disable WordPress.DB.DirectDatabaseQuery
-    // Delete each library post's Elementor-generated CSS file before the posts
-    // themselves are removed below — otherwise these files are orphaned on disk
-    // with no post left to regenerate or ever clean them up.
-    $library_post_ids = $wpdb->get_col(
-        $wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s",
-            'elemacy_library'
-        )
-    );
-
-    if (!empty($library_post_ids)) {
-        // Prefer Elementor's own file class so this stays correct even if a future
-        // Elementor version changes the storage path/convention. Instantiated
-        // directly (not via Post::create(), which reaches into Plugin::$instance)
-        // so there is no dependency on Elementor's own bootstrap having run.
-        $can_use_elementor_api = class_exists('\Elementor\Core\Files\CSS\Post');
-
-        // Fallback only: Elementor's own post-CSS convention as of this writing —
-        // {uploads}/elementor/css/post-{ID}.css — used when Elementor isn't
-        // active/loaded, or its file class unexpectedly errors.
-        $fallback_css_dir = trailingslashit(wp_upload_dir()['basedir']) . 'elementor/css/';
-
-        foreach ($library_post_ids as $library_post_id) {
-            $library_post_id = (int) $library_post_id;
-            $deleted_via_elementor = false;
-
-            if ($can_use_elementor_api) {
+    do {
+        $ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = %s ORDER BY ID ASC LIMIT 100", 'elemacy_library'));
+        if ($wpdb->last_error) {
+            throw new RuntimeException('Could not read Elemacy library cleanup batch.');
+        }
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            // Keep Elementor's CSS cleanup when available, with its existing file fallback.
+            $deleted_css = false;
+            if (class_exists('\Elementor\Core\Files\CSS\Post')) {
                 try {
-                    (new \Elementor\Core\Files\CSS\Post($library_post_id))->delete();
-                    $deleted_via_elementor = true;
-                } catch (\Throwable $exception) {
-                    $deleted_via_elementor = false;
+                    (new \Elementor\Core\Files\CSS\Post($id))->delete();
+                    $deleted_css = true;
+                } catch (Throwable $error) {
+                    $deleted_css = false;
                 }
             }
-
-            if (!$deleted_via_elementor) {
-                $css_file = $fallback_css_dir . 'post-' . $library_post_id . '.css';
-
-                if (file_exists($css_file)) {
-                    wp_delete_file($css_file);
+            if (!$deleted_css) {
+                $file = trailingslashit(wp_upload_dir()['basedir']) . 'elementor/css/post-' . $id . '.css';
+                if (file_exists($file)) {
+                    wp_delete_file($file);
                 }
+            }
+            if (!wp_delete_post($id, true) && get_post($id)) {
+                throw new RuntimeException('Native Elemacy document deletion failed.');
             }
         }
+        $batch_full = count($ids) === 100;
+    } while ($batch_full);
+
+    $meta_keys = ['_elemacy_template_type', '_elemacy_conditions', '_elemacy_popup_triggers', '_elemacy_popup_rules'];
+    foreach ($meta_keys as $key) {
+        do {
+            $ids = $wpdb->get_col($wpdb->prepare("SELECT meta_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY meta_id ASC LIMIT 100", $key));
+            if ($wpdb->last_error) {
+                throw new RuntimeException('Could not read owned metadata cleanup batch.');
+            }
+            foreach ($ids as $id) {
+                if (!delete_metadata_by_mid('post', (int) $id) && get_metadata_by_mid('post', (int) $id)) {
+                    throw new RuntimeException('Owned metadata deletion failed.');
+                }
+            }
+            $batch_full = count($ids) === 100;
+        } while ($batch_full);
     }
 
-    // Delete every library post and its meta in one query rather than loading and
-    // deleting each post individually.
-    $wpdb->query(
-        $wpdb->prepare(
-            "DELETE p, pm FROM {$wpdb->posts} p
-             LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
-             WHERE p.post_type = %s",
-            'elemacy_library'
-        )
-    );
-
-    $wpdb->query(
-        $wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name NOT LIKE %s",
+    do {
+        $names = $wpdb->get_col($wpdb->prepare(
+            "SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s) AND option_name NOT LIKE %s AND option_name NOT LIKE %s AND option_name NOT LIKE %s ORDER BY option_name ASC LIMIT 100",
             $wpdb->esc_like('elemacy_') . '%',
-            $wpdb->esc_like('elemacy_pro_') . '%'
-        )
-    );
-
-    $wpdb->query(
-        $wpdb->prepare(
-            "DELETE FROM {$wpdb->options}
-             WHERE (option_name LIKE %s OR option_name LIKE %s)
-             AND option_name NOT LIKE %s AND option_name NOT LIKE %s",
             $wpdb->esc_like('_transient_elemacy_') . '%',
             $wpdb->esc_like('_transient_timeout_elemacy_') . '%',
+            $wpdb->esc_like('elemacy_pro_') . '%',
             $wpdb->esc_like('_transient_elemacy_pro_') . '%',
             $wpdb->esc_like('_transient_timeout_elemacy_pro_') . '%'
-        )
-    );
-    // phpcs:enable WordPress.DB.DirectDatabaseQuery
+        ));
+        if ($wpdb->last_error) {
+            throw new RuntimeException('Could not read owned option cleanup batch.');
+        }
+        foreach ($names as $name) {
+            if (strpos($name, '_transient_timeout_') === 0) {
+                delete_transient(substr($name, strlen('_transient_timeout_')));
+            } elseif (strpos($name, '_transient_') === 0) {
+                delete_transient(substr($name, strlen('_transient_')));
+            }
+            delete_option($name);
+            if ($wpdb->get_var($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name = %s", $name)) !== null) {
+                throw new RuntimeException('Owned option deletion failed.');
+            }
+        }
+        $batch_full = count($names) === 100;
+    } while ($batch_full);
 }
 
-if (is_multisite()) {
-    // number => 0 lifts WP_Site_Query's default 100-site cap so every site is
-    // cleaned, not just the first hundred.
-    $elemacy_all_site_ids = get_sites([
-        'fields' => 'ids',
-        'number' => 0,
-    ]);
-
-    foreach ($elemacy_all_site_ids as $elemacy_site_id) {
-        switch_to_blog((int) $elemacy_site_id);
+function elemacy_uninstall_all_sites(): void
+{
+    if (!is_multisite()) {
         elemacy_uninstall_current_site();
-        restore_current_blog();
+        return;
     }
-} else {
-    elemacy_uninstall_current_site();
+    $iterator = new \Elemacy\Core\Multisite\SiteBatchIterator();
+    $offset = 0;
+    $failures = 0;
+    do {
+        $batch = $iterator->process_batch(static function () use (&$failures): void {
+            try {
+                elemacy_uninstall_current_site();
+            } catch (Throwable $error) {
+                // Continue the network sweep; report failure after context is restored.
+                ++$failures;
+            }
+        }, $offset, 100);
+        $offset += $batch['processed'];
+    } while ($batch['has_more']);
+    delete_site_option('elemacy_network_seed_offset');
+    if ($failures) {
+        throw new RuntimeException('elemacy cleanup failed on ' . $failures . ' site(s); rerun cleanup before removal.'); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The only interpolated value is a local integer count.
+    }
 }
+
+elemacy_uninstall_all_sites();

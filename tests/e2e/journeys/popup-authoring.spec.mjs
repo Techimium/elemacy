@@ -1,0 +1,52 @@
+import { test, expect } from '../shared/fixtures.mjs';
+import { readyEditor, addHeading, saveEditor } from '../shared/editor.mjs';
+import { templateCard } from '../shared/templates.mjs';
+
+test('elemacy:journey:popup:modal-authoring @popups @smoke', async ({ page, author, browser, checkpoint }) => {
+  const title = `Browser popup ${author.user}`;
+  const text = `Human-authored popup ${author.user}`;
+  await page.goto('/wp-admin/admin.php?page=elemacy#/popups');
+  await page.getByRole('button', { name: 'Create New Popup', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('textbox', { name: 'Title', exact: true }).fill(title);
+  await dialog.getByRole('button', { name: 'Create & Edit with Elementor', exact: true }).click();
+  await page.waitForURL(url => url.searchParams.get('action') === 'elementor');
+  const id = new URL(page.url()).searchParams.get('post');
+  const guest = await browser.newContext();
+  try {
+    const visitor = await guest.newPage();
+    await visitor.goto(new URL('/', page.url()).href);
+    const popup = visitor.locator('[data-elemacy-popup-id="' + id + '"]');
+    await expect(popup, 'Draft popup must not be delivered to visitors').toHaveCount(0);
+    await addHeading(page, text);
+    await checkpoint('popup-authored');
+    await saveEditor(page);
+    await page.reload();
+    const frame = await readyEditor(page);
+    await expect(frame.getByText(text, { exact: true })).toBeVisible();
+    await checkpoint('popup-saved-and-reopened');
+    await visitor.reload();
+    await expect(popup).toBeVisible();
+    await expect(popup).toHaveAttribute('aria-hidden', 'false');
+    await expect(popup.getByText(text, { exact: true })).toBeVisible();
+    await expect(popup.locator('.elemacy-popup__overlay')).toHaveCount(1);
+    const close = popup.getByRole('button', { name: 'Close', exact: true });
+    await expect(close).toBeVisible();
+    await expect(close).toBeFocused();
+    await checkpoint('visitor-popup-open', visitor);
+    await close.click();
+    await expect(popup).toBeHidden();
+    await expect(popup).toHaveAttribute('aria-hidden', 'true');
+    await visitor.reload();
+    await expect(popup).toBeVisible();
+    await expect(popup.getByText(text, { exact: true })).toBeVisible();
+    await visitor.keyboard.press('Escape');
+    await expect(popup).toBeHidden();
+    await checkpoint('visitor-popup-closed', visitor);
+    await page.goto('/wp-admin/admin.php?page=elemacy#/popups');
+    await templateCard(page, title).getByRole('button', { name: 'Actions', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+    await expect(page.getByRole('dialog').getByRole('combobox', { name: 'Status', exact: true })).toHaveText('Published');
+    await checkpoint('popup-publication-persisted');
+  } finally { await guest.close(); }
+});

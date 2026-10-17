@@ -11,7 +11,7 @@ class KadenceCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
             add_action('template_redirect', function () {
                 remove_action('kadence_header', 'Kadence\header_markup');
                 remove_action('kadence_top_header', 'Kadence\top_header');
@@ -27,7 +27,7 @@ class KadenceCompatibility implements ThemeCompatibilityInterface
             add_action('kadence_header', [$manager, 'render_header'], 10);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
             add_action('template_redirect', function () {
                 remove_action('kadence_footer', 'Kadence\footer_markup');
                 remove_action('kadence_top_footer', 'Kadence\top_footer');
@@ -39,4 +39,3 @@ class KadenceCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

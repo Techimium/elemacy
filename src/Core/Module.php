@@ -4,7 +4,15 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
-abstract class Module
+use Elemacy\Core\Contracts\ServiceProviderInterface;
+
+/**
+ * A feature module is a service provider with an identity: register binds what
+ * it shares, boot attaches its behavior. ModuleManager runs every active
+ * module's register before any module's boot. See docs/ARCHITECTURE.md § Boot
+ * lifecycle.
+ */
+abstract class Module implements ServiceProviderInterface
 {
     abstract public function get_name(): string;
 
@@ -14,17 +22,44 @@ abstract class Module
 
     abstract public function get_description(): string;
 
-    abstract public function init();
+    /**
+     * Binds the services this module shares. Nothing by default.
+     */
+    public function register(Container $container): void
+    {
+    }
 
-    public function register_routes() {}
+    /**
+     * Attaches this module's hooks and registrations.
+     */
+    abstract public function boot(): void;
 
-    public function register_assets() {}
+    public function register_routes() {
+    }
 
-    public function on_enable(): void {}
+    public function register_assets() {
+    }
 
-    public function on_disable(): void {}
+    public function on_enable(): void {
+    }
+
+    public function on_disable(): void {
+    }
 
     public function is_always_active(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Whether this module is switched on when a site is seeded, i.e. a site
+     * that has no saved module preferences yet. Each module owns this answer
+     * so that seeding never needs a separate list of slugs to drift out of
+     * sync with get_name(). Unlike is_always_active(), it is only ever
+     * consulted at seeding time: an administrator can disable a
+     * default-active module afterwards like any other.
+     */
+    public function is_default_active(): bool
     {
         return false;
     }

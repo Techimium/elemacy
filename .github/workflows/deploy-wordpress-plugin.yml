@@ -38,7 +38,17 @@ jobs:
         working-directory: src-react
         run: |
           npm ci
-          npm run build
+          npm run build:zip
+          python3 scripts/verify-package.py ../build/elemacy-*.zip
+
+      - name: Retain exact distribution evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: elemacy-distribution-${{ github.sha }}
+          path: build/*.zip*
+
+      - name: Extract verified distribution
+        run: unzip -q build/elemacy-*.zip -d build/distribution
 
       - name: Install SVN
         run: sudo apt-get update && sudo apt-get install -y subversion rsync
@@ -60,13 +70,8 @@ jobs:
           echo "Checking out SVN into $TMP_DIR"
           svn checkout $SVN_URL $TMP_DIR --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive --trust-server-cert
 
-          # Copy plugin files to trunk (.distignore is the single source of truth)
-          echo "Copying plugin files to trunk..."
-          rsync -av --delete ./ $TMP_DIR/trunk \
-            --exclude-from=.distignore \
-            --exclude .distignore \
-            --exclude .git \
-            --exclude "$ASSETS_DIR"
+          # The verified ZIP is the same artifact retained for review; never copy the development tree.
+          rsync -av --delete build/distribution/elemacy/ "$TMP_DIR/trunk/"
 
           # Update SVN assets folder (banner, icon, screenshots) if present
           if [ -d "./$ASSETS_DIR" ]; then

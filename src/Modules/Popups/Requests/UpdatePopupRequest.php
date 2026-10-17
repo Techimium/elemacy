@@ -4,8 +4,9 @@ namespace Elemacy\Modules\Popups\Requests;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Sanitizer;
+use Elemacy\Http\Request;
+use Elemacy\Http\Sanitizer;
+use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
 class UpdatePopupRequest extends Request
@@ -54,5 +55,27 @@ class UpdatePopupRequest extends Request
             'rules.*.type' => Sanitizer::TEXT,
             'rules.*.params' => Sanitizer::ARRAY_DEEP,
         ];
+    }
+
+    /**
+     * The rules() and filters() only check that params is an array; a params shape
+     * that tries to smuggle a reserved discriminator key is
+     * rejected here, at the request boundary, before the popup is ever
+     * saved — the same check RuleDTO/TriggerDTO::collection_or_fail() runs
+     * again at the write boundary regardless of caller.
+     */
+    public function clean()
+    {
+        $data = parent::clean();
+
+        foreach (($data['rules'] ?? []) as $rule) {
+            RuleTriggerParams::assert_valid('rules', is_array($rule['params'] ?? null) ? $rule['params'] : []);
+        }
+
+        foreach (($data['triggers'] ?? []) as $trigger) {
+            RuleTriggerParams::assert_valid('triggers', is_array($trigger['params'] ?? null) ? $trigger['params'] : []);
+        }
+
+        return $data;
     }
 }

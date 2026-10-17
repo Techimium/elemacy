@@ -11,7 +11,7 @@ class GeneratePressCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
             add_action('template_redirect', function () {
                 remove_action('generate_header', 'generate_construct_header');
             }, 10);
@@ -19,7 +19,7 @@ class GeneratePressCompatibility implements ThemeCompatibilityInterface
             add_action('generate_header', [$manager, 'render_header'], 10);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
             add_action('template_redirect', function () {
                 remove_action('generate_footer', 'generate_construct_footer_widgets', 5);
                 remove_action('generate_footer', 'generate_construct_footer');
@@ -29,4 +29,3 @@ class GeneratePressCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

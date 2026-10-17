@@ -1,186 +1,138 @@
-// Builds a production-ready, distributable zip of the Elemacy plugin.
-//
-// Pipeline:
-//   1. Compile the React admin app (tsc + vite) into ../assets/admin.
-//   2. Stage a whitelist of runtime files into build/elemacy.
-//   3. Assert ELEMACY_ENV is production so a dev build can never be packaged.
-//   4. Install a no-dev Composer autoloader (falls back to copying the existing one).
-//   5. Zip the staging folder into build/elemacy-<version>.zip.
-//
-// Cross-platform: pure Node + npm/composer invoked through the shell, no OS-specific tooling.
-
+// Manifest-driven release staging. Each plugin owns this script and its manifest.
 import { spawnSync } from 'node:child_process';
 import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import archiver from 'archiver';
 
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SRC_REACT_DIR = path.resolve(SCRIPT_DIR, '..');
-const PLUGIN_ROOT = path.resolve(SRC_REACT_DIR, '..');
-const BUILD_DIR = path.join(PLUGIN_ROOT, 'build');
-const SLUG = 'elemacy';
-const STAGING_DIR = path.join(BUILD_DIR, SLUG);
+const scripts = path.dirname(fileURLToPath(import.meta.url));
+const frontend = path.resolve(scripts, '..');
+const root = path.resolve(frontend, '..');
+const manifest = JSON.parse(await fs.readFile(path.join(scripts, 'package-manifest.json'), 'utf8'));
+const build = path.join(root, 'build');
+const staging = path.join(build, manifest.slug);
+const hash = data => createHash('sha256').update(data).digest('hex');
 
-// Top-level files and folders that ship to production.
-const INCLUDE = [
-  'elemacy.php',
-  'uninstall.php',
-  'readme.txt',
-  'src',
-  'assets',
-  'languages',
-];
-
-function log(message) {
-  console.log(`\n[36m▶ ${message}[0m`);
-}
-
-function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit', shell: true });
-  if (result.status !== 0) {
-    throw new Error(`Command failed: ${command} ${args.join(' ')}`);
+function run(command, args, cwd, capture = false) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', stdio: capture ? 'pipe' : 'inherit', shell: false });
+  if (result.error || result.status !== 0) {
+    throw new Error(`Required command failed: ${command} ${args.join(' ')}: ${result.error?.message || result.stderr || result.status}`);
   }
+  return result.stdout?.trim() || '';
 }
 
-function hasComposer() {
-  const result = spawnSync('composer', ['--version'], { stdio: 'ignore', shell: true });
-  return result.status === 0;
+async function list(directory) {
+  const files = [];
+  for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+    const filename = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) throw new Error(`Release inputs must not be symlinks: ${filename}`);
+    if (entry.isDirectory()) files.push(...await list(filename));
+    else if (entry.isFile()) files.push(filename);
+  }
+  return files.sort();
 }
 
-async function readPluginVersion() {
-  const main = await fs.readFile(path.join(PLUGIN_ROOT, 'elemacy.php'), 'utf8');
-  const match = main.match(/^\s*\*\s*Version:\s*(.+)$/m);
-  return match ? match[1].trim() : '0.0.0';
-}
-
-async function copyRuntimeFiles() {
-  for (const entry of INCLUDE) {
-    const from = path.join(PLUGIN_ROOT, entry);
-    const to = path.join(STAGING_DIR, entry);
-    try {
-      await fs.access(from);
-    } catch {
-      console.warn(`  skipped (missing): ${entry}`);
-      continue;
+async function stage() {
+  const files = new Set(manifest.requiredFiles);
+  for (const [directory, extensions] of Object.entries(manifest.trees)) {
+    for (const absolute of await list(path.join(root, directory))) {
+      const relative = path.relative(root, absolute).split(path.sep).join('/');
+      if (relative.split('/').some(part => part.startsWith('.') || ['tests', 'test', '__tests__', 'node_modules'].includes(part))) continue;
+      if (manifest.exclude.some(excluded => relative === excluded || relative.startsWith(excluded))) continue;
+      if (extensions.includes(path.extname(relative))) files.add(relative);
     }
-    await fs.cp(from, to, { recursive: true });
-    console.log(`  added: ${entry}`);
   }
-}
-
-async function assertProdEnv() {
-  const target = path.join(STAGING_DIR, 'elemacy.php');
-  const contents = await fs.readFile(target, 'utf8');
-
-  if (/define\(\s*'ELEMACY_ENV'\s*,\s*'dev'\s*\)/.test(contents)) {
-    throw new Error(
-      "ELEMACY_ENV default is 'dev' in elemacy.php — refusing to package a dev build. Set it to 'production'."
-    );
+  for (const relative of [...files].sort()) {
+    const destination = path.join(staging, relative);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(path.join(root, relative), destination);
   }
-
-  if (!/define\(\s*'ELEMACY_ENV'\s*,\s*'production'\s*\)/.test(contents)) {
-    console.warn('  warning: ELEMACY_ENV default not recognized — verify production env manually.');
-    return;
-  }
-
-  console.log('  ELEMACY_ENV default verified: production');
-}
-
-async function buildVendor() {
-  const stagingVendor = path.join(STAGING_DIR, 'vendor');
-
-  if (hasComposer()) {
-    // Generate a clean production autoloader from a temporary composer.json copy.
-    await fs.copyFile(
-      path.join(PLUGIN_ROOT, 'composer.json'),
-      path.join(STAGING_DIR, 'composer.json')
-    );
-    const lock = path.join(PLUGIN_ROOT, 'composer.lock');
-    if (await exists(lock)) {
-      await fs.copyFile(lock, path.join(STAGING_DIR, 'composer.lock'));
+  for (const required of manifest.requiredRuntime) await fs.access(path.join(staging, required));
+  if (manifest.slug === 'elemacy') {
+    const bootstrap = await fs.readFile(path.join(staging, 'elemacy.php'), 'utf8');
+    if (!/define\(\s*'ELEMACY_ENV'\s*,\s*'production'\s*\)/.test(bootstrap)) {
+      throw new Error('ELEMACY_ENV must explicitly default to production.');
     }
-
-    run('composer', ['install', '--no-dev', '--optimize-autoloader', '--no-interaction'], STAGING_DIR);
-
-    // composer manifests are dev artifacts — don't ship them.
-    await fs.rm(path.join(STAGING_DIR, 'composer.json'), { force: true });
-    await fs.rm(path.join(STAGING_DIR, 'composer.lock'), { force: true });
-    console.log('  vendor: generated no-dev autoloader via composer');
-    return;
-  }
-
-  // Fallback: copy the existing autoloader without the dev package sources.
-  console.warn('  composer not found — copying existing autoloader (dev packages excluded)');
-  await fs.mkdir(stagingVendor, { recursive: true });
-  await fs.copyFile(
-    path.join(PLUGIN_ROOT, 'vendor', 'autoload.php'),
-    path.join(stagingVendor, 'autoload.php')
-  );
-  await fs.cp(
-    path.join(PLUGIN_ROOT, 'vendor', 'composer'),
-    path.join(stagingVendor, 'composer'),
-    { recursive: true }
-  );
-}
-
-async function exists(target) {
-  try {
-    await fs.access(target);
-    return true;
-  } catch {
-    return false;
   }
 }
 
-function createZip(version) {
-  return new Promise((resolve, reject) => {
-    const zipPath = path.join(BUILD_DIR, `${SLUG}-${version}.zip`);
-    const output = createWriteStream(zipPath);
+async function vendor() {
+  for (const name of ['composer.json', 'composer.lock']) await fs.copyFile(path.join(root, name), path.join(staging, name));
+  run('composer', ['install', '--no-dev', '--no-scripts', '--no-plugins', '--prefer-dist', '--optimize-autoloader', '--no-interaction'], staging);
+  run('php', ['-r', `
+    $root = $argv[1];
+    require $root . '/vendor/autoload.php';
+    foreach (['autoload_classmap.php', 'autoload_files.php'] as $name) {
+      $file = $root . '/vendor/composer/' . $name;
+      if (!file_exists($file)) continue;
+      foreach (require $file as $target) {
+        if (!is_file($target) || strpos(realpath($target), realpath($root) . DIRECTORY_SEPARATOR) !== 0) {
+          throw new RuntimeException('Autoload metadata references an absent/external file: ' . $target);
+        }
+      }
+    }
+    foreach (require $root . '/vendor/composer/autoload_psr4.php' as $paths) {
+      foreach ($paths as $target) if (!is_dir($target)) throw new RuntimeException('Missing autoload directory.');
+    }
+  `, staging], staging);
+  // composer.json stays beside vendor/ so the package describes its own dependencies;
+  // the lock also pins development packages that are not shipped.
+  await fs.rm(path.join(staging, 'composer.lock'));
+}
+
+async function zip(filename, files) {
+  await new Promise((resolve, reject) => {
+    const output = createWriteStream(filename);
     const archive = archiver('zip', { zlib: { level: 9 } });
-
-    output.on('close', () => resolve(zipPath));
+    output.on('close', resolve);
+    output.on('error', reject);
     archive.on('error', reject);
-    archive.on('warning', (err) => {
-      if (err.code !== 'ENOENT') reject(err);
-    });
-
+    archive.on('warning', reject);
     archive.pipe(output);
-    // Nest under <slug>/ so the zip unpacks into a proper plugin folder.
-    archive.directory(STAGING_DIR, SLUG);
-    archive.finalize();
+    // Fixed timestamps and ordering keep identical staged inputs reproducible.
+    for (const file of files) archive.file(path.join(staging, file.path), {
+      name: `${manifest.slug}/${file.path}`, date: new Date('2000-01-01T00:00:00Z'), mode: 0o644,
+    });
+    archive.finalize().catch(reject);
   });
 }
 
-async function main() {
-  const version = await readPluginVersion();
-  log(`Building Elemacy ${version} production package`);
-
-  log('Compiling React admin app');
-  run('npm', ['run', 'build'], SRC_REACT_DIR);
-
-  log('Staging runtime files');
-  await fs.rm(STAGING_DIR, { recursive: true, force: true });
-  await fs.mkdir(STAGING_DIR, { recursive: true });
-  await copyRuntimeFiles();
-
-  log('Verifying production environment');
-  await assertProdEnv();
-
-  log('Preparing Composer autoloader');
-  await buildVendor();
-
-  log('Creating zip archive');
-  const zipPath = await createZip(version);
-
-  log('Cleaning up');
-  await fs.rm(STAGING_DIR, { recursive: true, force: true });
-
-  console.log(`\n[32m✔ Production build ready:[0m ${path.relative(SRC_REACT_DIR, zipPath)}`);
+try {
+  // Fail before modifying previous artifacts if any required tooling/input is missing.
+  for (const command of ['composer', 'php', 'npm', 'git']) run(command, ['--version'], root, true);
+  for (const name of ['composer.lock', 'src-react/package-lock.json']) await fs.access(path.join(root, name));
+  const main = await fs.readFile(path.join(root, `${manifest.slug}.php`), 'utf8');
+  const version = main.match(/^\s*\*\s*Version:\s*([0-9][^\s]*)\s*$/m)?.[1];
+  if (!version || !/^[0-9A-Za-z.+-]+$/.test(version)) throw new Error('Missing or invalid plugin version.');
+  const revision = run('git', ['rev-parse', 'HEAD'], root, true);
+  const dirty = run('git', ['status', '--porcelain', '--untracked-files=normal'], root, true) !== '';
+  run('npm', ['run', 'build'], frontend);
+  await fs.rm(staging, { recursive: true, force: true });
+  await fs.mkdir(staging, { recursive: true });
+  await stage();
+  await vendor();
+  const files = [];
+  for (const filename of await list(staging)) {
+    files.push({ path: path.relative(staging, filename).split(path.sep).join('/'), sha256: hash(await fs.readFile(filename)) });
+  }
+  const filename = path.join(build, `${manifest.slug}-${version}.zip`);
+  const temporary = filename + '.partial';
+  await zip(temporary, files);
+  await fs.rename(temporary, filename);
+  const checksum = hash(await fs.readFile(filename));
+  const evidence = {
+    slug: manifest.slug, version, revision, dirty,
+    composerLock: hash(await fs.readFile(path.join(root, 'composer.lock'))),
+    frontendLock: hash(await fs.readFile(path.join(frontend, 'package-lock.json'))),
+    zipSha256: checksum, files,
+  };
+  await fs.writeFile(filename + '.manifest.json', JSON.stringify(evidence, null, 2) + '\n');
+  await fs.writeFile(filename + '.sha256', `${checksum}  ${path.basename(filename)}\n`);
+  await fs.rm(staging, { recursive: true, force: true });
+  console.log(`Built ${filename} (${files.length} files); manifest and SHA-256 retained. Source revision ${revision}${dirty ? ' with working-tree changes' : ''}.`);
+} catch (error) {
+  console.error(`Package build failed: ${error.message}`);
+  process.exitCode = 1;
 }
-
-main().catch((error) => {
-  console.error(`\n[31m✖ Build failed:[0m ${error.message}`);
-  process.exit(1);
-});

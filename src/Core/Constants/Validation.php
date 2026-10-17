@@ -4,48 +4,48 @@ namespace Elemacy\Core\Constants;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Validation\Rules\ArrayRule;
-use Elemacy\Core\Validation\Rules\BooleanRule;
-use Elemacy\Core\Validation\Rules\DateFormatRule;
-use Elemacy\Core\Validation\Rules\DateRule;
-use Elemacy\Core\Validation\Rules\DateTimeRule;
-use Elemacy\Core\Validation\Rules\EmailRule;
-use Elemacy\Core\Validation\Rules\EmailUniqueRule;
-use Elemacy\Core\Validation\Rules\FloatRule;
-use Elemacy\Core\Validation\Rules\GreaterThanEqualRule;
-use Elemacy\Core\Validation\Rules\GreaterThanRule;
-use Elemacy\Core\Validation\Rules\InRule;
-use Elemacy\Core\Validation\Rules\IntegerRule;
-use Elemacy\Core\Validation\Rules\IsValidImageIdRule;
-use Elemacy\Core\Validation\Rules\LessThanEqualRule;
-use Elemacy\Core\Validation\Rules\LessThanRule;
-use Elemacy\Core\Validation\Rules\MaxRule;
-use Elemacy\Core\Validation\Rules\MinRule;
-use Elemacy\Core\Validation\Rules\NotInRule;
-use Elemacy\Core\Validation\Rules\NullableRule;
-use Elemacy\Core\Validation\Rules\NumberRule;
-use Elemacy\Core\Validation\Rules\ObjectRule;
-use Elemacy\Core\Validation\Rules\ProhibitedIfRule;
-use Elemacy\Core\Validation\Rules\RegexRule;
-use Elemacy\Core\Validation\Rules\RequiredIfExists;
-use Elemacy\Core\Validation\Rules\RequiredIfRule;
-use Elemacy\Core\Validation\Rules\RequiredRule;
-use Elemacy\Core\Validation\Rules\SameAsRule;
-use Elemacy\Core\Validation\Rules\Sanitizer;
-use Elemacy\Core\Validation\Rules\StringRule;
-use Elemacy\Core\Validation\Rules\UrlRule;
-use Elemacy\Core\Validation\Rules\UserExists;
+use Elemacy\Http\Validation\Rules\ArrayRule;
+use Elemacy\Http\Validation\Rules\BooleanRule;
+use Elemacy\Http\Validation\Rules\DateFormatRule;
+use Elemacy\Http\Validation\Rules\DateRule;
+use Elemacy\Http\Validation\Rules\DateTimeRule;
+use Elemacy\Http\Validation\Rules\EmailRule;
+use Elemacy\Http\Validation\Rules\EmailUniqueRule;
+use Elemacy\Http\Validation\Rules\FloatRule;
+use Elemacy\Http\Validation\Rules\GreaterThanEqualRule;
+use Elemacy\Http\Validation\Rules\GreaterThanRule;
+use Elemacy\Http\Validation\Rules\InRule;
+use Elemacy\Http\Validation\Rules\IntegerRule;
+use Elemacy\Http\Validation\Rules\IsValidImageIdRule;
+use Elemacy\Http\Validation\Rules\LessThanEqualRule;
+use Elemacy\Http\Validation\Rules\LessThanRule;
+use Elemacy\Http\Validation\Rules\MaxRule;
+use Elemacy\Http\Validation\Rules\MinRule;
+use Elemacy\Http\Validation\Rules\NotInRule;
+use Elemacy\Http\Validation\Rules\NullableRule;
+use Elemacy\Http\Validation\Rules\NumberRule;
+use Elemacy\Http\Validation\Rules\ObjectRule;
+use Elemacy\Http\Validation\Rules\ProhibitedIfRule;
+use Elemacy\Http\Validation\Rules\RegexRule;
+use Elemacy\Http\Validation\Rules\RequiredIfExists;
+use Elemacy\Http\Validation\Rules\RequiredIfRule;
+use Elemacy\Http\Validation\Rules\RequiredRule;
+use Elemacy\Http\Validation\Rules\SameAsRule;
+use Elemacy\Http\Validation\Rules\Sanitizer;
+use Elemacy\Http\Validation\Rules\StringRule;
+use Elemacy\Http\Validation\Rules\UrlRule;
+use Elemacy\Http\Validation\Rules\UserExists;
 
 class Validation
 {
     /**
      * The rules to validator method map
-     * 
+     *
      * @var array
-     * 
+     *
      * @since 3.3.0
      */
-    const RULE_MAP = [
+    public const RULE_MAP = [
         'required'  => RequiredRule::class,
         'string'    => StringRule::class,
         'array'     => ArrayRule::class,

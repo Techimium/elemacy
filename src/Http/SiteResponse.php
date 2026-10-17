@@ -1,0 +1,65 @@
+<?php
+
+namespace Elemacy\Http;
+
+defined('ABSPATH') || exit;
+
+/**
+ * Site Response Class
+ *
+ * @since 1.0.0
+ */
+class SiteResponse
+{
+    protected static $instance;
+
+    /**
+     * Get the singleton instance of the SiteResponse class.
+     *
+     * @return SiteResponse
+     */
+    public static function instance()
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
+    /**
+     * Send a JSON success response
+     *
+     * @param array $data Response data.
+     * @param int   $status_code HTTP status code.
+     * @return void
+     */
+    public function json($data = [], $status_code = 200)
+    {
+        wp_send_json_success($data, $status_code);
+    }
+
+    /**
+     * Send a redirect response
+     *
+     * @param string $url Redirect URL.
+     * @param int    $status_code HTTP status code (301 or 302).
+     * @return void
+     */
+    public function redirect($url, $status_code = 302)
+    {
+        wp_redirect($url, $status_code); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+        exit;
+    }
+
+    /**
+     * Send a JSON error response
+     *
+     * @param array $data Error data.
+     * @param int   $status_code HTTP status code.
+     * @return void
+     */
+    public function json_error($data = [], $status_code = 400)
+    {
+        wp_send_json_error($data, $status_code);
+    }
+}

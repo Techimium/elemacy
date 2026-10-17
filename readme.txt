@@ -2,14 +2,14 @@
 Contributors: techimium, mdashraful
 Tags: elementor, elementor addons, theme builder, popup builder, dynamic tags
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Stable tag: 1.0.0
 Requires PHP: 7.4
 Requires Plugins: elementor
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-One Elementor addon to replace them all. Theme Builder, Display Conditions, Popups & Floating Elements, Loop Builder, Form Builder, Dynamic Tags, Custom CSS, and a suite of widgets — all free.
+One free Elementor addon: Theme Builder, Display Conditions, Popups, Loop Builder, Forms, Dynamic Tags, Custom CSS and widgets.
 
 == Description ==
 
@@ -17,7 +17,7 @@ One Elementor addon to replace them all. Theme Builder, Display Conditions, Popu
 
 Stop installing five different plugins to get five different features. Elemacy brings everything together in one lean, well-coded package. The core feature set is completely free; advanced capabilities are available in **Elemacy Pro**.
 
-> Works with the **free version of Elementor** — Elementor Pro is **not** required.
+> Works with the **free version of Elementor** — Elementor Pro is **not** required. Requires **Elementor 3.35.9 or higher**.
 
 ---
 
@@ -251,7 +251,7 @@ Elemacy Pro installs on top of the free plugin and unlocks advanced features. No
 ### 🔌 Compatibility
 
 * **WordPress** 6.0+
-* **Elementor** (Free) — latest version recommended
+* **Elementor** (Free) — 3.35.9 or higher; latest version recommended
 * **PHP** 7.4+
 * **Advanced Custom Fields (ACF)** — optional, required only for the ACF widgets and ACF dynamic tags
 * **WooCommerce** — Theme Builder detects the Shop page when resolving archive templates
@@ -307,7 +307,7 @@ Whether you want to submit a bug fix, add a new widget, propose a feature, or im
 
 = Does Elemacy require Elementor Pro? =
 
-No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features.
+No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features. Elemacy requires Elementor 3.35.9 or higher.
 
 = Is the free version really free? =
 
@@ -373,10 +373,12 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 
 = 1.0.0 =
 * Initial release
-* Theme Builder: Header, Footer, Single, Archive, Post Archive, 404, Search Results, Loop, and Custom Post Type templates, with multi-theme compatibility
-* Display Conditions: Entire Site, Singular Post Type, and Post Type Archive (advanced conditions available in Elemacy Pro)
+* Theme Builder: Header, Footer, Single, Archive, Post Archive, 404, Search Results, Loop, and Custom Post Type templates, working with classic and block themes
+* Header and Footer templates edit on their own Elementor document types, showing only the settings that apply to site chrome
+* Display Conditions: Entire Site, Singular Post Type, Post Type Archive, and Search Results for Search templates (advanced conditions, including Search Results by post type, available in Elemacy Pro); when several templates match a page, the most specific one is used
 * Popups & Floating Elements: popups, top/bottom bars, banners, and floating elements designed in Elementor, with display conditions, Page Load/Click triggers, and Frequency Cap/Logged-in Users rules
-* Loop Builder Grid widget with AJAX pagination, query builder, and responsive columns
+* Loop Builder Grid widget with AJAX pagination (up to 100 items per page), query builder, and responsive columns; a "Current Query" data source lists whatever the page itself queries (archives, search, shop, blog, single pages) and paginates through the page's own URLs, with AJAX updating the address bar and history; Loop Grid also offers Load More and Infinite Scroll pagination for every data source
+* The Archive Title dynamic tag shows "Search Results for: term" in a Search Results template; an Archive template can be previewed as a category, tag, taxonomy term, author or month, and the term, author and Loop Item preview pickers search as you type
 * Loop Carousel widget
 * Form Builder widget with Text, Email, Textarea, Tel, Select, Radio, and Checkbox fields; Email action with full configuration
 * Nav Menu widget with horizontal/vertical/stacked layouts, mobile toggle, dropdown submenus, and comprehensive styling controls

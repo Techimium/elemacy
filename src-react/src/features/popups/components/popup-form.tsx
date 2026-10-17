@@ -22,7 +22,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConditionsField } from '@/components/conditions/conditions-field';
 import { CreatePopupSchema, type CreatePopup, type UpdatePopup } from '@/features/popups/schemas/popup';
-import { STATUS_OPTIONS, type PopupType } from '@/features/popups/constants/popups';
+import { STATUS_OPTIONS } from '@/features/popups/constants/popups';
+import type { Availability } from '@/schemas/availability';
 import { TypeField } from './type-field';
 import { TriggersField } from './triggers/triggers-field';
 import { RulesField } from './rules/rules-field';
@@ -40,6 +41,12 @@ interface PopupFormProps {
     saveAndEditLabel?: string;
     /** Whether to show the publish/draft status select (Edit modal only). */
     showStatus?: boolean;
+    /**
+     * The currently saved popup's own type availability —
+     * presentational only, not part of the submitted form values, so it is a
+     * separate prop rather than a `defaultValues` field.
+     */
+    typeAvailability?: Availability;
 }
 
 export function PopupForm({
@@ -49,6 +56,7 @@ export function PopupForm({
     submitLabel,
     saveAndEditLabel,
     showStatus = false,
+    typeAvailability,
 }: PopupFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Popup', 'elemacy');
     const displaySaveAndEditLabel =
@@ -152,7 +160,11 @@ export function PopupForm({
                             control={form.control}
                             name="type"
                             render={({ field }) => (
-                                <TypeField value={field.value as PopupType} onChange={field.onChange} />
+                                <TypeField
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    availability={typeAvailability}
+                                />
                             )}
                         />
                         <p className="mt-4 text-sm text-muted-foreground">

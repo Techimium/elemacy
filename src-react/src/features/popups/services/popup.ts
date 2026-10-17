@@ -3,6 +3,7 @@ import {
     PopupSchema,
     type CreatePopup,
     type Popup,
+    type PopupTypeOption,
     type UpdatePopup,
 } from '@/features/popups/schemas/popup';
 import { apiClient, parseResponse } from '@/lib/api';
@@ -11,6 +12,20 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 const POPUPS_QUERY_KEY = ['popups'] as const;
 const POPUPS_PER_PAGE = 20;
+
+const fetchPopupTypes = async (): Promise<PopupTypeOption[]> => {
+    const response = await apiClient.get('popups/types');
+    return response.data?.data ?? [];
+};
+
+/** Available popup types. */
+export const usePopupTypes = () => {
+    return useQuery({
+        queryKey: ['popup-types'],
+        queryFn: fetchPopupTypes,
+        staleTime: Infinity,
+    });
+};
 
 export type PopupFilters = { search?: string; type?: string };
 

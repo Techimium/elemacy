@@ -8,6 +8,7 @@ use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Plugin;
 use Elementor\Repeater;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
@@ -43,6 +44,12 @@ class Form extends BaseWidget
     public function get_script_depends()
     {
         return ['elemacy-form'];
+    }
+
+    protected function is_dynamic_content(): bool
+    {
+        // Nonces and placement proofs belong to the current visitor/host, never Elementor's element cache.
+        return true;
     }
 
     protected function register_controls()
@@ -504,7 +511,7 @@ class Form extends BaseWidget
                 ],
             ]
         );
-        
+
         $this->add_control(
             'field_placeholder_color',
             [
@@ -749,35 +756,37 @@ class Form extends BaseWidget
             ]
         );
 
-        $this->add_control('message_border_type',
-        [
-			'label' => esc_html__( 'Border Type', 'elemacy' ),
-			'type' => Controls_Manager::SELECT,
-			'options' => [
-				'' => esc_html__( 'Default', 'elemacy' ),
-				'none' => esc_html__( 'None', 'elemacy' ),
-				'solid' => esc_html__( 'Solid', 'elemacy' ),
-				'double' => esc_html__( 'Double', 'elemacy' ),
-				'dotted' => esc_html__( 'Dotted', 'elemacy' ),
-				'dashed' => esc_html__( 'Dashed', 'elemacy' ),
-				'groove' => esc_html__( 'Groove', 'elemacy' ),
-			],
-			'selectors' => [
-				'{{SELECTOR}} .elemacy-message' => 'border-style: {{VALUE}};',
-			],
-		]);
+        $this->add_control(
+            'message_border_type',
+            [
+                'label' => esc_html__('Border Type', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
+                'options' => [
+                    '' => esc_html__('Default', 'elemacy'),
+                    'none' => esc_html__('None', 'elemacy'),
+                    'solid' => esc_html__('Solid', 'elemacy'),
+                    'double' => esc_html__('Double', 'elemacy'),
+                    'dotted' => esc_html__('Dotted', 'elemacy'),
+                    'dashed' => esc_html__('Dashed', 'elemacy'),
+                    'groove' => esc_html__('Groove', 'elemacy'),
+                ],
+                'selectors' => [
+                    '{{SELECTOR}} .elemacy-message' => 'border-style: {{VALUE}};',
+                ],
+            ]
+        );
 
         $this->add_responsive_control(
             'message_border_width',
             [
-                'label' => esc_html__( 'Border Width', 'elemacy' ),
+                'label' => esc_html__('Border Width', 'elemacy'),
                 'type' => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', 'rem', 'vw', 'custom' ],
+                'size_units' => ['px', 'em', 'rem', 'vw', 'custom'],
                 'selectors' => [
                     '{{SELECTOR}} .elemacy-message' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
                 'responsive' => true,
             ]
@@ -864,7 +873,7 @@ class Form extends BaseWidget
                     '{{WRAPPER}} .elemacy-message-success' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -912,7 +921,7 @@ class Form extends BaseWidget
                     '{{WRAPPER}} .elemacy-message-danger' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -939,13 +948,21 @@ class Form extends BaseWidget
         // Elementor has switched to — not the viewed page (get_the_ID()).
         $document = Plugin::$instance->documents->get_current();
         $document_id = $document ? $document->get_main_id() : get_the_ID();
+        $form_context = '';
+        try {
+            $form_context = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver::class)
+                ->context((int) $document_id, $this->get_id());
+        } catch (\Elemacy\Http\Exceptions\ValidationException $error) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Deliberate, see below.
+            // An editor may render an unsaved/draft widget; it cannot mint a public placement proof.
+        }
 
         ?>
-        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
+            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                 <input type="hidden" name="action" value="elemacy_widgets_form_submit">
                 <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
                 <input type="hidden" name="post_id" value="<?php echo esc_attr($document_id); ?>">
+                <input type="hidden" name="elemacy_form_context" value="<?php echo esc_attr($form_context); ?>">
                 <?php /* Honeypot field for simple spam protection */ ?>
                 <div style="display:none !important;">
                     <label>Do not fill this field</label>
@@ -953,7 +970,8 @@ class Form extends BaseWidget
                 </div>
                 <?php wp_nonce_field('elemacy_widgets_form_submit', '_wpnonce'); ?>
 
-                <?php foreach ($settings['form_fields'] as $index => $field) :
+                <?php
+                foreach ($settings['form_fields'] as $index => $field) :
                     $field_id = 'field_' . $index;
                     $this->add_render_attribute('field_wrapper_' . $index, [
                         'class' => [
@@ -975,7 +993,7 @@ class Form extends BaseWidget
                         $this->add_render_attribute('input_' . $index, 'aria-required', 'true');
                     }
                     ?>
-                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                         <?php if ($settings['labels_display'] === 'yes' && !empty($field['label'])) : ?>
                             <label class="elemacy-field-label" for="<?php echo esc_attr($field_id); ?>">
                                 <?php echo esc_html($field['label']); ?>
@@ -986,14 +1004,15 @@ class Form extends BaseWidget
                         switch ($field['type']) {
                             case 'textarea':
                                 ?>
-                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?> rows="5"></textarea>
+                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?> rows="5"></textarea>
                                 <?php
                                 break;
                             case 'select':
                                 $options = explode("\n", $field['options']);
                                 ?>
-                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                                    <?php foreach ($options as $option) :
+                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
+                                    <?php
+                                    foreach ($options as $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
                                         $value = isset($option_parts[1]) ? $option_parts[1] : $label;
@@ -1011,7 +1030,8 @@ class Form extends BaseWidget
                                 $type = $field['type'];
                                 ?>
                                 <div class="elemacy-field-subgroup">
-                                    <?php foreach ($options as $opt_index => $option) :
+                                    <?php
+                                    foreach ($options as $opt_index => $option) :
                                         $option_parts = explode('|', $option);
                                         $label = $option_parts[0];
                                         $value = isset($option_parts[1]) ? $option_parts[1] : $label;
@@ -1023,7 +1043,7 @@ class Form extends BaseWidget
                                                 name="form_field[<?php echo esc_attr($index); ?>]<?php echo 'checkbox' === $type ? '[]' : ''; ?>" 
                                                 id="<?php echo esc_attr($sub_id); ?>" 
                                                 value="<?php echo esc_attr(trim($value)); ?>"
-                                                <?php echo esc_attr( $field['required'] ? 'required' : '' ); ?>
+                                                <?php echo esc_attr($field['required'] ? 'required' : ''); ?>
                                             >
                                             <label for="<?php echo esc_attr($sub_id); ?>"><?php echo esc_html(trim($label)); ?></label>
                                         </div>
@@ -1033,7 +1053,7 @@ class Form extends BaseWidget
                                 break;
                             default:
                                 ?>
-                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
+                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string returns pre-sanitized HTML attributes ?>>
                                 <?php
                                 break;
                         }
@@ -1055,6 +1075,6 @@ class Form extends BaseWidget
 
     protected function content_template()
     {
-        // For editor live preview if needed
+        // For editor live preview if needed.
     }
 }

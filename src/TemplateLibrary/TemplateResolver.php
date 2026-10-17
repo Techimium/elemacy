@@ -19,6 +19,8 @@ class TemplateResolver
     protected ResolverCache $cache;
 
     /**
+     * Per-type results for this request, keyed by acting site and type.
+     *
      * @var array<string, int|null>
      */
     protected static array $resolved = [];
@@ -37,19 +39,34 @@ class TemplateResolver
         $this->cache = $cache ?? new ResolverCache();
     }
 
+    /** Drops the per-type evaluation memo. */
+    public static function reset(): void
+    {
+        static::$resolved = [];
+    }
+
     /**
-     * The single item of $type that applies: the first whose conditions match,
-     * else the first with no conditions (global fallback). Returns its post id.
+     * The single item of $type that applies: of everything whose conditions
+     * match, the one that matched most specifically; else the first with no
+     * conditions (global fallback). Returns its post id.
+     *
+     * Every candidate is evaluated rather than stopping at the first match,
+     * because a broad template appearing earlier in the index must not beat a
+     * narrow one appearing later. See docs/ARCHITECTURE.md § Template
+     * precedence.
      */
     public function resolve(string $type): ?int
     {
-        if (array_key_exists($type, static::$resolved)) {
-            return static::$resolved[$type];
+        $key = get_current_blog_id() . ':' . $type;
+
+        if (array_key_exists($key, static::$resolved)) {
+            return static::$resolved[$key];
         }
 
         $candidates = $this->cache->get_index()[$type] ?? [];
         $fallback   = null;
         $match      = null;
+        $best       = null;
 
         foreach ($candidates as $entry) {
             if (empty($entry['conditions'])) {
@@ -57,13 +74,24 @@ class TemplateResolver
                 continue;
             }
 
-            if ($this->conditions_match($entry['conditions'])) {
+            $specificity = $this->match_specificity($entry['conditions']);
+
+            if ($specificity === null) {
+                continue;
+            }
+
+            // Strictly greater: the first candidate to reach a level keeps it,
+            // and the index is already ordered newest-first, so that ordering
+            // is the tie-break within one level.
+            if ($best === null || $specificity > $best) {
+                $best  = $specificity;
                 $match = (int) $entry['id'];
-                break;
             }
         }
 
-        return static::$resolved[$type] = ($match ?? $fallback);
+        static::$resolved[$key] = $match ?? $fallback;
+
+        return static::$resolved[$key];
     }
 
     /**
@@ -91,5 +119,17 @@ class TemplateResolver
     protected function conditions_match(array $conditions): bool
     {
         return ConditionEvaluator::instance()->evaluate(ConditionRuleDTO::collection($conditions));
+    }
+
+    /**
+     * How specifically $conditions match this request, or null when they do
+     * not match it at all.
+     *
+     * @param array $conditions Stored condition rules.
+     * @return int|null
+     */
+    protected function match_specificity(array $conditions): ?int
+    {
+        return ConditionEvaluator::instance()->match(ConditionRuleDTO::collection($conditions));
     }
 }

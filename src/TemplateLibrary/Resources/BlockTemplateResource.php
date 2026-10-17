@@ -4,7 +4,7 @@ namespace Elemacy\TemplateLibrary\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
 class BlockTemplateResource extends Resource
 {

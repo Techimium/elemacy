@@ -4,9 +4,11 @@ namespace Elemacy\Modules\Popups\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
+use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\TemplateLibrary\TemplateResolver;
 
 /**
@@ -30,10 +32,6 @@ class PopupDisplayResolver
      * Return every published popup whose display conditions match the current
      * request.
      *
-     * A popup with no conditions is treated as global (shows everywhere).
-     * Otherwise the shared condition engine decides (include-OR / exclude-AND /
-     * no-include = show everywhere).
-     *
      * @return PopupDTO[]
      */
     public function resolve_all(): array
@@ -49,7 +47,7 @@ class PopupDisplayResolver
             _prime_post_caches($ids, false, true);
         }
 
-        $service = new PopupService();
+        $service = Container::instance()->singleton(PopupService::class);
         $matched = [];
 
         foreach ($ids as $id) {
@@ -59,15 +57,16 @@ class PopupDisplayResolver
                 continue;
             }
 
-            // A published popup with no Elementor elements is never shown
+            // A published popup with no Elementor elements is never shown.
             if (!$this->has_content($popup)) {
                 continue;
             }
 
-            // Server-evaluable advanced rules (logged-in, etc.) gate the popup
-            // before it is handed to the frontend. Client-side rules (frequency,
+            // Every configured rule and trigger must be available before this
+            // popup is handed to the frontend, then server-evaluable advanced
+            // rules (logged-in, etc.) gate it; client-side rules (frequency,
             // devices, …) are enforced in engine.js.
-            if (!$this->passes_server_rules($popup)) {
+            if (!$this->passes_required_capabilities($popup)) {
                 continue;
             }
 
@@ -82,14 +81,27 @@ class PopupDisplayResolver
         return apply_filters(Hooks::POPUP_MATCHED_FILTER, $matched);
     }
 
+    /** Server-side eligibility independent of frontend display orchestration/query matching. */
+    public function is_runtime_eligible(PopupDTO $popup): bool
+    {
+        if (
+            $popup->status !== 'publish' || post_password_required((int) $popup->id)
+            || !$this->has_content($popup) || !$this->passes_required_capabilities($popup)
+        ) {
+            return false;
+        }
+        foreach ($popup->conditions as $condition) {
+            if (\Elemacy\Conditions\ConditionManager::instance()->get_availability($condition->type)->is_unavailable()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Whether the popup has any authored Elementor content. A never-edited
      * document stores an empty elements array; showing it would paint only the
      * overlay backdrop with no visible content box.
-     *
-     * Mirrors Elementor's own Document::get_elements_data() (a json_decode of the
-     * _elementor_data meta) without instantiating a Document on the hot path; the
-     * meta is already cache-primed in resolve_all().
      */
     protected function has_content(PopupDTO $popup): bool
     {
@@ -105,10 +117,15 @@ class PopupDisplayResolver
     }
 
     /**
-     * Drop the popup if any server-evaluable rule attached to it fails.
+     * Drop the popup if any attached rule or trigger is unavailable, or if any
+     * server-evaluable rule fails.
      */
-    protected function passes_server_rules(PopupDTO $popup): bool
+    protected function passes_required_capabilities(PopupDTO $popup): bool
     {
+        if (!$this->has_available_triggers($popup)) {
+            return false;
+        }
+
         $rules = is_array($popup->rules) ? $popup->rules : [];
 
         if (empty($rules)) {
@@ -118,9 +135,37 @@ class PopupDisplayResolver
         $manager = RuleManager::instance();
 
         foreach (RuleDTO::collection($rules) as $dto) {
+            if ($manager->get_availability($dto->type)->is_unavailable()) {
+                return false;
+            }
+
             $rule = $manager->get($dto->type);
 
-            if ($rule && $rule->is_server_evaluable() && !$rule->check($dto)) {
+            if ($rule->is_server_evaluable() && !$rule->check($dto)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Every configured trigger must be available: one the loaded runtime
+     * cannot execute must not be silently dropped from its way-to-open set,
+     * since an administrator authored it as part of how this popup opens.
+     */
+    protected function has_available_triggers(PopupDTO $popup): bool
+    {
+        $triggers = is_array($popup->triggers) ? $popup->triggers : [];
+
+        if (empty($triggers)) {
+            return true;
+        }
+
+        $manager = TriggerManager::instance();
+
+        foreach (TriggerDTO::collection($triggers) as $dto) {
+            if ($manager->get_availability($dto->type)->is_unavailable()) {
                 return false;
             }
         }

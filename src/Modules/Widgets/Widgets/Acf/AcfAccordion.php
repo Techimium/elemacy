@@ -4,21 +4,13 @@ namespace Elemacy\Modules\Widgets\Widgets\Acf;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\Widgets\Services\AcfRepeaterResolver;
+use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elementor\Controls_Manager;
 use Elementor\Icons_Manager;
 use Elementor\Utils;
 use Elementor\Widget_Accordion;
 
-/**
- * Renders an Elementor accordion populated from an ACF repeater field.
- *
- * Extends the core Widget_Accordion so all of its style controls (icons,
- * typography, colors, borders, etc.) work unchanged. We replace the static
- * `tabs` repeater with three text controls that point at an ACF repeater and
- * its title / content sub-fields, then synthesize `$settings['tabs']` at
- * display time from the resolved rows.
- */
+/** Renders an Elementor accordion populated from an ACF repeater field. */
 class AcfAccordion extends Widget_Accordion
 {
     public function get_name()
@@ -169,7 +161,8 @@ class AcfAccordion extends Widget_Accordion
         $id_int   = substr($this->get_id_int(), 0, 3);
         ?>
         <div class="elementor-accordion" role="tablist">
-            <?php foreach ($settings['tabs'] as $index => $item) :
+            <?php
+            foreach ($settings['tabs'] as $index => $item) :
                 $tab_count = $index + 1;
 
                 $tab_title_setting_key   = $this->get_repeater_setting_key('tab_title', 'tabs', $index);
@@ -207,13 +200,16 @@ class AcfAccordion extends Widget_Accordion
                         <?php endif; ?>
                         <a class="elementor-accordion-title" tabindex="0"><?php echo esc_html($item['tab_title']); ?></a>
                     </<?php Utils::print_validated_html_tag($settings['title_html_tag']); ?>>
-                    <div <?php $this->print_render_attribute_string($tab_content_setting_key); ?>><?php
+                    <div <?php $this->print_render_attribute_string($tab_content_setting_key); ?>>
+                    <?php
                         $this->print_text_editor($item['tab_content']);
-                    ?></div>
+                    ?>
+                    </div>
                 </div>
             <?php endforeach; ?>
 
-            <?php if (!empty($settings['faq_schema']) && 'yes' === $settings['faq_schema']) :
+            <?php
+            if (!empty($settings['faq_schema']) && 'yes' === $settings['faq_schema']) :
                 $json = [
                     '@context'   => 'https://schema.org',
                     '@type'      => 'FAQPage',

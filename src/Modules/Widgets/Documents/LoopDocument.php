@@ -4,20 +4,13 @@ namespace Elemacy\Modules\Widgets\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
-use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
+use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\LoopDataSourceRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
 
-/**
- * Elementor document for Loop Item templates. A loop item is a bare card
- * rendered per item by the Loop Builder widget, so it edits on Canvas and
- * previews against one real item from whichever registered data source
- * (Posts, Terms, Users, ACF Repeater, …) is chosen in Preview Settings —
- * the same registry Loop Grid/Carousel use to render, so a newly registered
- * source gets standalone preview support automatically.
- */
+/** Elementor document for Loop Item templates. */
 class LoopDocument extends PreviewablePageBase
 {
     public static function get_type()
@@ -51,7 +44,9 @@ class LoopDocument extends PreviewablePageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+    /**
+     * Forces Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -67,7 +62,7 @@ class LoopDocument extends PreviewablePageBase
         parent::__construct($data);
     }
 
-    const PREVIEW_DATA_SOURCE = 'preview_data_source';
+    public const PREVIEW_DATA_SOURCE = 'preview_data_source';
 
     protected function register_preview_controls(): void
     {

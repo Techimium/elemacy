@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EllipsisIcon } from 'lucide-react';
 import type { PopupListItem } from '@/features/popups/schemas/popup';
-import { POPUP_TYPES } from '@/features/popups/constants/popups';
+import { usePopupTypes } from '@/features/popups/services/popup';
 import { Slot } from '@/components/slot';
 import { Slots } from '@/lib/slots';
 import { LockedAnalytics } from '@/features/popups/components/locked-analytics';
@@ -39,8 +39,11 @@ function formatDate(date: string) {
 }
 
 function PopupCard({ popup, onEdit, onDelete, onDuplicate, onEditWithElementor }: PopupCardProps) {
-    const typeLabel =
-        POPUP_TYPES.find((t) => t.value === popup.type)?.label || __('Unknown', 'elemacy');
+    // usePopupTypes() is cached (staleTime: Infinity) from the toolbar filter
+    // fetch that already ran for this list, so this never fires its own
+    // request per card.
+    const { data: types = [] } = usePopupTypes();
+    const typeLabel = types.find((t) => t.value === popup.type)?.label || __('Unknown', 'elemacy');
 
     return (
         <Card>

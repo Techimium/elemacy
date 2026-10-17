@@ -135,10 +135,8 @@
 			root.classList.add('is-sticky');
 		}
 
-		// Z-index on the positioning root (above page content).
-		if (display.z_index) {
-			root.style.zIndex = String(display.z_index);
-		}
+		// Z-index is applied on every open() instead (opening order matters
+		// for modals sharing the stack; hydrate() only ever runs once).
 
 		// Animation class.
 		var animIn = display.animation && display.animation.in ? display.animation.in : 'none';
@@ -183,12 +181,37 @@
 			}
 		}
 
+		// Captured before appending — a DocumentFragment empties into its new
+		// parent on append, but an already-obtained element reference stays
+		// valid across that move.
 		var content = fragment.querySelector ? fragment.querySelector('.elementor') : null;
+
+		// The COMPLETE fragment is appended, not just the located .elementor
+		// element: a prepared document can carry sibling <style>/<link>
+		// markup alongside its root (see Core/Rendering/TemplateRenderer::
+		// prepare()), and appending only .elementor would silently discard it.
+		root.appendChild(fragment);
+
 		if (!content) {
+			// No .elementor root found (e.g. a fallback with no builder
+			// content) — the fragment's own content is already under root;
+			// wrap it in one element so there is still a single box to style.
 			content = document.createElement('div');
-			content.appendChild(fragment);
+			while (root.firstChild) {
+				content.appendChild(root.firstChild);
+			}
+			root.appendChild(content);
 		}
 		content.classList.add('elemacy-popup__box');
+
+		// The author's content scrolls in its own element so the box never clips
+		// the close button when it is positioned outside the popup.
+		var scroller = document.createElement('div');
+		scroller.className = 'elemacy-popup__scroll';
+		while (content.firstChild) {
+			scroller.appendChild(content.firstChild);
+		}
+		content.appendChild(scroller);
 
 		// Auto-injected close button when enabled. It carries the
 		// `elemacy-close-popup` class so the delegated click handler closes it.
@@ -201,9 +224,15 @@
 			content.appendChild(closeBtn);
 		}
 
-		root.appendChild(content);
 		state.content = content;
 		state.hydrated = true;
+
+		// Elementor never learns about content inserted outside its own
+		// render pipeline on its own — without this, a popup's widgets exist
+		// in the DOM but their scripts never actually attach to them.
+		if (window.ElemacyElementorLifecycle) {
+			window.ElemacyElementorLifecycle.hydrate(content);
+		}
 	}
 
 	function getFocusable(container) {
@@ -212,17 +241,177 @@
 		});
 	}
 
+	// After a modal popup closes/is destroyed, focus returns to whatever
+	// opened it — but that opener may no longer be connected to the
+	// document (e.g. it was itself inside dynamically-replaced content).
+	// Falls back to the modal now on top of the stack, if any, so focus is
+	// never silently dropped while another modal is still open.
+	function restoreFocusAfterModalCloses(state) {
+		if (state.lastFocused && typeof state.lastFocused.focus === 'function'
+			&& document.contains(state.lastFocused)) {
+			state.lastFocused.focus();
+			return;
+		}
+
+		var topId = ModalStack.top();
+		var topState = topId !== null ? registry[topId] : null;
+		if (!topState) {
+			return;
+		}
+
+		var focusables = getFocusable(topState.content || topState.root);
+		if (focusables.length) {
+			focusables[0].focus();
+		} else {
+			topState.root.setAttribute('tabindex', '-1');
+			topState.root.focus();
+		}
+	}
+
 	/* ---------------------------------------------------------------- */
-	/* Open / close core.                                               */
+	/* Modal stack — the single owner of opening order                  */
+	/* (z-index, Escape, focus trap) and the shared body-scroll lock     */
+	/* across every currently-open MODAL popup. Topbars/banners/floating */
+	/* elements never join it unless authored to behave modally          */
+	/* (state.config.modal) — each of those keeps closing independently  */
+	/* on its own on_esc setting, exactly as before.                     */
 	/* ---------------------------------------------------------------- */
+
+	var ModalStack = (function () {
+		var stack = []; // ordered ids, oldest-opened first; last = topmost.
+		var order = 0; // strictly increasing per push — see push's note.
+		var lockers = []; // ids currently holding the shared scroll lock.
+		var lockedBodyOverflow = '';
+
+		function push(id) {
+			var index = stack.indexOf(id);
+			if (index !== -1) {
+				stack.splice(index, 1);
+			}
+			stack.push(id);
+			// A strictly increasing counter, not stack length/position: a
+			// popup that closes and reopens must always outrank every
+			// still-open modal, including ones that themselves opened
+			// after it originally did but before it reopened — stack
+			// position alone can repeat a value after removals.
+			order += 1;
+			return order;
+		}
+
+		// Out-of-order safe: removing an id from anywhere in the stack —
+		// not only the top — leaves the remaining relative order intact.
+		function remove(id) {
+			var index = stack.indexOf(id);
+			if (index !== -1) {
+				stack.splice(index, 1);
+			}
+		}
+
+		function top() {
+			return stack.length ? stack[stack.length - 1] : null;
+		}
+
+		// Idempotent per id and counted by "how many currently-open modals
+		// asked for the lock", not by call count — an out-of-order
+		// release() from a modal that never actually acquired it is always
+		// a safe no-op, and the original inline style is restored exactly
+		// once, when the LAST locking modal releases it.
+		function acquireScrollLock(id) {
+			if (lockers.indexOf(id) !== -1) {
+				return;
+			}
+			if (!lockers.length) {
+				lockedBodyOverflow = document.body.style.overflow;
+				document.body.style.overflow = 'hidden';
+			}
+			lockers.push(id);
+		}
+
+		function releaseScrollLock(id) {
+			var index = lockers.indexOf(id);
+			if (index === -1) {
+				return;
+			}
+			lockers.splice(index, 1);
+			if (!lockers.length) {
+				document.body.style.overflow = lockedBodyOverflow;
+			}
+		}
+
+		return {
+			push: push,
+			remove: remove,
+			top: top,
+			acquireScrollLock: acquireScrollLock,
+			releaseScrollLock: releaseScrollLock
+		};
+	})();
+
+	/* ---------------------------------------------------------------- */
+	/* Open / close / destroy core — explicit per-instance state         */
+	/* machine: closed -> opening -> open -> closing ->                  */
+	/* closed, with destroyed reachable from any state except itself.    */
+	/* `state.token` increments on every transition start; a transition  */
+	/* superseded mid-flight (open-during-close, close-during-open, or   */
+	/* destroy at any point) has its pending animationend listener and   */
+	/* fallback timer torn down immediately, and any callback that still */
+	/* somehow ran captured a now-stale token and is a guaranteed no-op. */
+	/* ---------------------------------------------------------------- */
+
+	function isActive(phase) {
+		return phase === 'open' || phase === 'opening';
+	}
+
+	// Cancels whatever the CURRENT transition (if any) is still waiting on —
+	// called at the start of every new transition so a stale animationend
+	// or fallback timer from a superseded one can never fire later.
+	function cancelPendingTransition(state) {
+		if (state.transitionTimer) {
+			window.clearTimeout(state.transitionTimer);
+			state.transitionTimer = null;
+		}
+		if (state.transitionListener && state.content) {
+			state.content.removeEventListener('animationend', state.transitionListener);
+		}
+		state.transitionListener = null;
+	}
+
+	// Runs `settle` once (removing the very listener it fires from —
+	// animationend does not auto-remove itself), on whichever of the box's
+	// own animationend or a fixed fallback timeout happens first — and only
+	// if no newer transition has started since `token` was issued.
+	function awaitTransitionEnd(state, token, settle) {
+		var done = false;
+		var onSettle = function () {
+			if (done || state.token !== token) {
+				return;
+			}
+			done = true;
+			cancelPendingTransition(state);
+			settle();
+		};
+		state.transitionListener = onSettle;
+		if (state.content) {
+			state.content.addEventListener('animationend', onSettle);
+		}
+		state.transitionTimer = window.setTimeout(onSettle, 600);
+	}
 
 	function open(id) {
 		var state = registry[id];
-		if (!state || state.isOpen) {
+		if (!state || state.phase === 'destroyed' || isActive(state.phase)) {
 			return;
 		}
 
 		hydrate(state);
+		cancelPendingTransition(state);
+		if (state.autoCloseTimer) {
+			window.clearTimeout(state.autoCloseTimer);
+			state.autoCloseTimer = null;
+		}
+
+		var token = ++state.token;
+		state.phase = 'opening';
 
 		var root = state.root;
 		var display = state.config.display || {};
@@ -231,20 +420,23 @@
 		root.setAttribute('aria-hidden', 'false');
 		root.classList.remove('is-closing');
 		root.classList.add('is-open');
-		if (!prefersReducedMotion) {
-			root.classList.add('is-animating');
-		}
-		state.isOpen = true;
 
-		// Body scroll lock.
+		// Body scroll lock — shared across every currently-open modal via
+		// the stack, not saved/restored per popup (see ModalStack above).
 		if (display.prevent_body_scroll) {
-			state.prevBodyOverflow = document.body.style.overflow;
-			document.body.style.overflow = 'hidden';
+			ModalStack.acquireScrollLock(id);
 		}
 
-		// Focus management applies to modal popups only; non-modal bars
-		// (topbar/banner/floating) must not steal or trap keyboard focus.
+		// Focus management, opening order (z-index/Escape/Tab) and the
+		// scroll lock above all apply to modal popups only; non-modal bars
+		// (topbar/banner/floating) must not steal or trap keyboard focus
+		// and never join the stack.
 		if (state.config.modal) {
+			var stackOrder = ModalStack.push(id);
+			if (display.z_index) {
+				root.style.zIndex = String(parseInt(display.z_index, 10) + stackOrder);
+			}
+
 			state.lastFocused = document.activeElement;
 
 			var focusables = getFocusable(state.content || root);
@@ -254,56 +446,83 @@
 				root.setAttribute('tabindex', '-1');
 				root.focus();
 			}
+		} else if (display.z_index) {
+			root.style.zIndex = String(display.z_index);
 		}
 
-		// Auto-close timer.
-		var autoClose = display.close && display.close.auto_close_s ? parseFloat(display.close.auto_close_s) : 0;
-		if (autoClose > 0) {
-			state.autoCloseTimer = window.setTimeout(function () {
-				close(id);
-			}, autoClose * 1000);
-		}
+		var finishOpen = function () {
+			state.phase = 'open';
+			root.classList.remove('is-animating');
 
-		// Lifecycle seam: lets add-ons react to a popup being displayed (e.g. pro
-		// analytics records an impression). Symmetric to 'elemacy-popup:closed'.
-		try {
-			document.dispatchEvent(
-				new CustomEvent('elemacy-popup:shown', { detail: { id: id } })
-			);
-		} catch (error) {
-			/* CustomEvent unsupported — ignore */
+			// Auto-close timer, guarded against a stale/cleared transition.
+			var autoClose = display.close && display.close.auto_close_s ? parseFloat(display.close.auto_close_s) : 0;
+			if (autoClose > 0) {
+				state.autoCloseTimer = window.setTimeout(function () {
+					if (state.token === token && state.phase === 'open') {
+						close(id);
+					}
+				}, autoClose * 1000);
+			}
+
+			// Lifecycle seam: lets add-ons react to a popup being displayed
+			// (e.g. pro analytics records an impression). Symmetric to
+			// 'elemacy-popup:closed'.
+			try {
+				document.dispatchEvent(
+					new CustomEvent('elemacy-popup:shown', { detail: { id: id } })
+				);
+			} catch (error) {
+				/* CustomEvent unsupported — ignore */
+			}
+		};
+
+		var animIn = display.animation && display.animation.in ? display.animation.in : 'none';
+		if (animIn && animIn !== 'none' && !prefersReducedMotion) {
+			root.classList.add('is-animating');
+			awaitTransitionEnd(state, token, finishOpen);
+		} else {
+			finishOpen();
 		}
 	}
 
 	function close(id) {
 		var state = registry[id];
-		if (!state || !state.isOpen) {
+		if (!state || state.phase === 'destroyed' || state.phase === 'closed' || state.phase === 'closing') {
 			return;
 		}
 
-		var root = state.root;
-		var display = state.config.display || {};
-
+		cancelPendingTransition(state);
 		if (state.autoCloseTimer) {
 			window.clearTimeout(state.autoCloseTimer);
 			state.autoCloseTimer = null;
 		}
 
-		var animOut = display.animation && display.animation.out ? display.animation.out : 'none';
+		var token = ++state.token;
+		state.phase = 'closing';
 
-		function finalize() {
+		var root = state.root;
+		var display = state.config.display || {};
+
+		// Leaves the modal stack immediately (not only once the close
+		// transition settles) so the next-topmost modal, if any, becomes
+		// eligible for Escape/Tab right away rather than waiting out this
+		// one's close animation.
+		if (state.config.modal) {
+			ModalStack.remove(id);
+		}
+
+		var finishClose = function () {
+			state.phase = 'closed';
 			root.classList.remove('is-open', 'is-closing', 'is-animating');
 			root.setAttribute('aria-hidden', 'true');
 			root.setAttribute('hidden', '');
-			state.isOpen = false;
 
 			if (display.prevent_body_scroll) {
-				document.body.style.overflow = state.prevBodyOverflow || '';
+				ModalStack.releaseScrollLock(id);
 			}
 
-			// Restore focus.
-			if (state.lastFocused && typeof state.lastFocused.focus === 'function') {
-				state.lastFocused.focus();
+			if (state.config.modal) {
+				restoreFocusAfterModalCloses(state);
 			}
 
 			// Extension seam: lets pro triggers (e.g. "after another popup
@@ -315,28 +534,79 @@
 			} catch (error) {
 				/* CustomEvent unsupported — ignore */
 			}
+		};
+
+		var animOut = display.animation && display.animation.out ? display.animation.out : 'none';
+		if (animOut && animOut !== 'none' && !prefersReducedMotion) {
+			// .elemacy-popup.is-animating supplies animation-duration/timing
+			// for both directions' keyframes (popups.css); finishOpen()
+			// removes it once the open transition settles, so it must be
+			// added again here rather than assumed still present.
+			root.classList.add('is-closing', 'is-animating');
+			awaitTransitionEnd(state, token, finishClose);
+		} else {
+			finishClose();
+		}
+	}
+
+	// Permanently retires a popup instance: idempotent (a second call on an
+	// already-destroyed instance is a safe no-op), releases the lifecycle
+	// adapter's own record of its hydrated subtree (see elementor-
+	// lifecycle.js's release()), and drops its click-trigger selectors so
+	// the document-level delegated listener no longer matches anything for
+	// it — the functional equivalent of tearing down trigger listeners,
+	// since this engine never attaches one addEventListener per popup.
+	function destroy(id) {
+		var state = registry[id];
+		if (!state || state.phase === 'destroyed') {
+			return;
 		}
 
-		if (animOut && animOut !== 'none' && !prefersReducedMotion) {
-			root.classList.add('is-closing');
-			var done = false;
-			var onEnd = function () {
-				if (done) {
-					return;
-				}
-				done = true;
-				if (state.content) {
-					state.content.removeEventListener('animationend', onEnd);
-				}
-				finalize();
-			};
-			if (state.content) {
-				state.content.addEventListener('animationend', onEnd);
+		cancelPendingTransition(state);
+		if (state.autoCloseTimer) {
+			window.clearTimeout(state.autoCloseTimer);
+			state.autoCloseTimer = null;
+		}
+
+		var wasActive = isActive(state.phase);
+		state.token++;
+		state.phase = 'destroyed';
+		state.clickSelectors = [];
+
+		// close() already leaves the stack the moment a close transition
+		// starts, so this only has further work to do when destroy() is
+		// called directly from 'open'/'opening' — but remove() is
+		// idempotent, so calling it unconditionally is always safe.
+		if (state.config.modal) {
+			ModalStack.remove(id);
+		}
+
+		if (wasActive) {
+			var root = state.root;
+			var display = state.config.display || {};
+
+			root.classList.remove('is-open', 'is-closing', 'is-animating');
+			root.setAttribute('aria-hidden', 'true');
+			root.setAttribute('hidden', '');
+
+			if (display.prevent_body_scroll) {
+				ModalStack.releaseScrollLock(id);
 			}
-			// Safety fallback if animationend never fires.
-			window.setTimeout(onEnd, 600);
-		} else {
-			finalize();
+			if (state.config.modal) {
+				restoreFocusAfterModalCloses(state);
+			}
+		}
+
+		if (window.ElemacyElementorLifecycle && state.content) {
+			window.ElemacyElementorLifecycle.release(state.content);
+		}
+
+		try {
+			document.dispatchEvent(
+				new CustomEvent('elemacy-popup:destroyed', { detail: { id: id } })
+			);
+		} catch (error) {
+			/* CustomEvent unsupported — ignore */
 		}
 	}
 
@@ -355,7 +625,7 @@
 	 */
 	function triggerOpen(id) {
 		var state = registry[id];
-		if (!state || state.isOpen) {
+		if (!state || state.phase === 'destroyed' || isActive(state.phase)) {
 			return;
 		}
 		if (!canShow(state.config)) {
@@ -503,20 +773,31 @@
 			}
 		});
 
-		// ESC + focus-trap tab cycling.
+		// ESC + focus-trap tab cycling. Both act on the modal stack's own
+		// topmost entry only: with
+		// several modals open, Escape/Tab release and trap one at a time,
+		// innermost first, not every open modal simultaneously.
 		document.addEventListener('keydown', function (event) {
 			if (event.key === 'Escape' || event.keyCode === 27) {
+				// A modal on top of the stack always closes on Escape,
+				// regardless of its own on_esc setting — required to avoid a
+				// keyboard trap (WCAG 2.1.2) for whichever modal is
+				// currently trapping Tab, i.e. the topmost one.
+				var topModal = ModalStack.top();
+				if (topModal !== null) {
+					close(topModal);
+				}
+
+				// Non-modal bars (topbar/banner/floating) never join the
+				// stack; each still closes independently on its own
+				// authored on_esc setting.
 				Object.keys(registry).forEach(function (id) {
 					var state = registry[id];
-					if (!state.isOpen) {
+					if (state.config.modal || !isActive(state.phase)) {
 						return;
 					}
 					var closeConfig = state.config.display && state.config.display.close;
-					// Modal popups trap Tab focus, so ESC must always close them to
-					// avoid a keyboard trap (WCAG 2.1.2) even when the author turned
-					// off close-on-ESC. Non-modal bars don't trap focus, so they keep
-					// honoring the author's setting.
-					if (state.config.modal || (closeConfig && closeConfig.on_esc)) {
+					if (closeConfig && closeConfig.on_esc) {
 						close(parseInt(id, 10));
 					}
 				});
@@ -524,13 +805,10 @@
 			}
 
 			if (event.key === 'Tab' || event.keyCode === 9) {
-				// Only modal popups trap Tab; non-modal bars leave page focus alone.
-				var openState = null;
-				Object.keys(registry).forEach(function (id) {
-					if (registry[id].isOpen && registry[id].config.modal) {
-						openState = registry[id];
-					}
-				});
+				// Only the topmost modal traps Tab; non-modal bars and any
+				// modal buried under it leave page focus alone.
+				var topModalId = ModalStack.top();
+				var openState = topModalId !== null ? registry[topModalId] : null;
 				if (!openState || !openState.content) {
 					return;
 				}
@@ -577,13 +855,15 @@
 				config: config,
 				root: root,
 				hydrated: false,
-				isOpen: false,
+				phase: 'closed',
+				token: 0,
+				transitionTimer: null,
+				transitionListener: null,
 				content: null,
 				overlay: null,
 				clickSelectors: [],
 				autoCloseTimer: null,
-				lastFocused: null,
-				prevBodyOverflow: ''
+				lastFocused: null
 			};
 
 			setupTriggers(config);
@@ -600,6 +880,7 @@
 		open: open,
 		close: close,
 		closeAll: closeAll,
+		destroy: destroy,
 		registerTrigger: function (type, fn) {
 			triggerHandlers[type] = fn;
 		},

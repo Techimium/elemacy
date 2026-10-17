@@ -59,11 +59,25 @@
 	pointer-events: auto;
 }
 
-/* The popup box (the Elementor content wrapper, tagged by the engine). */
+/* The popup box (the Elementor content wrapper, tagged by the engine). It is a
+   plain frame: it must not scroll or clip, so the close button can sit outside
+   it. The author's content scrolls in .elemacy-popup__scroll instead, which
+   shrinks to the box's max-height. */
 .elemacy-popup__box {
 	position: relative;
 	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.elemacy-popup__scroll {
+	flex: 1 1 auto;
+	min-height: 0;
 	overflow: auto;
+	/* The close button is anchored to the box, over this element, so a classic
+	   scrollbar must be narrower than the button's default 10px inset or the
+	   button would sit on top of it. */
+	scrollbar-width: thin;
 }
 
 /* Generic close button helper (authors may also use their own). */

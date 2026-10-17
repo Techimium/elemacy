@@ -37,6 +37,7 @@ export default defineConfig({
   // No static public/ assets belong in the WP build output (kills vite.svg).
   publicDir: false,
   resolve: {
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
       // Use WordPress's enqueued wp-i18n (window.wp.i18n) instead of bundling a

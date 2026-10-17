@@ -4,8 +4,9 @@ namespace Elemacy\Modules\Widgets\Services;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Exceptions\NotFoundException;
+use Elemacy\Http\Exceptions\NotFoundException;
 use Elemacy\Core\Hooks;
+use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elemacy\Modules\Widgets\DTO\WidgetDTO;
 use Elemacy\Support\Utils;
 
@@ -34,7 +35,6 @@ class WidgetService
      * Return only widgets whose runtime requirements (e.g. ACF) are satisfied.
      * Used as the single source of truth for both Elementor registration and
      * the admin toggle list, so unavailable widgets stay hidden everywhere.
-     * Add-ons extend the catalog via Hooks::WIDGETS_REGISTER_FILTER.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -69,8 +69,8 @@ class WidgetService
     /**
      * Formats a single widget's config into a DTO for the API response.
      *
-     * @param array<string, mixed>  $widget   The widget config entry.
-     * @param array<string, mixed>  $statuses The stored `name => is_enabled` status map.
+     * @param array<string, mixed> $widget The widget config entry.
+     * @param array<string, mixed> $statuses The stored `name => is_enabled` status map.
      * @return WidgetDTO
      */
     protected function create_dto($widget, $statuses)
