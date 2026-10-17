@@ -16,6 +16,7 @@ use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Contracts\PreviewContextProviderInterface;
 use Elemacy\Core\Admin\PluginLinks;
 use Elemacy\Elementor\Controls\Query\QueryControlManager;
+use Elemacy\Elementor\Controls\Query\QueryResolverRegistry;
 use Elemacy\Elementor\Preview\PreviewAssets;
 use Elemacy\Elementor\Preview\PreviewManager;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
@@ -54,6 +55,10 @@ class CoreServiceProvider implements ServiceProviderInterface
         }
 
         $container->bind(PreviewContextProviderInterface::class, static fn () => new LoopItemPreviewContextProvider());
+
+        // Resolvers load on the registry's first lookup (a picker search), so a
+        // request that never runs one builds none of them and fires no action.
+        $container->bind(QueryResolverRegistry::class, static fn () => QueryResolverRegistry::from_config());
     }
 
     public function boot(): void

@@ -84,6 +84,11 @@ final class Hooks
     // register their own (passes the PlacementResolverRegistry).
     public const LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION = 'elemacy/action/loop/placement_resolvers/register';
 
+    // Fired after free registers its elemacy_query picker resolvers, so add-ons
+    // can register their own kind of live-search picker (passes the
+    // QueryResolverRegistry). Runs on the first picker search, never earlier.
+    public const QUERY_RESOLVERS_REGISTER_ACTION = 'elemacy/action/query_control/resolvers/register';
+
     // Preview (editor real-data preview)
     // Lets add-ons adjust the WP_Query args a previewable document renders against
     // (passes the args array and the document instance).

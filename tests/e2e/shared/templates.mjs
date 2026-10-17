@@ -6,7 +6,9 @@ export function templateCard(page, title) {
   return page.locator('[data-slot="card"]').filter({ has: page.getByText(title, { exact: true }) });
 }
 
-export async function createTemplate(page, { title, type = 'Header', edit = false }) {
+// `navigation` is when the editor URL counts as reached: the default waits for the page's load
+// event; a slow site can pass 'commit' and rely on the editor's own readiness checks instead.
+export async function createTemplate(page, { title, type = 'Header', edit = false, navigation = 'load' }) {
   await page.goto(themeBuilderUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'Create New Template', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -15,7 +17,7 @@ export async function createTemplate(page, { title, type = 'Header', edit = fals
   await page.getByRole('option', { name: type, exact: true }).click();
   await dialog.getByRole('button', { name: edit ? 'Create & Edit with Elementor' : 'Create Template', exact: true }).click();
   if (edit) {
-    await page.waitForURL(url => url.pathname === '/wp-admin/post.php' && url.searchParams.get('action') === 'elementor');
+    await page.waitForURL(url => url.pathname === '/wp-admin/post.php' && url.searchParams.get('action') === 'elementor', { waitUntil: navigation });
     await expect(page.locator('#elementor-preview-iframe')).toBeAttached({ timeout: 60000 });
   } else {
     await expect(dialog).not.toBeVisible();

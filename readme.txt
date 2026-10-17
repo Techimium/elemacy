@@ -378,6 +378,7 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 * Display Conditions: Entire Site, Singular Post Type, Post Type Archive, and Search Results for Search templates (advanced conditions, including Search Results by post type, available in Elemacy Pro); when several templates match a page, the most specific one is used
 * Popups & Floating Elements: popups, top/bottom bars, banners, and floating elements designed in Elementor, with display conditions, Page Load/Click triggers, and Frequency Cap/Logged-in Users rules
 * Loop Builder Grid widget with AJAX pagination (up to 100 items per page), query builder, and responsive columns; a "Current Query" loop in an Archive or Search Results template follows the archive being viewed
+* The Archive Title dynamic tag shows "Search Results for: term" in a Search Results template; an Archive template can be previewed as a category, tag, taxonomy term, author or month, and the term, author and Loop Item preview pickers search as you type
 * Loop Carousel widget
 * Form Builder widget with Text, Email, Textarea, Tel, Select, Radio, and Checkbox fields; Email action with full configuration
 * Nav Menu widget with horizontal/vertical/stacked layouts, mobile toggle, dropdown submenus, and comprehensive styling controls

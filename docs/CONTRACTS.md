@@ -222,6 +222,7 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION` | `elemacy/action/theme_builder/compatibility/register` |
 | `LOOP_DATA_SOURCES_REGISTER_ACTION` | `elemacy/action/loop/data_sources/register` |
 | `LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION` | `elemacy/action/loop/placement_resolvers/register` |
+| `QUERY_RESOLVERS_REGISTER_ACTION` | `elemacy/action/query_control/resolvers/register` |
 | `PREVIEW_QUERY_ARGS_FILTER` | `elemacy/filter/preview/query_args` |
 | `CONDITIONS_EXCLUDED_POST_TYPES_FILTER` | `elemacy/filter/conditions/excluded_post_types` |
 | `CONDITIONS_EXCLUDED_TAXONOMIES_FILTER` | `elemacy/filter/conditions/excluded_taxonomies` |

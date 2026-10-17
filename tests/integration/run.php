@@ -25,6 +25,8 @@ try {
         'public-render-policy.php' => 'PublicRenderPolicyTest',
         'current-query-archives.php' => 'CurrentQueryArchivesTest',
         'search-template-conditions.php' => 'SearchTemplateConditionsTest',
+        'query-pickers.php' => 'QueryPickersTest',
+        'archive-title-preview.php' => 'ArchiveTitlePreviewTest',
         'loop-ineligibility-notice.php' => 'LoopIneligibilityNoticeTest',
     ];
     if (isset($arguments[0], $scenarios[$arguments[0]])) {

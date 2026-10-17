@@ -6461,5 +6461,7 @@ check('ConfigList::instances() instantiates class-strings, passes instances thro
 });
 
 require __DIR__ . '/transport-policy.php';
+require __DIR__ . '/query-pickers.php';
+require __DIR__ . '/archive-title.php';
 
 conclude();

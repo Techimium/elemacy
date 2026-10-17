@@ -128,7 +128,10 @@ class PreviewManager
         $query_args = $document->get_preview_query_args();
 
         if (!empty($query_args)) {
-            Plugin::instance()->db->switch_to_query($query_args);
+            // Force the global post, as a real archive or search request has it set to
+            // the first result: a date archive's title is read from that post, and is
+            // empty without it. Elementor Pro previews its archives the same way.
+            Plugin::instance()->db->switch_to_query($query_args, true);
 
             return ['kind' => 'query'];
         }

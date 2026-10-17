@@ -27,8 +27,10 @@ for (const type of ['Header', 'Footer']) {
       await expect(visitor.getByText(text, { exact: true })).toHaveCSS('color', 'rgb(18, 52, 86)');
       await expect(visitor.locator(`[data-elementor-type="elemacy_${slug}"]`)).toHaveCount(1);
       await checkpoint('visitor-rendered', visitor);
-      await expect(visitor.locator('.site-' + slug), 'Replaced theme chrome must not be duplicated').toHaveCount(0);
-      await expect(visitor.locator('.site-' + (slug === 'header' ? 'footer' : 'header')), 'The opposite theme chrome must remain').toHaveCount(1);
+      // The theme's own chrome: a real theme's `.site-header`/`.site-footer`, or the harness fixture theme's id.
+      const nativeChrome = part => visitor.locator(`.site-${part}, #fixture-native-${part}`);
+      await expect(nativeChrome(slug), 'Replaced theme chrome must not be duplicated').toHaveCount(0);
+      await expect(nativeChrome(slug === 'header' ? 'footer' : 'header'), 'The opposite theme chrome must remain').toHaveCount(1);
     } finally {
       await guest.close();
     }

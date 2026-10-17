@@ -25,9 +25,9 @@ class QueryControlManager
     protected QueryService $service;
     protected bool $registered = false;
 
-    public function __construct()
+    public function __construct(QueryService $service)
     {
-        $this->service = new QueryService();
+        $this->service = $service;
     }
 
     /**
@@ -68,12 +68,13 @@ class QueryControlManager
      */
     public function handle_autocomplete(array $data): array
     {
-        if (!current_user_can('edit_posts')) {
+        $autocomplete = isset($data['autocomplete']) && is_array($data['autocomplete']) ? $data['autocomplete'] : [];
+
+        if (!$this->service->can_query($autocomplete)) {
             return ['results' => []];
         }
 
-        $autocomplete = isset($data['autocomplete']) && is_array($data['autocomplete']) ? $data['autocomplete'] : [];
-        $term         = isset($data['q']) ? sanitize_text_field((string) $data['q']) : '';
+        $term = isset($data['q']) ? sanitize_text_field((string) $data['q']) : '';
 
         return ['results' => QueryResultDTO::to_arrays($this->service->search($autocomplete, $term))];
     }
@@ -85,12 +86,13 @@ class QueryControlManager
      */
     public function handle_titles(array $data): array
     {
-        if (!current_user_can('edit_posts')) {
+        $get_titles = isset($data['get_titles']) && is_array($data['get_titles']) ? $data['get_titles'] : [];
+
+        if (!$this->service->can_query($get_titles)) {
             return [];
         }
 
-        $get_titles = isset($data['get_titles']) && is_array($data['get_titles']) ? $data['get_titles'] : [];
-        $ids        = isset($data['id']) ? (array) $data['id'] : [];
+        $ids = isset($data['id']) ? (array) $data['id'] : [];
 
         return $this->service->titles($get_titles, $ids);
     }

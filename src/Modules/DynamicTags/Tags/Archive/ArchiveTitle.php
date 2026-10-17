@@ -46,6 +46,16 @@ class ArchiveTitle extends Tag
 
     public function render()
     {
+        // WordPress's archive title has no search case and would say "Archives".
+        // The heading names the search, so Remove Prefix (which strips an archive
+        // kind's prefix) does not apply. get_search_query() is already escaped.
+        if (is_search()) {
+            /* translators: %s: the visitor's search term. */
+            echo wp_kses_post(sprintf(esc_html__('Search Results for: %s', 'elemacy'), get_search_query()));
+
+            return;
+        }
+
         $title = get_the_archive_title();
 
         if ('yes' === $this->get_settings('remove_prefix')) {

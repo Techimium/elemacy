@@ -237,6 +237,60 @@
       }
     },
     {
+      "id": "elemacy:condition:search/all",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "search/all",
+      "source": "src/Conditions/Search/AllResults.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:runner:run",
+        "elemacy:integration:search-template-conditions"
+      ],
+      "journey": {
+        "id": "elemacy:journey:condition:search/all",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Authoring a Search template with the condition, the refused blank row, save, reopen and visitor checks pass in the free-only and free-pro profiles (tests/e2e/journeys/search-conditions.spec.mjs, elemacy:journey:condition:search/all); the remaining applicable profiles and branches are pending.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:search/post_type",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "search/post_type",
+      "source": "src/Conditions/Mock/SearchPostType.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:runner:run",
+        "elemacy:integration:search-template-conditions"
+      ],
+      "journey": {
+        "id": "elemacy:journey:condition:search/post_type",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "The locked option on a Search template is asserted in the free-only profile (tests/e2e/journeys/search-conditions.spec.mjs, elemacy:journey:condition:search/post_type); suspension of a saved rule without Pro and its restoration are covered by native integration only, not yet by a browser journey.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:condition:singular/by_author",
       "owner": "elemacy",
       "kind": "condition",
@@ -586,7 +640,9 @@
       "source": "src/Modules/Widgets/DataSources/TaxonomyDataSource.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:query-pickers"
+      ],
       "journey": {
         "id": "elemacy:journey:loop-source:terms",
         "status": "pending",
@@ -611,7 +667,9 @@
       "source": "src/Modules/Widgets/DataSources/UsersDataSource.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:query-pickers"
+      ],
       "journey": {
         "id": "elemacy:journey:loop-source:users",
         "status": "pending",
@@ -1316,7 +1374,10 @@
       "source": "src/Modules/DynamicTags/Tags/Archive/ArchiveTitle.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:runner:run",
+        "elemacy:integration:archive-title-preview"
+      ],
       "journey": {
         "id": "elemacy:journey:tag:elemacy-archive-title",
         "status": "pending",
@@ -1329,7 +1390,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "The tag's search heading in the editor preview and for a visitor on /?s=term passes in tests/e2e/journeys/archive-preview.spec.mjs (elemacy:journey:tag:elemacy-archive-title); its archive titles are exercised through the Archive journey. The Remove Prefix setting round trip and the remaining applicable profiles and branches are pending.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -2412,7 +2473,9 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:location-layouts"
+      ],
       "journey": {
         "id": "elemacy:journey:template:404",
         "status": "pending",
@@ -2437,7 +2500,12 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:location-layouts",
+        "elemacy:runner:run",
+        "elemacy:integration:archive-title-preview",
+        "elemacy:integration:query-pickers"
+      ],
       "journey": {
         "id": "elemacy:journey:template:archive",
         "status": "pending",
@@ -2450,7 +2518,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "Archive preview authoring passes in tests/e2e/journeys/archive-preview.spec.mjs (elemacy:journey:template:archive): choose Taxonomy Term, Author and Month through the live pickers, Apply & Preview shows each real archive title, reopen shows the saved term by name, a deleted term falls back to the post type archive, and a real category archive is unaffected for a visitor. The post type preview, Display Conditions and the remaining profiles and branches are pending.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -2462,7 +2530,11 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:native-chrome-replacement",
+        "elemacy:integration:real-theme-chrome",
+        "elemacy:integration:theme-hook-cleaner"
+      ],
       "journey": {
         "id": "elemacy:journey:template:footer",
         "status": "pending",
@@ -2487,10 +2559,14 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:native-chrome-replacement",
+        "elemacy:integration:real-theme-chrome",
+        "elemacy:integration:theme-hook-cleaner"
+      ],
       "journey": {
         "id": "elemacy:journey:template:header",
-        "status": "blocked",
+        "status": "pending",
         "profiles": [
           "free-only",
           "free-pro"
@@ -2500,7 +2576,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Real production-ZIP browser test confirms Header-only removes Hello Elementor native footer. Author/save/reopen and earlier output checks passed; opposite-chrome assertion now detects this release blocker. Product fix deferred at user request; remaining atomic/profile branches pending.",
+        "reason": "Header-only removed the Hello Elementor native footer; fixed by fix-hello-native-footer-suppression and covered by real-Hello Header-only, Footer-only and both-sides integration cases. The authoring journey passes on Hello with the opposite-chrome assertion. Package evidence predating the fix is invalid; atomic styling and remaining profiles/branches are pending.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -2512,7 +2588,9 @@
       "source": "src/Modules/Widgets/Widgets.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:query-pickers"
+      ],
       "journey": {
         "id": "elemacy:journey:template:loop",
         "status": "pending",
@@ -2525,7 +2603,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "The Loop Item preview's Term and User pickers (live search, apply, reopen shows the saved name, a user with no posts found) pass in tests/e2e/journeys/archive-preview.spec.mjs (elemacy:journey:template:loop); the rest of Loop Item authoring is not yet automated.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -2537,7 +2615,10 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:location-layouts",
+        "elemacy:integration:search-template-conditions"
+      ],
       "journey": {
         "id": "elemacy:journey:template:search",
         "status": "pending",
@@ -2550,7 +2631,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "Display Conditions authoring on a Search template (condition, type switch, blank row refused) passes in the free-only and free-pro profiles (tests/e2e/journeys/search-conditions.spec.mjs); the rest of Search authoring (content, layouts, results styling) is not yet automated.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -2587,7 +2668,11 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:location-layouts",
+        "elemacy:runner:run",
+        "elemacy:integration:query-pickers"
+      ],
       "journey": {
         "id": "elemacy:journey:template:single",
         "status": "pending",
@@ -2600,7 +2685,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "The Preview Content post picker (search by typing, apply, reopen shows the post by title) passes in tests/e2e/journeys/archive-preview.spec.mjs (elemacy:journey:template:single) after the picker moved onto the resolver registry; the rest of Single authoring (content, conditions, layouts) is not yet automated.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -3121,6 +3206,21 @@
       "path": "tests/integration/current-query-archives.php"
     },
     {
+      "id": "elemacy:integration:search-template-conditions",
+      "layer": "native-integration",
+      "path": "tests/integration/search-template-conditions.php"
+    },
+    {
+      "id": "elemacy:integration:query-pickers",
+      "layer": "native-integration",
+      "path": "tests/integration/query-pickers.php"
+    },
+    {
+      "id": "elemacy:integration:archive-title-preview",
+      "layer": "native-integration",
+      "path": "tests/integration/archive-title-preview.php"
+    },
+    {
       "id": "elemacy:integration:loop-ineligibility-notice",
       "layer": "native-integration",
       "path": "tests/integration/loop-ineligibility-notice.php"
@@ -3194,6 +3294,21 @@
       "id": "elemacy:integration:native-chrome-replacement",
       "layer": "native-integration",
       "path": "tests/integration/native-chrome-replacement.php"
+    },
+    {
+      "id": "elemacy:integration:real-theme-chrome",
+      "layer": "native-integration",
+      "path": "tests/integration/real-theme-chrome.php"
+    },
+    {
+      "id": "elemacy:integration:location-layouts",
+      "layer": "native-integration",
+      "path": "tests/integration/location-layouts.php"
+    },
+    {
+      "id": "elemacy:integration:theme-hook-cleaner",
+      "layer": "native-integration",
+      "path": "tests/integration/theme-hook-cleaner.php"
     },
     {
       "id": "elemacy:integration:chrome-documents",

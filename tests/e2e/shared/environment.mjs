@@ -11,7 +11,7 @@ export function environment() {
     integration + 'environment.php'], { encoding: 'utf8', timeout: 30000 }));
 }
 
-export function fixture(command, manifest = '') {
-  return JSON.parse(execFileSync(php, [integration + 'journey-fixture.php', command, manifest],
+export function fixture(command, manifest = '', ...extra) {
+  return JSON.parse(execFileSync(php, [integration + 'journey-fixture.php', command, manifest, ...extra.map(String)],
     { encoding: 'utf8', timeout: 30000 }));
 }

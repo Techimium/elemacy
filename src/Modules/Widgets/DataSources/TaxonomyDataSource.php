@@ -4,6 +4,8 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Elementor\Controls\Query\QueryControl;
+use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
@@ -170,43 +172,18 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
             'preview_term',
             [
                 'label' => esc_html__('Term', 'elemacy'),
-                'type' => Controls_Manager::SELECT2,
+                'type' => QueryControl::TYPE,
                 'label_block' => true,
-                'options' => $this->get_preview_term_options(),
-                'default' => '',
                 'placeholder' => esc_html__('Auto (first term)', 'elemacy'),
+                'autocomplete' => [
+                    'object' => QueryService::OBJECT_TERM,
+                    'query' => [],
+                ],
+                'default' => '',
                 'description' => esc_html__("Leave empty to preview the selected taxonomy's first term.", 'elemacy'),
                 'condition' => $condition,
             ]
         );
-    }
-
-    /**
-     * Capped, server-populated SELECT2 (same accepted pattern as
-     * AcfRepeaterDataSource::get_post_options() — Elementor core exposes no
-     * reusable AJAX term-search endpoint a custom control can hook into).
-     */
-    protected function get_preview_term_options(): array
-    {
-        $terms = get_terms([
-            'taxonomy' => array_keys($this->get_public_taxonomies()),
-            'hide_empty' => false,
-            'number' => 200,
-        ]);
-
-        if (is_wp_error($terms) || empty($terms)) {
-            return [];
-        }
-
-        $options = [];
-
-        foreach ($terms as $term) {
-            $taxonomy = get_taxonomy($term->taxonomy);
-            $taxonomy_label = $taxonomy ? $taxonomy->labels->singular_name : $term->taxonomy;
-            $options[$term->term_id] = sprintf('%s: %s', $taxonomy_label, $term->name);
-        }
-
-        return $options;
     }
 
     public function resolve_preview_item(array $settings): ?LoopItemInterface

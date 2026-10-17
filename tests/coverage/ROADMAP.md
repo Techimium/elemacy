@@ -18,6 +18,8 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `condition:general/front_page` | placeholder | Elementor Free | pending |
 | `condition:general/not_found` | placeholder | Elementor Free | pending |
 | `condition:general/search_results` | placeholder | Elementor Free | pending |
+| `condition:search/all` | real | Elementor Free | pending |
+| `condition:search/post_type` | placeholder | Elementor Free | pending |
 | `condition:singular/by_author` | placeholder | Elementor Free | pending |
 | `condition:singular/child_of` | placeholder | Elementor Free | pending |
 | `condition:singular/in_tax/{taxonomy}` | placeholder | Elementor Free | pending |
@@ -107,7 +109,7 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `template:404` | real | Elementor Free | pending |
 | `template:archive` | real | Elementor Free | pending |
 | `template:footer` | real | Elementor Free | pending |
-| `template:header` | real | Elementor Free | blocked |
+| `template:header` | real | Elementor Free | pending |
 | `template:loop` | real | Elementor Free | pending |
 | `template:search` | real | Elementor Free | pending |
 | `template:section` | real | Elementor Free | pending |
@@ -158,6 +160,9 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:loop-grid-ajax-payload` | native-integration | `tests/integration/loop-grid-ajax-payload.php` |
 | `elemacy:integration:loop-initial-page-eligibility` | native-integration | `tests/integration/loop-initial-page-eligibility.php` |
 | `elemacy:integration:current-query-archives` | native-integration | `tests/integration/current-query-archives.php` |
+| `elemacy:integration:search-template-conditions` | native-integration | `tests/integration/search-template-conditions.php` |
+| `elemacy:integration:query-pickers` | native-integration | `tests/integration/query-pickers.php` |
+| `elemacy:integration:archive-title-preview` | native-integration | `tests/integration/archive-title-preview.php` |
 | `elemacy:integration:loop-ineligibility-notice` | native-integration | `tests/integration/loop-ineligibility-notice.php` |
 | `elemacy:integration:loop-pagination-phase1-closeout` | native-integration | `tests/integration/loop-pagination-phase1-closeout.php` |
 | `elemacy:integration:loop-context` | native-integration | `tests/integration/loop-context.php` |
@@ -173,6 +178,9 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:template-precedence` | native-integration | `tests/integration/template-precedence.php` |
 | `elemacy:integration:theme-lifecycle` | native-integration | `tests/integration/theme-lifecycle.php` |
 | `elemacy:integration:native-chrome-replacement` | native-integration | `tests/integration/native-chrome-replacement.php` |
+| `elemacy:integration:real-theme-chrome` | native-integration | `tests/integration/real-theme-chrome.php` |
+| `elemacy:integration:location-layouts` | native-integration | `tests/integration/location-layouts.php` |
+| `elemacy:integration:theme-hook-cleaner` | native-integration | `tests/integration/theme-hook-cleaner.php` |
 | `elemacy:integration:chrome-documents` | native-integration | `tests/integration/chrome-documents.php` |
 | `elemacy:integration:atomic-rendering` | native-integration | `tests/integration/atomic-rendering.php` |
 | `elemacy:integration:pro-entitlement` | native-integration | `tests/integration/pro-entitlement.php` |

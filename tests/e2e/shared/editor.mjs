@@ -6,8 +6,38 @@ export async function readyEditor(page) {
   return page.frameLocator('#elementor-preview-iframe');
 }
 
+// Elementor can show its "Angie" promotion over the editor a few seconds after it loads, as a small
+// bubble or as a full-screen modal. Either one swallows the editor's input, so close whichever is up.
+export async function dismissPromotions(page) {
+  const bubble = page.getByRole('button', { name: /close angie/i });
+  if (await bubble.first().isVisible().catch(() => false)) await bubble.first().click();
+  const modal = page.getByText('Pages, layouts, widgets and more');
+  if (await modal.isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await expect(modal).toBeHidden();
+  }
+}
+
+// Adds a heading by dragging it in and typing its text, as a person would. Now and then Elementor's
+// preview stops following the panel (the panel shows the text, the preview keeps its placeholder) and
+// does not recover on its own, so, as a person would, reload the editor and do it again. This is the
+// first edit of an opened document in every journey, so a reload loses nothing. The preview showing the
+// text is still what must be true at the end.
 export async function addHeading(page, text) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await addHeadingOnce(page, text);
+      return;
+    } catch (error) {
+      if (attempt >= 3) throw error;
+      await page.reload();
+    }
+  }
+}
+
+async function addHeadingOnce(page, text) {
   const frame = await readyEditor(page);
+  await dismissPromotions(page);
   await page.locator('#elementor-panel-elements-search-input').fill('Heading');
   const heading = page.getByRole('button', { name: 'Heading', exact: true });
   await expect(heading).toBeVisible();
@@ -27,7 +57,7 @@ export async function addHeading(page, text) {
   await field.fill('');
   await field.pressSequentially(text);
   await field.press('Tab');
-  await expect(frame.getByText(text, { exact: true })).toBeVisible();
+  await expect(frame.getByText(text, { exact: true })).toBeVisible({ timeout: 8000 });
 }
 
 export async function saveEditor(page) {

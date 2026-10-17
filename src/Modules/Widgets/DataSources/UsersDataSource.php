@@ -4,6 +4,9 @@ namespace Elemacy\Modules\Widgets\DataSources;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Elementor\Controls\Query\QueryControl;
+use Elemacy\Elementor\Controls\Query\QueryService;
+use Elemacy\Elementor\Controls\Query\Resolvers\UserResolver;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
@@ -148,38 +151,19 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
             'preview_user',
             [
                 'label' => esc_html__('User', 'elemacy'),
-                'type' => Controls_Manager::SELECT2,
+                'type' => QueryControl::TYPE,
                 'label_block' => true,
-                'options' => $this->get_preview_user_options(),
-                'default' => '',
                 'placeholder' => esc_html__('Auto (first user)', 'elemacy'),
+                // A Users loop can list any user, so its preview can pick any user, not only authors.
+                'autocomplete' => [
+                    'object' => QueryService::OBJECT_USER,
+                    'query' => ['who' => UserResolver::WHO_ALL],
+                ],
+                'default' => '',
                 'description' => esc_html__('Leave empty to preview the first matching user.', 'elemacy'),
                 'condition' => $condition,
             ]
         );
-    }
-
-    /**
-     * Capped, server-populated SELECT2 — same accepted pattern as
-     * AcfRepeaterDataSource::get_post_options() (no reusable AJAX
-     * user-search endpoint exists to hook a custom control into).
-     */
-    protected function get_preview_user_options(): array
-    {
-        $users = get_users([
-            'number' => 200,
-            'orderby' => 'display_name',
-            'order' => 'ASC',
-            'fields' => ['ID', 'display_name', 'user_login'],
-        ]);
-
-        $options = [];
-
-        foreach ($users as $user) {
-            $options[$user->ID] = '' !== $user->display_name ? $user->display_name : $user->user_login;
-        }
-
-        return $options;
     }
 
     public function resolve_preview_item(array $settings): ?LoopItemInterface

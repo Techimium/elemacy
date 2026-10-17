@@ -4,21 +4,42 @@ namespace Elemacy\Elementor\Controls\Query;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Support\PostTypes;
-use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Http\DTO\QueryResultDTO;
-use WP_Post;
 
 /**
- * Resolves the live-search requests behind the elemacy_query control: searching for
- * options as the user types, and looking up the labels of already-selected values
- * when the control re-renders. Object-type aware so it can grow beyond posts.
+ * Answers the live-search requests behind the elemacy_query control: searching
+ * for options as the user types, and looking up the labels of already-selected
+ * values when the control re-renders. It only routes: the control's
+ * `autocomplete.object` picks a resolver from the registry, and that resolver
+ * does the work, so supporting a new kind of thing never touches this class.
  */
 class QueryService
 {
     public const OBJECT_POST = 'post';
+    public const OBJECT_TERM = 'term';
+    public const OBJECT_USER = 'user';
 
-    public const MAX_RESULTS = 30;
+    public const MAX_RESULTS = QueryResolverInterface::MAX_RESULTS;
+
+    protected QueryResolverRegistry $resolvers;
+
+    public function __construct(QueryResolverRegistry $resolvers)
+    {
+        $this->resolvers = $resolvers;
+    }
+
+    /**
+     * Whether the current person may use the picker the config asks for.
+     * False for an object no resolver answers to.
+     *
+     * @param array<string, mixed> $autocomplete The control's autocomplete config.
+     */
+    public function can_query(array $autocomplete): bool
+    {
+        $resolver = $this->resolver_for($autocomplete);
+
+        return null !== $resolver && current_user_can($resolver->capability());
+    }
 
     /**
      * @param array<string, mixed> $autocomplete The control's autocomplete config.
@@ -27,26 +48,14 @@ class QueryService
      */
     public function search(array $autocomplete, string $term): array
     {
-        $term = trim($term);
+        $term     = trim($term);
+        $resolver = $this->resolver_for($autocomplete);
 
-        if ('' === $term || self::OBJECT_POST !== ($autocomplete['object'] ?? '')) {
+        if ('' === $term || null === $resolver) {
             return [];
         }
 
-        $query = isset($autocomplete['query']) && is_array($autocomplete['query']) ? $autocomplete['query'] : [];
-
-        $posts = get_posts([
-            'post_type'        => $this->resolve_post_types($query),
-            'post_status'      => $this->resolve_post_status($query),
-            's'                => $term,
-            'posts_per_page'   => self::MAX_RESULTS,
-            'orderby'          => 'date',
-            'order'            => 'DESC',
-            'no_found_rows'    => true,
-            'suppress_filters' => false,
-        ]);
-
-        return array_map(fn (WP_Post $post): QueryResultDTO => $this->post_result($post), $posts);
+        return $resolver->search($this->query_of($autocomplete), $term);
     }
 
     /**
@@ -60,83 +69,33 @@ class QueryService
      */
     public function titles(array $get_titles, array $ids): array
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
+        $ids      = array_values(array_filter(array_map('intval', $ids)));
+        $resolver = $this->resolver_for($get_titles);
 
-        if (empty($ids) || self::OBJECT_POST !== ($get_titles['object'] ?? '')) {
+        if (empty($ids) || null === $resolver) {
             return [];
         }
 
-        $query = isset($get_titles['query']) && is_array($get_titles['query']) ? $get_titles['query'] : [];
-
-        $posts = get_posts([
-            'post_type'        => $this->resolve_post_types($query),
-            'post_status'      => PostStatus::ANY,
-            'post__in'         => $ids,
-            'posts_per_page'   => count($ids),
-            'orderby'          => 'post__in',
-            'no_found_rows'    => true,
-            'suppress_filters' => false,
-        ]);
-
-        $titles = [];
-
-        foreach ($posts as $post) {
-            $titles[$post->ID] = $this->post_result($post)->text;
-        }
-
-        return $titles;
-    }
-
-    private function post_result(WP_Post $post): QueryResultDTO
-    {
-        $post_type  = get_post_type_object($post->post_type);
-        $type_label = $post_type ? $post_type->labels->singular_name : $post->post_type;
-        $title      = '' !== $post->post_title ? $post->post_title : __('(no title)', 'elemacy');
-
-        $dto       = new QueryResultDTO();
-        $dto->id   = (int) $post->ID;
-        /* translators: 1: post title, 2: post type singular name. */
-        $dto->text = sprintf(__('%1$s (%2$s)', 'elemacy'), $title, $type_label);
-
-        return $dto;
+        return $resolver->titles($this->query_of($get_titles), $ids);
     }
 
     /**
-     * Post types to search, intersected with the public types so a crafted request
-     * can't enumerate private/internal post types.
-     *
-     * @param array<string, mixed> $query
-     *
-     * @return string[]
+     * @param array<string, mixed> $config
      */
-    private function resolve_post_types(array $query): array
+    protected function resolver_for(array $config): ?QueryResolverInterface
     {
-        $allowed = PostTypes::public_names();
+        $object = $config['object'] ?? '';
 
-        if (empty($allowed)) {
-            $allowed = [self::OBJECT_POST];
-        }
-
-        $requested = array_filter(array_map('sanitize_key', (array) ($query['post_type'] ?? [])));
-
-        if (empty($requested)) {
-            return $allowed;
-        }
-
-        $valid = array_values(array_intersect($requested, $allowed));
-
-        return empty($valid) ? $allowed : $valid;
+        return is_string($object) ? $this->resolvers->get($object) : null;
     }
 
     /**
-     * @param array<string, mixed> $query
+     * @param array<string, mixed> $config
      *
-     * @return string[]
+     * @return array<string, mixed>
      */
-    private function resolve_post_status(array $query): array
+    protected function query_of(array $config): array
     {
-        $status = array_filter(array_map('sanitize_key', (array) ($query['post_status'] ?? PostStatus::PUBLISH)));
-
-        return empty($status) ? [PostStatus::PUBLISH] : $status;
+        return isset($config['query']) && is_array($config['query']) ? $config['query'] : [];
     }
 }
