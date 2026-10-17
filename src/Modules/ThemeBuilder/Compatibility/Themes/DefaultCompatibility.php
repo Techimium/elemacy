@@ -33,18 +33,24 @@ class DefaultCompatibility implements ThemeCompatibilityInterface
             return $display;
         });
 
-        if ($has_header) {
-            add_action('get_header', function () {
-                $this->current = 'header';
-            }, 1);
-            add_action('wp_body_open', [$manager, 'render_header'], 5);
-        }
-
-        if ($has_footer) {
-            add_action('get_footer', function () use ($manager) {
-                $this->current = 'footer';
+        // The filter only judges the theme's own check of each side, so a side
+        // is marked only as late as that check: the header after everything
+        // hooked to wp_body_open, the footer as get_footer fires. Marking the
+        // header at get_header would also reach Hello's one-time reading of
+        // the Elementor kit during wp_head, which would then register no
+        // header/footer settings and leave the native footer empty.
+        add_action('wp_body_open', function () {
+            $this->current = 'header';
+        }, PHP_INT_MAX);
+        add_action('get_footer', function () use ($manager, $has_footer) {
+            $this->current = 'footer';
+            if ($has_footer) {
                 $manager->render_footer();
-            }, 1);
+            }
+        }, 1);
+
+        if ($has_header) {
+            add_action('wp_body_open', [$manager, 'render_header'], 5);
         }
     }
 }

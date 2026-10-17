@@ -2436,6 +2436,45 @@ check('a named header is discarded through the same template hierarchy get_heade
     return $located === ['header-custom.php', 'header.php'];
 });
 
+/** A Hello Elementor request, recording each point where Hello would ask whether to show its native chrome. */
+function hello_native_chrome_checks(?int $header_id, ?int $footer_id): array
+{
+    foreach (['get_header', 'get_footer', 'wp_head', 'wp_body_open', 'hello_elementor_header_footer'] as $hook) {
+        unset($GLOBALS['__wp_actions'][$hook]);
+    }
+
+    $manager = new FixedChromeThemeBuilderManager();
+    $manager->header_id = $header_id;
+    $manager->footer_id = $footer_id;
+    // Both locations count as already printed, so only the moments Hello asks
+    // are exercised and no template is rendered.
+    \Closure::bind(function () {
+        $this->rendered_locations = ['header' => true, 'footer' => true];
+    }, $manager, ThemeBuilderManager::class)();
+    (new \Elemacy\Modules\ThemeBuilder\Compatibility\Themes\DefaultCompatibility())->register($manager);
+    $shown = static fn(): bool => apply_filters('hello_elementor_header_footer', true);
+
+    do_action('get_header');
+    $in_head = $shown();
+    do_action('wp_body_open');
+    $header = $shown();
+    do_action('get_footer');
+
+    return ['head' => $in_head, 'header' => $header, 'footer' => $shown()];
+}
+
+check('Hello with only a Header template hides its own header and keeps its own footer', static function () {
+    return ['head' => true, 'header' => false, 'footer' => true] === hello_native_chrome_checks(20, null);
+});
+
+check('Hello with only a Footer template hides its own footer and keeps its own header', static function () {
+    return ['head' => true, 'header' => true, 'footer' => false] === hello_native_chrome_checks(null, 21);
+});
+
+check('Hello with both templates hides both of its own sides', static function () {
+    return ['head' => true, 'header' => false, 'footer' => false] === hello_native_chrome_checks(20, 21);
+});
+
 check('the generic adapter carries no styling-based suppression', static function () {
     $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/GlobalCompatibility.php');
 

@@ -293,6 +293,55 @@ final class NativeChromeReplacementTest extends IntegrationTestCase
         $this->assertSingleDocumentShell($html);
     }
 
+    // Hello Elementor has its own dedicated adapter, which the generic
+    // fixture theme above never reaches.
+    private const HELLO = 'hello-elementor';
+    private const HELLO_HEADER = '<header id="site-header"';
+    private const HELLO_FOOTER = '<footer id="site-footer"';
+
+    public function testHelloKeepsItsNativeFooterWhenOnlyTheHeaderIsReplaced(): void
+    {
+        $this->assertRealThemeInstalled(self::HELLO);
+        $this->create('header', 'Elemacy Hello header-only');
+
+        $page = ThemePageRequest::render(self::HELLO, get_permalink($this->post_id));
+        $html = $page['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Hello header-only'), 'The Elemacy header renders exactly once: ' . $html);
+        self::assertStringNotContainsString(self::HELLO_HEADER, $html, "Hello's own header is replaced.");
+        self::assertSame(1, substr_count($html, self::HELLO_FOOTER), "Hello's own footer renders: " . $html);
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testHelloKeepsItsNativeHeaderWhenOnlyTheFooterIsReplaced(): void
+    {
+        $this->assertRealThemeInstalled(self::HELLO);
+        $this->create('footer', 'Elemacy Hello footer-only');
+
+        $page = ThemePageRequest::render(self::HELLO, get_permalink($this->post_id));
+        $html = $page['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Hello footer-only'), 'The Elemacy footer renders exactly once: ' . $html);
+        self::assertStringNotContainsString(self::HELLO_FOOTER, $html, "Hello's own footer is replaced.");
+        self::assertSame(1, substr_count($html, self::HELLO_HEADER), "Hello's own header renders: " . $html);
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testHelloHasBothSidesReplacedWhenBothTemplatesAreConfigured(): void
+    {
+        $this->assertRealThemeInstalled(self::HELLO);
+        $this->create('header', 'Elemacy Hello header');
+        $this->create('footer', 'Elemacy Hello footer');
+
+        $html = ThemePageRequest::render(self::HELLO, get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Hello header'), 'The Elemacy header renders exactly once: ' . $html);
+        self::assertSame(1, substr_count($html, 'Elemacy Hello footer'), 'The Elemacy footer renders exactly once.');
+        self::assertStringNotContainsString(self::HELLO_HEADER, $html, "Hello's own header is replaced.");
+        self::assertStringNotContainsString(self::HELLO_FOOTER, $html, "Hello's own footer is replaced.");
+        $this->assertSingleDocumentShell($html);
+    }
+
     private function assertSingleDocumentShell(string $html): void
     {
         self::assertSame(1, preg_match_all('/<html[ >]/', $html), 'Exactly one <html> tag.');
