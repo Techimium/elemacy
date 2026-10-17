@@ -114,6 +114,13 @@ class AdminScripts
             ? untrailingslashit(ELEMACY_VITE_DEV_SERVER)
             : 'http://localhost:5173';
 
+        // Vite injects the app CSS through JS, so there is no stylesheet file
+        // here. Register an empty handle anyway: extensions (Pro) declare it as
+        // a style dependency, and WordPress silently skips any style whose
+        // dependency is unregistered.
+        wp_register_style('elemacy-admin-app', false, [], ELEMACY_VERSION);
+        wp_enqueue_style('elemacy-admin-app');
+
         // Vite client (HMR websocket).
         wp_enqueue_script(
             'elemacy-vite-client',
