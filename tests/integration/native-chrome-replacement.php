@@ -293,6 +293,88 @@ final class NativeChromeReplacementTest extends IntegrationTestCase
         $this->assertSingleDocumentShell($html);
     }
 
+    public function testOptingOutOfOneSideKeepsThatSideOnAThemeWithADedicatedAdapter(): void
+    {
+        $this->create('header', 'Elemacy Dedicated opt-out header');
+        $this->create('footer', 'Elemacy Dedicated opt-out footer');
+
+        $html = ThemePageRequest::render('astra', get_permalink($this->post_id), 'guest', ['header'])['html'];
+
+        self::assertSame(1, substr_count($html, 'Astra-like native header'), "The theme's own header renders: " . $html);
+        self::assertStringNotContainsString('Elemacy Dedicated opt-out header', $html, 'The Elemacy header does not render on the opted-out side.');
+        self::assertSame(1, substr_count($html, 'Elemacy Dedicated opt-out footer'), 'The footer is still replaced.');
+        self::assertStringNotContainsString('Astra-like native footer', $html, "The theme's footer is still replaced.");
+    }
+
+    public function testOptingOutOfTheFooterKeepsHelloItsOwnFooterAndStillReplacesTheHeader(): void
+    {
+        $this->assertRealThemeInstalled(self::HELLO);
+        $this->create('header', 'Elemacy Hello opt-out header');
+        $this->create('footer', 'Elemacy Hello opt-out footer');
+
+        $html = ThemePageRequest::render(self::HELLO, get_permalink($this->post_id), 'guest', ['footer'])['html'];
+
+        self::assertSame(1, substr_count($html, self::HELLO_FOOTER), "Hello's own footer renders: " . $html);
+        self::assertStringNotContainsString('Elemacy Hello opt-out footer', $html, 'The Elemacy footer does not render on the opted-out side.');
+        self::assertSame(1, substr_count($html, 'Elemacy Hello opt-out header'), 'The header is still replaced.');
+        self::assertStringNotContainsString(self::HELLO_HEADER, $html, "Hello's own header is still replaced.");
+    }
+
+    public function testOptingOutOfTheHeaderKeepsABlockThemesHeaderPartAndStillReplacesTheFooter(): void
+    {
+        $this->assertRealThemeInstalled('twentytwentyfive');
+        $this->create('header', 'Elemacy Block opt-out header');
+        $this->create('footer', 'Elemacy Block opt-out footer');
+
+        $html = ThemePageRequest::render('twentytwentyfive', get_permalink($this->post_id), 'guest', ['header'])['html'];
+
+        self::assertSame(1, substr_count($html, '<header class="wp-block-template-part">'), "The theme's own header part renders: " . $html);
+        self::assertStringNotContainsString('Elemacy Block opt-out header', $html, 'The Elemacy header does not render on the opted-out side.');
+        self::assertSame(1, substr_count($html, 'Elemacy Block opt-out footer'), 'The footer is still replaced.');
+        self::assertStringNotContainsString('<footer class="wp-block-template-part">', $html, "The theme's footer part is still replaced.");
+    }
+
+    public function testAHeaderThatCannotBeReadLeavesNoWrappersAndOneDocumentShell(): void
+    {
+        $this->create('header', 'Elemacy Unreadable header');
+
+        $page = ThemePageRequest::render('theme-unreadable-header', get_permalink($this->post_id));
+        $html = $page['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Unreadable header'), 'The Elemacy header renders exactly once: ' . $html);
+        self::assertStringNotContainsString('Unreadable native header', $html, "The theme's header is still discarded.");
+        self::assertStringNotContainsString('class="broken"', $html, 'Nothing from the unreadable file reaches the response.');
+        self::assertSame(1, substr_count($html, 'Native chrome fixture content.'), "The theme's content still renders.");
+        self::assertSame(['wp_head' => 1, 'wp_body_open' => 1, 'wp_footer' => 1], $page['calls'], 'Each third-party shell callback runs exactly once.');
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testABlockThemeHeaderPartWithACustomSlugIsReplacedByItsArea(): void
+    {
+        $this->assertRealThemeInstalled('theme-block-custom-parts');
+        $this->create('header', 'Elemacy Custom-slug header');
+
+        $html = ThemePageRequest::render('theme-block-custom-parts', get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Custom-slug header'), 'The Elemacy header renders exactly once: ' . $html);
+        self::assertStringNotContainsString('Native masthead', $html, 'The header-area part is replaced whatever its slug.');
+        self::assertSame(1, substr_count($html, 'Native colophon'), 'The footer-area part is untouched when no footer is configured.');
+        self::assertSame(1, substr_count($html, 'Native aside notes'), 'A part of another area is untouched.');
+    }
+
+    public function testABlockThemeFooterPartWithACustomSlugIsReplacedByItsArea(): void
+    {
+        $this->assertRealThemeInstalled('theme-block-custom-parts');
+        $this->create('footer', 'Elemacy Custom-slug footer');
+
+        $html = ThemePageRequest::render('theme-block-custom-parts', get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy Custom-slug footer'), 'The Elemacy footer renders exactly once: ' . $html);
+        self::assertStringNotContainsString('Native colophon', $html, 'The footer-area part is replaced whatever its slug.');
+        self::assertSame(1, substr_count($html, 'Native masthead'), 'The header-area part is untouched when no header is configured.');
+        self::assertSame(1, substr_count($html, 'Native aside notes'), 'A part of another area is untouched.');
+    }
+
     // Hello Elementor has its own dedicated adapter, which the generic
     // fixture theme above never reaches.
     private const HELLO = 'hello-elementor';

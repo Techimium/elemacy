@@ -32,6 +32,8 @@
             <file>template-precedence.php</file>
             <file>theme-lifecycle.php</file>
             <file>native-chrome-replacement.php</file>
+            <file>real-theme-chrome.php</file>
+            <file>theme-hook-cleaner.php</file>
             <file>chrome-documents.php</file>
             <file>atomic-rendering.php</file>
             <file>pro-entitlement.php</file>

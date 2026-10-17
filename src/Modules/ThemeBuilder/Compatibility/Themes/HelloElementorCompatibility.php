@@ -7,16 +7,23 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
-/** Hello Elementor compatibility. See docs/ARCHITECTURE.md § Rationale digest. */
-class DefaultCompatibility implements ThemeCompatibilityInterface
+/**
+ * Hello Elementor, registered for the slug `hello-elementor`. Hello asks one
+ * filter, `hello_elementor_header_footer`, whether to print its own header or
+ * footer, so this adapter answers it for the side being asked about and renders
+ * the Elemacy template through Hello's own `wp_body_open` and `get_footer`.
+ * The side is marked only for Hello's own check, never earlier: see
+ * docs/ARCHITECTURE.md § Native chrome replacement.
+ */
+class HelloElementorCompatibility implements ThemeCompatibilityInterface
 {
     /** @var string|null 'header'|'footer'|null — which side is currently loading. */
     private $current = null;
 
     public function register(ThemeBuilderManager $manager): void
     {
-        $has_header = (bool) $manager->get_header_id();
-        $has_footer = (bool) $manager->get_footer_id();
+        $has_header = $manager->replaces_native_chrome('header');
+        $has_footer = $manager->replaces_native_chrome('footer');
 
         if (!$has_header && !$has_footer) {
             return;

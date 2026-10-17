@@ -137,12 +137,23 @@ jobs:
           curl -sSL "https://downloads.wordpress.org/plugin/elementor.${{ matrix.elementor }}.zip" -o elementor.zip
           unzip -q elementor.zip -d wordpress-core/wp-content/plugins
 
-      - name: Download a real classic theme
-        # Pinned like core. Twenty Twenty-One has no dedicated adapter, so the
-        # native-chrome replacement cases run against it through the generic path.
+      - name: Download the real themes
+        # Pinned like core, so a theme update cannot change a result on its
+        # own. tests/integration/real-theme-chrome.php runs the three
+        # header/footer cases against each: Hello, six themes with a dedicated
+        # adapter, five that use the generic path, and a block theme. Astra is
+        # not here: the harness keeps the slug `astra` for its fixture theme.
         run: |
-          curl -sSL "https://downloads.wordpress.org/theme/twentytwentyone.2.9.zip" -o twentytwentyone.zip
-          unzip -q twentytwentyone.zip -d real-themes
+          mkdir -p real-themes
+          for theme in \
+            generatepress.3.6.1 kadence.1.5.2 neve.4.2.16 oceanwp.4.2.7 blocksy.2.1.60 storefront.4.6.2 \
+            twentytwentyone.2.9 twentytwenty.3.2 hestia.3.3.8 sydney.2.72 zakra.4.3.3 \
+            hello-elementor.3.5.1; do
+            curl -sSfL "https://downloads.wordpress.org/theme/$theme.zip" -o "$theme.zip"
+            unzip -q "$theme.zip" -d real-themes
+          done
+          curl -sSfL "https://downloads.wordpress.org/theme/twentytwentyfive.1.5.zip" -o twentytwentyfive.zip
+          unzip -q twentytwentyfive.zip -d wordpress-core/wp-content/themes
 
       - name: Provision disposable environment
         working-directory: elemacy
@@ -150,7 +161,18 @@ jobs:
           python3 tests/integration/setup.py \
             --wordpress-source "$GITHUB_WORKSPACE/wordpress-core" \
             --port 8897 \
+            --hello-elementor-theme "$GITHUB_WORKSPACE/real-themes/hello-elementor" \
+            --theme "$GITHUB_WORKSPACE/real-themes/generatepress" \
+            --theme "$GITHUB_WORKSPACE/real-themes/kadence" \
+            --theme "$GITHUB_WORKSPACE/real-themes/neve" \
+            --theme "$GITHUB_WORKSPACE/real-themes/oceanwp" \
+            --theme "$GITHUB_WORKSPACE/real-themes/blocksy" \
+            --theme "$GITHUB_WORKSPACE/real-themes/storefront" \
             --theme "$GITHUB_WORKSPACE/real-themes/twentytwentyone" \
+            --theme "$GITHUB_WORKSPACE/real-themes/twentytwenty" \
+            --theme "$GITHUB_WORKSPACE/real-themes/hestia" \
+            --theme "$GITHUB_WORKSPACE/real-themes/sydney" \
+            --theme "$GITHUB_WORKSPACE/real-themes/zakra" \
             --private-mysql | tee /tmp/setup-output.log
           grep '^ELEMACY_TEST_ENV=' /tmp/setup-output.log >> "$GITHUB_ENV"
 

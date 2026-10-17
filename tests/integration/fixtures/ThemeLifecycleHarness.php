@@ -72,7 +72,7 @@ final class ThemeLifecycleHarness
         // Undo whatever the previous theme's compatibility adapter
         // registered (get_header/get_footer/etc. closures) before adopting
         // a new theme_baseline — otherwise a prior theme's adapter hooks
-        // (e.g. GlobalCompatibility's own 'get_header' force-loader) leak
+        // (e.g. ClassicThemeCompatibility's own 'get_header' force-loader) leak
         // into every later switch_theme()'s baseline and keep firing.
         $this->restore_snapshot($this->construction_baseline);
 

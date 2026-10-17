@@ -11,7 +11,7 @@ class AstraCompatibility implements ThemeCompatibilityInterface
 {
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
             add_action('template_redirect', function () {
                 remove_action('astra_header', 'astra_header_markup');
 
@@ -25,7 +25,7 @@ class AstraCompatibility implements ThemeCompatibilityInterface
             add_action('astra_header', [$manager, 'render_header'], 10);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
             add_action('template_redirect', function () {
                 remove_action('astra_footer', 'astra_footer_markup');
 

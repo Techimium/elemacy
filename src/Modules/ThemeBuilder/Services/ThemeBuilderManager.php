@@ -233,10 +233,40 @@ class ThemeBuilderManager
      */
     protected array $rendered_locations = [];
 
-    /** Lets the next page render its header and footer again. */
+    /**
+     * Per side, whether native chrome is replaced this request; asked once
+     * (see replaces_native_chrome()). Cleared per page like the render guard.
+     *
+     * @var array<string, bool>
+     */
+    protected array $replaced_sides = [];
+
+    /** Lets the next page render its header and footer again, and decide again which sides it replaces. */
     public function forget_rendered_locations(): void
     {
         $this->rendered_locations = [];
+        $this->replaced_sides = [];
+    }
+
+    /**
+     * Whether the active theme's own header or footer is replaced on this
+     * request: a template applies to $side and the site has not opted out of
+     * replacing it. Every compatibility adapter asks this, and only this, so
+     * the opt-out behind Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER
+     * reaches all of them. The filter is asked at most once per side per
+     * request, and not at all for a side with no template.
+     *
+     * @param string $side 'header' or 'footer'.
+     */
+    public function replaces_native_chrome(string $side): bool
+    {
+        if (!isset($this->replaced_sides[$side])) {
+            $has_template = (bool) ('header' === $side ? $this->get_header_id() : $this->get_footer_id());
+            $this->replaced_sides[$side] = $has_template
+                && (bool) apply_filters(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, true, $side);
+        }
+
+        return $this->replaced_sides[$side];
     }
 
     /**

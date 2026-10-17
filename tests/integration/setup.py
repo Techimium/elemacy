@@ -62,7 +62,7 @@ def main():
         if not (hello_theme / "style.css").is_file():
             parser.error("--hello-elementor-theme must point to a theme directory (with style.css).")
     fixture_themes = {"elemacy-fixture", "astra", "theme-no-body-open", "theme-location-wrapper", "theme-chrome-assets",
-                      "theme-generic-chrome", "theme-compat-stub", "hello-elementor"}
+                      "theme-generic-chrome", "theme-unreadable-header", "theme-block-custom-parts", "theme-compat-stub", "hello-elementor"}
     real_themes = [theme.resolve() for theme in args.theme]
     for theme in real_themes:
         if not (theme / "style.css").is_file():
@@ -169,7 +169,7 @@ def main():
     # fixture replicates only Astra's public astra_header/astra_footer hook
     # contract, not its actual theme.
     for name in ("astra", "theme-no-body-open", "theme-location-wrapper", "theme-chrome-assets",
-                 "theme-generic-chrome", "theme-compat-stub"):
+                 "theme-generic-chrome", "theme-unreadable-header", "theme-block-custom-parts", "theme-compat-stub"):
         shutil.copytree(harness / "fixtures" / name, content / "themes" / name)
     if hello_theme:
         shutil.copytree(hello_theme, content / "themes/hello-elementor")

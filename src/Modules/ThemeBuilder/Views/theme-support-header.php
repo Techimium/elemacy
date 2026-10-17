@@ -1,35 +1,15 @@
 <?php
+/**
+ * A full header-side shell: the document opening, then the Header template.
+ * Used where Elemacy owns the whole shell (a theme with no header.php).
+ */
+
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-use Elementor\Utils;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-$elemacy_manager = ThemeBuilderManager::instance();
-?>
-<!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+require __DIR__ . '/theme-shell-open.php';
 
-<head>
-    <meta charset="<?php bloginfo('charset'); ?>">
-    <?php
-    // PHPCS - not a user input.
-    echo Utils::get_meta_viewport('theme-builder'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    ?>
-    <?php if (!current_theme_supports('title-tag')) : ?>
-        <title>
-            <?php
-            // PHPCS - already escaped by WordPress.
-            echo wp_get_document_title(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ?>
-        </title>
-    <?php endif; ?>
-    <?php wp_head(); ?>
-</head>
-
-<body <?php body_class(); ?>>
-    <?php
-    did_action('wp_body_open') || wp_body_open();
-    $elemacy_manager->render_header();
-    ?>
+ThemeBuilderManager::instance()->render_header();

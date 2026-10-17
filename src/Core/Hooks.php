@@ -59,8 +59,9 @@ final class Hooks
     // Theme Builder.
     public const THEME_BUILDER_TEMPLATE_TYPES_FILTER  = 'elemacy/filter/theme_builder/template_types';
 
-    // Whether the generic adapter replaces the active theme's own header or
-    // footer this request (passes true and the side, 'header' or 'footer').
+    // Whether the active theme's own header or footer is replaced this request,
+    // by whichever adapter serves the theme (passes true and the side,
+    // 'header' or 'footer'; not asked for a side with no template).
     // Returning false leaves that side to the theme, as though no template
     // were configured for it.
     public const THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER = 'elemacy/filter/theme_builder/suppress_native_chrome';

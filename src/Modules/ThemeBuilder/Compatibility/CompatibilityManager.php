@@ -9,8 +9,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\AstraCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BBThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlocksyCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlockThemeCompatibility;
-use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\DefaultCompatibility;
-use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\HelloElementorCompatibility;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GenesisCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GeneratePressCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\KadenceCompatibility;
@@ -63,8 +63,8 @@ class CompatibilityManager
     {
         $manager = ThemeBuilderManager::instance();
 
-        $has_header = (bool) $manager->get_header_id();
-        $has_footer = (bool) $manager->get_footer_id();
+        $has_header = $manager->replaces_native_chrome('header');
+        $has_footer = $manager->replaces_native_chrome('footer');
 
         if (!$has_header && !$has_footer) {
             return;
@@ -104,7 +104,7 @@ class CompatibilityManager
         $this->register('storefront', StorefrontCompatibility::class);
         $this->register('genesis', GenesisCompatibility::class);
         $this->register('bb-theme', BBThemeCompatibility::class);
-        $this->register('hello-elementor', DefaultCompatibility::class);
+        $this->register('hello-elementor', HelloElementorCompatibility::class);
 
         do_action(Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION, $this);
     }
@@ -125,6 +125,6 @@ class CompatibilityManager
         }
 
         // Global fallback to support unknown classic themes without swapping templates.
-        return class_exists(GlobalCompatibility::class) ? new GlobalCompatibility() : (class_exists(DefaultCompatibility::class) ? new DefaultCompatibility() : null);
+        return class_exists(ClassicThemeCompatibility::class) ? new ClassicThemeCompatibility() : (class_exists(HelloElementorCompatibility::class) ? new HelloElementorCompatibility() : null);
     }
 }

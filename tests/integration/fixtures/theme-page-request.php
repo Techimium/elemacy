@@ -10,7 +10,7 @@
  * at most once per process (a function-static guard), and the generic
  * adapter empties the shell hooks once its own shell has run them.
  *
- * Input on STDIN: {theme, url, user: "admin"|"guest", keep_native: string[]}.
+ * Input on STDIN: {theme, url, user: "admin"|"guest", keep_native: string[], force_generic?: bool, third_party?: array<string,string>}.
  * The theme is forced through pre_option filters seeded before WordPress
  * loads, so the site's stored theme is never changed.
  */
@@ -39,6 +39,26 @@ $GLOBALS['wp_filter'] = [
         'accepted_args' => 2,
     ]]],
 ];
+
+// Serve a theme that has a dedicated adapter through the generic one, to
+// compare the two paths on the same real theme. The hook is the adapter
+// registration action (Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION),
+// spelled out because Hooks is not loadable until WordPress has.
+if (!empty($input['force_generic'])) {
+    $GLOBALS['wp_filter']['elemacy/action/theme_builder/compatibility/register'] = [10 => [[
+        'function' => static function ($compatibility) use ($input): void {
+            $compatibility->register($input['theme'], \Elemacy\Modules\ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility::class);
+        },
+        'accepted_args' => 1,
+    ]]];
+}
+
+// A plugin-style callback on any hook, to prove an adapter does not remove it.
+foreach ((array) ($input['third_party'] ?? []) as $hook => $marker) {
+    $GLOBALS['wp_filter'][$hook][10][] = ['function' => static function () use ($marker): void {
+        echo $marker;
+    }, 'accepted_args' => 1];
+}
 
 define('WP_USE_THEMES', true);
 require dirname(__DIR__) . '/bootstrap.php';

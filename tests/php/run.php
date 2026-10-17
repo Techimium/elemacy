@@ -86,7 +86,7 @@ use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
 use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
-use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\GlobalCompatibility;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
@@ -2273,7 +2273,7 @@ check('wrapper does not double-fire wp_body_open when the theme header already f
     return did_action('wp_body_open') === 1;
 });
 
-/* ── ThemeBuilder\Compatibility\Themes\GlobalCompatibility ───────── */
+/* ── ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility ───────── */
 
 final class FixedChromeThemeBuilderManager extends ThemeBuilderManager
 {
@@ -2309,20 +2309,35 @@ final class FixedChromeThemeBuilderManager extends ThemeBuilderManager
  * tests/integration/theme-lifecycle.php). This records when one would print,
  * and which shell hooks still had callbacks at that moment.
  */
-final class RecordingGlobalCompatibility extends GlobalCompatibility
+final class RecordingClassicThemeCompatibility extends ClassicThemeCompatibility
 {
     /** @var string[] */
     public $log = [];
 
-    protected function print_shell(string $side): void
+    protected function print_shell_open(): void
     {
-        $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
-        $this->log[] = 'shell:' . $side . ':' . implode(',', $live);
-        echo '<shell-' . $side . '>';
+        $this->log[] = 'shell:header:' . $this->live_shell_hooks();
+        echo '<shell-header>';
+    }
+
+    protected function print_template(string $side): void
+    {
+        echo "<template-$side>";
+    }
+
+    protected function print_shell_close(): void
+    {
+        $this->log[] = 'shell:footer:' . $this->live_shell_hooks();
+        echo '<shell-footer>';
+    }
+
+    private function live_shell_hooks(): string
+    {
+        return implode(',', array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook])));
     }
 }
 
-function reset_global_compat_hooks(): void
+function reset_classic_compat_hooks(): void
 {
     foreach (['get_header', 'get_footer', 'wp_head', 'wp_body_open', 'wp_footer', Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER] as $hook) {
         unset($GLOBALS['__wp_actions'][$hook]);
@@ -2340,16 +2355,94 @@ function add_third_party_shell_callbacks(): void
     }
 }
 
-check('native chrome suppression defaults to on for both sides', static function () {
-    reset_global_compat_hooks();
+check('a side is replaced when a template applies to it and the site has not opted out', static function () {
+    reset_classic_compat_hooks();
+    $manager = new FixedChromeThemeBuilderManager();
 
-    (new GlobalCompatibility())->register(new FixedChromeThemeBuilderManager());
+    return true === $manager->replaces_native_chrome('header') && true === $manager->replaces_native_chrome('footer');
+});
+
+check('a side with no template is not replaced, and the opt-out is not even asked about it', static function () {
+    reset_classic_compat_hooks();
+    $asked = [];
+    add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress, string $side) use (&$asked): bool {
+        $asked[] = $side;
+
+        return $suppress;
+    }, 10, 2);
+    $manager = new FixedChromeThemeBuilderManager();
+    $manager->footer_id = null;
+
+    return true === $manager->replaces_native_chrome('header') && false === $manager->replaces_native_chrome('footer') && ['header'] === $asked;
+});
+
+check('opting out of one side leaves the other replaced', static function () {
+    reset_classic_compat_hooks();
+    add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static fn(bool $suppress, string $side): bool => 'header' === $side ? false : $suppress, 10, 2);
+    $manager = new FixedChromeThemeBuilderManager();
+
+    return false === $manager->replaces_native_chrome('header') && true === $manager->replaces_native_chrome('footer');
+});
+
+check('the opt-out is asked once per side per page, however many adapters ask', static function () {
+    reset_classic_compat_hooks();
+    $asked = 0;
+    add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress) use (&$asked): bool {
+        $asked++;
+
+        return $suppress;
+    }, 10, 2);
+    $manager = new FixedChromeThemeBuilderManager();
+    for ($i = 0; $i < 5; $i++) {
+        $manager->replaces_native_chrome('header');
+        $manager->replaces_native_chrome('footer');
+    }
+    $once = $asked;
+    $manager->forget_rendered_locations();
+    $manager->replaces_native_chrome('header');
+
+    return 2 === $once && 3 === $asked;
+});
+
+check('no theme adapter empties a hook another plugin may share; only the generic shell neutralisation does', static function () {
+    $directory = ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/';
+    foreach (glob($directory . '*.php') ?: [] as $file) {
+        if ('ClassicThemeCompatibility.php' === basename($file)) {
+            continue;
+        }
+        if (false !== strpos(elemacy_code_without_comments($file), 'remove_all_actions')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('every adapter asks the manager whether a side is replaced, never the template id', static function () {
+    $directory = ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/';
+    foreach (array_merge(glob($directory . 'Themes/*.php') ?: [], [$directory . 'CompatibilityManager.php']) as $file) {
+        $source = elemacy_code_without_comments($file);
+        if (false !== strpos($source, 'get_header_id') || false !== strpos($source, 'get_footer_id')) {
+            return false;
+        }
+        if (false !== strpos($source, 'THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('native chrome suppression defaults to on for both sides', static function () {
+    reset_classic_compat_hooks();
+
+    (new ClassicThemeCompatibility())->register(new FixedChromeThemeBuilderManager());
 
     return !empty($GLOBALS['__wp_actions']['get_header']) && !empty($GLOBALS['__wp_actions']['get_footer']);
 });
 
 check('opting one side out of native chrome suppression leaves the other side replaced', static function () {
-    reset_global_compat_hooks();
+    reset_classic_compat_hooks();
     $sides = [];
     add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress, string $side) use (&$sides): bool {
         $sides[] = $side;
@@ -2357,7 +2450,7 @@ check('opting one side out of native chrome suppression leaves the other side re
         return 'header' === $side ? false : $suppress;
     }, 10, 2);
 
-    (new GlobalCompatibility())->register(new FixedChromeThemeBuilderManager());
+    (new ClassicThemeCompatibility())->register(new FixedChromeThemeBuilderManager());
 
     return $sides === ['header', 'footer']
         && empty($GLOBALS['__wp_actions']['get_header'])
@@ -2365,7 +2458,7 @@ check('opting one side out of native chrome suppression leaves the other side re
 });
 
 check('a side with no configured template is never replaced, and never asks the opt-out filter', static function () {
-    reset_global_compat_hooks();
+    reset_classic_compat_hooks();
     $asked = 0;
     add_filter(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, static function (bool $suppress) use (&$asked): bool {
         $asked++;
@@ -2375,7 +2468,7 @@ check('a side with no configured template is never replaced, and never asks the 
     $manager = new FixedChromeThemeBuilderManager();
     $manager->footer_id = null;
 
-    (new GlobalCompatibility())->register($manager);
+    (new ClassicThemeCompatibility())->register($manager);
 
     return 1 === $asked
         && !empty($GLOBALS['__wp_actions']['get_header'])
@@ -2383,9 +2476,9 @@ check('a side with no configured template is never replaced, and never asks the 
 });
 
 check('the generic header replacement prints the shell, then neutralizes the head and body-open hooks, then discards the theme header', static function () {
-    reset_global_compat_hooks();
+    reset_classic_compat_hooks();
     add_third_party_shell_callbacks();
-    $compat = new RecordingGlobalCompatibility();
+    $compat = new RecordingClassicThemeCompatibility();
     $compat->register(new FixedChromeThemeBuilderManager());
     $GLOBALS['__locate_template_stub'] = static function ($templates) use ($compat) {
         $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
@@ -2398,13 +2491,13 @@ check('the generic header replacement prints the shell, then neutralizes the hea
     $html = ob_get_clean();
 
     return $compat->log === ['shell:header:wp_head,wp_body_open,wp_footer', 'discard:header.php:wp_footer']
-        && '<shell-header>' === $html;
+        && '<shell-header><template-header>' === $html;
 });
 
 check('the generic footer replacement prints the shell, then neutralizes the footer hook, then discards the theme footer', static function () {
-    reset_global_compat_hooks();
+    reset_classic_compat_hooks();
     add_third_party_shell_callbacks();
-    $compat = new RecordingGlobalCompatibility();
+    $compat = new RecordingClassicThemeCompatibility();
     $compat->register(new FixedChromeThemeBuilderManager());
     $GLOBALS['__locate_template_stub'] = static function ($templates) use ($compat) {
         $live = array_filter(['wp_head', 'wp_body_open', 'wp_footer'], static fn(string $hook): bool => !empty($GLOBALS['__wp_actions'][$hook]));
@@ -2417,12 +2510,64 @@ check('the generic footer replacement prints the shell, then neutralizes the foo
     $html = ob_get_clean();
 
     return $compat->log === ['shell:footer:wp_head,wp_body_open,wp_footer', 'discard:footer.php:wp_head,wp_body_open']
-        && '<shell-footer>' === $html;
+        && '<template-footer><shell-footer>' === $html;
+});
+
+/** Renders one generic replacement whose discarded theme file prints $discarded. */
+function generic_replacement_html(string $side, string $discarded): string
+{
+    reset_classic_compat_hooks();
+    $compat = new RecordingClassicThemeCompatibility();
+    $compat->register(new FixedChromeThemeBuilderManager());
+    $GLOBALS['__locate_template_stub'] = static function () use ($discarded) {
+        echo $discarded;
+    };
+
+    ob_start();
+    'header' === $side ? get_header() : get_footer();
+
+    return ob_get_clean();
+}
+
+check('the generic header replacement prints the wrappers its discarded header opened around the Elemacy template', static function () {
+    return '<shell-header><div id="page"><template-header><div id="content">'
+        === generic_replacement_html('header', '<div id="page"><a class="skip" href="#">Skip</a><header class="site-header"><nav>menu</nav></header><div id="content">');
+});
+
+check('the generic footer replacement prints the wrappers its discarded footer closed around the Elemacy template', static function () {
+    return '</div><template-footer></div><shell-footer>'
+        === generic_replacement_html('footer', '</div><footer class="site-footer">credits</footer></div>');
+});
+
+check('the generic replacement prints no wrappers when the discarded file cannot be read', static function () {
+    return '<shell-header><template-header>' === generic_replacement_html('header', '<div id="page"><a href="')
+        && '<template-footer><shell-footer>' === generic_replacement_html('footer', '</div><footer><nav></footer>');
+});
+
+check('the generic replacement leaves no output buffer open, even when the theme file throws', static function () {
+    $level = ob_get_level();
+    reset_classic_compat_hooks();
+    $compat = new RecordingClassicThemeCompatibility();
+    $compat->register(new FixedChromeThemeBuilderManager());
+    $GLOBALS['__locate_template_stub'] = static function () {
+        throw new \RuntimeException('theme file failed');
+    };
+
+    $thrown = false;
+    ob_start();
+    try {
+        get_header();
+    } catch (\RuntimeException $e) {
+        $thrown = true;
+    }
+    ob_end_clean();
+
+    return $thrown && ob_get_level() === $level;
 });
 
 check('a named header is discarded through the same template hierarchy get_header() uses', static function () {
-    reset_global_compat_hooks();
-    $compat = new RecordingGlobalCompatibility();
+    reset_classic_compat_hooks();
+    $compat = new RecordingClassicThemeCompatibility();
     $compat->register(new FixedChromeThemeBuilderManager());
     $located = [];
     $GLOBALS['__locate_template_stub'] = static function ($templates) use (&$located) {
@@ -2434,6 +2579,145 @@ check('a named header is discarded through the same template hierarchy get_heade
     ob_end_clean();
 
     return $located === ['header-custom.php', 'header.php'];
+});
+
+/* ── ThemeBuilder\Compatibility\LayoutWrapperReader ────────────── */
+
+/** Opening and closing tags in $html, in order, as 'open:div' / 'close:div'. */
+function wrapper_events(string $html): array
+{
+    preg_match_all('~<(/?)([a-z]+)[^>]*>~i', $html, $m, PREG_SET_ORDER);
+
+    return array_map(static fn(array $t): string => ('/' === $t[1] ? 'close:' : 'open:') . strtolower($t[2]), $m);
+}
+
+/** Whether the events open and close in matching order, with nothing left over. */
+function wrapper_events_balance(array $events): bool
+{
+    $stack = [];
+    foreach ($events as $event) {
+        [$kind, $name] = explode(':', $event);
+        if ('open' === $kind) {
+            $stack[] = $name;
+        } elseif ($name !== array_pop($stack)) {
+            return false;
+        }
+    }
+
+    return [] === $stack;
+}
+
+function read_wrappers(string $html, string $side = 'header'): ?array
+{
+    return (new \Elemacy\Modules\ThemeBuilder\Compatibility\LayoutWrapperReader())->read($html, $side);
+}
+
+check('the wrapper reader balances a real theme: what its header leaves open, its footer closes (12 real themes)', static function () {
+    $dir = __DIR__ . '/fixtures/theme-chrome/';
+    $themes = array_map(static fn(string $f): string => basename($f, '-header.html'), glob($dir . '*-header.html'));
+    if (count($themes) < 12) {
+        return false;
+    }
+
+    foreach ($themes as $theme) {
+        $header = read_wrappers(file_get_contents($dir . $theme . '-header.html'), 'header');
+        $footer = read_wrappers(file_get_contents($dir . $theme . '-footer.html'), 'footer');
+        if (null === $header || null === $footer) {
+            return false;
+        }
+        // The page the theme prints is header, content, footer: its unbalanced tags must close each other.
+        $events = array_merge(
+            wrapper_events($header['before'] . $header['after']),
+            wrapper_events($footer['before'] . $footer['after'])
+        );
+        if (!wrapper_events_balance($events)) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('the wrapper reader returns tags only, never the theme\'s text, navigation or chrome element', static function () {
+    $dir = __DIR__ . '/fixtures/theme-chrome/';
+    foreach (glob($dir . '*.html') as $file) {
+        $result = read_wrappers(file_get_contents($file), false !== strpos($file, '-header') ? 'header' : 'footer');
+        foreach ($result ?? [] as $markup) {
+            if ('' !== strip_tags($markup) || false !== stripos($markup, '<header') || false !== stripos($markup, '<footer') || false !== stripos($markup, '<script')) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+});
+
+check('the wrapper reader places Twenty Twenty-One\'s wrappers around where its header and footer sat', static function () {
+    $dir = __DIR__ . '/fixtures/theme-chrome/';
+    $header = read_wrappers(file_get_contents($dir . 'twentytwentyone-header.html'), 'header');
+    $footer = read_wrappers(file_get_contents($dir . 'twentytwentyone-footer.html'), 'footer');
+
+    return '<div id="page" class="site">' === $header['before']
+        && '<div id="content" class="site-content"><div id="primary" class="content-area"><main id="main" class="site-main">' === preg_replace('~>\s+<~', '><', $header['after'])
+        && '</main></div></div>' === preg_replace('~>\s+<~', '><', $footer['before'])
+        && '</div>' === $footer['after'];
+});
+
+check('the wrapper reader returns nothing for a theme whose header and footer balance on their own', static function () {
+    $dir = __DIR__ . '/fixtures/theme-chrome/';
+    foreach (['hello-elementor', 'twentytwenty'] as $theme) {
+        foreach (['header', 'footer'] as $side) {
+            if (['before' => '', 'after' => ''] !== read_wrappers(file_get_contents($dir . "$theme-$side.html"), $side)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+});
+
+check('the wrapper reader ignores tags inside comments, scripts, styles and textareas', static function () {
+    return ['before' => '', 'after' => ''] === read_wrappers('<div id="a"><!-- <div> --><script>var s = "<div>";</script><style>/* <main> */</style><textarea><section></textarea></div>');
+});
+
+check('the wrapper reader ignores void elements, self-closing tags and the document shell', static function () {
+    return ['before' => '', 'after' => ''] === read_wrappers('<!doctype html><html lang="en"><head><meta charset="UTF-8"><link rel="x"><title>t</title></head><body class="b"><div><br><img src="x"><svg><path d="M0"/></svg></div>');
+});
+
+check('the wrapper reader accepts elements whose closing tag HTML makes optional', static function () {
+    return ['before' => '', 'after' => ''] === read_wrappers('<ul><li>one<li>two</ul><p>unclosed paragraph');
+});
+
+check('the wrapper reader keeps a tag whose attribute contains a closing bracket', static function () {
+    return ['before' => '<div data-x="a>b" id="page">', 'after' => ''] === read_wrappers('<div data-x="a>b" id="page"><a href="#">skip</a>');
+});
+
+check('the wrapper reader puts every wrapper before the template when there is no chrome element', static function () {
+    return ['before' => '<div id="page"><div id="content">', 'after' => ''] === read_wrappers('<div id="page"><a href="#">skip</a><div id="content">');
+});
+
+check('the wrapper reader splits wrappers around the first header and the last footer element', static function () {
+    $header = read_wrappers('<div id="a"><header class="site-header"><div class="inner"></div></header><div id="b">', 'header');
+    $footer = read_wrappers('</div><footer class="entry-footer"></footer></div><footer id="colophon"><div></div></footer></div>', 'footer');
+
+    return ['before' => '<div id="a">', 'after' => '<div id="b">'] === $header
+        && ['before' => '</div></div>', 'after' => '</div>'] === $footer;
+});
+
+check('the wrapper reader gives up on output it cannot read with certainty', static function () {
+    foreach ([
+        '<div id="page"><a href="',            // a tag cut off
+        '<div id="page"><script>var a = 1;',   // a script never closed
+        '<div><nav><ul>',                       // a non-wrapper left open
+        '<div><span></div>',                    // a close that skips an open element
+        '</a><div>',                            // a stray close of a non-wrapper
+    ] as $html) {
+        if (null !== read_wrappers($html)) {
+            return false;
+        }
+    }
+
+    return true;
 });
 
 /** A Hello Elementor request, recording each point where Hello would ask whether to show its native chrome. */
@@ -2451,7 +2735,7 @@ function hello_native_chrome_checks(?int $header_id, ?int $footer_id): array
     \Closure::bind(function () {
         $this->rendered_locations = ['header' => true, 'footer' => true];
     }, $manager, ThemeBuilderManager::class)();
-    (new \Elemacy\Modules\ThemeBuilder\Compatibility\Themes\DefaultCompatibility())->register($manager);
+    (new \Elemacy\Modules\ThemeBuilder\Compatibility\Themes\HelloElementorCompatibility())->register($manager);
     $shown = static fn(): bool => apply_filters('hello_elementor_header_footer', true);
 
     do_action('get_header');
@@ -2476,7 +2760,7 @@ check('Hello with both templates hides both of its own sides', static function (
 });
 
 check('the generic adapter carries no styling-based suppression', static function () {
-    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/GlobalCompatibility.php');
+    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/ClassicThemeCompatibility.php');
 
     foreach (['display: none', 'display:none', '100vw', 'wp_add_inline_style', 'site-header', 'masthead'] as $needle) {
         if (false !== strpos($source, $needle)) {
@@ -3123,7 +3407,7 @@ check('adapter selection is data, not code: every built-in theme adapter is chos
     // fallback order: exact slug, then block theme, then generic.
     if (false === strpos($manager, 'Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION')
         || false === strpos($manager, 'wp_is_block_theme()')
-        || false === strpos($manager, 'GlobalCompatibility')) {
+        || false === strpos($manager, 'ClassicThemeCompatibility')) {
         return false;
     }
 
@@ -3138,7 +3422,7 @@ check('adapter selection is data, not code: every built-in theme adapter is chos
         $source = elemacy_code_without_comments($directory . $adapter . '.php');
 
         foreach ($adapters as $other) {
-            // GlobalCompatibility and DefaultCompatibility are the two
+            // ClassicThemeCompatibility and HelloElementorCompatibility are the two
             // fallbacks CompatibilityManager itself selects; no adapter may
             // reference any sibling, including those.
             if ($other !== $adapter && false !== strpos($source, $other)) {
