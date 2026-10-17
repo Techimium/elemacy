@@ -64,13 +64,11 @@ Saved library forms emit `elemacy_form_context`, a purpose-specific HMAC proof b
 
 `elemacy_form_limit_<HMAC of IP>` is a non-autoloaded, per-site options row holding `expiry:count`. The default limit remains five accepted attempts per IP across forms per 60 seconds. Bounded compare-and-swap retries coordinate concurrent requests; each consumption deletes at most 20 expired owned buckets. The limiter runs before actions and consumes an attempt even when mail fails. It does not guarantee exactly-once email delivery. Raw IP addresses are not stored.
 
-## Pro counter normalization and public tracking
+## Pro counters and public tracking
 
-Pro schema `1` normalizes legacy counter rows in resumable batches of 50 post IDs. The lowest `meta_id` remains authoritative. Each stored value is interpreted as a nonnegative integer; the largest legacy value is the baseline, because duplicate rows were replicas incremented together, not independent event ledgers. Their values are not summed. The missing baseline is added atomically before deleting the other rows, making an interrupted cleanup repeatable. New tracking requests encountering duplicates normalize them under the same coordination boundary before incrementing, so accepted concurrent events are retained.
+`elemacy_pro_counter_lock_<post ID>` is a non-autoloaded, 30-second database lease. First creation rechecks under the lease; ownership and expiry fence the initialization SQL. Existing single counters use database-side increments. Expired workers cannot delete a replacement lease. Failed writes are explicit failures, never a fallback insertion.
 
-`elemacy_pro_counter_lock_<post ID>` is a non-autoloaded, 30-second database lease. First creation rechecks under the lease; ownership and expiry fence initialization and normalization SQL. Existing single counters use database-side increments. Expired workers cannot delete a replacement lease. Failed writes are explicit failures, never a fallback insertion.
-
-`elemacy_pro_counter_migration_cursor` records successful progress; `elemacy_pro_schema_version` advances only after the final batch, under its own `elemacy_pro_schema_version_lock` lease (the same `DatabaseLease` Free's migrator uses). Busy/failed items retry on later requests. Pro owns both independently of Free and license status.
+`elemacy_pro_schema_version` advances only after a completed migration, under its own `elemacy_pro_schema_version_lock` lease (the same `DatabaseLease` Free's migrator uses). Pro has no data migrations yet, and owns both options independently of Free and license status.
 
 Tracking accepts only `impression` and `conversion` for published, accessible popup documents with content and available server-side rules/triggers/conditions. It does not prove a human saw the popup or deduplicate all replayed events. Request input is limited to 2 KiB/four parameters; a nonce is hygiene, not authorization. `elemacy_pro_track_limit_<HMAC of IP>` enforces 120 requests per IP per minute across popups with bounded database compare-and-swap retries and expiry cleanup. It is non-autoloaded and never stores the raw IP.
 

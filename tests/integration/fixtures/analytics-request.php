@@ -12,9 +12,5 @@ if (!file_exists($input['barrier'])) {
     throw new RuntimeException('Analytics fixture barrier timed out.');
 }
 $service = \Elemacy\Core\Container::instance()->make(\ElemacyPro\Extensions\Popups\Services\AnalyticsService::class);
-if ($input['operation'] === 'normalize') {
-    $service->consolidate($input['id']);
-} else {
-    $service->record_impression($input['id']);
-}
+$service->record_impression($input['id']);
 echo 'accepted';

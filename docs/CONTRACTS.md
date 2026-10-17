@@ -6,7 +6,7 @@ Stored identifiers, saved names, HTTP paths and hook names that saved sites, Pro
 
 ## Permanent identifiers
 
-These are written into sites' databases and saved Elementor data. Renaming one silently breaks every site that stored the old value, so a rename is never a refactor: it ships a `Core\Migrator` step, in the same change, that rewrites the stored value.
+These are written into sites' databases and saved Elementor data. Renaming one silently breaks every site that stored the old value, so from the 1.0 release on a rename is never a refactor: it ships a `Core\Migrator` step, in the same change, that rewrites the stored value.
 
 - **Module slugs**: `theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`, stored in `elemacy_active_modules`.
 - **Template type names**: every stored `_elemacy_template_type` value in § Library types and Elementor document names.

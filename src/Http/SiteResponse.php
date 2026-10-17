@@ -52,18 +52,6 @@ class SiteResponse
     }
 
     /**
-     * Legacy method for backward compatibility
-     *
-     * @param array $data Response data.
-     * @param int   $status_code HTTP status code.
-     * @return void
-     */
-    public function success($data = [], $status_code = 200)
-    {
-        $this->json($data, $status_code);
-    }
-
-    /**
      * Send a JSON error response
      *
      * @param array $data Error data.
@@ -73,17 +61,5 @@ class SiteResponse
     public function json_error($data = [], $status_code = 400)
     {
         wp_send_json_error($data, $status_code);
-    }
-
-    /**
-     * Legacy method for backward compatibility
-     *
-     * @param array $data Error data.
-     * @param int   $status_code HTTP status code.
-     * @return void
-     */
-    public function error($data = [], $status_code = 400)
-    {
-        $this->json_error($data, $status_code);
     }
 }

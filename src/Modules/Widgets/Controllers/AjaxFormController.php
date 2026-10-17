@@ -49,6 +49,6 @@ class AjaxFormController
                 sanitize_text_field(wp_unslash((string) ($_SERVER['REMOTE_ADDR'] ?? '')))
             );
         }
-        return SiteResponse::instance()->success(['message' => esc_html__('Form submitted successfully!', 'elemacy')]);
+        return SiteResponse::instance()->json(['message' => esc_html__('Form submitted successfully!', 'elemacy')]);
     }
 }

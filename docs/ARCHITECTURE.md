@@ -156,7 +156,7 @@ Longer reasoning that used to live in code comments, by section name.
 
 **Theme adapters own replacement without destroying hooks.** Hello Elementor's own `hello_elementor_header_footer` filter suppresses only its chrome; nothing is removed from `wp_head` or `wp_footer`, so other plugins' callbacks survive. The generic path empties a shell hook only after its own shell has run it; see § Native chrome replacement.
 
-**Counter leases.** `add_post_meta(..., true)` is not a unique constraint, so a counter's first creation takes a 30-second database lease and rechecks under it; existing counters increment database-side. Legacy duplicate rows were replicas incremented together, so normalization keeps the oldest row at the largest value rather than summing.
+**Counter leases.** `add_post_meta(..., true)` is not a unique constraint, so a counter's first creation takes a 30-second database lease and rechecks under it; existing counters increment database-side.
 
 **Feature availability is not truth.** A condition can be available and still evaluate false for this request. Only an unavailable required feature suspends a document, and its stored configuration is preserved for repair rather than dropped.
 

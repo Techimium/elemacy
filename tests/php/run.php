@@ -4508,7 +4508,6 @@ check('TypeRegistry reports an unregistered name as unavailable and a registered
 });
 
 /* ── Task 7.2: LoopDataSourceRegistry/LoopItemStyles/LoopItemIdentity/ ── */
-/* LoopItems moved to Loop/, old paths kept as class_alias()es          */
 
 check('LoopItemIdentity::sanitize() keeps letters, digits, underscore and hyphen', static function () {
     return LoopItemIdentity::sanitize('Row-3_of-Post42') === 'Row-3_of-Post42';

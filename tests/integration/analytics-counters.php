@@ -25,20 +25,6 @@ final class AnalyticsCountersTest extends IntegrationTestCase
         self::assertSame(['12'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
     }
 
-    public function testDuplicateNormalizationPreservesConcurrentEventsAndRepeatedRuns(): void
-    {
-        $id = $this->documents->create('Counter normalization', 'popup');
-        add_post_meta($id, AnalyticsService::META_IMPRESSIONS, 5);
-        add_post_meta($id, AnalyticsService::META_IMPRESSIONS, 10);
-        add_post_meta($id, AnalyticsService::META_IMPRESSIONS, -2);
-        add_post_meta($id, AnalyticsService::META_CONVERSIONS, -5);
-        $this->concurrent($id, array_merge(['normalize'], array_fill(0, 8, 'track')));
-        self::assertSame(['18'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
-        self::assertSame(['0'], get_post_meta($id, AnalyticsService::META_CONVERSIONS));
-        (Container::instance()->make(AnalyticsService::class))->consolidate($id);
-        self::assertSame(['18'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
-    }
-
     public function testExpiredLeaseRecoversAndOldWorkerCannotReleaseReplacement(): void
     {
         global $wpdb;
@@ -75,39 +61,6 @@ final class AnalyticsCountersTest extends IntegrationTestCase
         } finally {
             remove_filter('query', $break);
             $wpdb->suppress_errors($previous);
-        }
-    }
-
-    public function testSchemaMigrationResumesAfterBusyCounterAndIsIdempotent(): void
-    {
-        $id = $this->documents->create('Counter migration resume', 'popup');
-        add_post_meta($id, AnalyticsService::META_IMPRESSIONS, 3);
-        add_post_meta($id, AnalyticsService::META_IMPRESSIONS, 8);
-        $marker = get_option('elemacy_pro_schema_version');
-        $cursor = get_option('elemacy_pro_counter_migration_cursor', false);
-        update_option('elemacy_pro_schema_version', '0.0.0', false);
-        delete_option('elemacy_pro_counter_migration_cursor');
-        $lock = new CounterLock($id);
-        self::assertTrue($lock->acquire());
-        try {
-            $migration = new \ElemacyPro\Core\Migrator();
-            $migration->run('0.0.0', '1');
-            self::assertSame('0.0.0', get_option('elemacy_pro_schema_version'));
-            self::assertSame(['3', '8'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
-            $lock->release();
-            $migration->run('0.0.0', '1');
-            self::assertSame('1', get_option('elemacy_pro_schema_version'));
-            self::assertSame(['8'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
-            $migration->run('0.0.0', '1');
-            self::assertSame(['8'], get_post_meta($id, AnalyticsService::META_IMPRESSIONS));
-        } finally {
-            $lock->release();
-            update_option('elemacy_pro_schema_version', $marker, false);
-            if ($cursor === false) {
-                delete_option('elemacy_pro_counter_migration_cursor');
-            } else {
-                update_option('elemacy_pro_counter_migration_cursor', $cursor, false);
-            }
         }
     }
 
