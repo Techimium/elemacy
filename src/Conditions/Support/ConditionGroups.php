@@ -18,6 +18,8 @@ class ConditionGroups
                 return __('Singular', 'elemacy');
             case 'archive':
                 return __('Archive', 'elemacy');
+            case 'search':
+                return __('Search', 'elemacy');
             default:
                 return ucfirst($type);
         }

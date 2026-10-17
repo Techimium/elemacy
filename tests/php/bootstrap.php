@@ -64,7 +64,7 @@ function is_singular($post_types = '')
 
 function is_search()
 {
-    return false;
+    return $GLOBALS['__wp_is_search'] ?? false;
 }
 
 function is_archive()

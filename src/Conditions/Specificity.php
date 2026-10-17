@@ -24,7 +24,7 @@ final class Specificity
     /** One kind of request: a post type, a taxonomy, search, the blog index. */
     public const TYPE = 30;
 
-    /** One identified object: a specific post, term, user or the front page. */
+    /** One identified object (a specific post, term, user or the front page) or one narrowed kind of request (search restricted to a post type). */
     public const OBJECT = 40;
 
     /**

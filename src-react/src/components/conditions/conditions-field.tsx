@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ConditionBuilder } from './condition-builder';
 import { useConditionTypes } from '@/services/conditions';
 import type { ConditionRule } from '@/schemas/condition';
@@ -13,11 +14,30 @@ interface ConditionsFieldProps {
 
 export function ConditionsField({ value, onChange, context, templateType }: ConditionsFieldProps) {
     const { data: groups = [], isSuccess } = useConditionTypes({ context, templateType });
+    const noneApply = isSuccess && groups.length === 0;
+
+    const valueRef = useRef(value);
+    const onChangeRef = useRef(onChange);
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+
+    // The builder drops rules a type does not offer, but it is not mounted
+    // when no condition applies at all, so a rule added under one template
+    // type would otherwise be saved under another. A rule the server reports
+    // as unavailable is kept for repair, as the builder does.
+    useEffect(() => {
+        if (!noneApply) return;
+        const current = valueRef.current ?? [];
+        const kept = current.filter((r) => r.availability && !r.availability.available);
+        if (kept.length !== current.length) {
+            onChangeRef.current(kept);
+        }
+    }, [noneApply, templateType, context]);
 
     // Hide only once we positively know no condition types apply to this
-    // context/template type. Today some have none registered; an extension (pro)
-    // can add some and they surface here automatically — no hardcoded list.
-    if (isSuccess && groups.length === 0) {
+    // context/template type. An extension (pro) can add some and they surface
+    // here automatically — no hardcoded list.
+    if (noneApply) {
         return null;
     }
 

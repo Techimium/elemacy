@@ -24,6 +24,7 @@ try {
         'published-loop-definition.php' => 'PublishedLoopDefinitionTest',
         'public-render-policy.php' => 'PublicRenderPolicyTest',
         'current-query-archives.php' => 'CurrentQueryArchivesTest',
+        'search-template-conditions.php' => 'SearchTemplateConditionsTest',
         'loop-ineligibility-notice.php' => 'LoopIneligibilityNoticeTest',
     ];
     if (isset($arguments[0], $scenarios[$arguments[0]])) {

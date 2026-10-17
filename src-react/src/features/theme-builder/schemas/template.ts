@@ -28,7 +28,13 @@ const CreateTemplateSchema = z.object({
     title: z.string().min(1, __('Title is required', 'elemacy')),
     type: z.string().min(1, __('Type is required', 'elemacy')),
     status: z.enum(['publish', 'draft', 'trash']),
-    conditions: z.array(ConditionRuleSchema).optional(),
+    // A stored rule carries `availability` and is let through even when its
+    // condition is unknown, so it can be repaired; a rule added in this form
+    // must name a condition.
+    conditions: z.array(ConditionRuleSchema).optional().refine(
+        (rules) => (rules ?? []).every((rule) => rule.type !== '' || rule.availability !== undefined),
+        { message: __('Choose a condition for each row, or remove it.', 'elemacy') },
+    ),
 });
 
 const UpdateTemplateSchema = CreateTemplateSchema;

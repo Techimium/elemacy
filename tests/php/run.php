@@ -3261,6 +3261,8 @@ check('every Free mock condition declares the same level its real Pro counterpar
         ['Mock\Blog',           $empty, Specificity::TYPE],
         ['Mock\NotFound',       $empty, Specificity::TYPE],
         ['Mock\SearchResults',  $empty, Specificity::TYPE],
+        ['Mock\SearchPostType', $empty, Specificity::TYPE],
+        ['Mock\SearchPostType', $value, Specificity::OBJECT],
         ['Mock\DateArchive',    $empty, Specificity::TYPE],
         ['Mock\FrontPage',      $empty, Specificity::OBJECT],
         ['Mock\ChildOf',        $value, Specificity::OBJECT],
@@ -3285,6 +3287,98 @@ check('every Free mock condition declares the same level its real Pro counterpar
         && (new \Elemacy\Conditions\Mock\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT
         && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
         && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT;
+});
+
+/* ── Search Results template conditions ──────────────────────────── */
+
+check('Free\'s Search Results condition matches exactly a search request and ranks at the search level', static function () {
+    $all = new \Elemacy\Conditions\Search\AllResults();
+    $rule = ConditionRuleDTO::from_array(['type' => 'search/all']);
+
+    $GLOBALS['__wp_is_search'] = true;
+    $on_search = $all->check($rule);
+    $GLOBALS['__wp_is_search'] = false;
+    $elsewhere = $all->check($rule);
+
+    return 'search/all' === $all->get_name()
+        && !$all->is_mock()
+        && true === $on_search
+        && false === $elsewhere
+        && Specificity::TYPE === $all->get_specificity($rule);
+});
+
+check('the Search Results conditions apply to Search templates only, and no other template type gains them', static function () {
+    $all  = new \Elemacy\Conditions\Search\AllResults();
+    $post = new \Elemacy\Conditions\Mock\SearchPostType();
+
+    foreach ([$all, $post] as $condition) {
+        if (!$condition->applies_to('search')) {
+            return false;
+        }
+
+        foreach (['header', 'footer', 'single', 'archive', '404'] as $other) {
+            if ($condition->applies_to($other)) {
+                return false;
+            }
+        }
+    }
+
+    // The existing Header/Footer condition keeps its scope.
+    $existing = new \Elemacy\Conditions\Mock\SearchResults();
+
+    return $existing->applies_to('header') && $existing->applies_to('footer') && !$existing->applies_to('search');
+});
+
+check('Free\'s Search Results post type condition is a locked placeholder that never matches and carries the level Pro\'s real one declares', static function () {
+    $mock = new \Elemacy\Conditions\Mock\SearchPostType();
+    $empty = ConditionRuleDTO::from_array(['type' => 'search/post_type', 'value' => '']);
+    $value = ConditionRuleDTO::from_array(['type' => 'search/post_type', 'value' => 'product']);
+
+    $GLOBALS['__wp_is_search'] = true;
+    $matches = $mock->check($value);
+    $GLOBALS['__wp_is_search'] = false;
+
+    return 'search/post_type' === $mock->get_name()
+        && $mock->is_mock()
+        && false === $matches
+        && Specificity::TYPE === $mock->get_specificity($empty)
+        && Specificity::OBJECT === $mock->get_specificity($value);
+});
+
+check('a Search template offers the global condition as available and the post type condition as unavailable without Pro', static function () {
+    $manager = new ConditionManager();
+    $manager->register(new \Elemacy\Conditions\Search\AllResults());
+    $manager->register(new \Elemacy\Conditions\Mock\SearchPostType());
+
+    return $manager->get_availability('search/all')->is_available()
+        && $manager->get_availability('search/post_type')->is_unavailable();
+});
+
+check('a Search template whose only rule is the post type placeholder is suspended, not broadened, without Pro', static function () {
+    $manager = new ConditionManager();
+    $manager->register(new \Elemacy\Conditions\Search\AllResults());
+    $manager->register(new \Elemacy\Conditions\Mock\SearchPostType());
+    $evaluator = new ConditionEvaluator($manager);
+
+    $GLOBALS['__wp_is_search'] = true;
+    $suspended = $evaluator->match([ConditionRuleDTO::from_array(['type' => 'search/post_type', 'value' => 'product'])]);
+    $global = $evaluator->match([ConditionRuleDTO::from_array(['type' => 'search/all'])]);
+    $GLOBALS['__wp_is_search'] = false;
+
+    return null === $suspended && Specificity::TYPE === $global;
+});
+
+check('a Search template holding a blank-type rule is suspended and its rule is left as stored', static function () {
+    $manager = new ConditionManager();
+    $manager->register(new \Elemacy\Conditions\Search\AllResults());
+    $evaluator = new ConditionEvaluator($manager);
+    $blank = ConditionRuleDTO::from_array(['type' => '', 'operator' => 'include', 'value' => '']);
+
+    $GLOBALS['__wp_is_search'] = true;
+    $result = $evaluator->match([$blank]);
+    $GLOBALS['__wp_is_search'] = false;
+
+    return null === $result && '' === $blank->type;
 });
 
 $manager->register(new LeveledCondition('prec/site', true, Specificity::SITE));

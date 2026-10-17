@@ -375,7 +375,7 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 * Initial release
 * Theme Builder: Header, Footer, Single, Archive, Post Archive, 404, Search Results, Loop, and Custom Post Type templates, working with classic and block themes
 * Header and Footer templates edit on their own Elementor document types, showing only the settings that apply to site chrome
-* Display Conditions: Entire Site, Singular Post Type, and Post Type Archive (advanced conditions available in Elemacy Pro); when several templates match a page, the most specific one is used
+* Display Conditions: Entire Site, Singular Post Type, Post Type Archive, and Search Results for Search templates (advanced conditions, including Search Results by post type, available in Elemacy Pro); when several templates match a page, the most specific one is used
 * Popups & Floating Elements: popups, top/bottom bars, banners, and floating elements designed in Elementor, with display conditions, Page Load/Click triggers, and Frequency Cap/Logged-in Users rules
 * Loop Builder Grid widget with AJAX pagination (up to 100 items per page), query builder, and responsive columns; a "Current Query" loop in an Archive or Search Results template follows the archive being viewed
 * Loop Carousel widget

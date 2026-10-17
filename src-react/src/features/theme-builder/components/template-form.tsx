@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { __ } from "@wordpress/i18n"
-import { Controller, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -141,15 +141,18 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
                         </FormItem>
                     )}
                 />
-                <Controller
+                <FormField
                     control={form.control}
                     name="conditions"
                     render={({ field }) => (
-                        <ConditionsField
-                            value={field.value ?? []}
-                            onChange={field.onChange}
-                            templateType={form.watch('type')}
-                        />
+                        <FormItem>
+                            <ConditionsField
+                                value={field.value ?? []}
+                                onChange={field.onChange}
+                                templateType={form.watch('type')}
+                            />
+                            <FormMessage />
+                        </FormItem>
                     )}
                 />
                 <div className="flex flex-col gap-3 sm:flex-row">

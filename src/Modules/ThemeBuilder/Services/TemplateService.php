@@ -147,6 +147,10 @@ class TemplateService
 
     public function create(CreateTemplateDTO $dto)
     {
+        if (isset($dto->conditions)) {
+            $this->conditions->assert_rules_have_types(0, (array) $dto->conditions);
+        }
+
         $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::PUBLISH,
@@ -169,6 +173,10 @@ class TemplateService
 
     public function update(int $id, UpdateTemplateDTO $dto)
     {
+        if (isset($dto->conditions)) {
+            $this->conditions->assert_rules_have_types($id, (array) $dto->conditions);
+        }
+
         $post_fields = [];
 
         if (isset($dto->title)) {
