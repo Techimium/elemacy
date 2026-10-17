@@ -62,8 +62,21 @@ final class AtomicRenderingTest extends IntegrationTestCase
         ]];
     }
 
-    private static function text(string $text): array
+    /**
+     * A text value in the shape the installed Elementor accepts for this
+     * atomic widget prop: Elementor changed it from an `html-v3` object to a
+     * plain `escaped-html` string, and a document saved in the wrong shape is
+     * rejected (`invalid_value`).
+     */
+    private static function text(string $widget_type, string $prop, string $text): array
     {
+        $widget = \Elementor\Plugin::$instance->widgets_manager->get_widget_types($widget_type);
+        $accepted = array_keys($widget::get_props_schema()[$prop]->get_prop_types());
+
+        if (in_array('escaped-html', $accepted, true)) {
+            return ['$$type' => 'escaped-html', 'value' => $text];
+        }
+
         return ['$$type' => 'html-v3', 'value' => ['content' => ['$$type' => 'string', 'value' => $text], 'children' => []]];
     }
 
@@ -86,12 +99,12 @@ final class AtomicRenderingTest extends IntegrationTestCase
     private static function atomic_tree(string $prefix, string $marker, bool $dynamic_heading): array
     {
         $children = [
-            self::widget($prefix . '1', 'e-heading', 'e-' . $prefix . '1a', ['title' => self::text($marker . ' heading')], ['color' => ['$$type' => 'color', 'value' => '#123401']]),
-            self::widget($prefix . '2', 'e-button', 'e-' . $prefix . '2a', ['text' => self::text($marker . ' button')], ['color' => ['$$type' => 'color', 'value' => '#123402']]),
+            self::widget($prefix . '1', 'e-heading', 'e-' . $prefix . '1a', ['title' => self::text('e-heading', 'title', $marker . ' heading')], ['color' => ['$$type' => 'color', 'value' => '#123401']]),
+            self::widget($prefix . '2', 'e-button', 'e-' . $prefix . '2a', ['text' => self::text('e-button', 'text', $marker . ' button')], ['color' => ['$$type' => 'color', 'value' => '#123402']]),
         ];
 
         if ($dynamic_heading) {
-            $children[] = self::widget($prefix . '3', 'e-heading', 'e-' . $prefix . '3d', ['title' => self::text($marker . ' dynamic heading')], [
+            $children[] = self::widget($prefix . '3', 'e-heading', 'e-' . $prefix . '3d', ['title' => self::text('e-heading', 'title', $marker . ' dynamic heading')], [
                 'color' => ['$$type' => 'dynamic', 'value' => ['name' => 'elemacy-fixture-item-color', 'group' => 'site', 'settings' => []]],
             ]);
         }
