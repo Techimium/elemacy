@@ -144,6 +144,12 @@ Pro never edits Free. It subscribes a provider through `Hooks::REGISTER_PROVIDER
 
 ## Before opening a pull request
 
+Every feature addition or behavior change must keep automated coverage in sync. List affected feature/journey IDs from `tests/coverage/inventory.json`, update meaningful UI-to-save-to-visitor assertions (see `tests/e2e/JOURNEYS.md`), and run the affected cases plus existing regressions. Changes to an existing identifier still need test-impact review; a new test file is not required for a pure refactor when unchanged behavior is already covered.
+
+When declarations or runners change, update the inventory and run `python3 tests/coverage/check.py --write-roadmap`, then `python3 tests/coverage/check.py`. Record commands, artifact/revision pair, profiles, reports and any blocked prerequisites in the PR. A mapped/pending entry, skip or retry pass is not release evidence. The current journey suite is incomplete; retain the full existing release checks.
+
+Examples: a new popup trigger needs a catalog entry and positive/negative UI-to-visitor cases; a changed Header save behavior updates the existing Header journey even though its ID is unchanged; a helper extraction that preserves behavior may reuse the same cases and record their passing results.
+
 1. `vendor/bin/phpcs -q`, `php tests/php/run.php` and `php tests/architecture/check.php` pass.
 2. `npm run lint` and `npm run build` succeed in `src-react/`.
 3. Behaviour changes carry an integration or browser test; the full gate in `docs/RELEASE.md` passes.

@@ -1,0 +1,3329 @@
+{
+  "version": 1,
+  "owner": "elemacy",
+  "features": [
+    {
+      "id": "elemacy:condition:archive/all",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "archive/all",
+      "source": "src/Conditions/Mock/AllArchives.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:archive/all",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:archive/author",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "archive/author",
+      "source": "src/Conditions/Mock/AuthorArchive.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:archive/author",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:archive/date",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "archive/date",
+      "source": "src/Conditions/Mock/DateArchive.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:archive/date",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:archive/post_type",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "archive/post_type",
+      "source": "src/Conditions/Archive/PostType.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:archive/post_type",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:archive/tax/{taxonomy}",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "archive/tax/{taxonomy}",
+      "source": "src/Conditions/Mock/TaxonomyArchive.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:archive/tax/{taxonomy}",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:general/blog",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "general/blog",
+      "source": "src/Conditions/Mock/Blog.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:general/blog",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:general/entire_site",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "general/entire_site",
+      "source": "src/Conditions/General/EntireSite.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:general/entire_site",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:general/front_page",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "general/front_page",
+      "source": "src/Conditions/Mock/FrontPage.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:general/front_page",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:general/not_found",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "general/not_found",
+      "source": "src/Conditions/Mock/NotFound.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:general/not_found",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:general/search_results",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "general/search_results",
+      "source": "src/Conditions/Mock/SearchResults.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:general/search_results",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:singular/by_author",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "singular/by_author",
+      "source": "src/Conditions/Mock/ByAuthor.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:singular/by_author",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:singular/child_of",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "singular/child_of",
+      "source": "src/Conditions/Mock/ChildOf.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:singular/child_of",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:singular/in_tax/{taxonomy}",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "singular/in_tax/{taxonomy}",
+      "source": "src/Conditions/Mock/InTaxonomy.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:singular/in_tax/{taxonomy}",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:singular/post_type",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "singular/post_type",
+      "source": "src/Conditions/Singular/PostType.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:singular/post_type",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:condition:singular/specific_post",
+      "owner": "elemacy",
+      "kind": "condition",
+      "identifier": "singular/specific_post",
+      "source": "src/Conditions/Mock/SpecificPost.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:condition:singular/specific_post",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-action:email",
+      "owner": "elemacy",
+      "kind": "form-action",
+      "identifier": "email",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-action:email",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:checkbox",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "checkbox",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:checkbox",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:email",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "email",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:email",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:radio",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "radio",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:radio",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:select",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "select",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:select",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:tel",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "tel",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:tel",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:text",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "text",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:text",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:textarea",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "textarea",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:textarea",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:loop-source:posts",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "posts",
+      "source": "src/Modules/Widgets/DataSources/PostsDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:loop-source:posts",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:loop-source:terms",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "terms",
+      "source": "src/Modules/Widgets/DataSources/TaxonomyDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:loop-source:terms",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:loop-source:users",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "users",
+      "source": "src/Modules/Widgets/DataSources/UsersDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:loop-source:users",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:custom-css",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "custom-css",
+      "source": "src/Modules/CustomCss/CustomCss.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:module:custom-css",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:dynamic-tags",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "dynamic-tags",
+      "source": "src/Modules/DynamicTags/DynamicTags.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:module:dynamic-tags",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:popups",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "popups",
+      "source": "src/Modules/Popups/Popups.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:module:popups",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:theme-builder",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "theme-builder",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:module:theme-builder",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:widgets",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "widgets",
+      "source": "src/Modules/Widgets/Widgets.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:module:widgets",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:popup-type:banner",
+      "owner": "elemacy",
+      "kind": "popup-type",
+      "identifier": "banner",
+      "source": "src/Modules/Popups/Support/PopupTypes.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:popup-type:banner",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:popup-type:floating",
+      "owner": "elemacy",
+      "kind": "popup-type",
+      "identifier": "floating",
+      "source": "src/Modules/Popups/Support/PopupTypes.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:popup-type:floating",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:popup-type:popup",
+      "owner": "elemacy",
+      "kind": "popup-type",
+      "identifier": "popup",
+      "source": "src/Modules/Popups/Support/PopupTypes.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:popup-type:popup",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native default modal Draft-to-publish author/save/reopen, visitor opening, close-button focus, close/reload/Escape slice passes on production Free+Pro. Other type settings, trigger/rule branches and profiles remain pending.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:popup-type:topbar",
+      "owner": "elemacy",
+      "kind": "popup-type",
+      "identifier": "topbar",
+      "source": "src/Modules/Popups/Support/PopupTypes.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:popup-type:topbar",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:browser",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "browser",
+      "source": "src/Modules/Popups/Rules/Mock/Browser.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:browser",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:devices",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "devices",
+      "source": "src/Modules/Popups/Rules/Mock/Devices.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:devices",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:frequency_cap",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "frequency_cap",
+      "source": "src/Modules/Popups/Rules/FrequencyCap.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:frequency_cap",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:logged_in",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "logged_in",
+      "source": "src/Modules/Popups/Rules/LoggedInUsers.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:logged_in",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:once_per",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "once_per",
+      "source": "src/Modules/Popups/Rules/Mock/OncePer.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:once_per",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:page_views",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "page_views",
+      "source": "src/Modules/Popups/Rules/Mock/PageViews.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:page_views",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:referrer",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "referrer",
+      "source": "src/Modules/Popups/Rules/Mock/Referrer.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:referrer",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:roles",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "roles",
+      "source": "src/Modules/Popups/Rules/Mock/Roles.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:roles",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:schedule",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "schedule",
+      "source": "src/Modules/Popups/Rules/Mock/Schedule.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:schedule",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:rule:sessions",
+      "owner": "elemacy",
+      "kind": "rule",
+      "identifier": "sessions",
+      "source": "src/Modules/Popups/Rules/Mock/Sessions.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:rule:sessions",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-color",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-color",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfColor.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-color",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-date-time",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-date-time",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfDateTime.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-date-time",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-field",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-field",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfField.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-field",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-gallery",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-gallery",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfGallery.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-gallery",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-image",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-image",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfImage.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-image",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-number",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-number",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfNumber.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-number",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-acf-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-acf-url",
+      "source": "src/Modules/DynamicTags/Tags/Acf/AcfUrl.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-acf-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-archive-description",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-archive-description",
+      "source": "src/Modules/DynamicTags/Tags/Archive/ArchiveDescription.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-archive-description",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-archive-title",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-archive-title",
+      "source": "src/Modules/DynamicTags/Tags/Archive/ArchiveTitle.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-archive-title",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-archive-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-archive-url",
+      "source": "src/Modules/DynamicTags/Tags/Archive/ArchiveUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-archive-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-author-info",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-author-info",
+      "source": "src/Modules/DynamicTags/Tags/Author/AuthorInfo.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-author-info",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-author-name",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-author-name",
+      "source": "src/Modules/DynamicTags/Tags/Author/AuthorName.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-author-name",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-author-profile-picture",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-author-profile-picture",
+      "source": "src/Modules/DynamicTags/Tags/Author/AuthorProfilePicture.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-author-profile-picture",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-author-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-author-url",
+      "source": "src/Modules/DynamicTags/Tags/Author/AuthorUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-author-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-comments-number",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-comments-number",
+      "source": "src/Modules/DynamicTags/Tags/Base/CommentsNumber.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-comments-number",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-contact-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-contact-url",
+      "source": "src/Modules/DynamicTags/Tags/Utility/ContactUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-contact-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-current-date-time",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-current-date-time",
+      "source": "src/Modules/DynamicTags/Tags/Utility/CurrentDateTime.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-current-date-time",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-page-title",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-page-title",
+      "source": "src/Modules/DynamicTags/Tags/Base/PageTitle.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-page-title",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-content",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-content",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostContent.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-content",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-custom-field",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-custom-field",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostCustomField.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-custom-field",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-date",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-date",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostDate.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-date",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-excerpt",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-excerpt",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostExcerpt.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-excerpt",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-featured-image",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-featured-image",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostFeaturedImage.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-featured-image",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-terms",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-terms",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostTerms.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-terms",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-title",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-title",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostTitle.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-title",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-post-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-post-url",
+      "source": "src/Modules/DynamicTags/Tags/Base/PostUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-post-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-add-to-cart-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-add-to-cart-url",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductAddToCartUrl.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-add-to-cart-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-gallery",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-gallery",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductGallery.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-gallery",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-price",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-price",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductPrice.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-price",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-rating",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-rating",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductRating.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-rating",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-short-description",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-short-description",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductShortDescription.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-short-description",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-sku",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-sku",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductSku.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-sku",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-product-stock",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-product-stock",
+      "source": "src/Modules/DynamicTags/Tags/WooCommerce/ProductStock.php",
+      "implementation": "real",
+      "prerequisites": [
+        "woocommerce"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-product-stock",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "woocommerce"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-request-parameter",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-request-parameter",
+      "source": "src/Modules/DynamicTags/Tags/Utility/RequestParameter.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-request-parameter",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-shortcode",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-shortcode",
+      "source": "src/Modules/DynamicTags/Tags/Utility/Shortcode.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-shortcode",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-site-logo",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-site-logo",
+      "source": "src/Modules/DynamicTags/Tags/Base/SiteLogo.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-site-logo",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-site-tagline",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-site-tagline",
+      "source": "src/Modules/DynamicTags/Tags/Base/SiteTagline.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-site-tagline",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-site-title",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-site-title",
+      "source": "src/Modules/DynamicTags/Tags/Base/SiteTitle.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-site-title",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-site-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-site-url",
+      "source": "src/Modules/DynamicTags/Tags/Base/SiteUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-site-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-term-count",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-term-count",
+      "source": "src/Modules/DynamicTags/Tags/Taxonomy/TermCount.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-term-count",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-term-custom-field",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-term-custom-field",
+      "source": "src/Modules/DynamicTags/Tags/Taxonomy/TermCustomField.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-term-custom-field",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-term-description",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-term-description",
+      "source": "src/Modules/DynamicTags/Tags/Taxonomy/TermDescription.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-term-description",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-term-name",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-term-name",
+      "source": "src/Modules/DynamicTags/Tags/Taxonomy/TermName.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-term-name",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-term-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-term-url",
+      "source": "src/Modules/DynamicTags/Tags/Taxonomy/TermUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-term-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-avatar",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-avatar",
+      "source": "src/Modules/DynamicTags/Tags/User/UserAvatar.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-avatar",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-description",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-description",
+      "source": "src/Modules/DynamicTags/Tags/User/UserDescription.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-description",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-email",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-email",
+      "source": "src/Modules/DynamicTags/Tags/User/UserEmail.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-email",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-login",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-login",
+      "source": "src/Modules/DynamicTags/Tags/User/UserLogin.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-login",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-name",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-name",
+      "source": "src/Modules/DynamicTags/Tags/User/UserName.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-name",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-post-count",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-post-count",
+      "source": "src/Modules/DynamicTags/Tags/User/UserPostCount.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-post-count",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:tag:elemacy-user-url",
+      "owner": "elemacy",
+      "kind": "tag",
+      "identifier": "elemacy-user-url",
+      "source": "src/Modules/DynamicTags/Tags/User/UserUrl.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:tag:elemacy-user-url",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:404",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "404",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:404",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:archive",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "archive",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:archive",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:footer",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "footer",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:footer",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Classic Footer authoring and Heading color UI/save/reopen/visitor checks pass on production Free+Pro with real Hello theme; native header remains. Atomic styling and remaining profiles/branches are pending.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:header",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "header",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:header",
+        "status": "blocked",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Real production-ZIP browser test confirms Header-only removes Hello Elementor native footer. Author/save/reopen and earlier output checks passed; opposite-chrome assertion now detects this release blocker. Product fix deferred at user request; remaining atomic/profile branches pending.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:loop",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "loop",
+      "source": "src/Modules/Widgets/Widgets.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:loop",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:search",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "search",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:search",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:section",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "section",
+      "source": "src/TemplateLibrary/LibraryBootstrap.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:section",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native library management and Section content-copy journeys pass on production Free+Pro ZIPs, including saved content and signed-out draft/public behavior. Free-only and remaining applicable profiles/branches are pending.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:template:single",
+      "owner": "elemacy",
+      "kind": "template",
+      "identifier": "single",
+      "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:template:single",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:click",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "click",
+      "source": "src/Modules/Popups/Triggers/Click.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:click",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:exit_intent",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "exit_intent",
+      "source": "src/Modules/Popups/Triggers/Mock/ExitIntent.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:exit_intent",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:inactivity",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "inactivity",
+      "source": "src/Modules/Popups/Triggers/Mock/Inactivity.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:inactivity",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:on_popup_close",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "on_popup_close",
+      "source": "src/Modules/Popups/Triggers/Mock/OnPopupClose.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:on_popup_close",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:page_load",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "page_load",
+      "source": "src/Modules/Popups/Triggers/PageLoad.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:page_load",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:scroll",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "scroll",
+      "source": "src/Modules/Popups/Triggers/Mock/Scroll.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:scroll",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:trigger:scroll_to_element",
+      "owner": "elemacy",
+      "kind": "trigger",
+      "identifier": "scroll_to_element",
+      "source": "src/Modules/Popups/Triggers/Mock/ScrollToElement.php",
+      "implementation": "placeholder",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:trigger:scroll_to_element",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-acf-accordion",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-acf-accordion",
+      "source": "src/Modules/Widgets/Widgets/Acf/AcfAccordion.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-acf-accordion",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-acf-gallery",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-acf-gallery",
+      "source": "src/Modules/Widgets/Widgets/Acf/AcfGallery.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-acf-gallery",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-acf-icon-list",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-acf-icon-list",
+      "source": "src/Modules/Widgets/Widgets/Acf/AcfIconList.php",
+      "implementation": "real",
+      "prerequisites": [
+        "acf"
+      ],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-acf-icon-list",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro",
+          "acf"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-form",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-form",
+      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-form",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-loop-carousel",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-loop-carousel",
+      "source": "src/Modules/Widgets/Widgets/LoopCarousel.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-loop-carousel",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-loop-grid",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-loop-grid",
+      "source": "src/Modules/Widgets/Widgets/LoopGrid.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-loop-grid",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-search",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-search",
+      "source": "src/Modules/Widgets/Widgets/Search.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-search",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-site-logo",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-site-logo",
+      "source": "src/Modules/Widgets/Widgets/SiteLogo.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-site-logo",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy_nav_menu",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy_nav_menu",
+      "source": "src/Modules/Widgets/Widgets/NavMenu.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy_nav_menu",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    }
+  ],
+  "runners": [
+    {
+      "id": "elemacy:runner:run-popups",
+      "layer": "static-browser",
+      "path": "tests/e2e/run-popups.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-elementor-lifecycle",
+      "layer": "static-browser",
+      "path": "tests/e2e/run-elementor-lifecycle.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-admin-contract",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-admin-contract.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-builders",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-builders.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-editor-template-styles",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-editor-template-styles.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-form-submissions",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-form-submissions.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-journeys",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-journeys.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-loop-pagination",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-loop-pagination.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-popup-assets",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-popup-assets.mjs"
+    },
+    {
+      "id": "elemacy:runner:run",
+      "layer": "logic",
+      "path": "tests/php/run.php"
+    },
+    {
+      "id": "elemacy:runner:check",
+      "layer": "architecture",
+      "path": "tests/architecture/check.php"
+    },
+    {
+      "id": "elemacy:runner:verify-package-test",
+      "layer": "release",
+      "path": "tests/release/verify-package-test.py"
+    },
+    {
+      "id": "elemacy:runner:verify-package",
+      "layer": "release",
+      "path": "src-react/scripts/verify-package.py"
+    },
+    {
+      "id": "elemacy:runner:acf-repeater-query",
+      "layer": "performance",
+      "path": "tests/performance/acf-repeater-query.php"
+    },
+    {
+      "id": "elemacy:runner:template-precedence-resolution",
+      "layer": "performance",
+      "path": "tests/performance/template-precedence-resolution.php"
+    },
+    {
+      "id": "elemacy:integration:environment-guards",
+      "layer": "native-integration",
+      "path": "tests/integration/environment-guards.php"
+    },
+    {
+      "id": "elemacy:integration:document-lifecycle",
+      "layer": "native-integration",
+      "path": "tests/integration/document-lifecycle.php"
+    },
+    {
+      "id": "elemacy:integration:fixture-catalog",
+      "layer": "native-integration",
+      "path": "tests/integration/fixture-catalog.php"
+    },
+    {
+      "id": "elemacy:integration:public-loop",
+      "layer": "native-integration",
+      "path": "tests/integration/public-loop.php"
+    },
+    {
+      "id": "elemacy:integration:public-loop-pagination",
+      "layer": "native-integration",
+      "path": "tests/integration/public-loop-pagination.php"
+    },
+    {
+      "id": "elemacy:integration:loop-grid-ajax-payload",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-grid-ajax-payload.php"
+    },
+    {
+      "id": "elemacy:integration:loop-initial-page-eligibility",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-initial-page-eligibility.php"
+    },
+    {
+      "id": "elemacy:integration:current-query-archives",
+      "layer": "native-integration",
+      "path": "tests/integration/current-query-archives.php"
+    },
+    {
+      "id": "elemacy:integration:loop-ineligibility-notice",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-ineligibility-notice.php"
+    },
+    {
+      "id": "elemacy:integration:loop-pagination-phase1-closeout",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-pagination-phase1-closeout.php"
+    },
+    {
+      "id": "elemacy:integration:loop-context",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-context.php"
+    },
+    {
+      "id": "elemacy:integration:loop-renderer",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-renderer.php"
+    },
+    {
+      "id": "elemacy:integration:loop-base-css-file-fallback",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-base-css-file-fallback.php"
+    },
+    {
+      "id": "elemacy:integration:public-loop-request",
+      "layer": "native-integration",
+      "path": "tests/integration/public-loop-request.php"
+    },
+    {
+      "id": "elemacy:integration:published-loop-definition",
+      "layer": "native-integration",
+      "path": "tests/integration/published-loop-definition.php"
+    },
+    {
+      "id": "elemacy:integration:public-render-policy",
+      "layer": "native-integration",
+      "path": "tests/integration/public-render-policy.php"
+    },
+    {
+      "id": "elemacy:integration:pagination-context-signer",
+      "layer": "native-integration",
+      "path": "tests/integration/pagination-context-signer.php"
+    },
+    {
+      "id": "elemacy:integration:placement-resolvers",
+      "layer": "native-integration",
+      "path": "tests/integration/placement-resolvers.php"
+    },
+    {
+      "id": "elemacy:integration:acf-repeater-public-policy",
+      "layer": "native-integration",
+      "path": "tests/integration/acf-repeater-public-policy.php"
+    },
+    {
+      "id": "elemacy:integration:acf-repeater-query-pagination",
+      "layer": "native-integration",
+      "path": "tests/integration/acf-repeater-query-pagination.php"
+    },
+    {
+      "id": "elemacy:integration:template-precedence",
+      "layer": "native-integration",
+      "path": "tests/integration/template-precedence.php"
+    },
+    {
+      "id": "elemacy:integration:theme-lifecycle",
+      "layer": "native-integration",
+      "path": "tests/integration/theme-lifecycle.php"
+    },
+    {
+      "id": "elemacy:integration:native-chrome-replacement",
+      "layer": "native-integration",
+      "path": "tests/integration/native-chrome-replacement.php"
+    },
+    {
+      "id": "elemacy:integration:chrome-documents",
+      "layer": "native-integration",
+      "path": "tests/integration/chrome-documents.php"
+    },
+    {
+      "id": "elemacy:integration:atomic-rendering",
+      "layer": "native-integration",
+      "path": "tests/integration/atomic-rendering.php"
+    },
+    {
+      "id": "elemacy:integration:pro-entitlement",
+      "layer": "native-integration",
+      "path": "tests/integration/pro-entitlement.php"
+    },
+    {
+      "id": "elemacy:integration:foreign-document-assets",
+      "layer": "native-integration",
+      "path": "tests/integration/foreign-document-assets.php"
+    },
+    {
+      "id": "elemacy:integration:popup-required-capability-suspension",
+      "layer": "native-integration",
+      "path": "tests/integration/popup-required-capability-suspension.php"
+    },
+    {
+      "id": "elemacy:integration:popup-rule-trigger-params-guard",
+      "layer": "native-integration",
+      "path": "tests/integration/popup-rule-trigger-params-guard.php"
+    },
+    {
+      "id": "elemacy:integration:popup-display-defaults",
+      "layer": "native-integration",
+      "path": "tests/integration/popup-display-defaults.php"
+    },
+    {
+      "id": "elemacy:integration:cache-lifecycle",
+      "layer": "native-integration",
+      "path": "tests/integration/cache-lifecycle.php"
+    },
+    {
+      "id": "elemacy:integration:availability-repair-round-trip",
+      "layer": "native-integration",
+      "path": "tests/integration/availability-repair-round-trip.php"
+    },
+    {
+      "id": "elemacy:integration:condition-registry-extension",
+      "layer": "native-integration",
+      "path": "tests/integration/condition-registry-extension.php"
+    },
+    {
+      "id": "elemacy:integration:library-persistence",
+      "layer": "native-integration",
+      "path": "tests/integration/library-persistence.php"
+    },
+    {
+      "id": "elemacy:integration:module-seeding",
+      "layer": "native-integration",
+      "path": "tests/integration/module-seeding.php"
+    },
+    {
+      "id": "elemacy:integration:template-rendering-preparation",
+      "layer": "native-integration",
+      "path": "tests/integration/template-rendering-preparation.php"
+    },
+    {
+      "id": "elemacy:integration:request-state",
+      "layer": "native-integration",
+      "path": "tests/integration/request-state.php"
+    },
+    {
+      "id": "elemacy:integration:shared-preparation-across-placements",
+      "layer": "native-integration",
+      "path": "tests/integration/shared-preparation-across-placements.php"
+    },
+    {
+      "id": "elemacy:integration:elementor-compatibility",
+      "layer": "native-integration",
+      "path": "tests/integration/elementor-compatibility.php"
+    },
+    {
+      "id": "elemacy:integration:same-document-content-renderer",
+      "layer": "native-integration",
+      "path": "tests/integration/same-document-content-renderer.php"
+    },
+    {
+      "id": "elemacy:integration:transport-policy",
+      "layer": "native-integration",
+      "path": "tests/integration/transport-policy.php"
+    },
+    {
+      "id": "elemacy:integration:form-submissions",
+      "layer": "native-integration",
+      "path": "tests/integration/form-submissions.php"
+    },
+    {
+      "id": "elemacy:integration:analytics-counters",
+      "layer": "native-integration",
+      "path": "tests/integration/analytics-counters.php"
+    },
+    {
+      "id": "elemacy:integration:analytics-tracking",
+      "layer": "native-integration",
+      "path": "tests/integration/analytics-tracking.php"
+    },
+    {
+      "id": "elemacy:integration:migration-leases",
+      "layer": "native-integration",
+      "path": "tests/integration/migration-leases.php"
+    },
+    {
+      "id": "elemacy:integration:dynamic-tags-registration",
+      "layer": "native-integration",
+      "path": "tests/integration/dynamic-tags-registration.php"
+    },
+    {
+      "id": "elemacy:integration:post-excerpt-tag",
+      "layer": "native-integration",
+      "path": "tests/integration/post-excerpt-tag.php"
+    },
+    {
+      "id": "elemacy:lifecycle:uninstall-current-site",
+      "layer": "native-integration",
+      "path": "tests/integration/fixtures/uninstall-current-site.php"
+    },
+    {
+      "id": "elemacy:lifecycle:uninstall-network",
+      "layer": "native-integration",
+      "path": "tests/integration/fixtures/uninstall-network.php"
+    }
+  ]
+}
