@@ -147,6 +147,8 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-editor-template-styles` | native-browser | `tests/e2e/run-editor-template-styles.mjs` |
 | `elemacy:runner:run-form-submissions` | native-browser | `tests/e2e/run-form-submissions.mjs` |
 | `elemacy:runner:run-journeys` | native-browser | `tests/e2e/run-journeys.mjs` |
+| `elemacy:runner:run-loop-load-more-editor` | native-browser | `tests/e2e/run-loop-load-more-editor.mjs` |
+| `elemacy:runner:run-loop-load-more` | native-browser | `tests/e2e/run-loop-load-more.mjs` |
 | `elemacy:runner:run-loop-pagination` | native-browser | `tests/e2e/run-loop-pagination.mjs` |
 | `elemacy:runner:run-popup-assets` | native-browser | `tests/e2e/run-popup-assets.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
@@ -163,6 +165,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:loop-grid-ajax-payload` | native-integration | `tests/integration/loop-grid-ajax-payload.php` |
 | `elemacy:integration:loop-initial-page-eligibility` | native-integration | `tests/integration/loop-initial-page-eligibility.php` |
 | `elemacy:integration:current-query-archives` | native-integration | `tests/integration/current-query-archives.php` |
+| `elemacy:integration:loop-load-more` | native-integration | `tests/integration/loop-load-more.php` |
 | `elemacy:integration:search-template-conditions` | native-integration | `tests/integration/search-template-conditions.php` |
 | `elemacy:integration:query-pickers` | native-integration | `tests/integration/query-pickers.php` |
 | `elemacy:integration:archive-title-preview` | native-integration | `tests/integration/archive-title-preview.php` |

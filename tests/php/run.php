@@ -6353,6 +6353,41 @@ check('Current Query with no main query yields an empty result instead of an err
     return [] === $result->items && 0 === $result->total_items;
 });
 
+// ── Load More / Infinite Scroll: the incremental pagination types ──────
+
+check('Load More and Infinite Scroll are the incremental pagination types; the link types and none are not', static function () {
+    $type = \Elemacy\Loop\Pagination\PaginationType::class;
+
+    return $type::is_incremental('load_more') && $type::is_incremental('infinite_scroll')
+        && !$type::is_incremental('numbers') && !$type::is_incremental('prev_next')
+        && !$type::is_incremental('numbers_and_prev_next') && !$type::is_incremental('') && !$type::is_incremental(null)
+        && ['numbers', 'prev_next', 'numbers_and_prev_next'] === $type::LINKS;
+});
+
+check('A grid pages in place when its AJAX switch is on or its type is incremental, and not otherwise', static function () {
+    $limits = \Elemacy\Loop\Pagination\PublicLoopLimits::class;
+
+    return $limits::is_ajax_paginated(['pagination_ajax' => 'yes', 'pagination_type' => 'numbers'])
+        && $limits::is_ajax_paginated(['pagination_ajax' => 'no', 'pagination_type' => 'load_more'])
+        && $limits::is_ajax_paginated(['pagination_type' => 'infinite_scroll'])
+        && !$limits::is_ajax_paginated(['pagination_ajax' => 'no', 'pagination_type' => 'numbers'])
+        && !$limits::is_ajax_paginated(['pagination_type' => 'prev_next'])
+        && !$limits::is_ajax_paginated([]);
+});
+
+check('An incremental grid\'s first page is bounded like an AJAX grid\'s, and a link-type grid without AJAX is left as authored', static function () {
+    $limits = \Elemacy\Loop\Pagination\PublicLoopLimits::class;
+
+    foreach (['load_more', 'infinite_scroll'] as $type) {
+        $bounded = $limits::bound_ajax_page_size(['pagination_type' => $type, 'pagination_ajax' => 'no', 'posts_per_page' => 5000], 'posts_per_page');
+        if (100 !== $bounded['posts_per_page']) {
+            return false;
+        }
+    }
+
+    return 5000 === $limits::bound_ajax_page_size(['pagination_type' => 'numbers', 'pagination_ajax' => 'no', 'posts_per_page' => 5000], 'posts_per_page')['posts_per_page'];
+});
+
 check('Current Query treats a main query that has not run yet (null posts) as an empty list', static function () {
     $query = new WP_Query(['cat' => 7]);
     $query->posts = null;
@@ -6367,15 +6402,8 @@ check('Current Query treats a main query that has not run yet (null posts) as an
     return [] === $result->items;
 });
 
-check('CurrentQueryDataSource: own key and label, public policy for the first page only, never endpoint-served, no sanitiser', static function () {
+check('CurrentQueryDataSource: own key and label, a public policy that carries no setting, never endpoint-served, no sanitiser', static function () {
     $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource();
-
-    $page_two_refused = false;
-    try {
-        $source->get_public_settings(['post_type' => 'page'], ['post_id' => 1], 2);
-    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
-        $page_two_refused = true;
-    }
 
     $sanitise_refused = false;
     try {
@@ -6389,7 +6417,7 @@ check('CurrentQueryDataSource: own key and label, public policy for the first pa
         && $source instanceof \Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface
         && $source instanceof \Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface
         && [] === $source->get_public_settings(['posts_per_page' => 50, 'offset' => 4], [], 1)
-        && $page_two_refused
+        && [] === $source->get_public_settings(['posts_per_page' => 50], ['post_id' => 1], 3)
         && $sanitise_refused;
 });
 

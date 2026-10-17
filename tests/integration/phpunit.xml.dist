@@ -17,6 +17,7 @@
             <file>loop-grid-ajax-payload.php</file>
             <file>loop-initial-page-eligibility.php</file>
             <file>current-query-archives.php</file>
+            <file>loop-load-more.php</file>
             <file>search-template-conditions.php</file>
             <file>query-pickers.php</file>
             <file>archive-title-preview.php</file>

@@ -29,6 +29,8 @@ class FrontendAssets
         // through the shared lifecycle adapter
         // instead of duplicating that logic inline.
         $this->register_script('loop-grid', ['elemacy-elementor-lifecycle']);
+        // Load More / Infinite Scroll append pages through the same adapter.
+        $this->register_script('loop-incremental', ['elemacy-elementor-lifecycle']);
 
         $this->register_style('loop-carousel');
         $this->register_script('loop-carousel');

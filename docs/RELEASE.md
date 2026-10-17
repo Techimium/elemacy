@@ -46,6 +46,7 @@ export ELEMACY_TEST_ENV=/tmp/elemacy-integration-<token>/environment.json   # pr
 php tests/integration/run.php --exclude-group requires-acf-pro              # drop the flag with ACF Pro
 cd tests/e2e && node run-builders.mjs && node run-loop-pagination.mjs \
     && node run-current-query-pagination.mjs && node run-current-query-editor.mjs \
+    && node run-loop-load-more.mjs && node run-loop-load-more-editor.mjs \
     && node run-popup-assets.mjs && node run-form-submissions.mjs \
     && node run-editor-template-styles.mjs
 ```

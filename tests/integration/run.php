@@ -24,6 +24,7 @@ try {
         'published-loop-definition.php' => 'PublishedLoopDefinitionTest',
         'public-render-policy.php' => 'PublicRenderPolicyTest',
         'current-query-archives.php' => 'CurrentQueryArchivesTest',
+        'loop-load-more.php' => 'LoopLoadMoreTest',
         'search-template-conditions.php' => 'SearchTemplateConditionsTest',
         'query-pickers.php' => 'QueryPickersTest',
         'archive-title-preview.php' => 'ArchiveTitlePreviewTest',

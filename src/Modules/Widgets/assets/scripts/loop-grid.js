@@ -221,6 +221,12 @@
             return;
         }
 
+        // Load More and Infinite Scroll append pages; loop-incremental.js owns them.
+        var paginationStyle = $targetContainer.attr('data-elemacy-loop-style');
+        if (paginationStyle === 'load_more' || paginationStyle === 'infinite_scroll') {
+            return;
+        }
+
         // Current Query paginates by the page's own URLs, not the loop endpoint.
         if ($targetContainer.attr('data-elemacy-loop-mode') === 'page') {
             PageMode.init($targetContainer);

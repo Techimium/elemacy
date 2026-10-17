@@ -96,9 +96,15 @@ class AjaxPaginationController
         }
         $pagination_html = ob_get_clean();
 
+        // The server alone decides what comes next (offsets and the page cap
+        // included), so the browser never derives it from markup or URLs.
+        $page = $public_request->page();
+        $has_next = $page < $result->max_num_pages && $page < PublicLoopRequest::MAX_PAGE;
+
         wp_send_json_success([
             'items' => $items_html,
             'pagination' => $pagination_html,
+            'next_page' => $has_next ? $page + 1 : 0,
         ]);
     }
 }

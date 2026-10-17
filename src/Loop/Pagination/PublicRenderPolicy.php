@@ -141,20 +141,22 @@ final class PublicRenderPolicy
      * The public-facing equivalent of $source->get_items($settings) for a
      * Grid/Carousel widget's own classic, non-AJAX render: applies the
      * identical template and source eligibility policy the AJAX endpoint
-     * enforces, so a rejected private template/source cannot appear on page
-     * one either.
+     * enforces, so a rejected private template/source cannot appear on the
+     * first page load either.
      *
      * @param array $settings Raw author settings (get_settings_for_display()).
      * @param int   $owner_id The document currently rendering this widget.
+     * @param int   $page     The page of the loop to render: 1 unless the
+     *                        visitor opened a later paginated URL of a paginated loop.
      * @return LoopResultDTO
      * @throws ValidationException If the template or referenced source context is unavailable.
      */
-    public function eligible_items(array $settings, int $owner_id): LoopResultDTO
+    public function eligible_items(array $settings, int $owner_id, int $page = 1): LoopResultDTO
     {
         $this->assert_template((int) ($settings['template_id'] ?? 0));
         $source = $this->source((string) ($settings['data_source'] ?? 'posts'));
         $placement = $this->placements->resolve_current($owner_id);
-        $item_settings = $this->settings($source, $settings, $placement['facts'] ?? [], 1);
+        $item_settings = $this->settings($source, $settings, $placement['facts'] ?? [], $page);
 
         return $source->get_items($item_settings);
     }

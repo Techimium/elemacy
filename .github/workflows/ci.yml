@@ -208,6 +208,8 @@ jobs:
           node run-loop-pagination.mjs
           node run-current-query-pagination.mjs
           node run-current-query-editor.mjs
+          node run-loop-load-more.mjs
+          node run-loop-load-more-editor.mjs
           node run-form-submissions.mjs
           node run-editor-template-styles.mjs
 

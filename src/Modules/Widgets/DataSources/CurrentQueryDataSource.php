@@ -69,18 +69,14 @@ class CurrentQueryDataSource implements LoopDataSourceInterface, PublicLoopSourc
     }
 
     /**
-     * Only the first page is ever resolved here: the widget renders the page
-     * the visitor requested, and later pages are separate page requests. No
-     * authored setting is read, so none is carried into the query.
+     * Nothing to validate or carry: the page of results is whatever page the
+     * visitor requested, and WordPress's main query already holds it. No
+     * authored setting is read, so none reaches the query.
      *
      * {@inheritDoc}
      */
     public function get_public_settings(array $settings, array $context, int $page): array
     {
-        if (1 !== $page) {
-            throw PublicLoopLimits::invalid_settings();
-        }
-
         return [];
     }
 

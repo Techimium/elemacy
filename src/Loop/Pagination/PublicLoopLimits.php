@@ -63,6 +63,20 @@ final class PublicLoopLimits
     }
 
     /**
+     * Whether pages after the first load in place: the AJAX switch is on, or
+     * the pagination type is incremental (Load More / Infinite Scroll), which
+     * always loads in place.
+     *
+     * @param array $settings Raw author settings.
+     * @return bool
+     */
+    public static function is_ajax_paginated(array $settings): bool
+    {
+        return 'yes' === ($settings['pagination_ajax'] ?? '')
+            || PaginationType::is_incremental($settings['pagination_type'] ?? '');
+    }
+
+    /**
      * For an AJAX-paginated widget, bounds its saved "how many" setting so its
      * classic-rendered first page agrees with the effective maximum its later
      * AJAX-loaded pages already enforce.
@@ -73,7 +87,7 @@ final class PublicLoopLimits
      */
     public static function bound_ajax_page_size(array $settings, string $key): array
     {
-        if (isset($settings[$key]) && 'yes' === ($settings['pagination_ajax'] ?? '')) {
+        if (isset($settings[$key]) && self::is_ajax_paginated($settings)) {
             try {
                 $settings[$key] = self::page_size($settings[$key]);
             } catch (ValidationException $error) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Deliberate, see below.

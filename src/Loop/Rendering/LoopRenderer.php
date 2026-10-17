@@ -109,7 +109,9 @@ final class LoopRenderer
             $selector = $identity->selector();
             $this->styles->print_item_css($template_id, $item->get_identity(), $selector);
 
-            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($selector) . '">';
+            // data-elemacy-item is the item's own identity, so Load More and
+            // Infinite Scroll can skip an item already on screen.
+            echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($selector) . '" data-elemacy-item="' . esc_attr($item->get_identity()) . '">';
             LoopTemplateRenderStack::push($template_id);
             try {
                 echo $this->templates->render($template_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- TemplateRenderer returns Elementor's fully rendered and escaped HTML.

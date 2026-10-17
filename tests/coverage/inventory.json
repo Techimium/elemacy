@@ -615,7 +615,11 @@
       "source": "src/Modules/Widgets/DataSources/PostsDataSource.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor"
+      ],
       "journey": {
         "id": "elemacy:journey:loop-source:posts",
         "status": "pending",
@@ -643,7 +647,10 @@
       "coverage": [
         "elemacy:integration:current-query-archives",
         "elemacy:runner:run-current-query-pagination",
-        "elemacy:runner:run-current-query-editor"
+        "elemacy:runner:run-current-query-editor",
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:current_query",
@@ -670,7 +677,10 @@
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
-        "elemacy:integration:query-pickers"
+        "elemacy:integration:query-pickers",
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:terms",
@@ -697,7 +707,10 @@
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
-        "elemacy:integration:query-pickers"
+        "elemacy:integration:query-pickers",
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:users",
@@ -3025,7 +3038,11 @@
       "source": "src/Modules/Widgets/Widgets/LoopGrid.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor"
+      ],
       "journey": {
         "id": "elemacy:journey:widget:elemacy-loop-grid",
         "status": "pending",
@@ -3165,6 +3182,16 @@
       "path": "tests/e2e/run-journeys.mjs"
     },
     {
+      "id": "elemacy:runner:run-loop-load-more-editor",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-loop-load-more-editor.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-loop-load-more",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-loop-load-more.mjs"
+    },
+    {
       "id": "elemacy:runner:run-loop-pagination",
       "layer": "native-browser",
       "path": "tests/e2e/run-loop-pagination.mjs"
@@ -3243,6 +3270,11 @@
       "id": "elemacy:integration:current-query-archives",
       "layer": "native-integration",
       "path": "tests/integration/current-query-archives.php"
+    },
+    {
+      "id": "elemacy:integration:loop-load-more",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-load-more.php"
     },
     {
       "id": "elemacy:integration:search-template-conditions",
