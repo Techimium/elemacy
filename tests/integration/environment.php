@@ -12,7 +12,7 @@ function elemacy_test_environment(string $filename): array
     }
 
     $environment = json_decode(file_get_contents($path), true);
-    if (!is_array($environment) || ($environment['purpose'] ?? '') !== 'elemacy-disposable-integration-v1') {
+    if (!is_array($environment) || !in_array($environment['purpose'] ?? '', ['elemacy-disposable-integration-v1', 'elemacy-managed-browser-v1'], true)) {
         throw new RuntimeException('Refusing an unmarked integration environment.');
     }
 
@@ -22,6 +22,34 @@ function elemacy_test_environment(string $filename): array
     }
 
     $root = $environment['root'] ?? '';
+    if ($environment['purpose'] === 'elemacy-managed-browser-v1') {
+        $url = parse_url($environment['url'] ?? '');
+        $host = $url['host'] ?? '';
+        if (basename(dirname($path)) !== 'elemacy-browser-' . $token
+            || !preg_match('/\Aelemacy-release(?:-[a-z0-9-]+)?\.test\z/', $host)
+            || ($url['scheme'] ?? '') !== 'http' || isset($url['port']) || isset($url['user']) || isset($url['pass'])
+            || ($environment['url'] ?? '') !== 'http://' . $host
+            || $root !== '/var/www/' . $host || realpath($root) !== $root
+            || ($environment['database'] ?? '') !== str_replace(['.', '-'], '_', $host)
+            || ($environment['transport'] ?? '') !== 'external') {
+            throw new RuntimeException('Refusing an unowned managed browser target.');
+        }
+        if (!hash_equals($environment['wp_config_sha256'] ?? '', (string) hash_file('sha256', $root . '/wp-config.php'))
+            || empty($environment['packages']['elemacy']) || empty($environment['installed_files'])) {
+            throw new RuntimeException('Managed browser target configuration or packages changed.');
+        }
+        foreach ($environment['installed_files'] as $file => $hash) {
+            if (!preg_match('#\A(?:elemacy|elemacy-pro)/[a-zA-Z0-9_./-]+\z#', $file) || str_contains($file, '..')) {
+                throw new RuntimeException('Invalid package file identity.');
+            }
+            $installed = $root . '/wp-content/plugins/' . $file;
+            if (realpath($installed) !== $installed || !is_file($installed)
+                || !hash_equals($hash, (string) hash_file('sha256', $installed))) {
+                throw new RuntimeException('Installed release file changed: ' . $file);
+            }
+        }
+        return $environment;
+    }
     if (!is_string($root) || realpath($root) !== dirname($path) . '/wordpress'
         || basename(dirname($path)) !== 'elemacy-integration-' . $token) {
         throw new RuntimeException('Refusing a WordPress root outside the marked disposable directory.');

@@ -6,9 +6,12 @@
         "test": "node run-popups.mjs",
         "test:builders": "node run-builders.mjs",
         "test:popup-assets": "node run-popup-assets.mjs",
-        "test:editor-template-styles": "node run-editor-template-styles.mjs"
+        "test:editor-template-styles": "node run-editor-template-styles.mjs",
+        "test:journeys": "node run-journeys.mjs",
+        "test:smoke": "node run-journeys.mjs --grep @smoke"
     },
     "devDependencies": {
-        "playwright-core": "^1.49.0"
+        "@playwright/test": "1.62.0",
+        "playwright-core": "1.62.0"
     }
 }

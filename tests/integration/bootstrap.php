@@ -10,9 +10,9 @@ require_once __DIR__ . '/environment.php';
 
 $elemacy_test_environment = elemacy_test_environment((string) getenv('ELEMACY_TEST_ENV'));
 $elemacy_test_url = parse_url($elemacy_test_environment['url']);
-$_SERVER['HTTP_HOST'] = $elemacy_test_url['host'] . ':' . $elemacy_test_url['port'];
+$_SERVER['HTTP_HOST'] = $elemacy_test_url['host'] . (isset($elemacy_test_url['port']) ? ':' . $elemacy_test_url['port'] : '');
 $_SERVER['SERVER_NAME'] = $elemacy_test_url['host'];
-$_SERVER['SERVER_PORT'] = (string) $elemacy_test_url['port'];
+$_SERVER['SERVER_PORT'] = (string) ($elemacy_test_url['port'] ?? 80);
 $_SERVER['REQUEST_METHOD'] = 'GET';
 $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
@@ -23,6 +23,9 @@ if (DB_NAME !== $elemacy_test_environment['database']
     || realpath(ABSPATH) !== $elemacy_test_environment['root']
     || get_option('elemacy_integration_environment') !== $elemacy_test_environment['token']) {
     throw new RuntimeException('The loaded WordPress instance does not match the disposable environment.');
+}
+if (!defined('ELEMACY_INTEGRATION_TOKEN')) {
+    define('ELEMACY_INTEGRATION_TOKEN', $elemacy_test_environment['token']);
 }
 
 if (!did_action('elementor/loaded') || !class_exists(Elemacy\Core\Elemacy::class)
