@@ -2355,6 +2355,134 @@ function add_third_party_shell_callbacks(): void
     }
 }
 
+/* ── ThemeBuilderManager: page layout of a location template ───── */
+
+if (!class_exists('Elementor\\Modules\\PageTemplates\\Module')) {
+    /** Elementor's page-templates module, reduced to the constants the manager compares against. */
+    final class ElementorPageTemplatesConstants
+    {
+        public const TEMPLATE_CANVAS = 'elementor_canvas';
+        public const TEMPLATE_HEADER_FOOTER = 'elementor_header_footer';
+    }
+    class_alias('ElementorPageTemplatesConstants', 'Elementor\\Modules\\PageTemplates\\Module');
+}
+
+/** A module standing in for Elementor's: records the print callback it is given. */
+class RecordingPageTemplatesModule
+{
+    /** @var callable|null */
+    public $print_callback = null;
+
+    public function get_template_path($layout)
+    {
+        return 'elementor_canvas' === $layout ? '/elementor/templates/canvas.php' : '';
+    }
+
+    public function set_print_callback($callback)
+    {
+        $this->print_callback = $callback;
+    }
+}
+
+/** Exposes the layout decisions of the manager without a WordPress request. */
+final class LayoutProbeThemeBuilderManager extends ThemeBuilderManager
+{
+    /** @var object|null */
+    public $module = null;
+    /** @var array<int, array{int, string}> */
+    public $rendered = [];
+
+    public function __construct()
+    {
+        parent::__construct(
+            \Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager::instance(),
+            \Elemacy\Modules\ThemeBuilder\Services\LocationRegistry::instance(),
+            \Elemacy\TemplateLibrary\TemplateResolver::instance(),
+            TypeRegistry::instance(),
+            new TemplateRenderer()
+        );
+    }
+
+    protected function page_templates_module()
+    {
+        return $this->module;
+    }
+
+    public function render_template($post_id, string $placement)
+    {
+        $this->rendered[] = [$post_id, $placement];
+    }
+
+    public function canvas(int $id): bool
+    {
+        return $this->uses_canvas_layout($id);
+    }
+
+    public function full_width(int $id): bool
+    {
+        return $this->uses_full_width_layout($id);
+    }
+
+    public function canvas_template(int $id): ?string
+    {
+        return $this->canvas_template_for($id);
+    }
+}
+
+check('only Elementor Canvas counts as a Canvas layout; Full Width, Default and no layout do not', static function () {
+    $manager = new LayoutProbeThemeBuilderManager();
+    foreach ([['elementor_canvas', true], ['elementor_header_footer', false], ['default', false], ['', false], ['page-named.php', false]] as $i => [$layout, $canvas]) {
+        $id = 700 + $i;
+        update_post_meta($id, '_wp_page_template', $layout);
+        if ($canvas !== $manager->canvas($id)) {
+            return false;
+        }
+    }
+
+    return false === $manager->canvas(799); // a template with no layout meta at all
+});
+
+check('only Elementor Full Width counts as a Full Width layout', static function () {
+    $manager = new LayoutProbeThemeBuilderManager();
+    foreach ([['elementor_header_footer', true], ['elementor_canvas', false], ['default', false], ['', false]] as $i => [$layout, $full_width]) {
+        $id = 710 + $i;
+        update_post_meta($id, '_wp_page_template', $layout);
+        if ($full_width !== $manager->full_width($id)) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('a Canvas location template is handed to Elementor\'s Canvas file with a callback that prints the location', static function () {
+    $manager = new LayoutProbeThemeBuilderManager();
+    $manager->module = new RecordingPageTemplatesModule();
+
+    $path = $manager->canvas_template(42);
+    ($manager->module->print_callback)();
+
+    return '/elementor/templates/canvas.php' === $path && [[42, 'location']] === $manager->rendered;
+});
+
+check('without Elementor\'s page-templates module a Canvas template falls back to the wrapper instead of a blank page', static function () {
+    $manager = new LayoutProbeThemeBuilderManager();
+
+    return null === $manager->canvas_template(42);
+});
+
+check('when Elementor gives no Canvas file the print callback is not set and the wrapper is used', static function () {
+    $manager = new LayoutProbeThemeBuilderManager();
+    $manager->module = new class extends RecordingPageTemplatesModule {
+        public function get_template_path($layout)
+        {
+            return '';
+        }
+    };
+
+    return null === $manager->canvas_template(42) && null === $manager->module->print_callback;
+});
+
 check('a side is replaced when a template applies to it and the site has not opted out', static function () {
     reset_classic_compat_hooks();
     $manager = new FixedChromeThemeBuilderManager();

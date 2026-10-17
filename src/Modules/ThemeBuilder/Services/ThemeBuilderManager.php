@@ -14,6 +14,7 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elementor\Modules\PageTemplates\Module as PageTemplates;
 use Elementor\Plugin;
 
 class ThemeBuilderManager
@@ -23,6 +24,9 @@ class ThemeBuilderManager
      * every theme location document.
      */
     public const ASSET_CONTEXT = 'theme-builder';
+
+    /** The body class Elementor's own Full Width template adds. */
+    private const FULL_WIDTH_BODY_CLASS = 'elementor-template-full-width';
 
     /**
      * @var ThemeBuilderManager
@@ -106,6 +110,10 @@ class ThemeBuilderManager
     /**
      * Override the template if a matched Theme Builder template is found.
      *
+     * A page layout other than Default decides what the visitor sees, as in
+     * Elementor Pro: the viewed post's own layout wins over the Single
+     * template, and a location template set to Canvas is served bare.
+     *
      * @param string $template
      * @return string
      */
@@ -121,13 +129,98 @@ class ThemeBuilderManager
             return $template;
         }
 
-        $location_template = $this->get_location_template_id();
-
-        if ($location_template) {
-            return ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-builder-wrapper.php';
+        // A post set to Canvas, Full Width or a page template of the theme was
+        // already given that template; it is not wrapped in a Single template.
+        if ($this->viewed_post_has_own_layout()) {
+            return $template;
         }
 
-        return $template;
+        $location_template = (int) $this->get_location_template_id();
+
+        if (!$location_template) {
+            return $template;
+        }
+
+        if ($this->uses_canvas_layout($location_template)) {
+            $canvas = $this->canvas_template_for($location_template);
+            if (null !== $canvas) {
+                return $canvas;
+            }
+        }
+
+        if ($this->uses_full_width_layout($location_template)) {
+            Plugin::instance()->frontend->add_body_class(self::FULL_WIDTH_BODY_CLASS);
+        }
+
+        return ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-builder-wrapper.php';
+    }
+
+    /**
+     * Whether the post being viewed carries a page layout of its own (Canvas,
+     * Full Width or a theme page template). Elementor's page-templates module
+     * has already chosen the matching file for it, as Pro relies on.
+     */
+    private function viewed_post_has_own_layout(): bool
+    {
+        if (!is_singular()) {
+            return false;
+        }
+
+        $document = Plugin::instance()->documents->get_doc_for_frontend(get_the_ID());
+        if (!$document || !$document::get_property('support_wp_page_templates')) {
+            return false;
+        }
+
+        $layout = (string) $document->get_meta('_wp_page_template');
+
+        return '' !== $layout && 'default' !== $layout;
+    }
+
+    /** The Page Layout chosen on a template, '' when none. */
+    private function layout_of(int $template_id): string
+    {
+        return (string) get_post_meta($template_id, '_wp_page_template', true);
+    }
+
+    protected function uses_canvas_layout(int $template_id): bool
+    {
+        return PageTemplates::TEMPLATE_CANVAS === $this->layout_of($template_id);
+    }
+
+    protected function uses_full_width_layout(int $template_id): bool
+    {
+        return PageTemplates::TEMPLATE_HEADER_FOOTER === $this->layout_of($template_id);
+    }
+
+    /** Elementor's page-templates module, or null when this Elementor has none. */
+    protected function page_templates_module()
+    {
+        return Plugin::instance()->modules_manager->get_modules('page-templates');
+    }
+
+    /**
+     * Elementor's own Canvas template, set to print the location template in
+     * place of the viewed post, the way Elementor Pro's Theme Builder does it.
+     * Null when the page-templates module is not there, so the caller falls
+     * back to the wrapper instead of printing a blank page.
+     */
+    protected function canvas_template_for(int $template_id): ?string
+    {
+        $module = $this->page_templates_module();
+        if (!$module) {
+            return null;
+        }
+
+        $path = $module->get_template_path(PageTemplates::TEMPLATE_CANVAS);
+        if (!$path) {
+            return null;
+        }
+
+        $module->set_print_callback(function () use ($template_id) {
+            $this->render_template($template_id, 'location');
+        });
+
+        return $path;
     }
 
     /**

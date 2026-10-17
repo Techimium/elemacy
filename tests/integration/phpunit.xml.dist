@@ -33,6 +33,7 @@
             <file>theme-lifecycle.php</file>
             <file>native-chrome-replacement.php</file>
             <file>real-theme-chrome.php</file>
+            <file>location-layouts.php</file>
             <file>theme-hook-cleaner.php</file>
             <file>chrome-documents.php</file>
             <file>atomic-rendering.php</file>
