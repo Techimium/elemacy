@@ -5,6 +5,7 @@ namespace Elemacy\Loop\Pagination;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
@@ -100,6 +101,24 @@ final class PublicRenderPolicy
     }
 
     /**
+     * The source an endpoint pagination request may run. A source paginated by
+     * the page's own URLs is never served by the endpoint: it has no saved
+     * query to replay, and the endpoint has no main query to read.
+     *
+     * @param string $key Saved source identifier.
+     * @return LoopDataSourceInterface Available source with a public policy.
+     * @throws ValidationException If unavailable or paginated by page URL.
+     */
+    public function endpoint_source(string $key): LoopDataSourceInterface
+    {
+        $source = $this->source($key);
+        if ($source instanceof PageUrlPaginatedSourceInterface) {
+            throw self::unavailable();
+        }
+        return $source;
+    }
+
+    /**
      * Prepare a public query without executing it.
      *
      * @param LoopDataSourceInterface $source Previously resolved source.
@@ -142,14 +161,13 @@ final class PublicRenderPolicy
 
     /**
      * An editor-facing sentence explaining why eligible_items refused
-     * $settings for $owner_id. Only ever shown to a user who can edit the
-     * owning document; visitors get nothing.
+     * $settings. Only ever shown to a user who can edit the owning document;
+     * visitors get nothing.
      *
      * @param array $settings Raw author settings.
-     * @param int   $owner_id The document rendering the widget.
      * @return string
      */
-    public function describe_ineligibility(array $settings, int $owner_id): string
+    public function describe_ineligibility(array $settings): string
     {
         $template = get_post((int) ($settings['template_id'] ?? 0));
 
@@ -180,11 +198,6 @@ final class PublicRenderPolicy
         if (!$source instanceof PublicLoopSourcePolicyInterface) {
             /* translators: %s: data source key */
             return sprintf(__('The "%s" data source cannot be shown to visitors.', 'elemacy'), $key);
-        }
-
-        $placement = $this->placements->resolve_current($owner_id);
-        if ('current_query' === ($settings['post_type'] ?? '') && empty($placement['facts']['query'])) {
-            return __('"Current Query" only works inside an Archive or Search Results template.', 'elemacy');
         }
 
         return __('This loop cannot be shown to visitors with its current settings.', 'elemacy');

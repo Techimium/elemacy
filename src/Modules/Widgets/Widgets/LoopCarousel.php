@@ -615,7 +615,7 @@ class LoopCarousel extends BaseWidget
             return $policy->eligible_items($settings, $owner_id);
         } catch (ValidationException $error) {
             if (current_user_can('edit_post', $owner_id)) {
-                $this->ineligibility_notice = $policy->describe_ineligibility($settings, $owner_id);
+                $this->ineligibility_notice = $policy->describe_ineligibility($settings);
             }
 
             return new LoopResultDTO([], 0, 0, false);

@@ -21,11 +21,10 @@ use Elementor\Controls_Manager;
 use Elemacy\Elementor\Widgets\BaseWidget;
 
 /**
- * The built-in Posts data source: reproduces exactly what LoopGrid's and
- * LoopCarousel's Query section did before this abstraction existed (post type
- * select including "Current Query", posts-per-page, offset, order, excluding
- * the current post), so every existing site's saved widget settings keep
- * working unchanged.
+ * The built-in Posts data source: the post type, posts-per-page, offset,
+ * order and current-post exclusion Loop Grid's and Loop Carousel's Query
+ * section offers. Listing "whatever the page queries" is the separate Current
+ * Query source.
  */
 class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {
@@ -57,9 +56,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
     protected function get_public_post_types(): array
     {
         $post_types = get_post_types(['public' => true], 'objects');
-        $options = [
-            'current_query' => esc_html__('Current Query', 'elemacy'),
-        ];
+        $options = [];
 
         foreach ($post_types as $post_type) {
             $options[$post_type->name] = $post_type->label;
@@ -75,7 +72,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         $widget->add_control(
             'post_type',
             [
-                'label' => esc_html__('Source', 'elemacy'),
+                'label' => esc_html__('Post Type', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'options' => $this->get_public_post_types(),
                 'default' => 'post',
@@ -95,7 +92,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
                 'label' => $posts_per_page_label,
                 'type' => Controls_Manager::NUMBER,
                 'default' => 6,
-                'condition' => $condition + ['post_type!' => 'current_query'],
+                'condition' => $condition,
             ]
         );
 
@@ -106,7 +103,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
                 'type' => Controls_Manager::NUMBER,
                 'default' => 0,
                 'description' => esc_html__('Number of posts to skip. Note: Using an offset can break pagination.', 'elemacy'),
-                'condition' => $condition + ['post_type!' => 'current_query'],
+                'condition' => $condition,
             ]
         );
 
@@ -122,7 +119,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
                     'menu_order' => esc_html__('Menu Order', 'elemacy'),
                     'rand' => esc_html__('Random', 'elemacy'),
                 ],
-                'condition' => $condition + ['post_type!' => 'current_query'],
+                'condition' => $condition,
             ]
         );
 
@@ -136,7 +133,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
                     'ASC' => esc_html__('ASC', 'elemacy'),
                     'DESC' => esc_html__('DESC', 'elemacy'),
                 ],
-                'condition' => $condition + ['post_type!' => 'current_query'],
+                'condition' => $condition,
             ]
         );
 
@@ -147,7 +144,7 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
                 'type' => Controls_Manager::SWITCHER,
                 'return_value' => 'yes',
                 'default' => 'yes',
-                'condition' => $condition + ['post_type!' => 'current_query'],
+                'condition' => $condition,
             ]
         );
     }

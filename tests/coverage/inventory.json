@@ -633,6 +633,35 @@
       }
     },
     {
+      "id": "elemacy:loop-source:current_query",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "current_query",
+      "source": "src/Modules/Widgets/DataSources/CurrentQueryDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:current-query-archives",
+        "elemacy:runner:run-current-query-pagination",
+        "elemacy:runner:run-current-query-editor"
+      ],
+      "journey": {
+        "id": "elemacy:journey:loop-source:current_query",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Dedicated browser runners cover the editor choice/persistence and the visitor's page-URL pagination, but the journey is not yet wired into the unified journey runner; coverage references are not a claim of release readiness.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:loop-source:terms",
       "owner": "elemacy",
       "kind": "loop-source",
@@ -3109,6 +3138,16 @@
       "id": "elemacy:runner:run-builders",
       "layer": "native-browser",
       "path": "tests/e2e/run-builders.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-current-query-editor",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-current-query-editor.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-current-query-pagination",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-current-query-pagination.mjs"
     },
     {
       "id": "elemacy:runner:run-editor-template-styles",

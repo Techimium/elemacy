@@ -110,7 +110,7 @@ class Reviews extends Module
 
 1. Keep the query in an Elementor-free class (like `Loop/Sources/PostsQuery.php`), and the public-context policy in another (like `Loop/Pagination/Policies/PostsPolicy.php`) implementing `Loop\Contracts\PublicLoopSourcePolicyInterface`.
 2. Create the source under `Modules/Widgets/DataSources/` implementing `Loop\Contracts\LoopDataSourceInterface`: `get_key()`, `get_label()`, `register_controls(BaseWidget $widget)`, `get_items(array $settings): LoopResultDTO`, `sanitize_ajax_settings()`, `register_preview_controls()`, `resolve_preview_item()`. Also implement `PublicLoopSourcePolicyInterface` if visitors may see it; without it the source renders only for editors.
-3. Register it on `Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION` with `Loop\LoopDataSourceRegistry`. The Loop Grid, Loop Carousel, AJAX pagination and Loop Item preview pick it up without changes.
+3. Register it on `Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION` with `Loop\LoopDataSourceRegistry`. A source whose items are the host page's own main query and whose pages are that page's URLs (like `CurrentQueryDataSource`) also implements `Loop\Contracts\PageUrlPaginatedSourceInterface`, so the signed-definition endpoint refuses it. The Loop Grid, Loop Carousel, AJAX pagination and Loop Item preview pick it up without changes.
 
 ### Add a display condition
 

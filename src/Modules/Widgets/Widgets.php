@@ -11,6 +11,7 @@ use Elemacy\Core\Container;
 use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
+use Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
@@ -91,7 +92,7 @@ class Widgets extends Module
 
     /**
      * The loop data sources Loop Grid / Loop Carousel / AJAX pagination
-     * consume. Registers the built-in Posts source directly, then fires
+     * consume. Registers the built-in Posts and Current Query sources directly, then fires
      * LOOP_DATA_SOURCES_REGISTER_ACTION so add-ons can register more — mirrors
      * register_locations() in ThemeBuilder.
      */
@@ -101,6 +102,7 @@ class Widgets extends Module
             $registry = LoopDataSourceRegistry::instance();
 
             $registry->register(new PostsDataSource());
+            $registry->register(new CurrentQueryDataSource());
             $registry->register(new TaxonomyDataSource());
             $registry->register(new UsersDataSource());
 

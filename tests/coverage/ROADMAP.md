@@ -34,6 +34,7 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `form-field:text` | real | Elementor Free | pending |
 | `form-field:textarea` | real | Elementor Free | pending |
 | `loop-source:posts` | real | Elementor Free | pending |
+| `loop-source:current_query` | real | Elementor Free | pending |
 | `loop-source:terms` | real | Elementor Free | pending |
 | `loop-source:users` | real | Elementor Free | pending |
 | `module:custom-css` | real | Elementor Free | pending |
@@ -141,6 +142,8 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-elementor-lifecycle` | static-browser | `tests/e2e/run-elementor-lifecycle.mjs` |
 | `elemacy:runner:run-admin-contract` | native-browser | `tests/e2e/run-admin-contract.mjs` |
 | `elemacy:runner:run-builders` | native-browser | `tests/e2e/run-builders.mjs` |
+| `elemacy:runner:run-current-query-editor` | native-browser | `tests/e2e/run-current-query-editor.mjs` |
+| `elemacy:runner:run-current-query-pagination` | native-browser | `tests/e2e/run-current-query-pagination.mjs` |
 | `elemacy:runner:run-editor-template-styles` | native-browser | `tests/e2e/run-editor-template-styles.mjs` |
 | `elemacy:runner:run-form-submissions` | native-browser | `tests/e2e/run-form-submissions.mjs` |
 | `elemacy:runner:run-journeys` | native-browser | `tests/e2e/run-journeys.mjs` |

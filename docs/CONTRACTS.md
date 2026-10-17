@@ -69,11 +69,12 @@ The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Preserve the 
 | Data-source implementation | Saved `data_source` value |
 | --- | --- |
 | Free `PostsDataSource` | `posts` |
+| Free `CurrentQueryDataSource` | `current_query` |
 | Free `TaxonomyDataSource` | `terms` |
 | Free `UsersDataSource` | `users` |
 | Pro `AcfRepeaterDataSource` | `acf_repeater` |
 
-The same registration contributes query controls and standalone preview. `template_id`, the Elementor element `id`, source query settings and `preview_data_source` are saved document values; public pagination requests never carry them. Loop Carousel has no AJAX pagination feature.
+The same registration contributes query controls and standalone preview. `template_id`, the Elementor element `id`, source query settings and `preview_data_source` are saved document values; public pagination requests never carry them. Loop Carousel has no AJAX pagination feature. A source that also implements `Loop\Contracts\PageUrlPaginatedSourceInterface` (Current Query) is paginated by the host page's own URLs instead of the endpoint, which refuses it.
 
 ## Dynamic tag names
 
@@ -222,6 +223,7 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION` | `elemacy/action/theme_builder/compatibility/register` |
 | `LOOP_DATA_SOURCES_REGISTER_ACTION` | `elemacy/action/loop/data_sources/register` |
 | `LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION` | `elemacy/action/loop/placement_resolvers/register` |
+| `LOOP_CURRENT_QUERY_ARGS_FILTER` | `elemacy/filter/loop/current_query_args` |
 | `QUERY_RESOLVERS_REGISTER_ACTION` | `elemacy/action/query_control/resolvers/register` |
 | `PREVIEW_QUERY_ARGS_FILTER` | `elemacy/filter/preview/query_args` |
 | `CONDITIONS_EXCLUDED_POST_TYPES_FILTER` | `elemacy/filter/conditions/excluded_post_types` |

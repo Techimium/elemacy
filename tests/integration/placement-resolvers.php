@@ -79,20 +79,16 @@ final class PlacementResolversTest extends IntegrationTestCase
 
         self::assertSame(['location' => 'header'], $resolver->resolve($this->catalog['locations']['header']));
         self::assertSame(['location' => 'footer'], $resolver->resolve($this->catalog['locations']['footer']));
-        self::assertSame(['location' => 'single', 'query' => []], $resolver->resolve($this->catalog['locations']['single']));
+        self::assertSame(['location' => 'single'], $resolver->resolve($this->catalog['locations']['single']));
     }
 
-    public function testThemeBuilderArchiveExposesVerifiedQueryFacts(): void
+    public function testThemeBuilderArchiveResolvesToItsLocationOnly(): void
     {
         $archive = $this->documents->create('Archive fixture', 'archive');
         $resolver = new ThemeBuilderPlacementResolver();
         $this->request->visit(get_term_link($this->catalog['term']));
 
-        $resolved = $resolver->resolve($archive);
-        self::assertNotNull($resolved);
-        self::assertSame('archive', $resolved['location']);
-        self::assertSame('category', $resolved['query']['taxonomy']);
-        self::assertSame($this->catalog['term'], $resolved['query']['term_id']);
+        self::assertSame(['location' => 'archive'], $resolver->resolve($archive));
     }
 
     public function testThemeBuilderDoesNotResolveAnUnrelatedId(): void

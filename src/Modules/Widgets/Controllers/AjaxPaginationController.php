@@ -66,7 +66,7 @@ class AjaxPaginationController
             $context = $claims['facts'];
         }
 
-        $source = $policy->source($definition->source_key());
+        $source = $policy->endpoint_source($definition->source_key());
         $item_settings = $policy->settings($source, $definition->settings(), $context, $public_request->page());
 
         $result = $source->get_items($item_settings);

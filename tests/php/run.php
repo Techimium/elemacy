@@ -6275,81 +6275,209 @@ check('tests/architecture/check.php actually detects a real layering violation (
     return 1 === $exit_code && false !== strpos(implode("\n", $output), 'ZZArchitectureCheckFixture.php');
 });
 
-// Theme Builder placement facts rebuild an archive's own constraints from
-// the server-side main query and queried object only, never from the request.
-$archive_facts = static function (array $query_vars, $queried): array {
-    $GLOBALS['wp_query'] = new WP_Query($query_vars + ['meta_key' => 'browser-controlled', 'p' => 99, 'post__in' => [1, 2]]);
-    $GLOBALS['__queried_object'] = $queried;
-    $method = new ReflectionMethod(\Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver::class, 'query_facts');
-    $method->setAccessible(true);
+// ── Current Query: its own data source, not a Posts post type ──────────
 
-    try {
-        $facts = $method->invoke(new \Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver());
-    } finally {
-        unset($GLOBALS['wp_query']);
-        $GLOBALS['__queried_object'] = null;
-    }
+$current_query_main = static function (array $vars, array $posts = [], int $found = 0, int $pages = 0): WP_Query {
+    $query = new WP_Query($vars);
+    $query->posts = $posts;
+    $query->found_posts = $found;
+    $query->max_num_pages = $pages;
 
-    ksort($facts);
-
-    return $facts;
+    return $query;
 };
 
-check('Theme Builder placement facts: a category archive carries taxonomy, term_id and cat (the key WP_Query constrains by) and nothing browser-controlled', static function () use ($archive_facts) {
-    return $archive_facts(['post_type' => 'post'], new WP_Term(7, 'category', ['slug' => 'news']))
-        === ['cat' => 7, 'post_type' => ['post'], 'taxonomy' => 'category', 'term_id' => 7];
-});
-
-check('Theme Builder placement facts: a tag archive carries tag_id', static function () use ($archive_facts) {
-    return $archive_facts([], new WP_Term(9, 'post_tag', ['slug' => 'featured']))
-        === ['tag_id' => 9, 'taxonomy' => 'post_tag', 'term_id' => 9];
-});
-
-check('Theme Builder placement facts: a custom taxonomy archive carries taxonomy plus the term slug', static function () use ($archive_facts) {
-    return $archive_facts([], new WP_Term(11, 'genre', ['slug' => 'jazz']))
-        === ['taxonomy' => 'genre', 'term' => 'jazz', 'term_id' => 11];
-});
-
-check('Theme Builder placement facts: an author archive carries the author ID', static function () use ($archive_facts) {
-    return $archive_facts([], new WP_User(3)) === ['author' => 3];
-});
-
-check('Theme Builder placement facts: a month archive carries year and monthnum and omits an unset day', static function () use ($archive_facts) {
-    return $archive_facts(['year' => 2025, 'monthnum' => '06', 'day' => 0], null) === ['monthnum' => 6, 'year' => 2025];
-});
-
-check('Theme Builder placement facts: a plain-permalink month archive (compact m var) still yields year and monthnum', static function () use ($archive_facts) {
-    return $archive_facts(['m' => '202503'], null) === ['monthnum' => 3, 'year' => 2025]
-        && $archive_facts(['m' => '20250310'], null) === ['day' => 10, 'monthnum' => 3, 'year' => 2025];
-});
-
-check('Theme Builder placement facts: a search widened by WordPress to non-public post types keeps only the public ones', static function () use ($archive_facts) {
-    return $archive_facts(['s' => 'hello', 'post_type' => ['post', 'elemacy_library', 'page']], null) === ['post_type' => ['post', 'page'], 's' => 'hello']
-        && $archive_facts(['post_type' => 'any'], null) === ['post_type' => ['post', 'page']]
-        && $archive_facts(['post_type' => ['elemacy_library']], null) === [];
-});
-
-check('Theme Builder placement facts: search carries the search term only', static function () use ($archive_facts) {
-    return $archive_facts(['s' => 'hello'], null) === ['s' => 'hello'];
-});
-
-check('Theme Builder placement facts: no queried object and no archive vars produce no facts', static function () use ($archive_facts) {
-    return $archive_facts([], null) === [];
-});
-
-check('PostsQuery passes archive constraints (cat, tag_id, taxonomy+term, author, year/monthnum/day, s) through to WP_Query and drops browser-controlled keys', static function () {
+check('Current Query lists the main query\'s own posts and its found/max pages, reusing that query object when no add-on changes its vars', static function () use ($current_query_main) {
+    $GLOBALS['wp_query'] = $current_query_main(['cat' => 7], [new WP_Post(1), new WP_Post(2)], 9, 5);
     $GLOBALS['__wp_query_args'] = [];
-    $vars = ['taxonomy' => 'genre', 'term' => 'jazz', 'cat' => 7, 'tag_id' => 9, 'author' => 3, 'year' => 2025, 'monthnum' => 6, 'day' => 4, 's' => 'hello'];
-    $query = new \Elemacy\Loop\Sources\PostsQuery();
-    $method = new ReflectionMethod($query, 'sanitize_current_query_vars');
+
+    try {
+        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    } finally {
+        $made_new_query = [] !== $GLOBALS['__wp_query_args'];
+        unset($GLOBALS['wp_query']);
+    }
+
+    return !$made_new_query
+        && 2 === count($result->items)
+        && $result->items[0] instanceof \Elemacy\Loop\Items\PostLoopItem
+        && 9 === $result->total_items
+        && 5 === $result->max_num_pages
+        && true === $result->supports_pagination;
+});
+
+check('Current Query ignores every authored loop setting: nothing in the widget settings reaches the query', static function () use ($current_query_main) {
+    $GLOBALS['wp_query'] = $current_query_main(['s' => 'hello'], [new WP_Post(3)], 1, 1);
+    $GLOBALS['__wp_query_args'] = [];
+
+    try {
+        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([
+            'post_type' => 'page', 'posts_per_page' => 1, 'offset' => 50, 'orderby' => 'rand', 'meta_key' => 'x',
+        ]);
+    } finally {
+        $made_new_query = [] !== $GLOBALS['__wp_query_args'];
+        unset($GLOBALS['wp_query']);
+    }
+
+    return !$made_new_query && 1 === count($result->items);
+});
+
+check('Current Query runs a new WP_Query with the filtered vars only when an add-on changed them', static function () use ($current_query_main) {
+    $GLOBALS['wp_query'] = $current_query_main(['cat' => 7, 'posts_per_page' => 10], [new WP_Post(1)], 1, 1);
+    $GLOBALS['__wp_actions'] = [];
+    $GLOBALS['__wp_query_args'] = [];
+
+    $unchanged = static fn ($vars) => $vars;
+    add_filter(Hooks::LOOP_CURRENT_QUERY_ARGS_FILTER, $unchanged);
+    (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    $reused = [] === $GLOBALS['__wp_query_args'];
+
+    $GLOBALS['__wp_actions'] = [];
+    add_filter(Hooks::LOOP_CURRENT_QUERY_ARGS_FILTER, static function ($vars) {
+        $vars['posts_per_page'] = 3;
+
+        return $vars;
+    });
+    (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    $filtered = end($GLOBALS['__wp_query_args']);
+
+    $GLOBALS['__wp_actions'] = [];
+    unset($GLOBALS['wp_query']);
+
+    return $reused && 3 === $filtered['posts_per_page'] && 7 === $filtered['cat'];
+});
+
+check('Current Query with no main query yields an empty result instead of an error', static function () {
+    unset($GLOBALS['wp_query']);
+    $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+
+    return [] === $result->items && 0 === $result->total_items;
+});
+
+check('Current Query treats a main query that has not run yet (null posts) as an empty list', static function () {
+    $query = new WP_Query(['cat' => 7]);
+    $query->posts = null;
+    $GLOBALS['wp_query'] = $query;
+
+    try {
+        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    } finally {
+        unset($GLOBALS['wp_query']);
+    }
+
+    return [] === $result->items;
+});
+
+check('CurrentQueryDataSource: own key and label, public policy for the first page only, never endpoint-served, no sanitiser', static function () {
+    $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource();
+
+    $page_two_refused = false;
+    try {
+        $source->get_public_settings(['post_type' => 'page'], ['post_id' => 1], 2);
+    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+        $page_two_refused = true;
+    }
+
+    $sanitise_refused = false;
+    try {
+        $source->sanitize_ajax_settings(['post_type' => 'post'], 1);
+    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+        $sanitise_refused = true;
+    }
+
+    return 'current_query' === $source->get_key()
+        && 'Current Query' === $source->get_label()
+        && $source instanceof \Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface
+        && $source instanceof \Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface
+        && [] === $source->get_public_settings(['posts_per_page' => 50, 'offset' => 4], [], 1)
+        && $page_two_refused
+        && $sanitise_refused;
+});
+
+check('CurrentQueryDataSource delegates get_items() and the preview item to its injected collaborators', static function () {
+    $query = new class extends \Elemacy\Loop\Sources\CurrentQueryQuery {
+        public array $calls = [];
+
+        public function get_items(array $settings): LoopResultDTO
+        {
+            $this->calls[] = $settings;
+
+            return new LoopResultDTO([], 42, 3, true);
+        }
+    };
+    $preview_item = new \Elemacy\Loop\Items\PostLoopItem(new WP_Post(77));
+    $preview = new class($preview_item) extends \Elemacy\Modules\Widgets\DataSources\PostsDataSource {
+        public array $received = [];
+        private $item;
+
+        public function __construct($item)
+        {
+            parent::__construct();
+            $this->item = $item;
+        }
+
+        public function resolve_preview_item(array $settings): ?\Elemacy\Loop\Contracts\LoopItemInterface
+        {
+            $this->received[] = $settings;
+
+            return $this->item;
+        }
+    };
+    $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource($query, $preview);
+
+    $result = $source->get_items(['a' => 1]);
+
+    return 42 === $result->total_items
+        && [['a' => 1]] === $query->calls
+        && $source->resolve_preview_item(['preview_post' => 5]) === $preview_item
+        && [[]] === $preview->received;
+});
+
+check('Posts offers real public post types only: no Current Query entry', static function () {
+    $method = new ReflectionMethod(PostsDataSource::class, 'get_public_post_types');
     $method->setAccessible(true);
-    $safe = $method->invoke($query, $vars + ['meta_key' => 'browser-controlled', 'p' => 99]);
-    $kept = array_intersect_key($safe, $vars) == $vars && !isset($safe['meta_key']) && !isset($safe['p']);
+    $options = $method->invoke(new PostsDataSource());
 
-    $query->get_items(['post_type' => 'current_query', 'current_query_args' => $safe + ['paged' => 2]]);
-    $args = end($GLOBALS['__wp_query_args']);
+    return !isset($options['current_query']) && isset($options['post']);
+});
 
-    return $kept && 7 === $args['cat'] && 3 === $args['author'] && 'jazz' === $args['term'] && 2025 === $args['year'] && 2 === $args['paged'];
+check('Posts query, policy and source no longer mention current_query anywhere in their code', static function () {
+    $root = dirname(__DIR__, 2) . '/src/';
+
+    foreach (['Loop/Sources/PostsQuery.php', 'Loop/Pagination/Policies/PostsPolicy.php', 'Modules/Widgets/DataSources/PostsDataSource.php'] as $file) {
+        if (false !== strpos(file_get_contents($root . $file), 'current_query')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('PostsQuery rejects post_type=current_query as an invalid post type', static function () {
+    try {
+        (new PostsQuery())->sanitize_ajax_settings(['post_type' => 'current_query'], 1);
+    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+        return true;
+    }
+
+    return false;
+});
+
+check('PublicRenderPolicy::endpoint_source() refuses a page-URL-paginated source but still returns the others', static function () {
+    $sources = new LoopDataSourceRegistry();
+    $sources->register(new PostsDataSource());
+    $sources->register(new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource());
+    $policy = new \Elemacy\Loop\Pagination\PublicRenderPolicy(TypeRegistry::instance(), $sources, \Elemacy\Loop\Placement\PlacementResolverRegistry::instance());
+
+    $refused = false;
+    try {
+        $policy->endpoint_source('current_query');
+    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+        $refused = true;
+    }
+
+    return $refused
+        && $policy->endpoint_source('posts')->get_key() === 'posts'
+        && $policy->source('current_query')->get_key() === 'current_query';
 });
 
 check('tests/architecture/check.php fails on a planted planning reference in production source and names the file', static function () {

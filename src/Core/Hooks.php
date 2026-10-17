@@ -79,6 +79,12 @@ final class Hooks
     // so add-ons can register their own (passes the LoopDataSourceRegistry).
     public const LOOP_DATA_SOURCES_REGISTER_ACTION = 'elemacy/action/loop/data_sources/register';
 
+    // Lets add-ons adjust the WP_Query args the Current Query loop data source
+    // runs (passes the main query's query_vars array). Returning the args
+    // unchanged keeps the already-run main query; returning different args
+    // runs a new WP_Query with them.
+    public const LOOP_CURRENT_QUERY_ARGS_FILTER = 'elemacy/filter/loop/current_query_args';
+
     // Fired after the Widgets module registers its built-in public pagination
     // placement resolvers (page, nested loop), so other modules/add-ons can
     // register their own (passes the PlacementResolverRegistry).

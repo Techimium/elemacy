@@ -253,6 +253,13 @@ $GLOBALS['__queried_object'] = null;
 /** Public post types only: what a placement may ever expose. */
 function get_post_types($args = [], $output = 'names')
 {
+    if ('objects' === $output) {
+        return [
+            'post' => (object) ['name' => 'post', 'label' => 'Posts'],
+            'page' => (object) ['name' => 'page', 'label' => 'Pages'],
+        ];
+    }
+
     return ['post' => 'post', 'page' => 'page'];
 }
 

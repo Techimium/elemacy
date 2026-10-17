@@ -21,18 +21,7 @@ class PostsQuery
     public function get_items(array $settings): LoopResultDTO
     {
         $settings = PublicLoopLimits::bound_ajax_page_size($settings, 'posts_per_page');
-        $post_type = $settings['post_type'] ?? 'post';
-
-        if ('current_query' === $post_type) {
-            if (array_key_exists('current_query_args', $settings)) {
-                $query = new WP_Query($settings['current_query_args']);
-            } else {
-                global $wp_query;
-                $query = $wp_query;
-            }
-        } else {
-            $query = new WP_Query($this->build_query_args($settings));
-        }
+        $query = new WP_Query($this->build_query_args($settings));
 
         $items = [];
 
@@ -118,25 +107,10 @@ class PostsQuery
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
         $post_type = isset($raw_settings['post_type']) ? sanitize_key((string) $raw_settings['post_type']) : '';
-        $allowed_post_types = array_merge(['current_query'], get_post_types(['public' => true], 'names'));
+        $allowed_post_types = get_post_types(['public' => true], 'names');
 
         if ($post_type === '' || !in_array($post_type, $allowed_post_types, true)) {
             throw new ValidationException(esc_html__('Invalid post type.', 'elemacy'));
-        }
-
-        if ('current_query' === $post_type) {
-            $current_vars = isset($raw_settings['current_query_vars']) && is_array($raw_settings['current_query_vars'])
-                ? $raw_settings['current_query_vars']
-                : [];
-
-            $query_args = $this->sanitize_current_query_vars($current_vars);
-            $query_args['paged'] = $paged;
-            $query_args['post_status'] = PostStatus::PUBLISH;
-
-            return [
-                'post_type' => 'current_query',
-                'current_query_args' => $query_args,
-            ];
         }
 
         $allowed_orderby = ['date', 'title', 'menu_order', 'rand'];
@@ -174,62 +148,5 @@ class PostsQuery
         }
 
         return $item_settings;
-    }
-
-    /**
-     * Re-derive a safe subset of the page's main-query vars for "current
-     * query" pagination. Relocated unchanged from AjaxPaginationController
-     * (loop-data-source-taxonomy ).
-     *
-     * @param array<string,mixed> $vars
-     * @return array<string,mixed>
-     */
-    protected function sanitize_current_query_vars(array $vars): array
-    {
-        $safe = [];
-
-        if (isset($vars['post_type'])) {
-            $public_types = get_post_types(['public' => true], 'names');
-            $requested = array_map('sanitize_key', array_map('strval', (array) $vars['post_type']));
-            $allowed = array_values(array_intersect($requested, $public_types));
-
-            if (!empty($allowed)) {
-                $safe['post_type'] = count($allowed) === 1 ? $allowed[0] : $allowed;
-            }
-        }
-
-        $string_keys = ['category_name', 'tag', 'author_name', 'name', 'pagename', 'taxonomy', 'term', 's'];
-        foreach ($string_keys as $key) {
-            if (isset($vars[$key]) && is_scalar($vars[$key])) {
-                $safe[$key] = sanitize_text_field((string) $vars[$key]);
-            }
-        }
-
-        $int_keys = ['cat', 'tag_id', 'author', 'year', 'monthnum', 'day', 'w', 'hour', 'minute', 'second', 'post_parent'];
-        foreach ($int_keys as $key) {
-            if (isset($vars[$key]) && is_numeric($vars[$key])) {
-                $safe[$key] = (int) $vars[$key];
-            }
-        }
-
-        if (isset($vars['orderby']) && is_scalar($vars['orderby'])) {
-            $orderby = sanitize_key((string) $vars['orderby']);
-            $allowed_orderby = ['date', 'title', 'menu_order', 'rand', 'id', 'name', 'modified', 'comment_count'];
-
-            if (in_array($orderby, $allowed_orderby, true)) {
-                $safe['orderby'] = $orderby;
-            }
-        }
-
-        if (isset($vars['order']) && is_scalar($vars['order'])) {
-            $order = strtoupper(sanitize_text_field((string) $vars['order']));
-            $safe['order'] = in_array($order, ['ASC', 'DESC'], true) ? $order : 'DESC';
-        }
-
-        if (isset($vars['posts_per_page']) && is_numeric($vars['posts_per_page'])) {
-            $safe['posts_per_page'] = max(1, min(100, (int) $vars['posts_per_page']));
-        }
-
-        return $safe;
     }
 }

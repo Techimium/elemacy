@@ -139,23 +139,6 @@ final class PublicRenderPolicyTest extends IntegrationTestCase
         }
     }
 
-    public function testCurrentQueryUsesOnlyTheVerifiedHostQuery(): void
-    {
-        $source = $this->policy->source('posts');
-        $settings = $this->policy->settings($source, [
-            'post_type' => 'current_query',
-            'current_query_vars' => ['post_type' => 'page', 'p' => $this->catalog['posts']['private']],
-        ], ['query' => ['post_type' => 'post', 's' => 'Source', 'posts_per_page' => 2]], 2);
-        self::assertSame('post', $settings['current_query_args']['post_type']);
-        self::assertSame('Source', $settings['current_query_args']['s']);
-        self::assertSame(2, $settings['current_query_args']['paged']);
-        self::assertSame(2, $settings['current_query_args']['posts_per_page']);
-        self::assertSame('publish', $settings['current_query_args']['post_status']);
-        self::assertFalse($settings['current_query_args']['has_password']);
-        self::assertArrayNotHasKey('p', $settings['current_query_args']);
-        self::assertSame(0, $source->query_calls);
-    }
-
     /** @dataProvider invalidSavedSources */
     public function testInvalidOrUnavailableSourceIsRejectedBeforeQuery(string $key, array $saved, array $context): void
     {
@@ -181,8 +164,7 @@ final class PublicRenderPolicyTest extends IntegrationTestCase
             'missing selected role' => ['users', ['users_roles' => ['role_removed_by_extension']], []],
             'role is not an array' => ['users', ['users_roles' => 'author'], []],
             'malformed count' => ['posts', ['posts_per_page' => []], []],
-            'current query missing verified host' => ['posts', ['post_type' => 'current_query'], []],
-            'current query cannot fall back from private type' => ['posts', ['post_type' => 'current_query'], ['query' => ['post_type' => 'revision']]],
+            'current query is not a post type' => ['posts', ['post_type' => 'current_query'], []],
         ];
     }
 

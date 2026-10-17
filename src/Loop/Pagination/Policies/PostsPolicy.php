@@ -34,48 +34,8 @@ class PostsPolicy implements PublicLoopSourcePolicyInterface
         ];
         $saved['posts_per_page'] = PublicLoopLimits::page_size($saved['posts_per_page']);
         $saved['current_post_id'] = (int) ($context['post_id'] ?? 0);
-        unset($saved['current_query_vars'], $saved['current_query_args']);
 
-        if ('current_query' === $saved['post_type']) {
-            if (empty($context['query']) || !is_array($context['query'])) {
-                throw PublicLoopLimits::invalid_settings();
-            }
-            $query = $context['query'];
-            $public_types = get_post_types(['public' => true], 'names');
-            $types = $query['post_type'] ?? 'post';
-            if ('any' === $types) {
-                $types = array_values($public_types);
-            }
-            foreach ((array) $types as $type) {
-                if (!is_string($type) || !in_array($type, $public_types, true)) {
-                    throw PublicLoopLimits::invalid_settings();
-                }
-            }
-            if (!$types) {
-                throw PublicLoopLimits::invalid_settings();
-            }
-            if (!empty($query['taxonomy']) && !in_array($query['taxonomy'], get_taxonomies(['public' => true], 'names'), true)) {
-                throw PublicLoopLimits::invalid_settings();
-            }
-            $query['post_type'] = $types;
-            $query['posts_per_page'] = PublicLoopLimits::page_size($query['posts_per_page'] ?? get_option('posts_per_page', 10));
-            $saved['current_query_vars'] = $query;
-        }
         $public = $this->query->sanitize_ajax_settings($saved, $page);
-        if (isset($public['current_query_args'])) {
-            $public['current_query_args']['has_password'] = false;
-            $public['current_query_args']['posts_per_page'] = $saved['current_query_vars']['posts_per_page'];
-            foreach (['p', 'page_id'] as $key) {
-                if (!empty($saved['current_query_vars'][$key])) {
-                    $id = $saved['current_query_vars'][$key];
-                    $post = is_int($id) && $id > 0 ? get_post($id) : null;
-                    if (!$post || 'publish' !== $post->post_status || '' !== $post->post_password || !is_post_publicly_viewable($post)) {
-                        throw PublicLoopLimits::invalid_settings();
-                    }
-                    $public['current_query_args'][$key] = $id;
-                }
-            }
-        }
         $public['_elemacy_public_query'] = true;
         return $public;
     }

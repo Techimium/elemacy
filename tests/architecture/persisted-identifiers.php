@@ -67,6 +67,7 @@ return [
 
     // Loop data-source keys (data_source / preview_data_source in saved widget settings).
     $returned('posts', 'src/Modules/Widgets/DataSources/PostsDataSource.php'),
+    $returned('current_query', 'src/Modules/Widgets/DataSources/CurrentQueryDataSource.php'),
     $returned('terms', 'src/Modules/Widgets/DataSources/TaxonomyDataSource.php'),
     $returned('users', 'src/Modules/Widgets/DataSources/UsersDataSource.php'),
 

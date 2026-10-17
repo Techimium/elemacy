@@ -13,6 +13,7 @@ use Elemacy\Loop\Pagination\PublicRenderPolicy;
 use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
@@ -554,7 +555,9 @@ class LoopGrid extends BaseWidget
 
         if (!empty($settings['pagination_ajax']) && $settings['pagination_ajax'] === 'yes') {
             $wrapper_classes .= ' elemacy-ajax-pagination';
-            $wrapper_attrs .= $this->ajax_request_attrs();
+            $wrapper_attrs .= $source instanceof PageUrlPaginatedSourceInterface
+                ? $this->page_url_attrs()
+                : $this->ajax_request_attrs();
         }
 
         echo '<div class="' . esc_attr($wrapper_classes) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built with esc_attr; remaining HTML structure is hardcoded
@@ -612,11 +615,25 @@ class LoopGrid extends BaseWidget
             return $policy->eligible_items($settings, $owner_id);
         } catch (ValidationException $error) {
             if (current_user_can('edit_post', $owner_id)) {
-                $this->ineligibility_notice = $policy->describe_ineligibility($settings, $owner_id);
+                $this->ineligibility_notice = $policy->describe_ineligibility($settings);
             }
 
             return new LoopResultDTO([], 0, 0, false);
         }
+    }
+
+    /**
+     * Marks a page-URL-paginated loop (Current Query) for the frontend script:
+     * it fetches the clicked pagination link's own URL and swaps this loop,
+     * found again in the response by this identity. Nothing here is a
+     * request the server replays, so there is no signed payload.
+     */
+    private function page_url_attrs(): string
+    {
+        return sprintf(
+            ' data-elemacy-loop-mode="page" data-elemacy-loop-id="%s"',
+            esc_attr($this->current_owner_id() . '-' . $this->get_id())
+        );
     }
 
     /**

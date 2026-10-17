@@ -22,3 +22,18 @@
     font-size: 0.875em;
     line-height: 1.5;
 }
+
+/* Page-URL pagination (Current Query): dim the loop while the next page loads. */
+.elemacy-ajax-pagination[data-elemacy-loop-mode="page"] .elemacy-loop-grid {
+    transition: opacity 0.3s ease;
+}
+
+.elemacy-ajax-pagination[data-elemacy-loop-mode="page"].elemacy-is-loading .elemacy-loop-grid {
+    opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .elemacy-ajax-pagination[data-elemacy-loop-mode="page"] .elemacy-loop-grid {
+        transition: none;
+    }
+}
