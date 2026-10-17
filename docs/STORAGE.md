@@ -11,7 +11,7 @@ uninstall sweeps and the migration runner stay uniform.
 ## Versioning & migrations
 
 - `elemacy_db_version` records the installed release version. `elemacy_schema_version` independently records completed Free data migrations; release numbers never infer a completed data transformation.
-- `Core\Migrator` runs an ordered schema-version map. Each successful step advances its own marker; a failed/incomplete step does not. Fresh installs seed the latest schema, upgrades resume pending steps, and downgrades never lower a completed marker. Free schema `1` reconciles each library item's `_elementor_template_type` with the document its registered type declares, in resumable batches of 100 (cursor `elemacy_document_type_migration_cursor`); it writes only where the two differ.
+- `Core\Migrator` runs an ordered schema-version map. Each successful step advances its own marker; a failed/incomplete step does not. Fresh installs seed the latest schema, upgrades resume pending steps, and downgrades never lower a completed marker. Free has no data migrations yet; its marker stays at `0.0.0` until the first one ships.
 - Pro owns `elemacy_pro_schema_version` and its schema `1` counter migration independently. Migration callbacks must be idempotent and bounded. Use a new schema identifier for a new persisted shape; do not reuse a release version as an implicit migration marker.
 
 ## Options
@@ -20,9 +20,8 @@ uninstall sweeps and the migration runner stay uniform.
 | --- | --- | --- | --- |
 | `elemacy_active_modules` | `OptionKeys::ACTIVE_MODULES` | yes | `array<string, bool>` of **explicit administrator choices only**, keyed by module slug (`theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`). A module with no entry follows its own `Module::is_default_active()`, so a default-active module added later reaches existing sites; seeding writes `[]`. A stored `string[]` (the pre-release shape) reads as exactly that active set and is rewritten as a map on the next toggle. Slugs are stable identifiers — never rename; a released module's declared default is frozen. |
 | `elemacy_db_version` | `OptionKeys::DB_VERSION` | yes | Version string of the release this site last ran (diagnostics and the `version_updated` hook only). |
-| `elemacy_schema_version` | `OptionKeys::SCHEMA_VERSION` | no | Highest completed Free data migration (`"1"`); advanced only by `Core\Migrator::run()`. |
+| `elemacy_schema_version` | `OptionKeys::SCHEMA_VERSION` | no | Highest completed Free data migration (`0.0.0` while none exist); advanced only by `Core\Migrator::run()`. |
 | `elemacy_schema_version_lock` | `Core\Migrator::lock_key()` via `Migrations\DatabaseLease` | no | `expiry:token` lease held while a migration runs (30 s). |
-| `elemacy_document_type_migration_cursor` | `Core\Migrator::RECONCILE_CURSOR_OPTION` | no | Last library post ID schema `1` reconciled; deleted when it completes. |
 | `elemacy_library_index` | `TemplateLibrary\ResolverCache::OPTION` | no | `array{shape: int, index: array<string, array<int, array{id: int, conditions: array}>>}` — resolver candidate cache of published library items' id + raw conditions, keyed by template type. A stored value whose `shape` is not `ResolverCache::SHAPE` (or that has none) is a miss and is rebuilt, never read. Pure cache — deleted and lazily rebuilt on relevant writes; safe to drop. |
 | `elemacy_library_index_generation` | `ResolverCache::GENERATION_OPTION` | yes | `int` bumped on every invalidation, so a stale concurrent rebuild discards its result. |
 | `elemacy_network_seed_offset` | `Core\SiteInstaller::NETWORK_SEED_OFFSET_OPTION` | site option | `int` offset of a bounded network-activation seed still in progress; deleted when every site is seeded. |

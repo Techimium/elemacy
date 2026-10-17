@@ -3075,19 +3075,6 @@ check('Free (SiteInstaller) and ElemacyPro both schedule their schema sync inste
     return false === strpos($pro, '->sync(') && false !== strpos($pro, '->schedule(false)');
 });
 
-check('the document-type reconciliation asks the registry what a type means instead of naming any type itself', static function () {
-    $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Migrator.php');
-
-    foreach (["'header'", "'footer'", "'popup'", "'single'", "'loop'", "'elemacy_header'", "'elemacy_footer'"] as $named) {
-        if (false !== strpos($source, $named)) {
-            return false;
-        }
-    }
-
-    return false !== strpos($source, '$writer->document_type($type)')
-        && false !== strpos($source, '$types->get($type)');
-});
-
 /* ── Theme compatibility adapter selection ──────────────────────── */
 
 check('adapter selection is data, not code: every built-in theme adapter is chosen from one slug map, and no adapter class names another', static function () {

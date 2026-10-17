@@ -8,7 +8,6 @@ use Elemacy\Core\Migrator;
 use Elemacy\Modules\ThemeBuilder\Documents\FooterDocument;
 use Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument;
 use Elemacy\TemplateLibrary\DocumentWriter;
-use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
 use Elementor\Plugin;
 
@@ -17,8 +16,7 @@ require_once __DIR__ . '/fixtures/ThemeLifecycleHarness.php';
 
 /**
  * Header and Footer templates edit on their own chrome documents, which offer
- * only the settings that affect site chrome, and stored document types that no
- * longer match the registry are repaired by a schema step.
+ * only the settings that affect site chrome.
  *
  * The end-to-end case here renders `theme-chrome-assets`, a fixture theme no
  * other scenario uses. A classic theme's header.php is loaded with
@@ -43,28 +41,23 @@ final class ChromeDocumentsTest extends IntegrationTestCase
         'background_background',
     ];
 
-    private array $previous_schema;
+    /** @var mixed */
+    private $previous_schema;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->previous_schema = [
-            'version' => get_option(OptionKeys::SCHEMA_VERSION),
-            'cursor' => get_option(Migrator::RECONCILE_CURSOR_OPTION),
-        ];
+        $this->previous_schema = get_option(OptionKeys::SCHEMA_VERSION);
     }
 
     protected function tearDown(): void
     {
         try {
-            foreach (['version' => OptionKeys::SCHEMA_VERSION, 'cursor' => Migrator::RECONCILE_CURSOR_OPTION] as $key => $option) {
-                if (false === $this->previous_schema[$key]) {
-                    delete_option($option);
-                    continue;
-                }
-
-                update_option($option, $this->previous_schema[$key], false);
+            if (false === $this->previous_schema) {
+                delete_option(OptionKeys::SCHEMA_VERSION);
+            } else {
+                update_option(OptionKeys::SCHEMA_VERSION, $this->previous_schema, false);
             }
         } finally {
             parent::tearDown();
@@ -152,126 +145,27 @@ final class ChromeDocumentsTest extends IntegrationTestCase
         }
     }
 
-    public function testTheSchemaStepRepairsATemplateStoredWithTheWrongDocumentTypeWithoutTouchingAnythingElse(): void
+    public function testTheSchemaSyncIsQueuedForInitNotRunDuringPluginsLoaded(): void
     {
-        $id = $this->documents->create('Chrome needing repair', 'header', 'publish');
+        $ran = [];
+        $migrator = new class($ran) extends Migrator {
+            private array $ran;
 
-        (new \Elemacy\Conditions\ConditionRepository())->save($id, [
-            ['type' => 'general/entire_site', 'value' => '', 'operator' => 'include'],
-        ]);
+            public function __construct(array &$ran)
+            {
+                $this->ran = &$ran;
+            }
 
-        $content = get_post_meta($id, '_elementor_data', true);
-        $conditions = get_post_meta($id, '_elemacy_conditions', true);
-
-        // The state a template created before the chrome documents existed is in.
-        update_post_meta($id, '_elementor_template_type', 'wp-page');
-
-        $this->run_reconciliation();
-
-        self::assertSame('elemacy_header', get_post_meta($id, '_elementor_template_type', true));
-        self::assertSame($content, get_post_meta($id, '_elementor_data', true), 'Authored content must be untouched.');
-        self::assertSame($conditions, get_post_meta($id, '_elemacy_conditions', true), 'Display conditions must be untouched.');
-        self::assertSame('publish', get_post($id)->post_status, 'Publication state must be untouched.');
-    }
-
-    public function testRunningTheSchemaStepASecondTimeChangesNothing(): void
-    {
-        $id = $this->documents->create('Chrome repaired twice', 'header', 'publish');
-        update_post_meta($id, '_elementor_template_type', 'wp-page');
-
-        $this->run_reconciliation();
-        $first = get_post_meta($id, '_elementor_template_type', true);
-        $revisions = count(get_post_meta($id));
-
-        $this->run_reconciliation();
-
-        self::assertSame('elemacy_header', $first);
-        self::assertSame($first, get_post_meta($id, '_elementor_template_type', true));
-        self::assertSame($revisions, count(get_post_meta($id)));
-    }
-
-    public function testAnAlreadyCorrectTemplateIsNeverWritten(): void
-    {
-        $id = $this->documents->create('Chrome already correct', 'header', 'publish');
-
-        self::assertSame('elemacy_header', get_post_meta($id, '_elementor_template_type', true));
-
-        $writes = 0;
-        $observe = static function ($meta_id, $object_id, $meta_key) use ($id, &$writes) {
-            if ((int) $object_id === $id && '_elementor_template_type' === $meta_key) {
-                $writes++;
+            protected function migrations(): array
+            {
+                return ['9.9.9' => function (): void {
+                    $this->ran[] = true;
+                }];
             }
         };
 
-        add_action('updated_post_meta', $observe, 10, 3);
-        add_action('added_post_meta', $observe, 10, 3);
-
-        try {
-            $this->run_reconciliation();
-        } finally {
-            remove_action('updated_post_meta', $observe, 10);
-            remove_action('added_post_meta', $observe, 10);
-        }
-
-        self::assertSame(0, $writes, 'A template whose stored document already matches must not be written.');
-    }
-
-    public function testAPopupKeepsItsOwnDocumentTypeThroughReconciliation(): void
-    {
-        $id = $this->documents->create('Chrome popup untouched', 'popup', 'publish');
-
-        self::assertSame('elemacy_popup', get_post_meta($id, '_elementor_template_type', true));
-
-        $this->run_reconciliation();
-
-        self::assertSame(
-            'elemacy_popup',
-            get_post_meta($id, '_elementor_template_type', true),
-            'Reconciliation must not rewrite a popup to the generic page document.'
-        );
-    }
-
-    public function testATemplateWhoseTypeTheRegistryDoesNotKnowIsLeftAlone(): void
-    {
-        $id = $this->documents->create('Chrome unknown type', 'header', 'publish');
-
-        update_post_meta($id, '_elemacy_template_type', 'some_extension_type');
-        update_post_meta($id, '_elementor_template_type', 'some_extension_document');
-
-        $this->run_reconciliation();
-
-        self::assertSame('some_extension_document', get_post_meta($id, '_elementor_template_type', true));
-    }
-
-    public function testAFreshInstallSkipsTheReconciliationEntirely(): void
-    {
-        $migrator = new Migrator();
-
-        delete_option(OptionKeys::SCHEMA_VERSION);
-        delete_option(Migrator::RECONCILE_CURSOR_OPTION);
-
-        $id = $this->documents->create('Chrome fresh install', 'header', 'publish');
-        update_post_meta($id, '_elementor_template_type', 'wp-page');
-
-        $migrator->sync(true);
-
-        self::assertSame(
-            'wp-page',
-            get_post_meta($id, '_elementor_template_type', true),
-            'A fresh install is already shaped like current code and must not run upgrade migrations.'
-        );
-        self::assertNotFalse(get_option(OptionKeys::SCHEMA_VERSION));
-        self::assertFalse(get_option(Migrator::RECONCILE_CURSOR_OPTION), 'No bounded pass should have started.');
-    }
-
-    public function testTheSchemaSyncIsQueuedForInitNotRunDuringPluginsLoaded(): void
-    {
-        $id = $this->documents->create('Chrome scheduled', 'header', 'publish');
-        update_post_meta($id, '_elementor_template_type', 'wp-page');
-
         delete_option(OptionKeys::SCHEMA_VERSION);
         add_option(OptionKeys::SCHEMA_VERSION, Migrator::BASELINE_VERSION, '', false);
-        delete_option(Migrator::RECONCILE_CURSOR_OPTION);
 
         global $wp_filter;
 
@@ -279,13 +173,9 @@ final class ChromeDocumentsTest extends IntegrationTestCase
             ? count($wp_filter['init'][Migrator::SYNC_PRIORITY])
             : 0;
 
-        (new Migrator())->schedule(false);
+        $migrator->schedule(false);
 
-        self::assertSame(
-            'wp-page',
-            get_post_meta($id, '_elementor_template_type', true),
-            'schedule() must queue the sync, never run it inline.'
-        );
+        self::assertSame([], $ran, 'schedule() must queue the sync, never run it inline.');
 
         $queued = array_values($wp_filter['init'][Migrator::SYNC_PRIORITY] ?? []);
 
@@ -299,19 +189,10 @@ final class ChromeDocumentsTest extends IntegrationTestCase
         try {
             $callback();
 
-            self::assertSame('elemacy_header', get_post_meta($id, '_elementor_template_type', true));
+            self::assertSame([true], $ran, 'The queued callback must run the due migration.');
         } finally {
             remove_action('init', $callback, Migrator::SYNC_PRIORITY);
         }
-    }
-
-    private function run_reconciliation(): void
-    {
-        delete_option(OptionKeys::SCHEMA_VERSION);
-        add_option(OptionKeys::SCHEMA_VERSION, Migrator::BASELINE_VERSION, '', false);
-        delete_option(Migrator::RECONCILE_CURSOR_OPTION);
-
-        (new Migrator())->sync(false);
     }
 
     /**

@@ -5,12 +5,7 @@ namespace Elemacy\Core;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\OptionKeys;
-use Elemacy\Core\Container;
 use Elemacy\Core\Migrations\DatabaseLease;
-use Elemacy\TemplateLibrary\Constants\MetaKeys;
-use Elemacy\TemplateLibrary\DocumentWriter;
-use Elemacy\TemplateLibrary\LibraryPostType;
-use Elemacy\TemplateLibrary\TypeRegistry;
 
 /**
  * Runs ordered data migrations when the plugin is upgraded. See
@@ -44,12 +39,6 @@ class Migrator
      */
     public const SYNC_PRIORITY = 30;
 
-    /** Library items reconciled per request by reconcile_document_types(). */
-    public const RECONCILE_BATCH_SIZE = 100;
-
-    /** The cursor reconcile_document_types() resumes a bounded pass from. */
-    public const RECONCILE_CURSOR_OPTION = 'elemacy_document_type_migration_cursor';
-
     /**
      * Queues this Migrator's sync for the point in the request where every
      * registry it may consult is populated, and returns without running
@@ -66,78 +55,11 @@ class Migrator
 
     /**
      * @return array<string, callable> Map of schema version => migration callback.
+     *                                 Empty until a release changes stored data.
      */
     protected function migrations(): array
     {
-        return [
-            '1' => [$this, 'reconcile_document_types'],
-        ];
-    }
-
-    /**
-     * Brings every library item's stored Elementor document type back in line
-     * with the document its template type declares in the registry.
-     *
-     * Deliberately generic: it asks the registry what a type's document is
-     * rather than naming any type, so any later change to which document backs
-     * a type is repaired by this same step. It writes only where the stored and
-     * declared values actually differ, so running it again changes nothing, and
-     * it touches no other field — content, conditions and publication state are
-     * never read or written here.
-     *
-     * An item whose template type the registry does not know — an inactive
-     * module's, or a removed extension's — is left exactly as it is rather than
-     * reconciled against a fallback the registry never declared.
-     *
-     * @return bool False to resume on a later request (a failed read, or more
-     *              items than fit in one bounded pass); true when complete.
-     */
-    protected function reconcile_document_types(): bool
-    {
-        global $wpdb;
-
-        $cursor = (int) get_option(static::RECONCILE_CURSOR_OPTION, 0);
-
-        $ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND ID > %d ORDER BY ID ASC LIMIT %d",
-            LibraryPostType::POST_TYPE,
-            $cursor,
-            static::RECONCILE_BATCH_SIZE
-        ));
-
-        if ($wpdb->last_error) {
-            return false;
-        }
-
-        $writer = Container::instance()->make(DocumentWriter::class);
-        $types  = TypeRegistry::instance();
-
-        foreach ($ids as $id) {
-            $id   = (int) $id;
-            $type = (string) get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true);
-
-            if ('' !== $type && null !== $types->get($type)) {
-                $declared = $writer->document_type($type);
-
-                if ((string) get_post_meta($id, '_elementor_template_type', true) !== $declared) {
-                    update_post_meta($id, '_elementor_template_type', $declared);
-                }
-            }
-
-            if ($this->lease) {
-                $this->lease->assert_owned();
-            }
-
-            update_option(static::RECONCILE_CURSOR_OPTION, $id, false);
-        }
-
-        if (count($ids) === static::RECONCILE_BATCH_SIZE) {
-            return false;
-        }
-
-        delete_option(static::RECONCILE_CURSOR_OPTION);
-
-        return true;
+        return [];
     }
 
     /**
