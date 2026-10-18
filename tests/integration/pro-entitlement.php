@@ -88,7 +88,7 @@ final class ProEntitlementTest extends IntegrationTestCase
     public function testTheLicenseIsInactiveInThisEnvironment(): void
     {
         self::assertFalse(
-            \ElemacyPro\Core\License\LicenseManager::instance()->is_valid(),
+            \ElemacyPro\Core\License\License::client()->is_active(),
             'This scenario describes an unlicensed install; a license here would make the assertions below vacuous.'
         );
     }

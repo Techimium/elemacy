@@ -119,16 +119,20 @@ try {
     results.push(`PASS ${scenario}: Free screens, additive styles, bridge and Pro behavior`);
     await context.close();
   }
-  // Exercise the analytics fill through the real server's existing cached-license policy.
-  // Only this disposable site's owned status is changed, then restored in finally.
+  // Exercise the analytics fill and the license screen against an active license record.
+  // Only this disposable site's owned license record is changed, then restored in finally.
   activeFixture = JSON.parse(phpRun(`require $argv[1];
-$key = 'elemacy_pro_license_status';
+$key = 'elemacy_pro_license';
 $old = get_option($key, null);
 wp_set_current_user(${Number(fixture.user)});
 $docs = new Elemacy\\Tests\\Integration\\Fixtures\\LibraryDocument();
 try { $id = $docs->create('Admin contract analytics fixture', 'popup'); }
 catch (Throwable $error) { $docs->cleanup(); throw $error; }
-update_option($key, ['valid' => true, 'plan' => 'integration-fixture', 'expires' => null]);
+// checked_at = now keeps the admin fallback from verifying; the environment blocks outbound HTTP regardless.
+update_option($key, ['format' => 1, 'key' => 'FIXTURE-KEY-0000', 'state' => 'active', 'reason' => '',
+  'site' => \\ElemacyPro\\Core\\License\\Sdk\\Site::normalize(home_url()), 'verified_at' => time(), 'checked_at' => time(),
+  'info' => ['license_status' => 'active', 'expires_at' => null, 'plan_name' => 'integration-fixture',
+    'plan_type' => 'lifetime', 'seats_used' => 1, 'seats_limit' => 1]]);
 echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   const activeContext = await browser.newContext();
   await activeContext.addCookies(fixture.cookies.map(cookie => ({ ...cookie, url: base.origin, httpOnly: true })));
@@ -142,8 +146,18 @@ echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   assert.ok(await activePage.getByText('Conversions', { exact: true }).count() > 0, 'Active analytics fill must render');
   assert.deepEqual(activeErrors, []);
   await activePage.screenshot({ path: path.join(reportDir, 'admin-active-analytics.png'), fullPage: true });
+  const licenseUrl = new URL('/wp-admin/admin.php?page=elemacy#/license', base).href;
+  await activePage.goto(licenseUrl);
+  await activePage.getByRole('button', { name: 'Deactivate license', exact: true }).waitFor();
+  assert.ok(await activePage.getByText('Active', { exact: true }).count() > 0, 'Active license must show the Active badge');
+  assert.ok(await activePage.getByText('••••••••••••0000', { exact: true }).count() > 0, 'Masked key must be shown');
+  assert.ok(await activePage.getByRole('button', { name: 'Check now', exact: true }).count() > 0, 'Active license must offer Check now');
+  assert.ok(!(await activePage.content()).includes('FIXTURE-KEY-0000'), 'The raw key must not reach the rendered page');
+  assert.ok(!(await (await activeContext.request.get(licenseUrl)).text()).includes('FIXTURE-KEY-0000'), 'The raw key must not reach the page HTML');
+  assert.deepEqual(activeErrors, []);
+  await activePage.screenshot({ path: path.join(reportDir, 'admin-active-license.png'), fullPage: true });
   await activeContext.close();
-  results.push('PASS active cached-license fixture: real popup analytics fill and REST response');
+  results.push('PASS active license fixture: real popup analytics fill, REST response and license screen');
   const bundle = JSON.parse(readFileSync(path.resolve(integration, '../../../elemacy-pro/assets/admin/admin-bundle-report.json'), 'utf8'));
   assert.equal(bundle.reactModules, 0);
   results.push('PASS bundle analysis: Free is the sole React runtime owner');
@@ -156,8 +170,8 @@ echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   if (activeFixture) phpRun(`require $argv[1];
 wp_delete_post(${Number(activeFixture.id)}, true);
 $old = unserialize(base64_decode('${activeFixture.old}'));
-if ($old === null) delete_option('elemacy_pro_license_status');
-else update_option('elemacy_pro_license_status', $old);`);
+if ($old === null) delete_option('elemacy_pro_license');
+else update_option('elemacy_pro_license', $old);`);
   // Revoke only this runner's short-lived login session.
   phpRun(`require $argv[1]; WP_Session_Tokens::get_instance(${Number(fixture.user)})->destroy(${JSON.stringify(fixture.token)});
 $onboarded = unserialize(base64_decode('${fixture.onboarded}'));
