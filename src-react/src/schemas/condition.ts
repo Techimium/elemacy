@@ -32,6 +32,11 @@ export const ConditionGroupSchema = z.object({
 });
 
 export type ConditionRule = z.infer<typeof ConditionRuleSchema>;
+
+/** A fresh client-side id for a rule row; the server keeps whatever id it is sent. */
+export function newConditionRuleId(): string {
+    return `cond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
 export type ConditionSubValue = z.infer<typeof ConditionSubValueSchema>;
 export type ConditionType = z.infer<typeof ConditionTypeSchema>;
 export type ConditionGroup = z.infer<typeof ConditionGroupSchema>;

@@ -52,7 +52,9 @@ uninstallers delete the value **and** timeout rows for their prefix.
 
 ## Ownership & cleanup
 
-Each plugin owns and deletes only its own keys: `elemacy/uninstall.php` removes the
+Each plugin owns and deletes only its own keys. Free's removal is opt-in: deleting
+Free keeps everything unless `ELEMACY_REMOVE_ALL_DATA` is defined as `true` (in
+`wp-config.php`), and only then does `elemacy/uninstall.php` remove the
 `elemacy_library` posts + meta and `elemacy_%` options (excluding `elemacy_pro_%`);
 `elemacy-pro/uninstall.php` removes the `_elemacy_popup_impressions` /
 `_elemacy_popup_conversions` meta and `elemacy_pro_%` options + transients.
@@ -74,6 +76,6 @@ Tracking accepts only `impression` and `conversion` for published, accessible po
 
 ## Large-network removal
 
-Deactivation retains data. Deletion retains the existing destructive uninstall policy: Free owns library posts and Free options/meta, while Pro owns its license/settings and counter metadata. Both exhaust batches synchronously through their own `SiteBatchIterator`; no cron callback is scheduled after removal. Site failures are reported after attempting later sites, and blog context is always restored. Retry cleanup before deleting plugin files after a failure.
+Deactivation retains data. Deleting Free retains it too unless `ELEMACY_REMOVE_ALL_DATA` is `true`; Pro's deletion removes its own license/settings and counter metadata. Free owns library posts and Free options/meta. Both exhaust batches synchronously through their own `SiteBatchIterator`; no cron callback is scheduled after removal. Site failures are reported after attempting later sites, and blog context is always restored. Retry cleanup before deleting plugin files after a failure.
 
-On a large network, use WP-CLI without a web request timeout before removing files: `wp plugin deactivate elemacy-pro --network` followed by `wp plugin uninstall elemacy-pro`; then deactivate/uninstall Free the same way if its library data should also be removed. Back up first because uninstall intentionally deletes owned data. Each uninstaller works with the sibling runtime absent. Batching bounds memory, not total network execution time.
+On a large network, use WP-CLI without a web request timeout before removing files: `wp plugin deactivate elemacy-pro --network` followed by `wp plugin uninstall elemacy-pro`; then, if Free's library data should also be removed, define `ELEMACY_REMOVE_ALL_DATA` as `true` and deactivate/uninstall Free the same way. Back up first because an opted-in uninstall intentionally deletes owned data. Each uninstaller works with the sibling runtime absent. Batching bounds memory, not total network execution time.

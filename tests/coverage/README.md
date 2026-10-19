@@ -17,3 +17,8 @@ The first command checks inventory structure, declaration drift, stable IDs, run
 Free owns the schema/checker. Pro owns `tests/coverage/inventory.json` and its generated roadmap and uses the declared sibling Free harness. Free-only CI can pass `--owner elemacy`. New features and renamed test references must update the inventory in the same change.
 
 Existing runners have stable IDs and recorded layers. Feature-level `coverage` references start empty until the actual case assertions are reviewed; do not infer coverage merely because a suite name sounds related. Pending cases remain pending. The initial baseline is in the root OpenSpec change's `evidence/BASELINE.md`.
+
+## Named gaps
+
+- Genesis and BB Theme are premium themes outside the pinned real-theme set, so `GenesisCompatibility` and `BBThemeCompatibility` are verified only by source checks. That is not real-theme coverage and must not be reported as such.
+- `elemacy:integration:elementor-pro-coexistence` runs only in the Elementor Pro profile (`setup.py --elementor-pro-plugin`, a paid plugin the owner provides). Its skip in every other profile is expected; the Elementor Pro profile run is what counts.

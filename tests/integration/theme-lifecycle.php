@@ -68,7 +68,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
     private function create_header(string $marker): int
     {
-        $id = $this->documents->create($marker, 'header', 'publish', LibraryDocument::heading($marker));
+        $id = $this->documents->create_everywhere($marker, 'header', 'publish', LibraryDocument::heading($marker));
         $this->owned[] = $id;
 
         return $id;
@@ -76,7 +76,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
     private function create_footer(string $marker): int
     {
-        $id = $this->documents->create($marker, 'footer', 'publish', LibraryDocument::heading($marker));
+        $id = $this->documents->create_everywhere($marker, 'footer', 'publish', LibraryDocument::heading($marker));
         $this->owned[] = $id;
 
         return $id;
@@ -98,7 +98,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
                 'elements' => [],
             ]],
         ];
-        $id = $this->documents->create($marker, 'header', 'publish', $elements);
+        $id = $this->documents->create_everywhere($marker, 'header', 'publish', $elements);
         $this->owned[] = $id;
 
         return $id;
@@ -156,8 +156,8 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
     public function testATemplateIsNeverRenderedAsItsOwnHeaderOrFooter(): void
     {
-        // No conditions, so each is the global fallback and would resolve for the
-        // very request that edits it. Elementor's Full Width layout then asks for
+        // Entire Site, so each would resolve for the very request that edits
+        // it. Elementor's Full Width layout then asks for
         // the header/footer around the template and refuses to render it inside
         // itself ("The Template ID cannot be the same as the currently edited
         // template"). Deliberately resolution only: a real render would need the
@@ -393,7 +393,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
     public function testLocationWrapperLetsClassicThemeHeaderOwnTheShellExactlyOnce(): void
     {
         $marker = 'Elemacy Location Wrapper single';
-        $id = $this->documents->create($marker, 'single', 'publish', LibraryDocument::heading($marker));
+        $id = $this->documents->create_everywhere($marker, 'single', 'publish', LibraryDocument::heading($marker));
         $this->owned[] = $id;
 
         $this->harness->switch_theme('theme-location-wrapper');
@@ -436,7 +436,7 @@ final class ThemeLifecycleTest extends IntegrationTestCase
 
         foreach ($cases as $type => $url) {
             $marker = 'Elemacy Location Wrapper ' . $type;
-            $id = $this->documents->create($marker, $type, 'publish', LibraryDocument::heading($marker));
+            $id = $this->documents->create_everywhere($marker, $type, 'publish', LibraryDocument::heading($marker));
 
             $html = $this->harness->render($url);
 

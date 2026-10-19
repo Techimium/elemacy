@@ -17,7 +17,7 @@ final class LibraryDocument
             'single' => 'elemacy_single',
             'archive' => 'elemacy_archive',
             'search' => 'elemacy_search',
-            '404' => 'wp-page',
+            '404' => 'elemacy_404',
             'popup' => 'elemacy_popup',
         ];
         if (!isset($document_types[$type])) {
@@ -42,6 +42,36 @@ final class LibraryDocument
         if (!$saved || !get_post_meta($id, '_elementor_data', true)) {
             throw new \RuntimeException('Elementor could not save fixture document ' . $id);
         }
+
+        return $id;
+    }
+
+    /**
+     * Like create(), plus the conditions a new template of $type starts with
+     * in the Theme Builder (its broadest one, e.g. Entire Site), so a
+     * published theme template is actually displayed. A type targeting its
+     * whole location (404) gets none, as in the admin.
+     */
+    public function create_everywhere(string $title, string $type, string $status = 'publish', array $elements = []): int
+    {
+        $id = $this->create($title, $type, $status, $elements);
+        $definition = \Elemacy\TemplateLibrary\TypeRegistry::instance()->get($type);
+
+        if ($definition === null) {
+            throw new \InvalidArgumentException('Unregistered library type: ' . $type);
+        }
+
+        if ($definition->default_conditions !== []) {
+            (new \Elemacy\Conditions\ConditionRepository())->save($id, $definition->default_conditions);
+        }
+
+        return $id;
+    }
+
+    /** Takes ownership of a library item created another way, so cleanup() removes it too. */
+    public function adopt(int $id): int
+    {
+        $this->ids[] = $id;
 
         return $id;
     }

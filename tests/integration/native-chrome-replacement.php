@@ -45,7 +45,7 @@ final class NativeChromeReplacementTest extends IntegrationTestCase
 
     private function create(string $type, string $marker): int
     {
-        $id = $this->documents->create($marker, $type, 'publish', LibraryDocument::heading($marker));
+        $id = $this->documents->create_everywhere($marker, $type, 'publish', LibraryDocument::heading($marker));
         $this->owned[] = $id;
 
         return $id;

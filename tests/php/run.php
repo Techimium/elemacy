@@ -3454,13 +3454,6 @@ check('precedence: an exclusion never raises a template above the inclusions it 
         $prec_entry(2, [['prec/type']]),
     ]) === 2);
 
-check('precedence: a conditionless template is the fallback, used only when nothing matched', static function () use ($prec_resolve, $prec_entry) {
-    $with_match = $prec_resolve([['id' => 1, 'conditions' => []], $prec_entry(2, [['prec/site']])]);
-    $no_match   = $prec_resolve([['id' => 1, 'conditions' => []], $prec_entry(2, [['prec/object_nomatch']])]);
-
-    return $with_match === 2 && $no_match === 1;
-});
-
 check('precedence: a condition with no declared level never outranks one that declares a narrow level', static function () use ($manager, $prec_resolve, $prec_entry) {
     $manager->register(new FixedCondition('prec/undeclared', true));
 
@@ -3516,16 +3509,20 @@ check('the Theme Builder document map backs Header and Footer with their own chr
         && \Elemacy\Modules\ThemeBuilder\Documents\FooterDocument::get_type() === 'elemacy_footer';
 });
 
-check('a TypeDefinition built from that map resolves Header and Footer to the chrome document types, not the generic page document', static function () {
+check('every Theme Builder type resolves to a document of its own, never the generic page document', static function () {
     $documents = require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Config/documents.php';
+    $expected = [
+        'header' => 'elemacy_header', 'footer' => 'elemacy_footer', 'single' => 'elemacy_single',
+        'archive' => 'elemacy_archive', 'search' => 'elemacy_search', '404' => 'elemacy_404',
+    ];
 
-    $header = new TypeDefinition('header', 'Header', 'theme', 'theme-builder', $documents['header']);
-    $footer = new TypeDefinition('footer', 'Footer', 'theme', 'theme-builder', $documents['footer']);
-    $untyped = new TypeDefinition('404', '404', 'theme', 'theme-builder', $documents['404'] ?? null);
+    foreach ($expected as $name => $document_type) {
+        if ((new TypeDefinition($name, $name, 'theme', 'theme-builder', $documents[$name] ?? null))->get_document_type() !== $document_type) {
+            return false;
+        }
+    }
 
-    return $header->get_document_type() === 'elemacy_header'
-        && $footer->get_document_type() === 'elemacy_footer'
-        && $untyped->get_document_type() === null;
+    return count($documents) === count($expected);
 });
 
 check('ThemeBuilder registers its types from the same document map DocumentManager registers documents from, so the two cannot disagree', static function () {
@@ -3661,10 +3658,10 @@ check('every shipped theme adapter implements the one adapter contract, so regis
     $directory = ELEMACY_PATH . 'src/Modules/ThemeBuilder/Compatibility/Themes/';
 
     foreach (glob($directory . '*.php') ?: [] as $file) {
-        $source = elemacy_code_without_comments($file);
+        $class = 'Elemacy\\Modules\\ThemeBuilder\\Compatibility\\Themes\\' . basename($file, '.php');
 
-        if (false === strpos($source, 'implements ThemeCompatibilityInterface')
-            || false === strpos($source, 'public function register(ThemeBuilderManager $manager): void')) {
+        if (!class_exists($class) || !is_subclass_of($class, \Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface::class)
+            || (new ReflectionClass($class))->isAbstract()) {
             return false;
         }
     }
@@ -6639,5 +6636,6 @@ require __DIR__ . '/transport-policy.php';
 require __DIR__ . '/query-pickers.php';
 require __DIR__ . '/archive-title.php';
 require __DIR__ . '/nav-menu-breakpoints.php';
+require __DIR__ . '/theme-builder.php';
 
 conclude();

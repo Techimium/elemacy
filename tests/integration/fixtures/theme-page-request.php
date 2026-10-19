@@ -85,4 +85,9 @@ while (ob_get_level() > $level + 1) {
 }
 $html = ob_get_clean();
 
-echo json_encode(['html' => $html, 'calls' => $calls], JSON_THROW_ON_ERROR);
+// Chrome callbacks a dedicated adapter declares but the theme no longer
+// registers: a theme update renamed them, and its chrome would stay visible.
+$adapter = \Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager::instance()->active();
+$missing = $adapter instanceof \Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility ? $adapter->missing_callbacks() : [];
+
+echo json_encode(['html' => $html, 'calls' => $calls, 'missing_callbacks' => $missing], JSON_THROW_ON_ERROR);

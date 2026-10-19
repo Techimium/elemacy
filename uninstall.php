@@ -1,8 +1,23 @@
 <?php
-/** Native, bounded cleanup of elemacy-owned data. Uninstall deletes data; deactivation retains it. */
+/**
+ * Native, bounded cleanup of elemacy-owned data, run only when the site opts
+ * in. Deactivation and a plain uninstall both keep the data.
+ */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
+}
+
+/*
+ * Deleting the plugin keeps the site's templates, popups and settings, as
+ * Elementor does, so removing and reinstalling it (for instance to recover
+ * from a failed update) loses nothing. To remove everything, add this to
+ * wp-config.php before deleting the plugin:
+ *
+ *     define('ELEMACY_REMOVE_ALL_DATA', true);
+ */
+if (!defined('ELEMACY_REMOVE_ALL_DATA') || true !== ELEMACY_REMOVE_ALL_DATA) {
+    return;
 }
 
 // Uninstall must work without either plugin's bootstrap or Composer autoloader.

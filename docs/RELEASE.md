@@ -113,7 +113,10 @@ From the first release after 1.0.0 on, the readme changelog names every user-vis
 - The inline notice shown in place of a loop that visitors cannot see appears only for users who can edit the page. Full-page caches serve guests, so the notice never reaches a cached page.
 - A Loop Item template that is not published renders nothing for visitors.
 - AJAX-paginated loops show at most 100 items per page; "0" or "unlimited" become 100.
-- A popup or template whose saved rule, trigger or condition is unavailable (for example after deactivating an extension) is suspended rather than shown to everyone; its settings are kept for repair.
+- A popup or template whose saved rule, trigger or condition is unavailable (for example after deactivating an extension) is suspended rather than shown to everyone; its settings are kept for repair. The Theme Builder list marks such a template "Suspended" and names the condition.
+- A Header, Footer, Single, Archive or Search template displays only where an inclusion condition matches; one with no condition is listed as "Not displayed". New templates start as Draft with their type's broadest condition (Entire Site, Singular, Post Type Archive, Search Results). A 404 template has no conditions and covers every not-found page.
+- Deleting Free keeps its templates, popups and settings. Define `ELEMACY_REMOVE_ALL_DATA` as `true` in `wp-config.php` before deleting it to remove them.
+- With Elementor Pro's Theme Builder active, a location one of its templates applies to is left to Elementor Pro; Elemacy serves every other location. The Theme Builder screen says so.
 
 ## 7. Accepted Plugin Check warnings
 

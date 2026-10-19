@@ -11,6 +11,7 @@ use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
+use Elemacy\Modules\ThemeBuilder\Compatibility\ElementorProLocations;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -38,19 +39,22 @@ class ThemeBuilderManager
     protected TemplateResolver $resolver;
     protected TypeRegistry $types;
     protected TemplateRenderer $renderer;
+    protected ElementorProLocations $elementor_pro;
 
     public function __construct(
         CompatibilityManager $compatibility,
         LocationRegistry $locations,
         TemplateResolver $resolver,
         TypeRegistry $types,
-        TemplateRenderer $renderer
+        TemplateRenderer $renderer,
+        ?ElementorProLocations $elementor_pro = null
     ) {
         $this->compatibility = $compatibility;
         $this->locations     = $locations;
         $this->resolver      = $resolver;
         $this->types         = $types;
         $this->renderer      = $renderer;
+        $this->elementor_pro = $elementor_pro ?? new ElementorProLocations();
     }
 
     public static function instance()
@@ -75,6 +79,8 @@ class ThemeBuilderManager
     {
         RequestState::register(self::class, [$this, 'forget_rendered_locations']);
         add_filter('template_include', [$this, 'override_template'], 99);
+        add_filter('template_include', [$this, 'record_served_template'], PHP_INT_MAX);
+        add_filter('body_class', [$this, 'add_location_body_class']);
         add_action(Hooks::TEMPLATE_ASSETS_COLLECT_ACTION, [$this, 'register_template_assets']);
 
         $this->compatibility->register_hooks();
@@ -119,27 +125,13 @@ class ThemeBuilderManager
      */
     public function override_template($template)
     {
-        if (Plugin::instance()->preview->is_preview_mode() || Plugin::instance()->editor->is_edit_mode()) {
-            return $template;
-        }
-
-        // A library post viewed directly (template/popup preview) is not site
-        // content to wrap in a theme template.
-        if (is_singular(LibraryPostType::POST_TYPE)) {
-            return $template;
-        }
-
-        // A post set to Canvas, Full Width or a page template of the theme was
-        // already given that template; it is not wrapped in a Single template.
-        if ($this->viewed_post_has_own_layout()) {
-            return $template;
-        }
-
         $location_template = (int) $this->get_location_template_id();
 
         if (!$location_template) {
             return $template;
         }
+
+        $this->served_location = $location_template;
 
         if ($this->uses_canvas_layout($location_template)) {
             $canvas = $this->canvas_template_for($location_template);
@@ -224,15 +216,68 @@ class ThemeBuilderManager
     }
 
     /**
-     * Get the ID of the template for the current content location (Single/Archive/…).
+     * Whether this request is a front-end page Theme Builder may shape at
+     * all. An embed, a feed, the admin (AJAX included) and the REST API are
+     * served as WordPress serves them.
+     */
+    public function is_themable_request(): bool
+    {
+        return !is_admin()
+            && !is_embed()
+            && !is_feed()
+            && !(defined('REST_REQUEST') && REST_REQUEST);
+    }
+
+    /**
+     * The ID of the content location template (Single/Archive/…) this
+     * request is served with, or null when none is. This is the one place
+     * that decides it: the template override, early asset preparation and
+     * the wrapper view all ask here, so a template is never prepared for a
+     * page it is not displayed on.
+     *
+     * None is served while Elementor edits or previews, on a library item's
+     * own URL (a template or popup preview), on a post with a page layout of
+     * its own — Elementor's page-templates module already gave it Canvas,
+     * Full Width or a theme page template — or where Elementor Pro's Theme
+     * Builder serves the location.
      *
      * @return int|null
      */
     public function get_location_template_id()
     {
+        if (!array_key_exists('location', $this->display)) {
+            $this->display['location'] = $this->resolve_location_template();
+        }
+
+        return $this->display['location'];
+    }
+
+    private function resolve_location_template(): ?int
+    {
+        if (
+            !$this->is_themable_request()
+            || $this->is_elementor_edit_or_preview()
+            || is_singular(LibraryPostType::POST_TYPE)
+            || $this->viewed_post_has_own_layout()
+        ) {
+            return null;
+        }
+
         $type = $this->locations->current_type();
 
-        return $type ? $this->resolver->resolve($type) : null;
+        if (null === $type || $this->elementor_pro->serves($type)) {
+            return null;
+        }
+
+        return $this->resolver->resolve($type);
+    }
+
+    private function is_elementor_edit_or_preview(): bool
+    {
+        $elementor = Plugin::instance();
+
+        return (is_object($elementor->preview) && $elementor->preview->is_preview_mode())
+            || (is_object($elementor->editor) && $elementor->editor->is_edit_mode());
     }
 
     /**
@@ -242,7 +287,7 @@ class ThemeBuilderManager
      */
     public function get_header_id()
     {
-        return $this->excluding_edited_template($this->resolver->resolve('header'));
+        return $this->chrome_template_id('header');
     }
 
     /**
@@ -252,7 +297,17 @@ class ThemeBuilderManager
      */
     public function get_footer_id()
     {
-        return $this->excluding_edited_template($this->resolver->resolve('footer'));
+        return $this->chrome_template_id('footer');
+    }
+
+    /** The template displayed as $side ('header' or 'footer') on this request, or null. */
+    private function chrome_template_id(string $side): ?int
+    {
+        if (!$this->is_themable_request() || $this->elementor_pro->serves($side)) {
+            return null;
+        }
+
+        return $this->excluding_edited_template($this->resolver->resolve($side));
     }
 
     /**
@@ -277,16 +332,62 @@ class ThemeBuilderManager
     }
 
     /**
+     * Records the template file WordPress finally serves this request with,
+     * after every other `template_include` filter has had its say.
+     *
+     * @param string $template
+     * @return string Unchanged.
+     */
+    public function record_served_template($template)
+    {
+        $this->served_template = is_string($template) ? $template : null;
+        unset($this->display['canvas']);
+
+        return $template;
+    }
+
+    /**
      * Whether Elementor is serving this request through its Canvas template.
      * Canvas is a blank page, so — as with Elementor Pro's Theme Builder — no
-     * header or footer renders on it. canvas.php tags the body with this class
-     * as its first statement, ahead of wp_head() and wp_body_open() (where the
-     * generic adapters print the header), and it is present however the request
-     * reached Canvas: a page template, the Kit default, or a popup preview.
+     * header or footer renders on it. Read from the template file actually
+     * served, so it holds however the request reached Canvas (a page
+     * template, the Kit default, a location template set to Canvas, or a
+     * popup preview) and does not depend on body classes another plugin or
+     * theme may filter.
      */
     protected function is_canvas_template(): bool
     {
-        return in_array('elementor-template-canvas', get_body_class(), true);
+        if (!array_key_exists('canvas', $this->display)) {
+            $this->display['canvas'] = $this->served_template !== null && $this->is_canvas_path($this->served_template);
+        }
+
+        return $this->display['canvas'];
+    }
+
+    private function is_canvas_path(string $template): bool
+    {
+        $module = $this->page_templates_module();
+        $canvas = $module ? (string) $module->get_template_path(PageTemplates::TEMPLATE_CANVAS) : '';
+
+        return '' !== $canvas && wp_normalize_path($canvas) === wp_normalize_path($template);
+    }
+
+    /**
+     * Gives the page the location template's `elementor-page-{id}` body
+     * class, as Elementor Pro does for its theme page documents, so the
+     * template's own page settings (Body Style, Hide Title) and custom CSS
+     * written against `selector` apply where it is displayed.
+     *
+     * @param string[] $classes
+     * @return string[]
+     */
+    public function add_location_body_class($classes)
+    {
+        if (null !== $this->served_location && is_array($classes)) {
+            $classes[] = 'elementor-page-' . $this->served_location;
+        }
+
+        return $classes;
     }
 
     /**
@@ -334,11 +435,65 @@ class ThemeBuilderManager
      */
     protected array $replaced_sides = [];
 
-    /** Lets the next page render its header and footer again, and decide again which sides it replaces. */
+    /**
+     * This request's display decisions, each made once: 'location' (the
+     * served location template id or null) and 'canvas'.
+     *
+     * @var array<string, int|bool|null>
+     */
+    protected array $display = [];
+
+    /**
+     * The template file served for this request, once known.
+     *
+     * @var string|null
+     */
+    protected ?string $served_template = null;
+
+    /**
+     * The location template override_template() actually served, if any.
+     *
+     * @var int|null
+     */
+    protected ?int $served_location = null;
+
+    /**
+     * Sides whose template the active theme wraps in its own header or
+     * footer element this request (see keep_theme_landmark()).
+     *
+     * @var array<string, bool>
+     */
+    protected array $theme_landmarks = [];
+
+    /**
+     * Called by a compatibility adapter that renders the $side template
+     * inside the theme's own `<header>`/`<footer>` element (or prints one
+     * around it), so the template does not render a second landmark of the
+     * same kind inside it.
+     *
+     * @param string $side 'header' or 'footer'.
+     */
+    public function keep_theme_landmark(string $side): void
+    {
+        $this->theme_landmarks[$side] = true;
+    }
+
+    /** Whether the active theme provides the landmark element around the $side template. */
+    public function keeps_theme_landmark(string $side): bool
+    {
+        return !empty($this->theme_landmarks[$side]);
+    }
+
+    /** Lets the next page render its header and footer again, and decide again what it displays. */
     public function forget_rendered_locations(): void
     {
         $this->rendered_locations = [];
         $this->replaced_sides = [];
+        $this->theme_landmarks = [];
+        $this->display = [];
+        $this->served_template = null;
+        $this->served_location = null;
+        $this->elementor_pro->forget();
     }
 
     /**
@@ -405,20 +560,23 @@ class ThemeBuilderManager
     }
 
     /**
-     * Get available template types.
+     * The Theme Builder template types an author can create, with how each
+     * targets requests and the conditions a new one starts with. Add-ons add
+     * a type by registering it in TypeRegistry, the same registry saving
+     * validates against.
      *
-     * @return array
+     * @return array<int, array{value: string, label: string, targeting: string, default_conditions: array}>
      */
     public function get_available_template_types()
     {
-        $types = array_map(
+        return array_values(array_map(
             static fn ($definition): array => [
-                'value' => $definition->name,
-                'label' => $definition->label,
+                'value'              => $definition->name,
+                'label'              => $definition->label,
+                'targeting'          => $definition->targeting,
+                'default_conditions' => $definition->default_conditions,
             ],
             $this->types->by_group('theme')
-        );
-
-        return apply_filters(Hooks::THEME_BUILDER_TEMPLATE_TYPES_FILTER, $types);
+        ));
     }
 }

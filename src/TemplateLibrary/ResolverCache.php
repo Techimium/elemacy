@@ -77,7 +77,7 @@ class ResolverCache
         // for its own request immediately — never blocked on a lock
         // ("do not block a public request indefinitely"). Persisting it is a
         // best-effort optimization for the *next* request, applied only if
-        // no concurrent write landed while this build ran (, same
+        // no concurrent write landed while this build ran (the same
         // generation guard as invalidate()'s own scheduled rebuild below).
         $generation = (int) get_option(self::GENERATION_OPTION, 0);
         $index = $this->build_index();
@@ -183,9 +183,9 @@ class ResolverCache
      * changes mid-request (switch_to_blog()/restore_current_blog()) so the
      * next get_index() call re-reads get_option() under the now-current
      * site's own table prefix instead of returning another site's cached
-     * array would wrongly delete and
-     * schedule a rebuild of the *current* site's index for a change that
-     * happened on a *different* site).
+     * array. (A full invalidate() here would wrongly delete and schedule a
+     * rebuild of the *current* site's index for a change that happened on a
+     * *different* site.)
      */
     public static function forget_memo(): void
     {
@@ -205,8 +205,9 @@ class ResolverCache
             'no_found_rows'  => true,
             // ID DESC breaks ties between candidates sharing the same date
             // (e.g. bulk-imported together) deterministically — SQL's ORDER
-            // BY date alone does not guarantee stable ordering for ties
-            // . Preserves existing newest-match precedence.
+            // BY date alone does not guarantee stable ordering for ties. This
+            // newest-first order is the public tie-break between equally
+            // specific templates (docs/CONTRACTS.md § Theme template targeting).
             'orderby'        => [
                 'date' => 'DESC',
                 'ID'   => 'DESC',

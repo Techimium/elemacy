@@ -15,7 +15,7 @@
 $type = static fn(string $id, string $file): array => [
     'id' => $id,
     'file' => $file,
-    'declaration' => "/(new TypeDefinition\\(\\s*|register\\(\\s*|=\\s*)'" . preg_quote($id, '/') . "'|'" . preg_quote($id, '/') . "'\\s*=>\\s*__\\(/",
+    'declaration' => "/(new TypeDefinition\\(\\s*|register\\(\\s*|=\\s*)'" . preg_quote($id, '/') . "'|'" . preg_quote($id, '/') . "'\\s*=>\\s*\\[?\\s*__\\(/",
 ];
 $returned = static fn(string $id, string $file): array => [
     'id' => $id,
@@ -52,7 +52,31 @@ return [
     $returned('elemacy_single', 'src/Modules/ThemeBuilder/Documents/SingleDocument.php'),
     $returned('elemacy_archive', 'src/Modules/ThemeBuilder/Documents/ArchiveDocument.php'),
     $returned('elemacy_search', 'src/Modules/ThemeBuilder/Documents/SearchDocument.php'),
+    $returned('elemacy_404', 'src/Modules/ThemeBuilder/Documents/NotFoundDocument.php'),
     $returned('elemacy_popup', 'src/Modules/Popups/Documents/PopupDocument.php'),
+
+    // Display condition identifiers (the `type` of every rule in
+    // _elemacy_conditions). Free declares the working ones and the
+    // placeholders Pro replaces under the same identifier; a rename would
+    // orphan saved rules and suspend the templates and popups holding them.
+    $returned('general/entire_site', 'src/Conditions/General/EntireSite.php'),
+    $returned('singular/post_type', 'src/Conditions/Singular/PostType.php'),
+    $returned('archive/post_type', 'src/Conditions/Archive/PostType.php'),
+    $returned('search/all', 'src/Conditions/Search/AllResults.php'),
+    $returned('archive/all', 'src/Conditions/Mock/AllArchives.php'),
+    $returned('archive/author', 'src/Conditions/Mock/AuthorArchive.php'),
+    $returned('archive/date', 'src/Conditions/Mock/DateArchive.php'),
+    $returned('general/blog', 'src/Conditions/Mock/Blog.php'),
+    $returned('general/front_page', 'src/Conditions/Mock/FrontPage.php'),
+    $returned('general/not_found', 'src/Conditions/Mock/NotFound.php'),
+    $returned('general/search_results', 'src/Conditions/Mock/SearchResults.php'),
+    $returned('search/post_type', 'src/Conditions/Mock/SearchPostType.php'),
+    $returned('singular/by_author', 'src/Conditions/Mock/ByAuthor.php'),
+    $returned('singular/child_of', 'src/Conditions/Mock/ChildOf.php'),
+    $returned('singular/specific_post', 'src/Conditions/Mock/SpecificPost.php'),
+    // Per-taxonomy families: the stored identifier is this prefix plus a taxonomy name.
+    ['id' => 'singular/in_tax/', 'file' => 'src/Conditions/Mock/InTaxonomy.php'],
+    ['id' => 'archive/tax/', 'file' => 'src/Conditions/Mock/TaxonomyArchive.php'],
 
     // Elementor widget names (widgetType in saved _elementor_data).
     $returned('elemacy-site-logo', 'src/Modules/Widgets/Widgets/SiteLogo.php'),

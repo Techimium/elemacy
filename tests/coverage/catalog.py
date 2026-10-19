@@ -98,7 +98,7 @@ def declarations(root):
                                   'placeholder' if '\\Mock\\' in classname else 'real'))
     if root == FREE:
         for config, field in [
-            ('src/Modules/ThemeBuilder/ThemeBuilder.php', 'labels'),
+            ('src/Modules/ThemeBuilder/ThemeBuilder.php', 'types'),
         ]:
             text = php(root / config)
             array = re.search(r'\$' + field + r'\s*=\s*\[(.*?)\];', text, re.S)

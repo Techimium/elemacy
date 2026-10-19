@@ -11,6 +11,12 @@ defined('ABSPATH') || exit;
  */
 class TypeDefinition
 {
+    /** Displayed only where one of its inclusion conditions matches. */
+    public const TARGETS_CONDITIONS = 'conditions';
+
+    /** Offers no conditions: applies to every request of its location. */
+    public const TARGETS_LOCATION = 'location';
+
     public string $name;
     public string $label;
 
@@ -38,13 +44,52 @@ class TypeDefinition
      */
     public ?string $document_class;
 
-    public function __construct(string $name, string $label, string $group, string $module, ?string $document_class = null)
+    /**
+     * How a single-winner resolution targets items of this type: one of the
+     * TARGETS_* constants. Collect-all groups (popups) ignore it.
+     *
+     * @var string
+     */
+    public string $targeting;
+
+    /**
+     * Rules a new item of this type starts with, in stored array form, so an
+     * author begins from the type's broadest explicit condition.
+     *
+     * @var array<int, array{type: string, operator: string, value: string}>
+     */
+    public array $default_conditions;
+
+    /**
+     * @param string                                                           $name               Stored type identifier.
+     * @param string                                                           $label              Translated label.
+     * @param string                                                           $group              Resolution and admin family.
+     * @param string                                                           $module             Owning module slug.
+     * @param class-string|null                                                $document_class     Elementor document class, if the type has one.
+     * @param string                                                           $targeting          One of the TARGETS_* constants.
+     * @param array<int, array{type: string, operator: string, value: string}> $default_conditions Rules a new item starts with.
+     */
+    public function __construct(
+        string $name,
+        string $label,
+        string $group,
+        string $module,
+        ?string $document_class = null,
+        string $targeting = self::TARGETS_CONDITIONS,
+        array $default_conditions = []
+    ) {
+        $this->name               = $name;
+        $this->label              = $label;
+        $this->group              = $group;
+        $this->module             = $module;
+        $this->document_class     = $document_class;
+        $this->targeting          = $targeting;
+        $this->default_conditions = $default_conditions;
+    }
+
+    public function targets_location(): bool
     {
-        $this->name           = $name;
-        $this->label          = $label;
-        $this->group          = $group;
-        $this->module         = $module;
-        $this->document_class = $document_class;
+        return self::TARGETS_LOCATION === $this->targeting;
     }
 
     /**

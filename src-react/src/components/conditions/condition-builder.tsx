@@ -4,26 +4,30 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useConditionTypes } from '@/services/conditions';
-import type { ConditionRule } from '@/schemas/condition';
+import { newConditionRuleId, type ConditionRule } from '@/schemas/condition';
 import { ConditionRuleRow } from './condition-rule';
-
-function generateId(): string {
-    return `cond_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-}
 
 interface ConditionBuilderProps {
     value: ConditionRule[];
     onChange: (conditions: ConditionRule[]) => void;
     context?: string;
     templateType?: string;
+    /** What having no rules means here; defaults to "displays everywhere". */
+    emptyMessage?: string;
+    /**
+     * Receives the rules left after ones the current type does not offer are
+     * dropped automatically, as distinct from an author's own edit through
+     * onChange. Defaults to onChange.
+     */
+    onPrune?: (conditions: ConditionRule[]) => void;
 }
 
-export function ConditionBuilder({ value, onChange, context, templateType }: ConditionBuilderProps) {
+export function ConditionBuilder({ value, onChange, context, templateType, emptyMessage, onPrune }: ConditionBuilderProps) {
     const { data: groups = [], isSuccess } = useConditionTypes({ context, templateType });
 
-    const onChangeRef = useRef(onChange);
+    const onPruneRef = useRef(onPrune ?? onChange);
     const valueRef = useRef(value);
-    onChangeRef.current = onChange;
+    onPruneRef.current = onPrune ?? onChange;
     valueRef.current = value;
 
     // Drop rules whose `type` is no longer offered for the current context /
@@ -44,7 +48,7 @@ export function ConditionBuilder({ value, onChange, context, templateType }: Con
         });
         const removed = current.length - kept.length;
         if (removed > 0) {
-            onChangeRef.current(kept);
+            onPruneRef.current(kept);
             toast.info(
                 removed === 1
                     ? __('1 condition removed (not applicable to this type)', 'elemacy')
@@ -56,7 +60,7 @@ export function ConditionBuilder({ value, onChange, context, templateType }: Con
     const addRule = useCallback(() => {
         onChange([
             ...value,
-            { id: generateId(), type: '', operator: 'include', value: '' },
+            { id: newConditionRuleId(), type: '', operator: 'include', value: '' },
         ]);
     }, [value, onChange]);
 
@@ -79,7 +83,7 @@ export function ConditionBuilder({ value, onChange, context, templateType }: Con
 
             {value.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                    {__('No conditions — displays everywhere.', 'elemacy')}
+                    {emptyMessage ?? __('No conditions — displays everywhere.', 'elemacy')}
                 </p>
             ) : (
                 <div className="space-y-2">

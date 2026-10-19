@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
+use Elemacy\Modules\ThemeBuilder\Services\TemplateDisplaySummary;
 use Elemacy\Http\Resource;
 
 class TemplateResource extends Resource
@@ -21,6 +22,12 @@ class TemplateResource extends Resource
             'date' => $this->date,
             'edit_with_elementor' => admin_url('post.php?post=' . $this->id . '&action=elementor'),
             'conditions' => self::conditions_with_availability($this->conditions ?? []),
+            'display' => (new TemplateDisplaySummary())->describe(
+                (int) $this->id,
+                (string) $this->type,
+                (string) $this->status,
+                ConditionRuleDTO::collection(ConditionRuleDTO::to_arrays($this->conditions ?? []))
+            ),
         ];
     }
 

@@ -169,6 +169,8 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:current-query-archives` | native-integration | `tests/integration/current-query-archives.php` |
 | `elemacy:integration:loop-load-more` | native-integration | `tests/integration/loop-load-more.php` |
 | `elemacy:integration:search-template-conditions` | native-integration | `tests/integration/search-template-conditions.php` |
+| `elemacy:integration:archive-conditions` | native-integration | `tests/integration/archive-conditions.php` |
+| `elemacy:integration:condition-search` | native-integration | `tests/integration/condition-search.php` |
 | `elemacy:integration:query-pickers` | native-integration | `tests/integration/query-pickers.php` |
 | `elemacy:integration:archive-title-preview` | native-integration | `tests/integration/archive-title-preview.php` |
 | `elemacy:integration:nav-menu` | native-integration | `tests/integration/nav-menu.php` |
@@ -189,6 +191,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:native-chrome-replacement` | native-integration | `tests/integration/native-chrome-replacement.php` |
 | `elemacy:integration:real-theme-chrome` | native-integration | `tests/integration/real-theme-chrome.php` |
 | `elemacy:integration:location-layouts` | native-integration | `tests/integration/location-layouts.php` |
+| `elemacy:integration:elementor-pro-coexistence` | native-integration | `tests/integration/elementor-pro-coexistence.php` |
 | `elemacy:integration:theme-hook-cleaner` | native-integration | `tests/integration/theme-hook-cleaner.php` |
 | `elemacy:integration:chrome-documents` | native-integration | `tests/integration/chrome-documents.php` |
 | `elemacy:integration:atomic-rendering` | native-integration | `tests/integration/atomic-rendering.php` |

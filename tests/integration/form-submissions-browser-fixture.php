@@ -41,7 +41,7 @@ try {
             $owned_posts[] = $host_id;
             update_post_meta($host_id, '_elemacy_fixture_environment', ELEMACY_INTEGRATION_TOKEN);
             elemacy_test_assert($document->save(['elements' => $elements, 'settings' => ['post_status' => 'publish']]), 'Could not save form page.');
-            $header_id = $documents->create('Form submissions header ' . $suffix, 'header', 'publish', $elements);
+            $header_id = $documents->create_everywhere('Form submissions header ' . $suffix, 'header', 'publish', $elements);
             $owned_posts[] = $header_id;
             $popup_id = $documents->create('Form submissions popup ' . $suffix, 'popup', 'publish', $elements);
             $owned_posts[] = $popup_id;

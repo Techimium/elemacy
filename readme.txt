@@ -327,7 +327,15 @@ Yes. The Theme Builder hooks into the standard WordPress template system to over
 
 = How do display conditions work? =
 
-Each Theme Builder template can have Include ("show on") and Exclude ("hide on") rules. The free version covers Entire Site, Singular Post Type, and Post Type Archive. Elemacy Pro unlocks many more (Front Page, Blog, Search Results, 404, taxonomy and author/date archives, specific posts, and more).
+Each Theme Builder template can have Include ("show on") and Exclude ("hide on") rules, and displays only where an Include rule matches. A new template starts as a draft with its broadest rule already filled in (Entire Site for a header or footer), so nothing changes on your site until you publish it. The Theme Builder list shows where each template displays, and warns when a template has no Include rule or is overridden by a newer one. A 404 template needs no rules: once published it is used for every page that is not found. The free version covers Entire Site, Singular Post Type, Post Type Archive and Search Results. Elemacy Pro unlocks many more (Front Page, Blog, 404, taxonomy and author/date archives, specific posts, and more).
+
+= Does deleting Elemacy remove my templates? =
+
+No. Deleting the plugin keeps your templates, popups and settings, so reinstalling it brings everything back. To remove all Elemacy data when you delete the plugin, first add `define( 'ELEMACY_REMOVE_ALL_DATA', true );` to your `wp-config.php` file.
+
+= Can I use Elemacy's Theme Builder together with Elementor Pro's? =
+
+Yes. On each page, a location (header, footer, single or archive) that one of Elementor Pro's Theme Builder templates applies to is left to Elementor Pro, and Elemacy's templates serve every other location, so a page never gets two headers.
 
 = Does the Loop Builder require any special setup? =
 

@@ -16,6 +16,7 @@ class GenesisCompatibility implements ThemeCompatibilityInterface
     public function register(ThemeBuilderManager $manager): void
     {
         if ($manager->replaces_native_chrome('header')) {
+            $manager->keep_theme_landmark('header');
             add_action('template_redirect', function () {
                 ThemeHookCleaner::remove_theme_callbacks('genesis_header', self::CHROME_MAX_PRIORITY);
             }, 10);
@@ -49,6 +50,7 @@ class GenesisCompatibility implements ThemeCompatibilityInterface
         }
 
         if ($manager->replaces_native_chrome('footer')) {
+            $manager->keep_theme_landmark('footer');
             add_action('template_redirect', function () {
                 ThemeHookCleaner::remove_theme_callbacks('genesis_footer', self::CHROME_MAX_PRIORITY);
             }, 10);

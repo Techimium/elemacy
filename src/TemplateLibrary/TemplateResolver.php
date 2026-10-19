@@ -46,14 +46,15 @@ class TemplateResolver
     }
 
     /**
-     * The single item of $type that applies: of everything whose conditions
-     * match, the one that matched most specifically; else the first with no
-     * conditions (global fallback). Returns its post id.
+     * The single item of $type that applies, or null. Returns its post id.
      *
-     * Every candidate is evaluated rather than stopping at the first match,
-     * because a broad template appearing earlier in the index must not beat a
-     * narrow one appearing later. See docs/ARCHITECTURE.md § Template
-     * precedence.
+     * A type targeting its whole location takes the newest item. Otherwise an
+     * item applies only through an inclusion condition that matches — rules
+     * that only exclude name nowhere to display — and of those, the one that
+     * matched most specifically wins. Every candidate is evaluated rather
+     * than stopping at the first match, because a broad template appearing
+     * earlier in the index must not beat a narrow one appearing later. See
+     * docs/ARCHITECTURE.md § Template precedence.
      */
     public function resolve(string $type): ?int
     {
@@ -64,17 +65,26 @@ class TemplateResolver
         }
 
         $candidates = $this->cache->get_index()[$type] ?? [];
-        $fallback   = null;
-        $match      = null;
-        $best       = null;
+        $definition = TypeRegistry::instance()->get($type);
+
+        if ($definition !== null && $definition->targets_location()) {
+            $newest = reset($candidates);
+            static::$resolved[$key] = false !== $newest ? (int) $newest['id'] : null;
+
+            return static::$resolved[$key];
+        }
+
+        $match = null;
+        $best  = null;
 
         foreach ($candidates as $entry) {
-            if (empty($entry['conditions'])) {
-                $fallback = $fallback ?? (int) $entry['id'];
+            $rules = ConditionRuleDTO::collection($entry['conditions'] ?? []);
+
+            if (!ConditionRuleDTO::any_include($rules)) {
                 continue;
             }
 
-            $specificity = $this->match_specificity($entry['conditions']);
+            $specificity = ConditionEvaluator::instance()->match($rules);
 
             if ($specificity === null) {
                 continue;
@@ -89,7 +99,7 @@ class TemplateResolver
             }
         }
 
-        static::$resolved[$key] = $match ?? $fallback;
+        static::$resolved[$key] = $match;
 
         return static::$resolved[$key];
     }
@@ -119,17 +129,5 @@ class TemplateResolver
     protected function conditions_match(array $conditions): bool
     {
         return ConditionEvaluator::instance()->evaluate(ConditionRuleDTO::collection($conditions));
-    }
-
-    /**
-     * How specifically $conditions match this request, or null when they do
-     * not match it at all.
-     *
-     * @param array $conditions Stored condition rules.
-     * @return int|null
-     */
-    protected function match_specificity(array $conditions): ?int
-    {
-        return ConditionEvaluator::instance()->match(ConditionRuleDTO::collection($conditions));
     }
 }

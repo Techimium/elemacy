@@ -130,9 +130,9 @@ try {
                 elemacy_lm_grid('elm1004', $posts_grid('load_more', 3))
             ));
 
-            $archive = $documents->create('Load more archive ' . $suffix, 'archive', 'publish', elemacy_lm_grid('elm1005', $current_query_grid('load_more')));
+            $archive = $documents->create_everywhere('Load more archive ' . $suffix, 'archive', 'publish', elemacy_lm_grid('elm1005', $current_query_grid('load_more')));
             $owned_posts[] = $archive;
-            $owned_posts[] = $documents->create('Load more search ' . $suffix, 'search', 'publish', elemacy_lm_grid('elm1006', $current_query_grid('infinite_scroll')));
+            $owned_posts[] = $documents->create_everywhere('Load more search ' . $suffix, 'search', 'publish', elemacy_lm_grid('elm1006', $current_query_grid('infinite_scroll')));
 
             $fixture = [
                 'token' => ELEMACY_INTEGRATION_TOKEN,

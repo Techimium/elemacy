@@ -82,6 +82,60 @@ function is_404()
     return false;
 }
 
+/*
+ * Archive kinds, set per check through $GLOBALS['__wp_archive'] (e.g.
+ * ['kind' => 'tax'] or ['kind' => 'date']); taxonomies registered for post
+ * types through $GLOBALS['__wp_taxonomies'] (name => object types).
+ */
+function is_date()
+{
+    return 'date' === ($GLOBALS['__wp_archive']['kind'] ?? null);
+}
+
+function is_author($author = '')
+{
+    return 'author' === ($GLOBALS['__wp_archive']['kind'] ?? null);
+}
+
+function is_category($category = '')
+{
+    return 'category' === ($GLOBALS['__wp_archive']['kind'] ?? null);
+}
+
+function is_tag($tag = '')
+{
+    return 'tag' === ($GLOBALS['__wp_archive']['kind'] ?? null);
+}
+
+function is_tax($taxonomy = '', $term = '')
+{
+    return 'tax' === ($GLOBALS['__wp_archive']['kind'] ?? null);
+}
+
+function is_post_type_archive($post_types = '')
+{
+    $archive = $GLOBALS['__wp_archive'] ?? [];
+
+    return 'post_type' === ($archive['kind'] ?? null) && in_array($archive['post_type'] ?? '', (array) $post_types, true);
+}
+
+function get_taxonomy($taxonomy)
+{
+    $types = $GLOBALS['__wp_taxonomies'][$taxonomy] ?? null;
+
+    return null === $types ? false : (object) ['name' => $taxonomy, 'object_type' => $types];
+}
+
+function is_embed()
+{
+    return $GLOBALS['__wp_is_embed'] ?? false;
+}
+
+function is_feed($feeds = '')
+{
+    return false;
+}
+
 /**
  * Minimal multisite stubs (task 11.7): SiteBatchIterator's own pagination/
  * restoration logic is plain PHP against these four WordPress functions, so

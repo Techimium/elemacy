@@ -153,7 +153,9 @@ class TemplateService
 
         $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
-            'post_status' => $dto->status ?? PostStatus::PUBLISH,
+            // Never live on creation unless asked: a new template replaces
+            // site chrome the moment it is published.
+            'post_status' => $dto->status ?? PostStatus::DRAFT,
         ], isset($dto->type) ? (string) $dto->type : '');
 
         if (isset($dto->type)) {
@@ -187,9 +189,14 @@ class TemplateService
             $post_fields['post_status'] = $dto->status;
         }
 
+        $previous_type = (string) $this->repository->get_meta($id, MetaKeys::TEMPLATE_TYPE);
+
         $this->writer->update($id, self::GROUP, $post_fields, isset($dto->type) ? (string) $dto->type : null);
 
-        if (isset($dto->type)) {
+        // The Page Layout is the author's, chosen in Elementor. Only a move
+        // between site chrome and a content location, whose defaults differ,
+        // resets it to the new type's default.
+        if (isset($dto->type) && $this->page_template_for_type($previous_type) !== $this->page_template_for_type((string) $dto->type)) {
             $this->repository->set_meta($id, '_wp_page_template', $this->page_template_for_type((string) $dto->type));
         }
 

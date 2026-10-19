@@ -74,11 +74,11 @@ try {
 
             $everywhere = [['id' => 'c1', 'type' => 'general/entire_site', 'operator' => 'include', 'value' => '']];
 
-            $header_id = $documents->create('Editor styles header ' . $suffix, 'header', 'publish', $atomic_block('ecs1001', 'e-ecs1001a', '#850202', 'Fixture header'));
+            $header_id = $documents->create_everywhere('Editor styles header ' . $suffix, 'header', 'publish', $atomic_block('ecs1001', 'e-ecs1001a', '#850202', 'Fixture header'));
             $owned_posts[] = $header_id;
             (new Elemacy\Conditions\ConditionRepository())->save($header_id, $everywhere);
 
-            $footer_id = $documents->create('Editor styles footer ' . $suffix, 'footer', 'publish', $atomic_block('ecs2001', 'e-ecs2001a', '#025a85', 'Fixture footer'));
+            $footer_id = $documents->create_everywhere('Editor styles footer ' . $suffix, 'footer', 'publish', $atomic_block('ecs2001', 'e-ecs2001a', '#025a85', 'Fixture footer'));
             $owned_posts[] = $footer_id;
             (new Elemacy\Conditions\ConditionRepository())->save($footer_id, $everywhere);
 

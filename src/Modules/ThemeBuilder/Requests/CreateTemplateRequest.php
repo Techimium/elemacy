@@ -17,7 +17,9 @@ class CreateTemplateRequest extends Request
             // Derived from the registry so new theme-group types are accepted
             // without touching this rule (types register on init, before REST dispatch).
             'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('theme')),
-            'status' => 'nullable|string|in:publish,draft,trash',
+            // Trash is reached by deleting; private, pending and scheduled
+            // statuses are Elementor's to set, never this form's.
+            'status' => 'nullable|string|in:publish,draft',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',
             'conditions.*.type' => 'string',

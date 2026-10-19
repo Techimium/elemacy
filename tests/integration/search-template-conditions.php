@@ -52,18 +52,18 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
         }
     }
 
-    public function testAnyTemplateWithTheGlobalSearchConditionOrNoConditionsMatchesASearch(): void
+    public function testTheGlobalSearchConditionMatchesEverySearchAndNoConditionsMatchNone(): void
     {
         $with_rule = $this->searchTemplate('Search with a rule', [$this->rule('search/all')]);
 
-        $this->visit('/?s=a');
+        $this->visit('/?s=a&post_type=' . self::CPT);
         self::assertSame($with_rule, TemplateResolver::instance()->resolve('search'));
 
         $this->documents->cleanup();
-        $bare = $this->searchTemplate('Search with no rules', []);
+        $this->searchTemplate('Search with no rules', []);
 
-        $this->visit('/?s=a&post_type=' . self::CPT);
-        self::assertSame($bare, TemplateResolver::instance()->resolve('search'), 'A Search template with no conditions still matches every search.');
+        $this->visit('/?s=a');
+        self::assertNull(TemplateResolver::instance()->resolve('search'), 'A Search template with no conditions is not displayed for any search.');
     }
 
     public function testASearchTemplateSavedWithABlankTypeRuleIsSuspendedOnARealSearch(): void

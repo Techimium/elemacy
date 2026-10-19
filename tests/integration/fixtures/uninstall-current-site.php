@@ -1,6 +1,10 @@
 <?php
 
-/** Run with wp --skip-plugins --skip-themes eval-file ... <free|pro>. */
+/**
+ * Run with wp --skip-plugins --skip-themes eval-file ... <free|free-retain|pro>.
+ * `free` and `pro` uninstall with removal opted in; `free-retain` uninstalls
+ * Free without it and checks that everything is kept.
+ */
 require_once dirname(__DIR__) . '/environment.php';
 $environment = elemacy_test_environment((string) getenv('ELEMACY_TEST_ENV'));
 if (realpath(ABSPATH) !== $environment['root'] || DB_NAME !== $environment['database']
@@ -8,6 +12,7 @@ if (realpath(ABSPATH) !== $environment['root'] || DB_NAME !== $environment['data
     throw new RuntimeException('Refusing uninstall outside the guarded disposable site.');
 }
 $pro = ($args[0] ?? '') === 'pro';
+$retain = ($args[0] ?? '') === 'free-retain';
 $prefix = $pro ? 'elemacy_pro' : 'elemacy';
 $plugin = $pro ? 'elemacy-pro' : 'elemacy';
 $root = dirname(__DIR__, 3);
@@ -55,7 +60,23 @@ $capture = static function ($id) use (&$deleted): void { $deleted[] = (int) $id;
 add_action('deleted_post', $capture);
 try {
     define('WP_UNINSTALL_PLUGIN', $plugin . '/' . $plugin . '.php');
+    if (!$retain) {
+        define('ELEMACY_REMOVE_ALL_DATA', true);
+    }
     require $source . '/uninstall.php';
+    if ($retain) {
+        $check(get_post($doc) && get_post($revision) && get_comment($comment), 'Uninstall without the opt-in removed a library document.');
+        $check(get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Uninstall without the opt-in removed metadata.');
+        $check(get_option($prefix . '_uninstall_fixture_103') === 'owned' && get_transient($prefix . '_uninstall_fixture') === 'owned', 'Uninstall without the opt-in removed options.');
+        $check(file_exists($css) && $deleted === [], 'Uninstall without the opt-in deleted something.');
+        for ($i = 0; $i < 104; ++$i) {
+            delete_option($prefix . '_uninstall_fixture_' . $i);
+        }
+        delete_transient($prefix . '_uninstall_fixture');
+        echo wp_json_encode(['plugin' => $plugin, 'status' => 'passed', 'retained' => true]) . "\n";
+
+        return;
+    }
     $check(get_post($unrelated) && get_post_meta($unrelated, '_unrelated_fixture', true) === 'keep', 'Unrelated document/meta was removed.');
     $check(get_option('unrelated_uninstall_fixture') === 'keep', 'Unrelated option was removed.');
     $check(get_option($pro ? 'elemacy_uninstall_sibling' : 'elemacy_pro_uninstall_sibling') === 'keep', 'Sibling option was removed.');

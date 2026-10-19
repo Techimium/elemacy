@@ -50,7 +50,7 @@ final class LocationLayoutsTest extends IntegrationTestCase
     /** A published template of $type, with the Page Layout $layout when given. */
     private function template(string $type, string $marker, string $layout = ''): int
     {
-        $id = $this->documents->create($marker, $type, 'publish', LibraryDocument::heading($marker));
+        $id = $this->documents->create_everywhere($marker, $type, 'publish', LibraryDocument::heading($marker));
         if ('' !== $layout) {
             update_post_meta($id, '_wp_page_template', $layout);
         }
@@ -234,6 +234,142 @@ final class LocationLayoutsTest extends IntegrationTestCase
 
         self::assertSame(1, substr_count($html, self::LOCATION), 'The Archive template is applied: ' . $html);
         self::assertSame(1, substr_count($html, self::HEADER), 'The header renders: a post\'s layout does not affect an archive.');
+    }
+
+    /** Saves document page settings on $id the way the Elementor editor does. */
+    private function save_page_settings(int $id, array $settings): void
+    {
+        $document = \Elementor\Plugin::instance()->documents->get($id, false);
+        self::assertNotNull($document);
+        self::assertTrue((bool) $document->save(['settings' => $settings]), 'Sanity: the page settings save.');
+    }
+
+    /** The stylesheet Elementor generates for $id, as served to the page. */
+    private static function template_css(int $id): string
+    {
+        // As on the next page load: a fresh document, not the instance just saved.
+        \Elementor\Plugin::instance()->documents->get($id, false);
+        $css = \Elementor\Core\Files\CSS\Post::create($id);
+        $css->update();
+
+        return (string) $css->get_content();
+    }
+
+    public function testASingleTemplatesBodyStyleAppliesToThePageItIsDisplayedOn(): void
+    {
+        $id = $this->template('single', self::LOCATION);
+        $this->save_page_settings($id, ['background_background' => 'classic', 'background_color' => '#1a2b3c']);
+
+        $html = ThemePageRequest::render('theme-location-wrapper', $this->url('single'))['html'];
+
+        self::assertMatchesRegularExpression('/<body[^>]*class="[^"]*\belementor-page-' . $id . '\b/', $html, 'The page carries the Single template\'s body class: ' . $html);
+        self::assertMatchesRegularExpression('/body\.elementor-page-' . $id . '[^{]*\{[^}]*#1a2b3c/i', self::template_css($id), 'The Body Style rule targets that class.');
+    }
+
+    public function testAnArchiveTemplatesCustomCssSelectorAppliesOnTheArchive(): void
+    {
+        $id = $this->template('archive', self::LOCATION);
+        $this->save_page_settings($id, ['elemacy_custom_css' => 'selector { padding: 40px; }']);
+
+        $html = ThemePageRequest::render('theme-location-wrapper', $this->url('archive'))['html'];
+
+        self::assertMatchesRegularExpression('/<body[^>]*class="[^"]*\belementor-page-' . $id . '\b/', $html, 'The archive carries the Archive template\'s body class: ' . $html);
+        self::assertStringContainsString('body.elementor-page-' . $id . ' { padding: 40px; }', self::template_css($id), 'The custom CSS selector resolves to that class.');
+    }
+
+    public function testNoLocationTemplateBodyClassWhenTheTemplateIsNotServed(): void
+    {
+        update_post_meta($this->post_id, '_wp_page_template', self::FULL_WIDTH);
+        $id = $this->template('single', self::LOCATION);
+
+        $html = ThemePageRequest::render('theme-location-wrapper', $this->url('single'))['html'];
+
+        self::assertDoesNotMatchRegularExpression('/\belementor-page-' . $id . '\b/', $html, 'A Single template the page does not use adds no body class.');
+    }
+
+    public function testAPostWithItsOwnLayoutLoadsNoneOfTheSingleTemplatesStyles(): void
+    {
+        update_post_meta($this->post_id, '_wp_page_template', self::CANVAS);
+        $id = $this->template('single', self::LOCATION);
+
+        $html = ThemePageRequest::render('theme-location-wrapper', $this->url('single'))['html'];
+
+        self::assertDoesNotMatchRegularExpression('/post-' . $id . '\.css|elementor-post-' . $id . '\b/', $html, 'The unused Single template is never prepared: ' . $html);
+    }
+
+    public function testATemplatesOwnUrlLoadsNoneOfTheSingleTemplatesStyles(): void
+    {
+        $header = $this->template('header', self::HEADER);
+        $single = $this->template('single', self::LOCATION);
+
+        $html = ThemePageRequest::render('elemacy-fixture', get_permalink($header), 'admin')['html'];
+
+        self::assertDoesNotMatchRegularExpression('/post-' . $single . '\.css|elementor-post-' . $single . '\b/', $html, 'Viewing a template is not a page the Single template applies to: ' . $html);
+        self::assertSame(0, substr_count($html, self::LOCATION));
+    }
+
+    public function testABlockThemeShowsTheHeaderAndFooterOnAnElementorFullWidthPost(): void
+    {
+        $this->skip_unless_installed('twentytwentyfive');
+        update_post_meta($this->post_id, '_wp_page_template', self::FULL_WIDTH);
+        $this->site_chrome();
+
+        $page = ThemePageRequest::render('twentytwentyfive', $this->url('single'));
+        $html = $page['html'];
+
+        self::assertSame(1, substr_count($html, self::HEADER), 'The Elemacy header renders once on a block theme Full Width post: ' . $html);
+        self::assertSame(1, substr_count($html, self::FOOTER), 'The Elemacy footer renders once.');
+        self::assertSame(1, substr_count($html, self::POST_BODY), "The post's own content renders once.");
+        self::assertStringNotContainsString('id="header" role="banner"', $html, "WordPress's deprecated theme-compat header is not used.");
+        self::assertStringNotContainsString('Deprecated', $html, 'No deprecation notice is raised.');
+        self::assertSame(['wp_head' => 1, 'wp_body_open' => 1, 'wp_footer' => 1], $page['calls'], 'Each shell callback runs once.');
+        $this->assert_single_document_shell($html);
+    }
+
+    public function testAGuestGetsNotFoundForATemplatesOwnUrl(): void
+    {
+        // No conditions, so it displays nowhere: any of its content in the
+        // response could only come from its own URL being served.
+        $header = $this->documents->create(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
+
+        $html = ThemePageRequest::render('elemacy-fixture', get_permalink($header))['html'];
+
+        self::assertMatchesRegularExpression('/<body[^>]*class="[^"]*\berror404\b/', $html, "A guest is served the site's not-found page: " . $html);
+        self::assertSame(0, substr_count($html, self::HEADER), "The template's content is not in the response.");
+    }
+
+    public function testAnAdministratorStillSeesATemplatesOwnUrlButRobotsAreToldNotToIndexIt(): void
+    {
+        $popup = $this->documents->create('Elemacy layout popup', 'popup', 'publish', LibraryDocument::heading('Elemacy layout popup'));
+
+        $html = ThemePageRequest::render('elemacy-fixture', get_permalink($popup), 'admin')['html'];
+
+        self::assertStringContainsString('>Elemacy layout popup</h2>', $html, 'The popup preview renders: ' . $html);
+        self::assertMatchesRegularExpression('/<meta name=[\'"]robots[\'"] content=[\'"][^\'"]*noindex[^\'"]*nofollow/', $html, 'The preview is never indexed.');
+    }
+
+    public function testAGuestStillSeesTheHeaderOnThePagesItAppliesTo(): void
+    {
+        $this->template('header', self::HEADER);
+
+        $html = ThemePageRequest::render('elemacy-fixture', $this->url('single'))['html'];
+
+        self::assertSame(1, substr_count($html, self::HEADER), 'Keeping template URLs private does not hide the template where it applies.');
+    }
+
+    public function testAnEmbedIsServedAsWordPressServesIt(): void
+    {
+        $this->site_chrome();
+        $single = $this->template('single', self::LOCATION);
+
+        $html = ThemePageRequest::render('theme-location-wrapper', get_post_embed_url($this->post_id))['html'];
+
+        self::assertStringContainsString('wp-embed', $html, "WordPress's embed card is served: " . $html);
+        foreach ([self::HEADER, self::FOOTER, self::LOCATION, 'Location wrapper native header'] as $marker) {
+            self::assertSame(0, substr_count($html, $marker), "The embed carries no $marker.");
+        }
+        self::assertDoesNotMatchRegularExpression('/post-' . $single . '\.css|elementor-post-' . $single . '\b/', $html, 'No Theme Builder template is prepared for an embed.');
+        $this->assert_single_document_shell($html);
     }
 
     private function assert_single_document_shell(string $html): void

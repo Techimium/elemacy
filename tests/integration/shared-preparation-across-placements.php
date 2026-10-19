@@ -84,7 +84,7 @@ final class SharedPreparationAcrossPlacementsTest extends IntegrationTestCase
 
     private function create_header(string $marker): int
     {
-        $id = $this->documents->create($marker, 'header', 'publish', $this->marked_elements($marker, 'eac311'));
+        $id = $this->documents->create_everywhere($marker, 'header', 'publish', $this->marked_elements($marker, 'eac311'));
         $this->owned[] = $id;
 
         return $id;
@@ -92,7 +92,7 @@ final class SharedPreparationAcrossPlacementsTest extends IntegrationTestCase
 
     private function create_footer(string $marker): int
     {
-        $id = $this->documents->create($marker, 'footer', 'publish', $this->marked_elements($marker, 'eac312'));
+        $id = $this->documents->create_everywhere($marker, 'footer', 'publish', $this->marked_elements($marker, 'eac312'));
         $this->owned[] = $id;
 
         return $id;

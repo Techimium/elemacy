@@ -173,7 +173,7 @@ final class AtomicRenderingTest extends IntegrationTestCase
 
     public function testAnAtomicHeaderDeliversItsAtomicStylesheetOnAPageItRendersOn(): void
     {
-        $header = $this->documents->create('Atomic header', 'header', 'publish', self::atomic_tree('eah', 'Atomic header', false));
+        $header = $this->documents->create_everywhere('Atomic header', 'header', 'publish', self::atomic_tree('eah', 'Atomic header', false));
         $post = $this->post('Atomic header host');
 
         // A fresh process: Elementor emits atomic stylesheets once per process.

@@ -14,7 +14,7 @@ final class ThemePageRequest
      * @param string[] $keep_native Sides opted out of native chrome suppression.
      * @param bool     $force_generic Serve the theme through the generic adapter even if it has a dedicated one.
      * @param array<string, string> $third_party Hook => marker: a plugin-style callback on that hook that prints the marker.
-     * @return array{html: string, calls: array<string, int>}
+     * @return array{html: string, calls: array<string, int>, missing_callbacks: string[]}
      */
     public static function render(string $theme, string $url, string $user = 'guest', array $keep_native = [], bool $force_generic = false, array $third_party = []): array
     {

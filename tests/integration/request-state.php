@@ -69,7 +69,7 @@ final class RequestStateTest extends IntegrationTestCase
 
     public function testASecondPageInTheSameProcessPreparesItsOwnForeignDocuments(): void
     {
-        $header = $this->documents->create('Request state header', 'header', 'publish', LibraryDocument::heading('Request state header'));
+        $header = $this->documents->create_everywhere('Request state header', 'header', 'publish', LibraryDocument::heading('Request state header'));
         update_post_meta($header, '_elemacy_fixture_item_marker', '1');
         $first = $this->post('Request state page one');
         $second = $this->post('Request state page two');
@@ -144,7 +144,7 @@ final class RequestStateTest extends IntegrationTestCase
      */
     public function testNoFragmentStyleMarkerOrResolutionIsReusedOnAnotherSite(): void
     {
-        $document = $this->documents->create('Request state site fragment', 'header', 'publish', LibraryDocument::heading('Request state site fragment'));
+        $document = $this->documents->create_everywhere('Request state site fragment', 'header', 'publish', LibraryDocument::heading('Request state site fragment'));
         $template = $this->documents->create('Request state site loop', 'loop', 'publish');
         $item = $this->post('Request state site post');
         $request = new RequestSimulator();

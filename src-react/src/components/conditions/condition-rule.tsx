@@ -41,7 +41,7 @@ function OperatorSelect({ rule, onChange }: { rule: ConditionRule; onChange: (ru
             value={rule.operator}
             onValueChange={(v) => onChange({ ...rule, operator: v as 'include' | 'exclude' })}
         >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32" aria-label={__('Show or hide', 'elemacy')}>
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -70,7 +70,7 @@ function TypeSelect({
                 value={rule.type || undefined}
                 onValueChange={(v) => onChange({ ...rule, type: v, value: '' })}
             >
-                <SelectTrigger className="flex-1 min-w-0">
+                <SelectTrigger className="flex-1 min-w-0" aria-label={__('Condition', 'elemacy')}>
                     <SelectValue placeholder={__('Select condition…', 'elemacy')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -130,7 +130,7 @@ function SubValueSelect({
             value={rule.value === '' ? ANY_VALUE : rule.value}
             onValueChange={(v) => onChange({ ...rule, value: v === ANY_VALUE ? '' : v })}
         >
-            <SelectTrigger className="flex-1 min-w-0">
+            <SelectTrigger className="flex-1 min-w-0" aria-label={__('Value', 'elemacy')}>
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>

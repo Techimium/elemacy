@@ -5,8 +5,13 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Core\Constants\OptionKeys;
 use Elemacy\Core\Container;
 use Elemacy\Core\Migrator;
+use Elemacy\Modules\ThemeBuilder\Documents\ChromeDocument;
 use Elemacy\Modules\ThemeBuilder\Documents\FooterDocument;
 use Elemacy\Modules\ThemeBuilder\Documents\HeaderDocument;
+use Elemacy\Modules\ThemeBuilder\Documents\NotFoundDocument;
+use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
+use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\TemplateLibrary\DocumentWriter;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
 use Elementor\Plugin;
@@ -38,7 +43,7 @@ final class ChromeDocumentsTest extends IntegrationTestCase
         'template',
         'margin',
         'padding',
-        'background_background',
+        'background_color',
     ];
 
     /** @var mixed */
@@ -107,6 +112,61 @@ final class ChromeDocumentsTest extends IntegrationTestCase
             self::assertArrayHasKey('post_title', $controls);
             self::assertArrayHasKey('post_status', $controls);
         }
+    }
+
+    public function testHeaderAndFooterRenderInTheirLandmarkElementsByDefault(): void
+    {
+        foreach (['header', 'footer'] as $type) {
+            $id = $this->documents->create('Chrome landmark ' . $type, $type, 'publish');
+            $html = Plugin::instance()->frontend->get_builder_content_for_display($id);
+
+            self::assertMatchesRegularExpression(
+                '/^\s*<' . $type . '\b[^>]*\belementor-' . $id . '\b/',
+                $html,
+                sprintf('A %s template renders in a <%s> root element: %s', $type, $type, $html)
+            );
+            self::assertStringEndsWith('</' . $type . '>', trim($html));
+        }
+    }
+
+    public function testTheHtmlTagSettingChangesTheRootElementAndRejectsUnsafeTags(): void
+    {
+        $id = $this->documents->create('Chrome tag footer', 'footer', 'publish');
+        $document = Plugin::instance()->documents->get($id, false);
+
+        self::assertArrayHasKey(ChromeDocument::HTML_TAG, $document->get_controls(), 'The footer offers an HTML Tag setting.');
+
+        $document->save(['settings' => [ChromeDocument::HTML_TAG => 'div']]);
+        // As on the next page load: a fresh document, not the instance just saved.
+        Plugin::instance()->documents->get($id, false);
+        self::assertMatchesRegularExpression('/^\s*<div\b[^>]*\belementor-' . $id . '\b/', Plugin::instance()->frontend->get_builder_content_for_display($id));
+
+        update_post_meta($id, '_elementor_page_settings', [ChromeDocument::HTML_TAG => 'script']);
+        Plugin::instance()->documents->get($id, false);
+        self::assertMatchesRegularExpression(
+            '/^\s*<footer\b/',
+            Plugin::instance()->frontend->get_builder_content_for_display($id),
+            'A stored tag outside the allowed list falls back to the landmark default.'
+        );
+    }
+
+    public function testA404TemplateEditsOnItsOwnContentLocationDocument(): void
+    {
+        $registered = Plugin::instance()->documents->get_document_types();
+        self::assertSame(NotFoundDocument::class, $registered['elemacy_404'] ?? null);
+        self::assertSame('elemacy_404', $this->writer()->document_type('404'));
+
+        $created = Container::instance()->make(TemplateService::class)->create(CreateTemplateDTO::from_array(['title' => 'Not found template', 'type' => '404', 'status' => 'draft']));
+        $this->documents->adopt($created->id);
+
+        self::assertSame('elemacy_404', get_post_meta($created->id, '_elementor_template_type', true));
+
+        $controls = Plugin::instance()->documents->get($created->id, false)->get_controls();
+        // Page Layout and Body Style; Elementor itself decides whether a page offers Hide Title.
+        foreach (['template', 'background_color'] as $control) {
+            self::assertArrayHasKey($control, $controls, sprintf('A 404 template offers the content-location setting "%s".', $control));
+        }
+        self::assertArrayNotHasKey(PreviewablePageBase::PREVIEW_SECTION, $controls, 'A 404 template has nothing to preview against.');
     }
 
     public function testACreatedChromeTemplateCarriesTheChromeDocumentType(): void
@@ -241,13 +301,13 @@ final class ChromeDocumentsTest extends IntegrationTestCase
             self::markTestSkipped('The installed Elementor does not register atomic elements (e-flexbox).');
         }
 
-        $header = $this->documents->create(
+        $header = $this->documents->create_everywhere(
             'Chrome atomic header',
             'header',
             'publish',
             self::atomic_block('ecd1001', 'e-ecd1001a', '#850202', 'Chrome atomic header marker')
         );
-        $footer = $this->documents->create(
+        $footer = $this->documents->create_everywhere(
             'Chrome atomic footer',
             'footer',
             'publish',

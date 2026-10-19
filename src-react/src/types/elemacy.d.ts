@@ -10,6 +10,10 @@ export interface Elemacy {
     adminUrl: string;
     modules: Module[];
     contract_version: string;
+    /** Added by the Theme Builder module while it is active. */
+    theme_builder?: {
+        elementor_pro_active: boolean;
+    };
 }
 
 /** The admin extension bridge's declared capabilities — a

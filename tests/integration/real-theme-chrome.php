@@ -94,10 +94,10 @@ final class RealThemeChromeTest extends IntegrationTestCase
                 $label = ($header ? 'header' : '') . ($header && $footer ? '+' : '') . ($footer ? 'footer' : '');
                 $ids = [];
                 if ($header) {
-                    $ids[] = $this->documents->create(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
+                    $ids[] = $this->documents->create_everywhere(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
                 }
                 if ($footer) {
-                    $ids[] = $this->documents->create(self::FOOTER, 'footer', 'publish', LibraryDocument::heading(self::FOOTER));
+                    $ids[] = $this->documents->create_everywhere(self::FOOTER, 'footer', 'publish', LibraryDocument::heading(self::FOOTER));
                 }
 
                 try {
@@ -116,6 +116,19 @@ final class RealThemeChromeTest extends IntegrationTestCase
                     self::assertSame($header ? 0 : 1, substr_count($html, $native_header), "$where: the native header is replaced only when a header is configured.");
                     self::assertSame($footer ? 0 : 1, substr_count($html, $native_footer), "$where: the native footer is replaced only when a footer is configured.");
                 }
+                if ($header) {
+                    $this->assert_single_landmark($html, 'elemacy_header', 'header', $where);
+                }
+                self::assertSame([], $page['missing_callbacks'], "$where: every chrome callback the adapter names is still registered by the pinned theme.");
+                if ($header && 'generatepress' === $theme) {
+                    self::assertStringNotContainsString('id="site-navigation"', $html, "$where: GeneratePress's navigation, wherever positioned, goes with its header.");
+                }
+                if ($header && 'oceanwp' === $theme && !$generic) {
+                    self::assertSame(substr_count($base['html'], 'class="page-header'), substr_count($html, 'class="page-header'), "$where: OceanWP's page title bar is content and stays.");
+                }
+                if ($footer) {
+                    $this->assert_single_landmark($html, 'elemacy_footer', 'footer', $where);
+                }
                 $facts = $this->facts($html);
                 self::assertSame($expected['content'], $facts['content'], "$where: the content renders exactly as on the unmodified theme.");
                 self::assertSame($expected['shell'], $facts['shell'], "$where: one <html>, one <head>, one <body>.");
@@ -124,6 +137,68 @@ final class RealThemeChromeTest extends IntegrationTestCase
             }
         } finally {
             wp_delete_post($post_id, true);
+        }
+    }
+
+    /**
+     * The Elemacy template is inside exactly one <$landmark> element — its own
+     * root, or the theme's element around it — and never one nested in another.
+     */
+    private function assert_single_landmark(string $html, string $document_type, string $landmark, string $where): void
+    {
+        $dom = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $roots = (new \DOMXPath($dom))->query('//*[@data-elementor-type="' . $document_type . '"]');
+        self::assertSame(1, $roots->length, "$where: one $document_type root.");
+
+        $landmarks = 0;
+        for ($node = $roots->item(0); $node instanceof \DOMElement; $node = $node->parentNode) {
+            $landmarks += $landmark === strtolower($node->nodeName) ? 1 : 0;
+        }
+
+        self::assertSame(1, $landmarks, "$where: the $document_type template sits in exactly one <$landmark> landmark.");
+    }
+
+    /** @return array<string, array{string}> */
+    public function generatePressNavigationPositions(): array
+    {
+        return ['below the header' => ['nav-below-header'], 'above the header' => ['nav-above-header']];
+    }
+
+    /**
+     * GeneratePress can print its navigation outside its header, on hooks that
+     * also carry page content; it is chrome all the same and goes with the header.
+     *
+     * @dataProvider generatePressNavigationPositions
+     */
+    public function testGeneratePressNavigationOutsideTheHeaderGoesWithIt(string $position): void
+    {
+        if (!wp_get_theme('generatepress')->exists()) {
+            self::markTestSkipped("Real theme 'generatepress' is not installed; provision with setup.py --theme.");
+        }
+
+        $previous = get_option('generate_settings', null);
+        update_option('generate_settings', array_merge((array) $previous, ['nav_position_setting' => $position]));
+        $post_id = wp_insert_post(['post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'GeneratePress navigation post', 'post_content' => self::CONTENT], true);
+
+        try {
+            $base = ThemePageRequest::render('generatepress', get_permalink($post_id))['html'];
+            self::assertStringContainsString('id="site-navigation"', $base, "Sanity: GeneratePress prints its navigation $position.");
+
+            $header = $this->documents->create_everywhere(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
+            $page = ThemePageRequest::render('generatepress', get_permalink($post_id));
+            wp_delete_post($header, true);
+
+            self::assertSame(1, substr_count($page['html'], self::HEADER), 'The Elemacy header renders once.');
+            self::assertStringNotContainsString('id="site-navigation"', $page['html'], "The navigation $position goes with the replaced header.");
+            self::assertSame([], $page['missing_callbacks']);
+        } finally {
+            wp_delete_post($post_id, true);
+            null === $previous ? delete_option('generate_settings') : update_option('generate_settings', $previous);
         }
     }
 
@@ -150,8 +225,8 @@ final class RealThemeChromeTest extends IntegrationTestCase
             self::markTestSkipped("Real theme '$theme' is not installed; provision with setup.py --theme.");
         }
         $post_id = wp_insert_post(['post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Plugin callback post', 'post_content' => self::CONTENT], true);
-        $header = $this->documents->create(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
-        $footer = $this->documents->create(self::FOOTER, 'footer', 'publish', LibraryDocument::heading(self::FOOTER));
+        $header = $this->documents->create_everywhere(self::HEADER, 'header', 'publish', LibraryDocument::heading(self::HEADER));
+        $footer = $this->documents->create_everywhere(self::FOOTER, 'footer', 'publish', LibraryDocument::heading(self::FOOTER));
 
         try {
             $html = ThemePageRequest::render($theme, get_permalink($post_id), 'guest', [], false, [$hook => '<!--plugin-callback-ran-->'])['html'];

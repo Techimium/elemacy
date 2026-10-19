@@ -235,23 +235,44 @@ final class TemplatePrecedenceTest extends IntegrationTestCase
         );
     }
 
-    public function testAConditionlessHeaderIsUsedOnlyWhenNothingMatched(): void
+    public function testAConditionlessHeaderIsNeverDisplayed(): void
     {
-        $fallback = $this->header('Precedence fallback', []);
+        $this->header('Precedence no conditions', []);
 
-        self::assertSame($fallback, $this->resolve_header_on($this->posts[0]));
+        self::assertNull(
+            $this->resolve_header_on($this->posts[0]),
+            'A header with no inclusion condition names nowhere to display, so nothing resolves.'
+        );
 
         $site_wide = $this->header('Precedence site wide', [['general/entire_site']]);
 
-        self::assertSame(
-            $site_wide,
-            $this->resolve_header_on($this->posts[0]),
-            'A matching template must always beat the conditionless fallback.'
-        );
+        self::assertSame($site_wide, $this->resolve_header_on($this->posts[0]));
+    }
+
+    public function testAHeaderWhoseRulesOnlyExcludeIsNeverDisplayed(): void
+    {
+        $this->header('Precedence exclusion only', [['test/precedence_specific_post', (string) $this->posts[1], 'exclude']]);
+
+        self::assertNull($this->resolve_header_on($this->posts[0]));
+    }
+
+    public function testTheNewest404TemplateCoversEveryNotFoundRequest(): void
+    {
+        $older = $this->documents->create('Precedence 404 older', '404', 'publish');
+        $newer = $this->documents->create('Precedence 404 newer', '404', 'publish');
+        $this->documents->create('Precedence 404 draft', '404', 'draft');
+
+        $this->request->visit(home_url('/?p=999999999'));
+        $this->refresh_index();
+
+        self::assertTrue(is_404(), 'Sanity: the request must be a not-found one.');
+        self::assertSame($newer, TemplateResolver::instance()->resolve('404'), 'Older 404 id ' . $older . ' must lose to the newer one.');
     }
 
     public function testPopupsStillCollectEveryMatchingItem(): void
     {
+        $everywhere = $this->documents->create('Precedence popup without conditions', 'popup', 'publish');
+
         $site_wide = $this->documents->create('Precedence popup site wide', 'popup', 'publish');
         $this->conditions->save($site_wide, [['type' => 'general/entire_site', 'value' => '', 'operator' => 'include']]);
 
@@ -269,5 +290,6 @@ final class TemplatePrecedenceTest extends IntegrationTestCase
 
         self::assertContains($site_wide, $matched, 'Collect-all must not be filtered by specificity.');
         self::assertContains($specific, $matched);
+        self::assertContains($everywhere, $matched, 'A popup without conditions keeps displaying everywhere.');
     }
 }

@@ -26,4 +26,9 @@ class HeaderDocument extends ChromeDocument
     {
         return esc_html__('Headers', 'elemacy');
     }
+
+    public static function get_side(): string
+    {
+        return 'header';
+    }
 }

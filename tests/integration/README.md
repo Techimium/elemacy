@@ -78,8 +78,9 @@ Run `node tests/e2e/run-editor-template-styles.mjs` to open a page in the real E
 Use a disposable site only. With `ELEMACY_TEST_ENV` pointing to its manifest, run:
 
 ```bash
+wp --path=/tmp/elemacy-integration-<token>/wordpress --skip-plugins --skip-themes eval-file tests/integration/fixtures/uninstall-current-site.php free-retain
 wp --path=/tmp/elemacy-integration-<token>/wordpress --skip-plugins --skip-themes eval-file tests/integration/fixtures/uninstall-current-site.php free
 wp --path=/tmp/elemacy-integration-<token>/wordpress --skip-plugins --skip-themes eval-file tests/integration/fixtures/uninstall-current-site.php pro
 ```
 
-These intentionally execute uninstall against the guarded disposable database, delete plugin-owned fixtures/settings, and verify native related-object cleanup, caches, ownership, and batches exceeding 100 records. Neither plugin runtime is loaded. Provision a separate network with `setup.py --multisite` and run `fixtures/uninstall-network.php` through the same WP-CLI command for 105 native sites, injected failure, continuation, retry and context restoration. Its owned sites are removed in `finally`; a temporary ownership manifest supports diagnosis after process interruption.
+Each runs in its own process. `free-retain` uninstalls Free without `ELEMACY_REMOVE_ALL_DATA` and verifies every document, metadata row and option is kept; `free`, `pro` and the network fixture define it, as a site opting in to removal does. These intentionally execute uninstall against the guarded disposable database, delete plugin-owned fixtures/settings, and verify native related-object cleanup, caches, ownership, and batches exceeding 100 records. Neither plugin runtime is loaded. Provision a separate network with `setup.py --multisite` and run `fixtures/uninstall-network.php` through the same WP-CLI command for 105 native sites, injected failure, continuation, retry and context restoration. Its owned sites are removed in `finally`; a temporary ownership manifest supports diagnosis after process interruption.

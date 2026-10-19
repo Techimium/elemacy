@@ -33,6 +33,23 @@ class ConditionRuleDTO extends DTO
     }
 
     /**
+     * Whether $rules name at least one place to display, as opposed to only
+     * places not to.
+     *
+     * @param self[] $rules
+     */
+    public static function any_include(array $rules): bool
+    {
+        foreach ($rules as $rule) {
+            if ($rule->is_include()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array{id: string, type: string, operator: string, value: string}
      */
     public function to_array(): array

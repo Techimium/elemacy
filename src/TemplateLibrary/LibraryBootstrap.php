@@ -11,9 +11,9 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
 
 /**
  * Wires the always-on parts of the template library: the CPT, the built-in
- * library types, the per-request candidate-cache invalidation, the one-time
- * data migration, and keeping the library CPT out of display-condition target
- * lists.
+ * library types, the per-request candidate-cache invalidation, keeping library
+ * items' own URLs private, and keeping the library CPT out of
+ * display-condition target lists.
  */
 class LibraryBootstrap
 {
@@ -35,6 +35,7 @@ class LibraryBootstrap
 
         $this->register_types();
         $this->register_cache_invalidation();
+        $this->keep_items_private();
         $this->exclude_from_conditions();
     }
 
@@ -61,10 +62,10 @@ class LibraryBootstrap
 
     /**
      * The candidate index (ResolverCache) and the per-request evaluation
-     * memo built on top of it (TemplateResolver) are separate layers (task
-     * 11.2/11.3, ): a write invalidates both, but a bare site
-     * switch only needs to reset both back to empty, not delete/rebuild the
-     * persisted index of a site that never actually changed.
+     * memo built on top of it (TemplateResolver) are separate layers: a write
+     * invalidates both, but a bare site switch only needs to reset both back
+     * to empty, not delete/rebuild the persisted index of a site that never
+     * actually changed.
      */
     protected function register_cache_invalidation(): void
     {
@@ -123,6 +124,36 @@ class LibraryBootstrap
         });
 
         RequestState::register(TemplateResolver::class, [TemplateResolver::class, 'reset']);
+    }
+
+    /**
+     * A library item's own URL exists for Elementor's editor and previews,
+     * which only someone who can edit the item opens. For anyone else the
+     * main query finds nothing there, so WordPress serves its own not-found
+     * page (status, template and all) and no theme loop can print the item.
+     * No one's view of it is indexed. Rendering items inside pages, which
+     * never goes through the main query, is unaffected.
+     */
+    protected function keep_items_private(): void
+    {
+        add_filter('posts_results', static function ($posts, $query) {
+            if (!is_array($posts) || !$query instanceof \WP_Query || !$query->is_main_query() || is_admin()) {
+                return $posts;
+            }
+
+            return array_values(array_filter($posts, static fn($post): bool => !$post instanceof \WP_Post
+                || LibraryPostType::POST_TYPE !== $post->post_type
+                || current_user_can('edit_post', $post->ID)));
+        }, 10, 2);
+
+        add_filter('wp_robots', static function ($robots) {
+            if (is_array($robots) && is_singular(LibraryPostType::POST_TYPE)) {
+                $robots['noindex']  = true;
+                $robots['nofollow'] = true;
+            }
+
+            return $robots;
+        });
     }
 
     /**

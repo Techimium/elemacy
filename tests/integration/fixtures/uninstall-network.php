@@ -41,6 +41,7 @@ try {
     }
     $failing_site = $sites[4];
     define('WP_UNINSTALL_PLUGIN', 'elemacy/elemacy.php');
+    define('ELEMACY_REMOVE_ALL_DATA', true);
     foreach (['elemacy', 'elemacy-pro'] as $plugin) {
         $prefix = $plugin === 'elemacy' ? 'elemacy' : 'elemacy_pro';
         $key = $prefix . '_uninstall_network_owned';

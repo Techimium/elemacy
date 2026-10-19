@@ -79,7 +79,9 @@
       "source": "src/Conditions/Archive/PostType.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:archive-conditions"
+      ],
       "journey": {
         "id": "elemacy:journey:condition:archive/post_type",
         "status": "pending",
@@ -150,7 +152,9 @@
       "source": "src/Conditions/General/EntireSite.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:template-precedence"
+      ],
       "journey": {
         "id": "elemacy:journey:condition:general/entire_site",
         "status": "pending",
@@ -367,7 +371,9 @@
       "source": "src/Conditions/Singular/PostType.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:template-precedence"
+      ],
       "journey": {
         "id": "elemacy:journey:condition:singular/post_type",
         "status": "pending",
@@ -811,7 +817,10 @@
       "source": "src/Modules/ThemeBuilder/ThemeBuilder.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:library-persistence",
+        "elemacy:integration:elementor-pro-coexistence"
+      ],
       "journey": {
         "id": "elemacy:journey:module:theme-builder",
         "status": "pending",
@@ -2516,7 +2525,9 @@
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
-        "elemacy:integration:location-layouts"
+        "elemacy:integration:location-layouts",
+        "elemacy:integration:template-precedence",
+        "elemacy:integration:chrome-documents"
       ],
       "journey": {
         "id": "elemacy:journey:template:404",
@@ -2575,7 +2586,9 @@
       "coverage": [
         "elemacy:integration:native-chrome-replacement",
         "elemacy:integration:real-theme-chrome",
-        "elemacy:integration:theme-hook-cleaner"
+        "elemacy:integration:theme-hook-cleaner",
+        "elemacy:integration:chrome-documents",
+        "elemacy:integration:elementor-pro-coexistence"
       ],
       "journey": {
         "id": "elemacy:journey:template:footer",
@@ -2604,7 +2617,11 @@
       "coverage": [
         "elemacy:integration:native-chrome-replacement",
         "elemacy:integration:real-theme-chrome",
-        "elemacy:integration:theme-hook-cleaner"
+        "elemacy:integration:theme-hook-cleaner",
+        "elemacy:integration:template-precedence",
+        "elemacy:integration:chrome-documents",
+        "elemacy:integration:location-layouts",
+        "elemacy:integration:elementor-pro-coexistence"
       ],
       "journey": {
         "id": "elemacy:journey:template:header",
@@ -2713,7 +2730,8 @@
       "coverage": [
         "elemacy:integration:location-layouts",
         "elemacy:runner:run",
-        "elemacy:integration:query-pickers"
+        "elemacy:integration:query-pickers",
+        "elemacy:integration:elementor-pro-coexistence"
       ],
       "journey": {
         "id": "elemacy:journey:template:single",
@@ -3297,6 +3315,16 @@
       "path": "tests/integration/search-template-conditions.php"
     },
     {
+      "id": "elemacy:integration:archive-conditions",
+      "layer": "native-integration",
+      "path": "tests/integration/archive-conditions.php"
+    },
+    {
+      "id": "elemacy:integration:condition-search",
+      "layer": "native-integration",
+      "path": "tests/integration/condition-search.php"
+    },
+    {
       "id": "elemacy:integration:query-pickers",
       "layer": "native-integration",
       "path": "tests/integration/query-pickers.php"
@@ -3395,6 +3423,11 @@
       "id": "elemacy:integration:location-layouts",
       "layer": "native-integration",
       "path": "tests/integration/location-layouts.php"
+    },
+    {
+      "id": "elemacy:integration:elementor-pro-coexistence",
+      "layer": "native-integration",
+      "path": "tests/integration/elementor-pro-coexistence.php"
     },
     {
       "id": "elemacy:integration:theme-hook-cleaner",

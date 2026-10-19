@@ -26,4 +26,9 @@ class FooterDocument extends ChromeDocument
     {
         return esc_html__('Footers', 'elemacy');
     }
+
+    public static function get_side(): string
+    {
+        return 'footer';
+    }
 }

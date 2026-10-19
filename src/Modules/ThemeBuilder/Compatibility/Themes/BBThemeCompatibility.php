@@ -12,6 +12,7 @@ class BBThemeCompatibility implements ThemeCompatibilityInterface
     public function register(ThemeBuilderManager $manager): void
     {
         if ($manager->replaces_native_chrome('header')) {
+            $manager->keep_theme_landmark('header');
             add_filter('fl_header_enabled', '__return_false');
             add_action('fl_before_header', function () use ($manager) {
                 if (class_exists('FLTheme') && method_exists('FLTheme', 'get_setting')) {
@@ -28,6 +29,7 @@ class BBThemeCompatibility implements ThemeCompatibilityInterface
         }
 
         if ($manager->replaces_native_chrome('footer')) {
+            $manager->keep_theme_landmark('footer');
             add_filter('fl_footer_enabled', '__return_false');
             add_action('fl_after_content', function () use ($manager) {
                 if (is_page_template('tpl-no-header-footer.php')) {

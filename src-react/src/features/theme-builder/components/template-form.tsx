@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { __ } from "@wordpress/i18n"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,23 +20,36 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ConditionsField } from "@/components/conditions/conditions-field"
-import { CreateTemplateSchema, type CreateTemplate, type UpdateTemplate } from "@/features/theme-builder/schemas/template"
+import { newConditionRuleId, type ConditionRule } from "@/schemas/condition"
+import {
+    CreateTemplateSchema,
+    UpdateTemplateSchema,
+    isSettableStatus,
+    statusLabel,
+    type TemplateType,
+    type UpdateTemplate,
+} from "@/features/theme-builder/schemas/template"
 import { useTemplateTypes } from "@/features/theme-builder/services/template"
 
 interface TemplateFormProps {
-    defaultValues?: CreateTemplate
+    /** An existing template's values; omitted when creating one. */
+    defaultValues?: UpdateTemplate
     /** Primary save action (e.g. create / update, then close). */
-    onSubmit: (values: CreateTemplate | UpdateTemplate) => Promise<void>
+    onSubmit: (values: UpdateTemplate) => Promise<void>
     /**
      * Optional secondary action that saves the form, then opens the Elementor
      * editor. When provided, a "Save & Edit with Elementor" button is shown.
      */
-    onSaveAndEdit?: (values: CreateTemplate | UpdateTemplate) => Promise<void>
+    onSaveAndEdit?: (values: UpdateTemplate) => Promise<void>
     submitLabel?: string
     saveAndEditLabel?: string
 }
 
+const withIds = (type: TemplateType): ConditionRule[] =>
+    type.default_conditions.map((rule) => ({ id: newConditionRuleId(), ...rule }))
+
 export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLabel, saveAndEditLabel }: TemplateFormProps) {
+    const creating = !defaultValues;
     const displaySubmitLabel = submitLabel || __('Create Template', 'elemacy');
     const displaySaveAndEditLabel = saveAndEditLabel || __('Save & Edit with Elementor', 'elemacy');
     const { data: templateTypes = [], isLoading: isLoadingTypes } = useTemplateTypes();
@@ -46,15 +59,31 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
     const [pending, setPending] = useState<null | 'save' | 'edit'>(null);
     const busy = pending !== null;
 
-    const form = useForm<CreateTemplate>({
-        resolver: zodResolver(CreateTemplateSchema),
+    const form = useForm<UpdateTemplate>({
+        resolver: zodResolver(creating ? CreateTemplateSchema : UpdateTemplateSchema),
         defaultValues: defaultValues || {
             title: "",
             type: "header",
-            status: "publish",
+            // Nothing goes live on creation unless the author asks for it.
+            status: "draft",
             conditions: [],
         }
     })
+
+    const type = form.watch('type');
+    const typeDefinition = templateTypes.find((t) => t.value === type);
+    const targetsLocation = typeDefinition?.targeting === 'location';
+    const storedStatus = defaultValues?.status;
+
+    // A new template starts from its type's broadest condition (Entire Site for
+    // a header) and follows the type until the author edits the rules. Rules
+    // the builder drops because the new type does not offer them are not an
+    // edit; they arrive through onPrune.
+    const edited = useRef(!creating);
+    useEffect(() => {
+        if (!typeDefinition || edited.current) return;
+        form.setValue('conditions', withIds(typeDefinition));
+    }, [typeDefinition, form]);
 
     const runSave = form.handleSubmit(async (values) => {
         setPending('save');
@@ -133,28 +162,42 @@ export function TemplateForm({ defaultValues, onSubmit, onSaveAndEdit, submitLab
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="publish">{__('Published', 'elemacy')}</SelectItem>
-                                    <SelectItem value="draft">{__('Draft', 'elemacy')}</SelectItem>
+                                    <SelectItem value="publish">{statusLabel('publish')}</SelectItem>
+                                    <SelectItem value="draft">{statusLabel('draft')}</SelectItem>
+                                    {storedStatus && !isSettableStatus(storedStatus) && (
+                                        <SelectItem value={storedStatus}>{statusLabel(storedStatus)}</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="conditions"
-                    render={({ field }) => (
-                        <FormItem>
-                            <ConditionsField
-                                value={field.value ?? []}
-                                onChange={field.onChange}
-                                templateType={form.watch('type')}
-                            />
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {targetsLocation ? (
+                    <p className="text-sm text-muted-foreground">
+                        {__('A 404 template has no display conditions: once published, it is used for every page that is not found.', 'elemacy')}
+                    </p>
+                ) : (
+                    <FormField
+                        control={form.control}
+                        name="conditions"
+                        render={({ field }) => (
+                            <FormItem>
+                                <ConditionsField
+                                    value={field.value ?? []}
+                                    onChange={(rules) => {
+                                        edited.current = true;
+                                        field.onChange(rules);
+                                    }}
+                                    onPrune={field.onChange}
+                                    templateType={type}
+                                    emptyMessage={__('No conditions — this template is not displayed anywhere. Add one to choose where it appears.', 'elemacy')}
+                                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <div className="flex flex-col gap-3 sm:flex-row">
                     <Button type="submit" disabled={busy} className="flex-1">
                         {pending === 'save' ? __('Saving...', 'elemacy') : displaySubmitLabel}

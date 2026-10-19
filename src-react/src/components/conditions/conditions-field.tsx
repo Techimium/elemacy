@@ -10,16 +10,20 @@ interface ConditionsFieldProps {
     context?: string;
     /** e.g. `header` — sent as `template_type` to the condition-types query. */
     templateType?: string;
+    /** What having no rules means here; see ConditionBuilder. */
+    emptyMessage?: string;
+    /** Rules dropped automatically, not by the author; see ConditionBuilder. */
+    onPrune?: (value: ConditionRule[]) => void;
 }
 
-export function ConditionsField({ value, onChange, context, templateType }: ConditionsFieldProps) {
+export function ConditionsField({ value, onChange, context, templateType, emptyMessage, onPrune }: ConditionsFieldProps) {
     const { data: groups = [], isSuccess } = useConditionTypes({ context, templateType });
     const noneApply = isSuccess && groups.length === 0;
 
     const valueRef = useRef(value);
-    const onChangeRef = useRef(onChange);
+    const onPruneRef = useRef(onPrune ?? onChange);
     valueRef.current = value;
-    onChangeRef.current = onChange;
+    onPruneRef.current = onPrune ?? onChange;
 
     // The builder drops rules a type does not offer, but it is not mounted
     // when no condition applies at all, so a rule added under one template
@@ -30,7 +34,7 @@ export function ConditionsField({ value, onChange, context, templateType }: Cond
         const current = valueRef.current ?? [];
         const kept = current.filter((r) => r.availability && !r.availability.available);
         if (kept.length !== current.length) {
-            onChangeRef.current(kept);
+            onPruneRef.current(kept);
         }
     }, [noneApply, templateType, context]);
 
@@ -47,6 +51,8 @@ export function ConditionsField({ value, onChange, context, templateType }: Cond
             onChange={onChange}
             context={context}
             templateType={templateType}
+            emptyMessage={emptyMessage}
+            onPrune={onPrune}
         />
     );
 }

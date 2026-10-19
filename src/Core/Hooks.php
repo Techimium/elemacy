@@ -57,7 +57,6 @@ final class Hooks
     public const WIDGETS_REGISTER_FILTER = 'elemacy/filter/widgets/register';
 
     // Theme Builder.
-    public const THEME_BUILDER_TEMPLATE_TYPES_FILTER  = 'elemacy/filter/theme_builder/template_types';
 
     // Whether the active theme's own header or footer is replaced this request,
     // by whichever adapter serves the theme (passes true and the side,

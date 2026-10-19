@@ -69,7 +69,7 @@ try {
             ]]);
             $owned_posts[] = $template;
 
-            $archive = $documents->create('Current query archive ' . $suffix, 'archive', 'publish', [[
+            $archive = $documents->create_everywhere('Current query archive ' . $suffix, 'archive', 'publish', [[
                 'id' => 'ecq1001', 'elType' => 'container', 'settings' => [],
                 'elements' => [[
                     'id' => 'ecq1002', 'elType' => 'widget', 'widgetType' => 'elemacy-loop-grid',
@@ -83,7 +83,7 @@ try {
             $owned_posts[] = $archive;
 
             // The same loop in a Search Results template, for the search journey.
-            $search = $documents->create('Current query search ' . $suffix, 'search', 'publish', [[
+            $search = $documents->create_everywhere('Current query search ' . $suffix, 'search', 'publish', [[
                 'id' => 'ecq3001', 'elType' => 'container', 'settings' => [],
                 'elements' => [[
                     'id' => 'ecq3002', 'elType' => 'widget', 'widgetType' => 'elemacy-loop-grid',

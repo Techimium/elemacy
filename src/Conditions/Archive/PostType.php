@@ -32,6 +32,12 @@ class PostType extends BaseCondition
         return Specificity::narrowed($rule->value, Specificity::TYPE, Specificity::SECTION);
     }
 
+    /**
+     * Decided from the request alone, never from the posts it lists, so an
+     * empty archive matches as a full one does. A post type's archives are
+     * its own archive (the blog index for Posts), the archive of any
+     * taxonomy registered for it, and, for Posts, date and author archives.
+     */
     public function check(ConditionRuleDTO $rule): bool
     {
         $value = $rule->value;
@@ -40,11 +46,23 @@ class PostType extends BaseCondition
             return is_archive() || is_home();
         }
 
-        if ($value === 'post') {
-            return is_home() || (is_archive() && get_post_type() === 'post');
+        if ($value === 'post' && (is_home() || is_date() || is_author())) {
+            return true;
         }
 
-        return is_post_type_archive($value);
+        return is_post_type_archive($value) || $this->is_taxonomy_archive_of($value);
+    }
+
+    private function is_taxonomy_archive_of(string $post_type): bool
+    {
+        if (!is_category() && !is_tag() && !is_tax()) {
+            return false;
+        }
+
+        $term = get_queried_object();
+        $taxonomy = $term instanceof \WP_Term ? get_taxonomy($term->taxonomy) : false;
+
+        return $taxonomy && in_array($post_type, (array) $taxonomy->object_type, true);
     }
 
     public function get_sub_values(): array

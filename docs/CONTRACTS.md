@@ -144,13 +144,24 @@ Every built-in tag is registered under a name starting with `elemacy-`, because 
 | `block` | `loop` | `elemacy_loop` |
 | `theme` | `header` | `elemacy_header` |
 | `theme` | `footer` | `elemacy_footer` |
-| `theme` | `404` | `wp-page` fallback |
+| `theme` | `404` | `elemacy_404` |
 | `theme` | `single` | `elemacy_single` |
 | `theme` | `archive` | `elemacy_archive` |
 | `theme` | `search` | `elemacy_search` |
 | `popup` | `popup`, `topbar`, `banner`, `floating` | `elemacy_popup` |
 
-Each type's Elementor document class is declared on its `TypeDefinition`; `TemplateLibrary\DocumentWriter` writes `_elementor_template_type` from it, and every popup type resolves to the single `elemacy_popup` document. Theme content-location order is `404` (5), `single` (10), `search` (15), `archive` (20); header and footer are separate placements.
+Each type's Elementor document class is declared on its `TypeDefinition`; `TemplateLibrary\DocumentWriter` writes `_elementor_template_type` from it, and every popup type resolves to the single `elemacy_popup` document. Every Theme Builder type has a document of its own. Theme content-location order is `404` (5), `single` (10), `search` (15), `archive` (20); header and footer are separate placements. Add-ons add a Theme Builder type by registering a `TypeDefinition` in the `theme` group (on `LIBRARY_TYPES_REGISTER_ACTION`); that registry is what the type picker lists and what saving validates against.
+
+### Theme template targeting
+
+A `TypeDefinition`'s `targeting` decides how its single winning template is chosen, and is part of the contract:
+
+- `conditions` (Header, Footer, Single, Archive, Search, and the default for an add-on type): a published template displays only where one of its inclusion rules matches and none of its exclusion rules does. A template with no inclusion rule — none at all, or only exclusions — displays nowhere; "everywhere" is the explicit broadest condition (`general/entire_site`, `singular/post_type` or `archive/post_type` with no value, `search/all`), which the type's `default_conditions` pre-fill for a new template. A rule naming an unavailable condition suspends the template.
+- `location` (404): the type offers no conditions, and the newest published template covers every request of its location.
+
+Among matching templates the most specific wins; within one level of specificity, the newest by publish date, then the higher post id. That tie-break is stable. Popups are collect-all and keep their own semantics: a popup with no conditions displays everywhere.
+
+The ChromeDocument setting `elemacy_html_tag` (`div`, `header`, `footer`, `main`, `section`, `aside`, `nav`, `article`; default `header`/`footer`) names the element a Header or Footer renders in. Where a theme adapter declares the theme keeps its own landmark around the template (`ThemeBuilderManager::keep_theme_landmark()`), a `header`/`footer` choice renders as `div` so landmarks never nest.
 
 ## Popup targeting and display settings
 
@@ -166,7 +177,7 @@ The following `DisplayKeys` values are stored in Elementor page settings and con
 
 Responsive variants and legacy display settings must continue following `DocumentDisplay` and the existing popup positioning spec. `elemacy_animation_in/out` here belong to native popup transitions, not the excluded Animations module.
 
-Condition identifiers come from `src/Conditions/*/get_name()` and Pro's matching implementations: `general/entire_site`, `general/front_page`, `general/not_found`, `general/search_results`, `general/blog`, `singular/post_type`, `singular/by_author`, `singular/specific_post`, `singular/child_of`, `archive/post_type`, `archive/all`, `archive/date`, `archive/author`, plus `singular/in_tax/{taxonomy}` and `archive/tax/{taxonomy}` for registered taxonomies. Preserve the full path when a predicate moves or is unavailable; do not replace an unknown condition with an empty list.
+Condition identifiers come from `src/Conditions/*/get_name()` and Pro's matching implementations: `general/entire_site`, `general/front_page`, `general/not_found`, `general/search_results`, `general/blog`, `singular/post_type`, `singular/by_author`, `singular/specific_post`, `singular/child_of`, `archive/post_type`, `archive/all`, `archive/date`, `archive/author`, `search/all`, `search/post_type`, plus `singular/in_tax/{taxonomy}` and `archive/tax/{taxonomy}` for registered taxonomies. `tests/architecture/persisted-identifiers.php` guards each one. Preserve the full path when a predicate moves or is unavailable; do not replace an unknown condition with an empty list.
 
 ## HTTP endpoints
 
@@ -219,7 +230,6 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `ENQUEUE_ADMIN_SCRIPTS_ACTION` | `elemacy/action/enqueue_admin_scripts` |
 | `FRONTEND_SCRIPT_DATA_FILTER` | `elemacy/filter/frontend_script_data` |
 | `WIDGETS_REGISTER_FILTER` | `elemacy/filter/widgets/register` |
-| `THEME_BUILDER_TEMPLATE_TYPES_FILTER` | `elemacy/filter/theme_builder/template_types` |
 | `THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER` | `elemacy/filter/theme_builder/suppress_native_chrome` |
 | `THEME_BUILDER_LOCATIONS_REGISTER_ACTION` | `elemacy/action/theme_builder/locations/register` |
 | `THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION` | `elemacy/action/theme_builder/compatibility/register` |
@@ -238,6 +248,8 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `elemacy/action/popups/triggers/register` |
 | `POPUP_RULES_REGISTER_ACTION` | `elemacy/action/popups/rules/register` |
 | `DYNAMIC_TAGS_REGISTER_ACTION` | `elemacy/action/dynamic_tags/register` |
+
+The pre-1.0 `elemacy/filter/theme_builder/template_types` filter is retired: it only changed the type picker, and a type added through it could not be saved. Register a `TypeDefinition` instead.
 
 ### Opting a theme out of native chrome replacement
 

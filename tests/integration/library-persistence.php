@@ -14,6 +14,7 @@ use Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Http\Route;
 use Elemacy\Core\Hooks;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\DocumentDuplicator;
@@ -22,6 +23,8 @@ use Elemacy\TemplateLibrary\DTO\CreateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryRepository;
+use Elemacy\TemplateLibrary\ResolverCache;
+use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
@@ -856,6 +859,165 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         self::assertNull($service->get($duplicate->id), 'A deleted theme template must no longer be readable.');
     }
 
+    /**
+     * This process's REST server with Elemacy's routes on it. Elementor's
+     * internal Data API (Data\V2\Manager::run_server()) replaces the server
+     * with one built after remove_all_actions('rest_api_init') whenever it
+     * generates CSS that reads Kit globals, as an earlier test in this
+     * long-lived process can. A real REST request is its own process and
+     * never meets that server, so the routes are registered here as
+     * HttpBootstrap does on rest_api_init.
+     */
+    private function elemacy_rest(): \WP_REST_Server
+    {
+        $server = rest_get_server();
+
+        if (!isset($server->get_routes()['/elemacy/theme-builder/templates'])) {
+            foreach (Route::get_routes() as $route) {
+                $route->register();
+            }
+        }
+
+        return $server;
+    }
+
+    private function put_template(int $id, array $body): \WP_REST_Response
+    {
+        $request = new \WP_REST_Request('PUT', '/elemacy/theme-builder/templates/' . $id);
+        $request->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(wp_json_encode($body));
+
+        return $this->elemacy_rest()->dispatch($request);
+    }
+
+    /** @return array<int, array<string, mixed>> Listed templates by id. */
+    private function list_templates(): array
+    {
+        $request = new \WP_REST_Request('GET', '/elemacy/theme-builder/templates');
+        $request->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
+        $request->set_query_params(['per_page' => 100]);
+        $response = $this->elemacy_rest()->dispatch($request);
+        self::assertSame(200, $response->get_status(), wp_json_encode($response->get_data()));
+
+        $listed = [];
+        foreach ((array) ($response->get_data()['data']['results'] ?? []) as $item) {
+            if (is_array($item) && isset($item['id'])) {
+                $listed[(int) $item['id']] = $item;
+            }
+        }
+
+        return $listed;
+    }
+
+    /** A header created through the admin service with $rules ([type, operator?, value?]), published. */
+    private function listed_header(string $title, array $rules): int
+    {
+        $created = Container::instance()->make(TemplateService::class)->create(CreateTemplateDTO::from_array([
+            'title' => $title,
+            'type' => 'header',
+            'status' => 'publish',
+            'conditions' => array_map(static fn(array $rule): array => [
+                'id' => 'r-' . wp_generate_uuid4(), 'type' => $rule[0], 'operator' => $rule[1] ?? 'include', 'value' => $rule[2] ?? '',
+            ], $rules),
+        ]));
+
+        return $this->own($created->id);
+    }
+
+    public function testTheTemplateListSaysWhereEachTemplateDisplays(): void
+    {
+        $older = $this->listed_header('Display older site-wide', [['general/entire_site']]);
+        $none = $this->listed_header('Display nowhere', []);
+        $suspended = $this->listed_header('Display suspended', [['general/entire_site'], ['fixture/not-registered', 'exclude']]);
+        $newer = $this->listed_header('Display newer site-wide', [['general/entire_site']]);
+        (new ResolverCache())->invalidate();
+
+        $listed = $this->list_templates();
+
+        self::assertSame('displayed', $listed[$newer]['display']['state']);
+        self::assertSame(['Entire Site'], $listed[$newer]['display']['summary']);
+        self::assertNull($listed[$newer]['display']['overridden_by']);
+        self::assertSame(['id' => $newer, 'title' => 'Display newer site-wide'], $listed[$older]['display']['overridden_by'], 'The older Entire Site header is overridden by the newer one.');
+        self::assertSame('not_displayed', $listed[$none]['display']['state']);
+        self::assertSame('suspended', $listed[$suspended]['display']['state']);
+        self::assertSame(['fixture/not-registered'], $listed[$suspended]['display']['unavailable']);
+    }
+
+    public function testListingTemplatesWithTheirDisplayStateCostsTheSameQueriesWhateverTheirNumber(): void
+    {
+        global $wpdb;
+
+        $count = function () use ($wpdb): int {
+            (new ResolverCache())->invalidate();
+            $this->list_templates();
+            $before = $wpdb->num_queries;
+            TemplateResolver::reset();
+            $this->list_templates();
+
+            return $wpdb->num_queries - $before;
+        };
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->listed_header('Display cost ' . $i, [['general/entire_site']]);
+        }
+        $few = $count();
+
+        for ($i = 3; $i < 9; $i++) {
+            $this->listed_header('Display cost ' . $i, [['general/entire_site']]);
+        }
+
+        self::assertSame($few, $count(), 'Describing each listed template adds no per-template query.');
+    }
+
+    public function testAThemeTemplateCreatedWithoutAStatusIsADraft(): void
+    {
+        $created = Container::instance()->make(TemplateService::class)->create(CreateTemplateDTO::from_array(['title' => 'Theme default status', 'type' => 'header']));
+        $this->own($created->id);
+
+        self::assertSame('draft', get_post_status($created->id), 'A new template is never live until it is published.');
+    }
+
+    public function testTheTemplateEndpointsSetOnlyPublishOrDraftAndKeepAStatusTheyWereNotGiven(): void
+    {
+        $created = Container::instance()->make(TemplateService::class)->create(CreateTemplateDTO::from_array(['title' => 'Theme scheduled', 'type' => 'header', 'status' => 'draft']));
+        $this->own($created->id);
+        wp_update_post(['ID' => $created->id, 'post_status' => 'future', 'post_date' => gmdate('Y-m-d H:i:s', time() + WEEK_IN_SECONDS), 'edit_date' => true]);
+        self::assertSame('future', get_post_status($created->id), 'Sanity: the template is scheduled.');
+
+        // As the admin form sends it: title and conditions, no type and no status.
+        $renamed = $this->put_template($created->id, ['id' => $created->id, 'title' => 'Theme scheduled renamed', 'conditions' => []]);
+        self::assertSame(200, $renamed->get_status(), 'An update without type or status is accepted: ' . wp_json_encode($renamed->get_data()));
+        self::assertSame('Theme scheduled renamed', get_the_title($created->id));
+        self::assertSame('future', get_post_status($created->id), 'A status the request did not set is kept.');
+
+        $trashed = $this->put_template($created->id, ['id' => $created->id, 'title' => 'Theme scheduled renamed', 'conditions' => [], 'status' => 'trash']);
+        self::assertSame(422, $trashed->get_status(), 'Trash is not a status the template form sets.');
+        self::assertSame('future', get_post_status($created->id), 'A rejected update changes nothing.');
+    }
+
+    public function testSavingTemplateDetailsKeepsThePageLayoutTheAuthorChose(): void
+    {
+        $service = Container::instance()->make(TemplateService::class);
+        $created = $service->create(CreateTemplateDTO::from_array(['title' => 'Theme layout', 'type' => 'single', 'status' => 'draft']));
+        $this->own($created->id);
+        self::assertSame('elementor_header_footer', get_post_meta($created->id, '_wp_page_template', true), 'Sanity: a content location starts at its default layout.');
+
+        update_post_meta($created->id, '_wp_page_template', 'elementor_canvas');
+        $service->update($created->id, UpdateTemplateDTO::from_array(['id' => $created->id, 'title' => 'Theme layout renamed', 'type' => 'single']));
+        self::assertSame('elementor_canvas', get_post_meta($created->id, '_wp_page_template', true), 'Renaming keeps Canvas.');
+
+        update_post_meta($created->id, '_wp_page_template', 'default');
+        $service->update($created->id, UpdateTemplateDTO::from_array(['id' => $created->id, 'title' => 'Theme layout renamed', 'type' => 'archive']));
+        self::assertSame('default', get_post_meta($created->id, '_wp_page_template', true), 'Single to Archive keeps the chosen layout.');
+
+        $service->update($created->id, UpdateTemplateDTO::from_array(['id' => $created->id, 'title' => 'Theme layout renamed', 'type' => 'header']));
+        self::assertSame('elementor_canvas', get_post_meta($created->id, '_wp_page_template', true), 'A content location turned into a header gets the chrome default.');
+
+        $service->update($created->id, UpdateTemplateDTO::from_array(['id' => $created->id, 'title' => 'Theme layout renamed', 'type' => 'single']));
+        self::assertSame('elementor_header_footer', get_post_meta($created->id, '_wp_page_template', true), 'A header turned into a content location gets the content default.');
+    }
+
     public function testFullCrudAndDuplicateCycleForPopups(): void
     {
         $service = Container::instance()->make(PopupService::class);
@@ -897,7 +1059,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
         self::assertSame('elemacy_footer', (Container::instance()->make(DocumentWriter::class))->document_type('footer'));
         self::assertSame('elemacy_single', (Container::instance()->make(DocumentWriter::class))->document_type('single'));
         self::assertSame('elemacy_archive', (Container::instance()->make(DocumentWriter::class))->document_type('archive'));
-        self::assertSame('wp-page', (Container::instance()->make(DocumentWriter::class))->document_type('404'));
+        self::assertSame('elemacy_404', (Container::instance()->make(DocumentWriter::class))->document_type('404'));
         self::assertSame('elemacy_search', (Container::instance()->make(DocumentWriter::class))->document_type('search'));
         self::assertSame(PopupService::DOCUMENT_TYPE, 'elemacy_popup');
     }

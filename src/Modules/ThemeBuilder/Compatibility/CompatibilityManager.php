@@ -31,6 +31,13 @@ class CompatibilityManager
     /** @var array<string, class-string<ThemeCompatibilityInterface>> */
     protected array $adapters = [];
 
+    /**
+     * The adapter serving this request, once booted.
+     *
+     * @var ThemeCompatibilityInterface|null
+     */
+    protected ?ThemeCompatibilityInterface $active = null;
+
     public static function instance()
     {
         if (is_null(static::$instance)) {
@@ -61,6 +68,7 @@ class CompatibilityManager
 
     public function boot(): void
     {
+        $this->active = null;
         $manager = ThemeBuilderManager::instance();
 
         $has_header = $manager->replaces_native_chrome('header');
@@ -84,7 +92,24 @@ class CompatibilityManager
             return;
         }
 
+        $this->active = $compat;
         $compat->register($manager);
+
+        // A block theme renders its chrome as template parts, but a classic
+        // PHP template served on it — Elementor's Full Width layout calls
+        // get_header()/get_footer() — would load WordPress's deprecated
+        // theme-compat header and footer instead. The generic adapter
+        // replaces those as it does for any theme without header.php; the
+        // render-once guard keeps each side single whichever path prints it.
+        if ($compat instanceof BlockThemeCompatibility && class_exists(ClassicThemeCompatibility::class)) {
+            (new ClassicThemeCompatibility())->register($manager);
+        }
+    }
+
+    /** The adapter replacing native chrome on this request, or null when none does. */
+    public function active(): ?ThemeCompatibilityInterface
+    {
+        return $this->active;
     }
 
     /**

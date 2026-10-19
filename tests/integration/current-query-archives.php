@@ -213,7 +213,7 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
     {
         $f = $this->fixture;
         $stale = ['data_source' => 'posts', 'post_type' => 'current_query'] + $f['settings'];
-        $host = $this->documents->create('Stale ' . $f['token'], 'archive', 'publish', $this->grid($stale));
+        $host = $this->documents->create_everywhere('Stale ' . $f['token'], 'archive', 'publish', $this->grid($stale));
         $this->request->visit(get_term_link($f['cat_a']));
 
         try {
@@ -377,8 +377,8 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
             'data_source' => 'current_query', 'template_id' => $loop,
             'pagination_type' => 'numbers', 'pagination_ajax' => 'yes',
         ];
-        $archive = $this->documents->create('Archive ' . $suffix, 'archive', 'publish', $this->grid($settings));
-        $search = $this->documents->create('Search ' . $suffix, 'search', 'publish', $this->grid($settings));
+        $archive = $this->documents->create_everywhere('Archive ' . $suffix, 'archive', 'publish', $this->grid($settings));
+        $search = $this->documents->create_everywhere('Search ' . $suffix, 'search', 'publish', $this->grid($settings));
 
         $page = Plugin::instance()->documents->create('wp-page', [
             'post_type' => 'page', 'post_title' => 'Host ' . $suffix, 'post_status' => 'draft',

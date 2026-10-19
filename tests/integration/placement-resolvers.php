@@ -84,7 +84,7 @@ final class PlacementResolversTest extends IntegrationTestCase
 
     public function testThemeBuilderArchiveResolvesToItsLocationOnly(): void
     {
-        $archive = $this->documents->create('Archive fixture', 'archive');
+        $archive = $this->documents->create_everywhere('Archive fixture', 'archive');
         $resolver = new ThemeBuilderPlacementResolver();
         $this->request->visit(get_term_link($this->catalog['term']));
 
