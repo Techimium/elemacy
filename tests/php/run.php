@@ -64,6 +64,7 @@ use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
+use Elemacy\Modules\Popups\Resources\PopupResource;
 use Elemacy\Modules\Popups\Resources\RuleTypeResource;
 use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
 use Elemacy\Conditions\Resources\ConditionTypeResource;
@@ -4097,6 +4098,24 @@ check('ConditionTypeResource reports availability:unavailable (inactive_extensio
 
     return $data['availability']['available'] === false
         && $data['availability']['reason_code'] === FeatureAvailability::EXTENSION_INACTIVE;
+});
+
+check('PopupResource encodes a param-less trigger/rule as a JSON object, not a list the admin app rejects', static function () {
+    $trigger = new TriggerDTO();
+    $trigger->id = 't1';
+    $trigger->type = 'exit_intent';
+    $rule = new RuleDTO();
+    $rule->id = 'r1';
+    $rule->type = 'frequency_cap';
+    $rule->params = ['max' => 3];
+
+    $json = json_encode((new PopupResource([
+        'id' => 1, 'title' => 'P', 'type' => 'popup', 'status' => 'draft', 'author' => 1, 'date' => null,
+        'conditions' => [], 'triggers' => [$trigger], 'rules' => [$rule],
+    ]))->to_array());
+
+    return strpos($json, '"type":"exit_intent","params":{}') !== false
+        && strpos($json, '"params":{"max":3}') !== false;
 });
 
 check('PopupConfigResource omits a trigger whose type is not registered instead of forwarding raw type/params (task 10.3: never expose an identifier/params pair the server does not recognize)', static function () {

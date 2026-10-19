@@ -56,6 +56,12 @@ class PopupResource extends Resource
     private static function with_availability(array $entries, callable $resolve): array
     {
         return array_map(static function (array $entry) use ($resolve): array {
+            // Conditions carry no params; for triggers/rules an empty PHP array
+            // would encode as a JSON list (`[]`) and fail the admin app's
+            // object-shaped params schema, so force a JSON object (`{}`).
+            if (array_key_exists('params', $entry)) {
+                $entry['params'] = (object) $entry['params'];
+            }
             $entry['availability'] = $resolve((string) $entry['type'])->to_array();
 
             return $entry;

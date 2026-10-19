@@ -428,6 +428,11 @@ function esc_url($url)
     return htmlspecialchars((string) $url, ENT_QUOTES);
 }
 
+function admin_url($path = '')
+{
+    return 'http://example.test/wp-admin/' . ltrim((string) $path, '/');
+}
+
 function wp_parse_args($args, $defaults = [])
 {
     return array_merge($defaults, (array) $args);
