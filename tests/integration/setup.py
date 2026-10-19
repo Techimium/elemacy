@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--pro-zip", type=Path, help="Install this exact Pro archive; requires --with-pro and --free-zip.")
     parser.add_argument("--multisite", action="store_true", help="Provision a disposable subdirectory network for lifecycle tests.")
     parser.add_argument("--acf-plugin", type=Path)
+    parser.add_argument("--elementor-pro-plugin", type=Path,
+                        help="Optional local Elementor Pro directory, for the Nav Menu parity and coexistence checks.")
     parser.add_argument("--hello-elementor-theme", type=Path,
                          help="Optional local Hello Elementor theme checkout, for its own compatibility-adapter fixtures.")
     parser.add_argument("--theme", type=Path, action="append", default=[],
@@ -54,6 +56,11 @@ def main():
         if not (acf / "acf.php").is_file():
             parser.error("--acf-plugin must point to an ACF plugin directory.")
         plugins[acf.name] = acf
+    if args.elementor_pro_plugin:
+        elementor_pro = args.elementor_pro_plugin.resolve()
+        if elementor_pro.name != "elementor-pro" or not (elementor_pro / "elementor-pro.php").is_file():
+            parser.error("--elementor-pro-plugin must point to an elementor-pro plugin directory.")
+        plugins["elementor-pro"] = elementor_pro
     if any(not directory.is_dir() for directory in plugins.values()):
         parser.error("An explicitly selected plugin directory is absent.")
     hello_theme = None
@@ -242,11 +249,14 @@ require_once ABSPATH . 'wp-settings.php';
         wp("plugin", "activate", args.acf_plugin.resolve().name)
     if args.with_pro:
         wp("plugin", "activate", "elemacy-pro")
+    if args.elementor_pro_plugin:
+        wp("plugin", "activate", "elementor-pro")
     print("ELEMACY_TEST_ENV=" + str(manifest))
     print("Disposable schema: " + database)
     print("No development tables or configuration were imported.")
     print("Hello Elementor theme fixtures: " + ("available" if hello_theme else "skipped (no --hello-elementor-theme)"))
     print("Block theme fixtures: " + ("available (" + block_theme.name + ")" if block_theme else "skipped (none bundled with --wordpress-source)"))
+    print("Elementor Pro: " + ("active" if args.elementor_pro_plugin else "absent (pass --elementor-pro-plugin)"))
     print("Real themes: " + (", ".join(theme.name for theme in real_themes) or "none (pass --theme)"))
     if private_socket:
         print('Private MySQL socket: ' + private_socket)

@@ -66,6 +66,8 @@ Enabled Free module slugs: `theme-builder`, `widgets`, `custom-css`, `dynamic-ta
 
 The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Preserve the intentional underscore in `elemacy_nav_menu`.
 
+The Nav Menu's saved setting names are the Elementor Pro Nav Menu's control IDs (`menu`, `layout`, `pointer`, `animation_line`, `dropdown`, `toggle` and the rest, checked against `tests/integration/fixtures/nav-menu-reference-controls.json`), so Paste Style works between the two widgets. Keep them. Everything the widget puts on the page is Elemacy's own and is not a public styling API: classes under `elemacy-nav-menu`, the custom properties `--elemacy-nav-menu-*`, and the script and style handle `elemacy-nav-menu`.
+
 | Data-source implementation | Saved `data_source` value |
 | --- | --- |
 | Free `PostsDataSource` | `posts` |

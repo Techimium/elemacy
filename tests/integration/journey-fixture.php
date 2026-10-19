@@ -84,6 +84,32 @@ try {
             'reader' => ['id' => (int) $reader, 'name' => 'Journey Reader ' . $run],
             'post' => ['id' => (int) $post, 'title' => 'Journey Post ' . $run],
         ]);
+    } elseif ($command === 'seed-menu') {
+        // A menu for the Nav Menu journey: Home, Services > Design, About. Recorded so cleanup deletes it and its items.
+        $path = realpath($argv[2] ?? '');
+        elemacy_test_assert($path && dirname($path) === $directory
+            && preg_match('/\Ajourney-fixture-[a-f0-9-]+\.json\z/', basename($path)), 'Refusing an unrelated journey manifest.');
+        $fixture = json_decode(file_get_contents($path), true);
+        elemacy_test_assert(($fixture['environment_token'] ?? '') === ELEMACY_INTEGRATION_TOKEN, 'Wrong journey environment.');
+        $run = substr(basename($path, '.json'), strlen('journey-fixture-'), 8);
+        $name = 'Journey Menu ' . $run;
+        $menu = wp_create_nav_menu($name);
+        elemacy_test_assert(!is_wp_error($menu), 'Cannot create the journey menu.');
+        $item = static function (string $title, string $url, int $parent = 0) use ($menu): int {
+            $id = wp_update_nav_menu_item($menu, 0, [
+                'menu-item-title' => $title, 'menu-item-url' => $url, 'menu-item-type' => 'custom',
+                'menu-item-status' => 'publish', 'menu-item-parent-id' => $parent,
+            ]);
+            elemacy_test_assert(!is_wp_error($id), 'Cannot create journey menu item ' . $title . '.');
+
+            return (int) $id;
+        };
+        $item('Home', home_url('/'));
+        $item('Design', home_url('/services/design/'), $item('Services', home_url('/services/')));
+        $item('About', home_url('/about/'));
+        $fixture['menus'] = array_merge((array) ($fixture['menus'] ?? []), [(int) $menu]);
+        elemacy_test_assert((bool) file_put_contents($path, wp_json_encode($fixture)), 'Cannot record seeded content.');
+        echo wp_json_encode(['menu' => ['id' => (int) $menu, 'name' => $name, 'slug' => wp_get_nav_menu_object($menu)->slug]]);
     } elseif ($command === 'delete-term') {
         // Deletes one term this run seeded, to see what an editor shows when a saved choice is gone.
         $path = realpath($argv[2] ?? '');
@@ -122,6 +148,9 @@ try {
         }
         foreach ((array) ($fixture['terms'] ?? []) as [$term_id, $taxonomy]) {
             wp_delete_term((int) $term_id, (string) $taxonomy);
+        }
+        foreach ((array) ($fixture['menus'] ?? []) as $menu) {
+            wp_delete_nav_menu((int) $menu);
         }
         foreach (['modules' => 'elemacy_active_modules', 'onboarded' => 'elementor_onboarded'] as $key => $option) {
             if ($fixture[$key] === null) {

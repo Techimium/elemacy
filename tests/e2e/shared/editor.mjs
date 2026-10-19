@@ -35,14 +35,16 @@ export async function addHeading(page, text) {
   }
 }
 
-async function addHeadingOnce(page, text) {
+// Drags a widget from the panel (found by its title) onto the empty document's drop area, as a person
+// would, and waits for it in the preview. Elementor then opens the widget's panel.
+export async function addWidget(page, title, selector) {
   const frame = await readyEditor(page);
   await dismissPromotions(page);
-  await page.locator('#elementor-panel-elements-search-input').fill('Heading');
-  const heading = page.getByRole('button', { name: 'Heading', exact: true });
-  await expect(heading).toBeVisible();
+  await page.locator('#elementor-panel-elements-search-input').fill(title);
+  const widget = page.getByRole('button', { name: title, exact: true });
+  await expect(widget).toBeVisible();
   const drop = frame.getByRole('region', { name: 'Add new layout element' });
-  const start = await heading.boundingBox();
+  const start = await widget.boundingBox();
   const end = await drop.boundingBox();
   expect(start).not.toBeNull();
   expect(end).not.toBeNull();
@@ -50,7 +52,12 @@ async function addHeadingOnce(page, text) {
   await page.mouse.down();
   await page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 12 });
   await page.mouse.up();
-  await expect(frame.locator('.elementor-widget-heading')).toBeVisible();
+  await expect(frame.locator(selector)).toBeVisible();
+  return frame;
+}
+
+async function addHeadingOnce(page, text) {
+  const frame = await addWidget(page, 'Heading', '.elementor-widget-heading');
   await frame.locator('.elementor-widget-heading').click();
   const field = page.locator('[data-setting="title"]');
   await expect(field).toBeVisible();

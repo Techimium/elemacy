@@ -21,6 +21,7 @@
             <file>search-template-conditions.php</file>
             <file>query-pickers.php</file>
             <file>archive-title-preview.php</file>
+            <file>nav-menu.php</file>
             <file>loop-ineligibility-notice.php</file>
             <file>loop-pagination-phase1-closeout.php</file>
             <file>loop-context.php</file>

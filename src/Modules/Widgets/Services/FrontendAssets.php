@@ -2,6 +2,7 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
+use Elemacy\Modules\Widgets\Widgets\NavMenu\BreakpointStyles;
 use Elemacy\Support\Utils;
 
 if (!defined('ABSPATH')) {
@@ -22,6 +23,9 @@ class FrontendAssets
     public function register_assets(): void
     {
         $this->register_style('nav-menu');
+        // Breakpoint rules depend on the site's Elementor breakpoints, so they
+        // are generated rather than shipped in the stylesheet.
+        wp_add_inline_style('elemacy-nav-menu', BreakpointStyles::css());
         $this->register_script('nav-menu');
 
         $this->register_style('loop-grid');

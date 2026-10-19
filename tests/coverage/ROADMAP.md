@@ -130,7 +130,7 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `widget:elemacy-loop-grid` | real | Elementor Free | pending |
 | `widget:elemacy-search` | real | Elementor Free | pending |
 | `widget:elemacy-site-logo` | real | Elementor Free | pending |
-| `widget:elemacy_nav_menu` | real | Elementor Free | pending |
+| `widget:elemacy_nav_menu` | real | Elementor Free | implemented |
 
 ## Existing checks
 
@@ -150,6 +150,8 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-loop-load-more-editor` | native-browser | `tests/e2e/run-loop-load-more-editor.mjs` |
 | `elemacy:runner:run-loop-load-more` | native-browser | `tests/e2e/run-loop-load-more.mjs` |
 | `elemacy:runner:run-loop-pagination` | native-browser | `tests/e2e/run-loop-pagination.mjs` |
+| `elemacy:runner:run-nav-menu-parity` | native-browser | `tests/e2e/run-nav-menu-parity.mjs` |
+| `elemacy:runner:run-nav-menu` | native-browser | `tests/e2e/run-nav-menu.mjs` |
 | `elemacy:runner:run-popup-assets` | native-browser | `tests/e2e/run-popup-assets.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
 | `elemacy:runner:check` | architecture | `tests/architecture/check.php` |
@@ -169,6 +171,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:search-template-conditions` | native-integration | `tests/integration/search-template-conditions.php` |
 | `elemacy:integration:query-pickers` | native-integration | `tests/integration/query-pickers.php` |
 | `elemacy:integration:archive-title-preview` | native-integration | `tests/integration/archive-title-preview.php` |
+| `elemacy:integration:nav-menu` | native-integration | `tests/integration/nav-menu.php` |
 | `elemacy:integration:loop-ineligibility-notice` | native-integration | `tests/integration/loop-ineligibility-notice.php` |
 | `elemacy:integration:loop-pagination-phase1-closeout` | native-integration | `tests/integration/loop-pagination-phase1-closeout.php` |
 | `elemacy:integration:loop-context` | native-integration | `tests/integration/loop-context.php` |

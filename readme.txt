@@ -146,7 +146,7 @@ Build fully custom contact forms — or any kind of form — directly inside Ele
 In addition to the Loop Builder and Form Builder, Elemacy ships a growing library of widgets:
 
 * **Site Logo** – Output your site logo with a custom link target.
-* **Elemacy Nav Menu** – Fully-featured, responsive navigation menu (details below).
+* **Elemacy Nav Menu** – The Elementor Pro Nav Menu experience on Elementor (free): pointers, responsive dropdown, toggle (details below).
 * **Search** – A flexible search form widget.
 * **ACF Accordion** – Build accordions from an ACF repeater field. *(requires ACF)*
 * **ACF Icon List** – Render an icon list from an ACF repeater field. *(requires ACF)*
@@ -156,22 +156,26 @@ In addition to the Loop Builder and Form Builder, Elemacy ships a growing librar
 
 ### 🧭 Nav Menu Widget
 
-A fully-featured, highly customizable navigation menu widget built from the ground up for Elementor.
+A WordPress menu with the same controls, responsive dropdown and look as the Elementor Pro Nav Menu, built for Elementor (free). If you know Pro's widget you already know this one, and Paste Style works between the two.
 
-**Layout options:** Horizontal, Vertical, and Stacked (full width).
+**Layout:** Horizontal, Vertical, or Dropdown, aligned Start, Center, End or Stretch, with a submenu indicator icon of your choice.
 
-**Mobile responsiveness:**
+**Pointers:** Underline, Overline, Double Line, Framed, Background or Text, each with its own animations (Fade, Slide, Grow, Drop In/Out, Shrink, Draw, Corners, Sweeps, Shutters, Sink, Float, Skew, Rotate).
 
-* Configurable mobile breakpoint: None, Mobile only, or Tablet & below
-* Hamburger/toggle button with custom open and close icons
-* Toggle label with show/hide control and full typography/color styling
-* Toggle alignment control (start/center/end)
+**Mobile dropdown:**
+
+* Collapses at any of your Elementor breakpoints (Mobile, Mobile Extra, Tablet, Tablet Extra), custom breakpoint values included, or never
+* Hamburger toggle with your own normal and active icons, hover animation and alignment
+* Full-width option that stretches the dropdown across the screen
+* Works inside sticky headers
+
+**Submenus:** open on hover with a short delay, on tap (first tap opens, second follows the link) and from the keyboard (Space opens, Escape closes), and stay inside the screen. One-page anchor links highlight while their section is in view.
 
 **Styling controls:**
 
-* Main menu: typography, text color (normal/hover/active), background color, item gap, item padding, border, border radius
-* Dropdown/submenu: panel background, padding, border, border radius, box shadow, typography, link colors (normal/hover/active), item padding
-* Toggle button: color, background, border, typography, padding, border radius (normal/hover)
+* Main menu: typography, text and pointer colors (normal/hover/active), dividers, pointer width, item padding, space between, border radius
+* Dropdown: text and background colors (normal/hover/active), typography, border, border radius, box shadow, item padding, divider, distance
+* Toggle button: color and background (normal/hover), size, border width, border radius
 
 ---
 
@@ -367,7 +371,7 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 6. **Form Builder Widget** – Drag-and-drop form field configuration in the Elementor panel.
 7. **Dynamic Tags** – Use real WordPress and ACF data anywhere in your Elementor designs.
 8. **Custom CSS Control** – Write per-element custom CSS directly inside the Elementor Advanced tab.
-9. **Nav Menu Widget** – Fully styled, mobile-responsive navigation menu with dropdown support.
+9. **Nav Menu Widget** – Pro-style navigation menu with pointers, submenus and a responsive mobile dropdown.
 
 == Changelog ==
 
@@ -381,7 +385,7 @@ Use the official WordPress.org support forum for the free plugin. For bug report
 * The Archive Title dynamic tag shows "Search Results for: term" in a Search Results template; an Archive template can be previewed as a category, tag, taxonomy term, author or month, and the term, author and Loop Item preview pickers search as you type
 * Loop Carousel widget
 * Form Builder widget with Text, Email, Textarea, Tel, Select, Radio, and Checkbox fields; Email action with full configuration
-* Nav Menu widget with horizontal/vertical/stacked layouts, mobile toggle, dropdown submenus, and comprehensive styling controls
+* Nav Menu widget matching the Elementor Pro Nav Menu: horizontal, vertical and dropdown layouts, six pointers with their animations, breakpoint-based mobile dropdown with a hamburger toggle, full-width dropdown, dividers, and the same styling controls
 * Site Logo and Search widgets
 * ACF widgets: ACF Accordion, ACF Icon List, ACF Gallery (require ACF)
 * Custom CSS control added to the Advanced tab of all Elementor elements and to page settings

@@ -3117,10 +3117,15 @@
       "source": "src/Modules/Widgets/Widgets/NavMenu.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:runner:run",
+        "elemacy:integration:nav-menu",
+        "elemacy:runner:run-nav-menu",
+        "elemacy:runner:run-nav-menu-parity"
+      ],
       "journey": {
         "id": "elemacy:journey:widget:elemacy_nav_menu",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -3130,7 +3135,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "reason": "Authoring the widget in a Header template (menu, pointer, animation, breakpoint, full width), save, reopen and visitor desktop-submenu and mobile-dropdown checks pass in the free-only and free-pro profiles (tests/e2e/journeys/nav-menu-authoring.spec.mjs). Parity with Elementor Pro (run-nav-menu-parity.mjs) needs the paid Elementor Pro plugin (setup.py --elementor-pro-plugin) and reports unavailable without it.",
         "follow_up": "automate-release-browser-testing"
       }
     }
@@ -3195,6 +3200,16 @@
       "id": "elemacy:runner:run-loop-pagination",
       "layer": "native-browser",
       "path": "tests/e2e/run-loop-pagination.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-nav-menu-parity",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-nav-menu-parity.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-nav-menu",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-nav-menu.mjs"
     },
     {
       "id": "elemacy:runner:run-popup-assets",
@@ -3290,6 +3305,11 @@
       "id": "elemacy:integration:archive-title-preview",
       "layer": "native-integration",
       "path": "tests/integration/archive-title-preview.php"
+    },
+    {
+      "id": "elemacy:integration:nav-menu",
+      "layer": "native-integration",
+      "path": "tests/integration/nav-menu.php"
     },
     {
       "id": "elemacy:integration:loop-ineligibility-notice",
