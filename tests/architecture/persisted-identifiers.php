@@ -79,13 +79,11 @@ return [
     $returned('singular/post_type', 'src/Conditions/Singular/PostType.php'),
     $returned('archive/post_type', 'src/Conditions/Archive/PostType.php'),
     $returned('search/all', 'src/Conditions/Search/AllResults.php'),
-    $returned('archive/all', 'src/Conditions/Mock/AllArchives.php'),
     $returned('archive/author', 'src/Conditions/Mock/AuthorArchive.php'),
     $returned('archive/date', 'src/Conditions/Mock/DateArchive.php'),
     $returned('general/blog', 'src/Conditions/Mock/Blog.php'),
     $returned('general/front_page', 'src/Conditions/Mock/FrontPage.php'),
     $returned('general/not_found', 'src/Conditions/Mock/NotFound.php'),
-    $returned('general/search_results', 'src/Conditions/Mock/SearchResults.php'),
     $returned('search/post_type', 'src/Conditions/Mock/SearchPostType.php'),
     $returned('singular/by_author', 'src/Conditions/Mock/ByAuthor.php'),
     $returned('singular/child_of', 'src/Conditions/Mock/ChildOf.php'),
@@ -242,11 +240,12 @@ return [
     $option('bottom-left'), $option('bottom-right'), $option('custom'),
     $option('none'), $option('fade'), $option('slide-down'), $option('slide-up'),
 
-    // Browser storage keys the popup runtime writes in visitors' browsers.
-    // Free's engine builds each popup's key from this prefix (the popup id
-    // follows). Pro's visit-counter keys (elemacy_pageviews, elemacy_sessions,
-    // elemacy_session_counted) are pinned by Pro's own tests/php/run.php.
-    ['id' => 'elemacy_popup_', 'file' => 'src/Modules/Popups/Resources/PopupConfigResource.php'],
+    // Browser storage keys the popup runtime writes in visitors' browsers,
+    // as templates: `{blog}` is the site id, `{id}` the popup id. Pro's
+    // visit-count keys (the prefix, then pageviews, sessions and
+    // session_counted) are pinned by Pro's own tests/php/run.php.
+    ['id' => 'elemacy_{blog}_', 'file' => 'src/Modules/Popups/Support/StorageKeys.php'],
+    ['id' => 'elemacy_{blog}_popup_{id}', 'file' => 'src/Modules/Popups/Support/StorageKeys.php'],
 
     // Stored post type, meta and option keys.
     ['id' => 'elemacy_library', 'file' => 'src/TemplateLibrary/LibraryPostType.php'],

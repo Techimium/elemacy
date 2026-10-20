@@ -91,7 +91,7 @@ class Elemacy
         $this->initialized = true;
 
         $this->site_installer()->seed_current_site_if_missing();
-        Route::set_namespace('elemacy');
+        Route::set_namespace('elemacy/v1');
 
         do_action(Hooks::REGISTER_PROVIDERS_ACTION, $this);
 

@@ -34,8 +34,6 @@ final class ProEntitlementTest extends IntegrationTestCase
         'general/front_page',
         'general/blog',
         'general/not_found',
-        'general/search_results',
-        'archive/all',
         'archive/author',
         'archive/date',
         'singular/specific_post',
@@ -140,6 +138,63 @@ final class ProEntitlementTest extends IntegrationTestCase
         self::assertNull(TemplateResolver::instance()->resolve('header'), 'It must match only what it targets.');
     }
 
+    public function testATemplateOrPopupWithSpecificPostAndNoPostIsRejected(): void
+    {
+        $valueless = [['type' => 'singular/specific_post', 'value' => '', 'operator' => 'include']];
+        $templates = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\ThemeBuilder\Services\TemplateService::class);
+        $popups = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\Popups\Services\PopupService::class);
+        $count = static fn(): int => (int) (new \WP_Query(['post_type' => 'elemacy_library', 'post_status' => 'any', 'fields' => 'ids', 'posts_per_page' => -1, 'no_found_rows' => true]))->post_count;
+        $before = $count();
+
+        $attempts = [
+            'template' => static fn() => $templates->create(\Elemacy\Modules\ThemeBuilder\DTO\CreateTemplateDTO::from_array([
+                'title' => 'Valueless specific post header', 'type' => 'header', 'status' => 'publish', 'conditions' => $valueless,
+            ])),
+            'popup' => static fn() => $popups->create(\Elemacy\Modules\Popups\DTO\CreatePopupDTO::from_array([
+                'title' => 'Valueless specific post popup', 'type' => 'popup', 'status' => 'publish', 'conditions' => $valueless,
+            ])),
+        ];
+
+        foreach ($attempts as $kind => $attempt) {
+            try {
+                $created = $attempt();
+                $this->documents->adopt((int) $created->id);
+                self::fail("A $kind with a valueless Specific Post rule must be rejected.");
+            } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+                self::assertStringContainsString('post', wp_json_encode($error->get_errors()['conditions'] ?? []), 'The message asks for a post.');
+            }
+        }
+
+        self::assertSame($before, $count(), 'Nothing is saved.');
+
+        // An update that adds one is refused too, and leaves the stored rules alone.
+        $popup = $popups->create(\Elemacy\Modules\Popups\DTO\CreatePopupDTO::from_array(['title' => 'Popup to update', 'type' => 'popup', 'status' => 'draft', 'conditions' => []]));
+        $this->documents->adopt((int) $popup->id);
+        try {
+            $popups->update((int) $popup->id, \Elemacy\Modules\Popups\DTO\UpdatePopupDTO::from_array(['conditions' => $valueless]));
+            self::fail('Adding a valueless Specific Post rule to a popup must be rejected.');
+        } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
+            self::assertSame([], $this->conditions->get((int) $popup->id));
+        }
+    }
+
+    public function testAStoredSpecificPostRuleWithNoPostIsKeptAndMatchesNothing(): void
+    {
+        $header = $this->documents->create('Legacy valueless header', 'header', 'publish');
+        update_post_meta($header, ConditionRepository::META_KEY, [['id' => 'legacy', 'type' => 'singular/specific_post', 'operator' => 'include', 'value' => '']]);
+        $stored = get_post_meta($header, ConditionRepository::META_KEY, true);
+
+        $templates = \Elemacy\Core\Container::instance()->make(\Elemacy\Modules\ThemeBuilder\Services\TemplateService::class);
+        $templates->update($header, \Elemacy\Modules\ThemeBuilder\DTO\UpdateTemplateDTO::from_array(['title' => 'Renamed legacy header', 'conditions' => $stored]));
+        self::assertSame($stored, get_post_meta($header, ConditionRepository::META_KEY, true), 'The stored rule is accepted back unchanged.');
+
+        (new ResolverCache())->invalidate();
+        TemplateResolver::reset();
+        $this->request->visit(get_permalink($this->posts[0]));
+        TemplateResolver::reset();
+        self::assertNull(TemplateResolver::instance()->resolve('header'), 'It matches nothing, not every singular page.');
+    }
+
     public function testWithoutProTheSavedConditionIsSuspendedAndWorksAgainWhenProReturns(): void
     {
         $rule = ConditionRuleDTO::from_array([
@@ -195,7 +250,6 @@ final class ProEntitlementTest extends IntegrationTestCase
         $pairs = [
             [\Elemacy\Conditions\Mock\SpecificPost::class, \ElemacyPro\Extensions\Conditions\Singular\SpecificPost::class],
             [\Elemacy\Conditions\Mock\FrontPage::class, \ElemacyPro\Extensions\Conditions\General\FrontPage::class],
-            [\Elemacy\Conditions\Mock\AllArchives::class, \ElemacyPro\Extensions\Conditions\Archive\AllArchives::class],
             [\Elemacy\Conditions\Mock\ByAuthor::class, \ElemacyPro\Extensions\Conditions\Singular\ByAuthor::class],
         ];
 

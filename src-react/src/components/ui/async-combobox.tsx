@@ -10,9 +10,11 @@ import { useDebounce } from '@/hooks/use-debounce';
 interface AsyncComboboxProps {
     /** Condition name — scopes the server-side search. */
     condition: string;
-    /** Currently selected id (empty string = "Any"). */
+    /** Currently selected id (empty string = "All"). */
     value: string;
     onChange: (value: string) => void;
+    /** The condition always names a value: no "All" choice is offered. */
+    required?: boolean;
 }
 
 interface Option {
@@ -28,7 +30,7 @@ interface Option {
  * is a Radix popover layer, so inside a dialog, Escape and outside clicks
  * close the picker and leave the dialog open.
  */
-export function AsyncCombobox({ condition, value, onChange }: AsyncComboboxProps) {
+export function AsyncCombobox({ condition, value, onChange, required = false }: AsyncComboboxProps) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [active, setActive] = useState(0);
@@ -42,7 +44,8 @@ export function AsyncCombobox({ condition, value, onChange }: AsyncComboboxProps
     const { data: results = [], isFetching } = useConditionSearch(condition, debouncedQuery, open);
     const { data: hydrated = [], isLoading: isLoadingLabel } = useConditionValueLabel(condition, value);
 
-    const options: Option[] = [{ value: '', label: __('Any', 'elemacy') }, ...results];
+    const options: Option[] = required ? results : [{ value: '', label: __('All', 'elemacy') }, ...results];
+    const emptyLabel = required ? __('Choose a post…', 'elemacy') : __('All', 'elemacy');
     // The server names a saved item that no longer exists itself; this covers
     // a lookup that failed outright, so the picker never waits forever.
     const fallbackLabel = isLoadingLabel
@@ -122,7 +125,7 @@ export function AsyncCombobox({ condition, value, onChange }: AsyncComboboxProps
                             )}
                         >
                             <span className={cn('truncate', !value && 'text-muted-foreground')}>
-                                {value ? selectedLabel : __('Any', 'elemacy')}
+                                {value ? selectedLabel : emptyLabel}
                             </span>
                             <ChevronsUpDown className="size-4 shrink-0 opacity-50" aria-hidden />
                         </button>

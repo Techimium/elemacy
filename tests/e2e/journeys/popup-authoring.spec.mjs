@@ -52,5 +52,11 @@ test('elemacy:journey:popup:modal-authoring @popups @smoke', async ({ page, auth
     await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
     await expect(page.getByRole('dialog').getByRole('combobox', { name: 'Status', exact: true })).toHaveText('Published');
     await checkpoint('popup-publication-persisted');
+    // A new popup starts with one Page Load trigger, saved like one the author added.
+    const settings = page.getByRole('dialog');
+    await settings.getByRole('tab', { name: 'Triggers' }).click();
+    await expect(settings.getByRole('button', { name: 'Remove trigger', exact: true }), 'Exactly one trigger').toHaveCount(1);
+    await expect(settings.getByRole('tabpanel').getByRole('combobox').first()).toHaveText('On Page Load');
+    await checkpoint('popup-default-trigger-persisted');
   } finally { await guest.close(); }
 });

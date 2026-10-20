@@ -5,7 +5,7 @@ namespace Elemacy\Tests\Integration\Fixtures;
 use Elemacy\Http\Route;
 
 /**
- * Makes sure the plugins' real REST routes (namespace `elemacy`) are on the
+ * Makes sure the plugins' real REST routes (namespace `elemacy/v1`) are on the
  * shared REST server, whatever an earlier test class did to it, and puts the
  * server back as it was afterwards.
  */
@@ -23,20 +23,31 @@ trait RealRestRoutes
             $this->rest_server_snapshot[$name] = $property->getValue($server);
         }
 
-        if (in_array('elemacy', $server->get_namespaces(), true)) {
+        $namespace = self::elemacy_rest_namespace();
+
+        if (in_array($namespace, $server->get_namespaces(), true)) {
             return;
         }
 
         foreach (Route::get_routes() as $route) {
-            $namespace = new \ReflectionProperty(Route::class, 'namespace');
-            $namespace->setAccessible(true);
+            $property = new \ReflectionProperty(Route::class, 'namespace');
+            $property->setAccessible(true);
 
-            if ('elemacy' === $namespace->getValue($route)) {
+            if ($namespace === $property->getValue($route)) {
                 $route->register();
             }
         }
 
-        self::assertContains('elemacy', $server->get_namespaces(), 'Fixture: the real routes are registered.');
+        self::assertContains($namespace, $server->get_namespaces(), 'Fixture: the real routes are registered.');
+    }
+
+    /** The REST namespace the plugins register their routes under (Route::set_namespace()). */
+    private static function elemacy_rest_namespace(): string
+    {
+        $property = new \ReflectionProperty(Route::class, 'namespace_name');
+        $property->setAccessible(true);
+
+        return (string) $property->getValue();
     }
 
     private function restore_rest_server(): void

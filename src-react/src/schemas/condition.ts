@@ -7,7 +7,17 @@ export const ConditionRuleSchema = z.object({
     operator: z.enum(['include', 'exclude']),
     value: z.string(),
     availability: AvailabilitySchema.optional(),
+    /**
+     * Set when the author picks, in this form, a condition whose rules must
+     * name a value (Specific Post / Page). Never sent by the server, so a
+     * rule stored before is let through, as saving does.
+     */
+    requires_value: z.boolean().optional(),
 });
+
+/** Every rule picked in this form that needs a value has one. */
+export const ConditionRulesHaveRequiredValues = (rules: ConditionRule[] | undefined): boolean =>
+    (rules ?? []).every((rule) => !rule.requires_value || rule.value !== '');
 
 export const ConditionSubValueSchema = z.object({
     value: z.string(),
@@ -23,6 +33,7 @@ export const ConditionTypeSchema = z.object({
     sub_values: z.array(ConditionSubValueSchema),
     search: z.record(z.string(), z.unknown()).optional(),
     is_mock: z.boolean(),
+    requires_value: z.boolean().optional(),
 });
 
 export const ConditionGroupSchema = z.object({

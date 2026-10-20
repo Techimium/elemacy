@@ -59,6 +59,8 @@ try {
             ];
             $popup_id = $documents->create('Popup assets fixture popup ' . $suffix, 'popup', 'publish', $popup_elements);
             $owned_posts[] = $popup_id;
+            // A popup created in the admin starts with one immediate Page Load trigger.
+            update_post_meta($popup_id, '_elemacy_popup_triggers', [['id' => 'fixture-page-load', 'type' => 'page_load', 'params' => ['delay' => 0]]]);
 
             // Marks this document for fixtures/mu-plugins/template-rendering-
             // preparation.php's `elementor/frontend/the_content` filter,

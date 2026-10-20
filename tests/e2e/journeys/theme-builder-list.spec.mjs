@@ -98,7 +98,7 @@ test('elemacy:journey:theme-builder:any-status @theme-builder', async ({ page, a
 test('elemacy:journey:theme-builder:list-error @theme-builder', async ({ page, author, checkpoint, diagnostics }) => {
   void author; // signs the admin in
   // Matches the list request whatever the permalink structure (`/wp-json/…` or `?rest_route=…`).
-  const failing = url => decodeURIComponent(url.href).includes('/elemacy/theme-builder/templates');
+  const failing = url => decodeURIComponent(url.href).includes('/elemacy/v1/theme-builder/templates');
   await page.route(failing, route => route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"fixture failure"}' }));
   await page.goto(themeBuilderUrl, { waitUntil: 'domcontentloaded' });
 
@@ -126,14 +126,15 @@ test('elemacy:journey:conditions:keyboard-picker @theme-builder @pro-optional', 
   test.skip((await specific.getAttribute('aria-disabled')) === 'true', 'Elemacy Pro is not active: no searchable condition to pick a value for.');
   await specific.click();
 
-  const trigger = dialog.getByRole('button', { name: 'Any', exact: true });
+  // Specific Post always names a post: the picker offers no "All" choice.
+  const trigger = dialog.getByRole('button', { name: 'Choose a post…', exact: true });
   await trigger.focus();
   await page.keyboard.press('Enter');
   const search = dialog.getByRole('combobox', { name: 'Search for a value', exact: true });
   await expect(search).toBeFocused();
   await expect(search).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('listbox')).toBeVisible();
-  // Wait for the first search results: until then the list holds only "Any".
+  // Wait for the search results: a post must be picked from them.
   await expect(page.getByRole('listbox').getByRole('option').nth(1)).toBeVisible();
   await page.keyboard.press('ArrowDown');
   const chosen = await page.getByRole('listbox').getByRole('option').nth(1).textContent();
@@ -159,4 +160,36 @@ test('elemacy:journey:theme-builder:elementor-pro-notice @theme-builder', async 
   const notice = page.getByRole('note').filter({ hasText: "Elementor Pro's Theme Builder is active" });
   await expect(notice, proActive ? 'Elementor Pro is active: the screen says which builder serves a location' : 'No Elementor Pro: no notice').toHaveCount(proActive ? 1 : 0);
   await checkpoint('elementor-pro-notice');
+});
+
+// One condition id per display check: "every archive" is Post Type Archive with
+// no post type, and Specific Post always names a post.
+test('elemacy:journey:conditions:one-id-per-check @theme-builder', async ({ page, author, checkpoint }) => {
+  const title = `Journey all archives header ${author.user}`;
+  const dialog = await openCreateDialog(page, title, 'Header');
+  await dialog.getByRole('combobox', { name: 'Condition', exact: true }).filter({ hasText: /^Entire Site$/ }).click();
+  await expect(page.getByRole('option', { name: 'All Archives', exact: true }), 'No separate All Archives condition').toHaveCount(0);
+  await expect(page.getByRole('option', { name: 'Search Results', exact: true }), 'One Search Results condition, offered on Header templates').toHaveCount(1);
+  await page.getByRole('option', { name: 'Post Type Archive', exact: true }).click();
+  await expect(dialog.getByRole('combobox', { name: 'Value', exact: true })).toHaveText('All');
+  await dialog.getByRole('button', { name: 'Create Template', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await checkpoint('all-archives-created');
+
+  const settings = await openTemplateSettings(page, title);
+  await expect(settings.getByRole('combobox', { name: 'Condition', exact: true }).filter({ hasText: /^Post Type Archive$/ }), 'The choice persisted').toBeVisible();
+  await expect(settings.getByRole('combobox', { name: 'Value', exact: true })).toHaveText('All');
+  await checkpoint('all-archives-persisted');
+  await page.keyboard.press('Escape');
+
+  const specific = await openCreateDialog(page, `Journey valueless specific ${author.user}`, 'Header');
+  await specific.getByRole('combobox', { name: 'Condition', exact: true }).filter({ hasText: /^Entire Site$/ }).click();
+  const option = page.getByRole('option', { name: /^Specific Post/ });
+  test.skip((await option.getAttribute('aria-disabled')) === 'true', 'Elemacy Pro is not active: Specific Post is a locked placeholder.');
+  await option.click();
+  await expect(specific.getByText('Choose a post for this condition.', { exact: true })).toBeVisible();
+  await specific.getByRole('button', { name: 'Create Template', exact: true }).click();
+  await expect(specific.getByText('Choose a post for each "Specific Post / Page" condition.', { exact: true }), 'The form asks for a post').toBeVisible();
+  await expect(specific, 'Nothing is created').toBeVisible();
+  await checkpoint('specific-post-needs-a-post');
 });

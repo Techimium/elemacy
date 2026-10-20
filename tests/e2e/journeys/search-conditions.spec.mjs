@@ -121,7 +121,7 @@ test('elemacy:journey:condition:search/post_type @theme-builder @pro-optional', 
 
   const second = await openCreateDialog(page, typedTitle, 'Search Results');
   await chooseCondition(page, second, /^Search Results: Post Type/, 'Search Results');
-  await second.getByRole('combobox', { name: 'Value', exact: true }).filter({ hasText: 'Any' }).click();
+  await second.getByRole('combobox', { name: 'Value', exact: true }).filter({ hasText: 'All' }).click();
   await page.getByRole('option', { name: 'Post', exact: true }).click();
   await checkpoint('post-type-chosen');
   await second.getByRole('button', { name: 'Create & Edit with Elementor', exact: true }).click();

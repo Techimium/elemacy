@@ -145,7 +145,8 @@ final class PopupProDeliveryTest extends IntegrationTestCase
     {
         $html = $this->render(get_permalink($this->host_id));
         self::assertStringContainsString('id="elemacy-pro-visit-counter"', $html, 'A page with no popup still counts the visit.');
-        self::assertStringContainsString("localStorage.setItem('elemacy_pageviews'", $html);
+        self::assertStringContainsString("localStorage.setItem(p+'pageviews'", $html);
+        self::assertStringContainsString('(window,"elemacy_' . get_current_blog_id() . '_")', $html, "The counter's keys start with this site's prefix.");
         self::assertSame(1, substr_count($html, 'elemacy-pro-visit-counter'), 'Once per page.');
 
         $feed = $this->render(home_url('/?feed=rss2'));
@@ -187,11 +188,11 @@ final class PopupProDeliveryTest extends IntegrationTestCase
 
         // Saved and read back through the admin API, the choice survives.
         wp_set_current_user(get_user_by('login', 'elemacy_test_admin')->ID);
-        $read = json_decode((string) wp_json_encode(rest_do_request('/elemacy/popups/' . $chained)->get_data()), true);
+        $read = json_decode((string) wp_json_encode(rest_do_request('/elemacy/v1/popups/' . $chained)->get_data()), true);
         self::assertSame((string) $source, (string) $read['data']['triggers'][0]['params']['popup_id']);
 
         // The trigger offers the site's popups by title, after "any other popup".
-        $types = json_decode((string) wp_json_encode(rest_do_request('/elemacy/popups/triggers')->get_data()), true)['data'];
+        $types = json_decode((string) wp_json_encode(rest_do_request('/elemacy/v1/popups/triggers')->get_data()), true)['data'];
         $schema = array_values(array_filter($types, static fn (array $type): bool => 'on_popup_close' === $type['value']))[0]['params_schema'];
         self::assertSame('popup_id', $schema[0]['key']);
         self::assertSame('0', $schema[0]['options'][0]['value'], '"Any other popup" comes first.');

@@ -12,6 +12,7 @@ use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\Modules\ThemeBuilder\Compatibility\ElementorProLocations;
+use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlockThemeCompatibility;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -93,6 +94,11 @@ class ThemeBuilderManager
      * script/style dependencies are queued before this request's head/footer
      * output deadlines.
      *
+     * This is the first point a Theme Builder template renders on a classic
+     * theme: on `wp_enqueue_scripts`, after Elementor has registered its
+     * styles. A request that ends before the page is output (a redirect, an
+     * AJAX endpoint, a feed) never gets here, so it renders nothing.
+     *
      * @param TemplateAssetsRegistrar $registrar
      * @return void
      */
@@ -100,16 +106,21 @@ class ThemeBuilderManager
     {
         $canvas = $this->is_canvas_template();
 
-        $placements = [
+        $placements = array_filter([
             'header' => $canvas ? null : $this->get_header_id(),
             'footer' => $canvas ? null : $this->get_footer_id(),
             'location' => $this->get_location_template_id(),
-        ];
+        ]);
 
+        if ([] === $placements) {
+            return;
+        }
+
+        // As Elementor Pro does for its locations: Elementor's own frontend
+        // and Kit styles are queued first, so each template's CSS is queued
+        // (or, inline, attached) after them and wins cascade ties.
         foreach ($placements as $placement => $id) {
-            if ($id) {
-                $registrar->prepare((int) $id, self::ASSET_CONTEXT, $placement);
-            }
+            $registrar->prepare_after_elementor_styles((int) $id, self::ASSET_CONTEXT, $placement);
         }
     }
 
@@ -458,6 +469,14 @@ class ThemeBuilderManager
     protected ?int $served_location = null;
 
     /**
+     * A block theme's own template parts rendered this request, by side (see
+     * prepare_block_theme_sides()).
+     *
+     * @var array<string, string>
+     */
+    protected array $theme_parts = [];
+
+    /**
      * Sides whose template the active theme wraps in its own header or
      * footer element this request (see keep_theme_landmark()).
      *
@@ -490,6 +509,7 @@ class ThemeBuilderManager
         $this->rendered_locations = [];
         $this->replaced_sides = [];
         $this->theme_landmarks = [];
+        $this->theme_parts = [];
         $this->display = [];
         $this->served_template = null;
         $this->served_location = null;
@@ -504,6 +524,11 @@ class ThemeBuilderManager
      * reaches all of them. The filter is asked at most once per side per
      * request, and not at all for a side with no template.
      *
+     * Decided without rendering: adapters ask on `wp`, before the page has
+     * started, and a published template is used as published. One that
+     * renders nothing, or fails to render, leaves its area empty, as a Single
+     * or Archive template does.
+     *
      * @param string $side 'header' or 'footer'.
      */
     public function replaces_native_chrome(string $side): bool
@@ -511,25 +536,10 @@ class ThemeBuilderManager
         if (!isset($this->replaced_sides[$side])) {
             $id = 'header' === $side ? $this->get_header_id() : $this->get_footer_id();
             $this->replaced_sides[$side] = (bool) $id
-                && (bool) apply_filters(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, true, $side)
-                && $this->renders_content((int) $id, $side);
+                && (bool) apply_filters(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, true, $side);
         }
 
         return $this->replaced_sides[$side];
-    }
-
-    /**
-     * Whether the $side template renders any content. One that fails to render
-     * is prepared as an empty fragment (see TemplateRenderer::prepare()), and
-     * replacing the theme's own chrome with nothing would leave the page with
-     * neither, so such a template is treated as not displayed.
-     *
-     * Preparing here caches the fragment the adapter prints later, so the
-     * template still renders once.
-     */
-    private function renders_content(int $id, string $side): bool
-    {
-        return '' !== trim($this->get_template_content($id, $side));
     }
 
     /**
@@ -572,6 +582,44 @@ class ThemeBuilderManager
 
         $this->rendered_locations['footer'] = true;
         $this->render_template($id, 'footer');
+    }
+
+    /**
+     * Renders, before the document head, the block theme's own template part
+     * for each side no Elemacy template replaces on a page whose whole shell
+     * Elemacy owns (a location template on a theme with no header.php). A
+     * block theme prints the layout and other block-support styles its parts
+     * need only while the head is assembled, as its own template canvas
+     * renders the whole template first, so a part rendered later would lose
+     * them.
+     */
+    public function prepare_block_theme_sides(): void
+    {
+        foreach (['header', 'footer'] as $side) {
+            if (!isset($this->theme_parts[$side]) && !$this->replaces_native_chrome($side)) {
+                $this->theme_parts[$side] = (new BlockThemeCompatibility())->theme_part($side);
+            }
+        }
+    }
+
+    /**
+     * Prints $side of such a page: the Elemacy template where one replaces
+     * the theme's chrome, otherwise the theme's own template part for that
+     * side, so a Single template does not take the theme's header and footer
+     * away with it.
+     */
+    public function render_block_theme_side(string $side): void
+    {
+        if ($this->replaces_native_chrome($side)) {
+            'header' === $side ? $this->render_header() : $this->render_footer();
+
+            return;
+        }
+
+        $this->prepare_block_theme_sides();
+
+        // PHPCS - rendered by WordPress's block renderer.
+        echo $this->theme_parts[$side]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     /**

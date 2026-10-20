@@ -194,6 +194,23 @@ final class NativeChromeReplacementTest extends IntegrationTestCase
         $this->assertSingleDocumentShell($html);
     }
 
+    public function testATemplateTheThemeWrapsInItsOwnHeaderDoesNotOpenASecondHeaderLandmark(): void
+    {
+        // The Beaver Builder Theme adapter prints its own <header> around the
+        // Header template (keep_theme_landmark()), so the template's root must
+        // be a plain element. The fixture replicates only that theme's hooks.
+        $this->assertRealThemeInstalled('bb-theme');
+        $id = $this->create('header', 'Elemacy BB header');
+        $this->create('footer', 'Elemacy BB footer');
+
+        $html = ThemePageRequest::render('bb-theme', get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy BB header'), 'The header renders once: ' . $html);
+        self::assertStringNotContainsString('BB native header', $html, "The theme's own header is replaced.");
+        self::assertMatchesRegularExpression('/<header id="masthead"[^>]*>\s*<div\b[^>]*\belementor-' . $id . '\b/', $html, "The template renders inside the theme's <header> with a plain root.");
+        self::assertSame(1, preg_match_all('/<header\b/', $html), "The theme's wrapper is the page's only <header>: " . $html);
+    }
+
     /**
      * Real classic themes, installed with setup.py --theme, with the markers
      * of their own header, footer and content. Each has no dedicated adapter,

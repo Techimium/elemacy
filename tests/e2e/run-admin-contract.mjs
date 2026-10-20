@@ -138,6 +138,13 @@ echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   await activeContext.addCookies(fixture.cookies.map(cookie => ({ ...cookie, url: base.origin, httpOnly: true })));
   const activePage = await activeContext.newPage();
   const activeErrors = [];
+  // Every Elemacy REST request the admin apps make goes to the versioned namespace and succeeds.
+  const restCalls = [];
+  activePage.on('response', response => {
+    const url = new URL(response.url());
+    const route = url.searchParams.get('rest_route') || (url.pathname.startsWith('/wp-json/') ? url.pathname.slice('/wp-json'.length) : '');
+    if (route.startsWith('/elemacy')) restCalls.push({ route, status: response.status() });
+  });
   activePage.on('pageerror', error => activeErrors.push(error.message));
   activePage.on('response', response => { if (response.status() >= 400) activeErrors.push(`${response.status()} ${response.url()}`); });
   await activePage.goto(new URL('/wp-admin/admin.php?page=elemacy#/popups', base).href, { waitUntil: 'networkidle' });
@@ -157,6 +164,10 @@ echo json_encode(['id' => $id, 'old' => base64_encode(serialize($old))]);`));
   assert.deepEqual(activeErrors, []);
   await activePage.screenshot({ path: path.join(reportDir, 'admin-active-license.png'), fullPage: true });
   await activeContext.close();
+  assert.ok(restCalls.some(call => call.route.startsWith('/elemacy/v1/popups')), 'The popups screen read its data over REST');
+  assert.ok(restCalls.some(call => call.route.startsWith('/elemacy/v1/license')), 'The license screen read its data over REST: ' + JSON.stringify(restCalls));
+  assert.deepEqual(restCalls.filter(call => !call.route.startsWith('/elemacy/v1/') || call.status >= 400), [], 'Every Elemacy REST call is under /elemacy/v1/ and succeeds');
+  results.push(`PASS REST calls of the admin apps: ${restCalls.length}, all under /wp-json/elemacy/v1/ and successful`);
   results.push('PASS active license fixture: real popup analytics fill, REST response and license screen');
   const bundle = JSON.parse(readFileSync(path.resolve(integration, '../../../elemacy-pro/assets/admin/admin-bundle-report.json'), 'utf8'));
   assert.equal(bundle.reactModules, 0);

@@ -213,6 +213,22 @@ try {
         elemacy_test_assert(1 === count($owned), 'Refusing to delete a term this run did not seed.');
         elemacy_test_assert(true === wp_delete_term($term_id, (string) $owned[0][1]), 'Cannot delete the journey term.');
         echo wp_json_encode(['deleted' => $term_id]);
+    } elseif ($command === 'use-theme') {
+        // Serves the site with an installed theme for this run; cleanup puts the previous one back.
+        $path = realpath($argv[2] ?? '');
+        elemacy_test_assert($path && dirname($path) === $directory
+            && preg_match('/\Ajourney-fixture-[a-f0-9-]+\.json\z/', basename($path)), 'Refusing an unrelated journey manifest.');
+        $fixture = json_decode(file_get_contents($path), true);
+        elemacy_test_assert(($fixture['environment_token'] ?? '') === ELEMACY_INTEGRATION_TOKEN, 'Wrong journey environment.');
+        $theme = (string) ($argv[3] ?? '');
+        if (!wp_get_theme($theme)->exists()) {
+            echo wp_json_encode(['installed' => false]);
+            exit(0);
+        }
+        $fixture['previous_theme'] = $fixture['previous_theme'] ?? get_stylesheet();
+        elemacy_test_assert((bool) file_put_contents($path, wp_json_encode($fixture)), 'Cannot record the previous theme.');
+        switch_theme($theme);
+        echo wp_json_encode(['installed' => true, 'previous' => $fixture['previous_theme']]);
     } elseif ($command === 'cleanup') {
         $path = realpath($argv[2] ?? '');
         elemacy_test_assert($path && dirname($path) === $directory
@@ -249,6 +265,9 @@ try {
             } else {
                 update_option($option, $fixture[$key]);
             }
+        }
+        if (isset($fixture['previous_theme'])) {
+            switch_theme((string) $fixture['previous_theme']);
         }
         require_once ABSPATH . 'wp-admin/includes/user.php';
         WP_Session_Tokens::get_instance($user)->destroy_all();

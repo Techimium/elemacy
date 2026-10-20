@@ -8,7 +8,6 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 
 | Feature | Implementation | Prerequisites | Journey status |
 | --- | --- | --- | --- |
-| `condition:archive/all` | placeholder | Elementor Free | pending |
 | `condition:archive/author` | placeholder | Elementor Free | pending |
 | `condition:archive/date` | placeholder | Elementor Free | pending |
 | `condition:archive/post_type` | real | Elementor Free | pending |
@@ -17,7 +16,6 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `condition:general/entire_site` | real | Elementor Free | pending |
 | `condition:general/front_page` | placeholder | Elementor Free | pending |
 | `condition:general/not_found` | placeholder | Elementor Free | pending |
-| `condition:general/search_results` | placeholder | Elementor Free | pending |
 | `condition:search/all` | real | Elementor Free | pending |
 | `condition:search/post_type` | placeholder | Elementor Free | pending |
 | `condition:singular/by_author` | placeholder | Elementor Free | pending |

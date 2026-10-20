@@ -126,7 +126,7 @@
 		window.jQuery(window).on('elementor/frontend/init', markReady);
 	}
 
-	window.ElemacyElementorLifecycle = {
+	window.elemacyElementorLifecycle = {
 		hydrate: hydrate,
 		release: release
 	};

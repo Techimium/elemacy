@@ -276,4 +276,34 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
         self::assertSame($prepared, (new TemplateAssetsRegistrar(new TemplateRenderer(), new Capabilities()))->get_prepared($document, 'test', 'registrar-1'));
         self::assertSame($prepared, (new TemplateRenderer())->get_prepared($document, 'test', 'registrar-1'));
     }
+
+    public function testCssElementorPrintsInlineWhilePreparingStaysInTheFragment(): void
+    {
+        // Elementor prints a document's CSS as a <style> wherever it is when
+        // its frontend stylesheet is not registered yet, as on a block theme
+        // whose header part renders before wp_enqueue_scripts.
+        $elements = \Elemacy\Tests\Integration\Fixtures\LibraryDocument::heading('Inline print marker');
+        $elements[0]['elements'][0]['settings']['title_color'] = '#5e6f70';
+        $document = $this->documents->create('Inline print document', 'popup', 'publish', $elements);
+
+        $internal = static fn() => 'internal';
+        add_filter('pre_option_elementor_css_print_method', $internal);
+        $frontend = wp_styles()->query('elementor-frontend', 'registered');
+        wp_deregister_style('elementor-frontend');
+
+        try {
+            ob_start();
+            $fragment = (new TemplateRenderer())->prepare($document, 'test', 'inline-print');
+            $echoed = ob_get_clean();
+        } finally {
+            remove_filter('pre_option_elementor_css_print_method', $internal);
+            if ($frontend instanceof \_WP_Dependency) {
+                wp_styles()->registered['elementor-frontend'] = $frontend;
+            }
+        }
+
+        self::assertSame('', $echoed, 'Nothing is printed where preparation ran.');
+        self::assertMatchesRegularExpression('/^<style id="elementor-post-' . $document . '">[^<]*#5e6f70/', $fragment, 'The style starts the fragment: ' . $fragment);
+        self::assertStringContainsString('Inline print marker', $fragment, 'The document markup follows it.');
+    }
 }

@@ -25,6 +25,12 @@ class SpecificPost extends MockCondition
         return __('Specific Post / Page', 'elemacy');
     }
 
+    /** As Pro's real condition: a rule names one post. */
+    public function requires_value(): bool
+    {
+        return true;
+    }
+
     /** One post with a value; every singular document without one. */
     public function get_specificity(ConditionRuleDTO $rule): int
     {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { __ } from '@wordpress/i18n';
-import { ConditionRuleSchema } from '@/schemas/condition';
+import { ConditionRuleSchema, ConditionRulesHaveRequiredValues } from '@/schemas/condition';
 
 /** A rule a new template of a type starts with, in stored form (no id yet). */
 const DefaultConditionSchema = z.object({
@@ -51,7 +51,7 @@ const conditionsRule = z.array(ConditionRuleSchema).optional().refine(
     // must name a condition.
     (rules) => (rules ?? []).every((rule) => rule.type !== '' || rule.availability !== undefined),
     { message: __('Choose a condition for each row, or remove it.', 'elemacy') },
-);
+).refine(ConditionRulesHaveRequiredValues, { message: __('Choose a post for each "Specific Post / Page" condition.', 'elemacy') });
 
 /** The statuses this form sets; any other is Elementor's and is left as it is. */
 const SETTABLE_STATUSES = ['publish', 'draft'] as const;

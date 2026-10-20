@@ -85,9 +85,9 @@
 
             // The grid node is the same across swaps, so release() first: the
             // lifecycle adapter otherwise skips an already-seen subtree.
-            if (window.ElemacyElementorLifecycle) {
-                window.ElemacyElementorLifecycle.release(liveGrid);
-                window.ElemacyElementorLifecycle.hydrate(liveGrid);
+            if (window.elemacyElementorLifecycle) {
+                window.elemacyElementorLifecycle.release(liveGrid);
+                window.elemacyElementorLifecycle.hydrate(liveGrid);
             }
 
             return true;
@@ -334,9 +334,9 @@
                         // adapter's own "never initialize an already-seen subtree twice"
                         // guard (needed for a reopened popup) would silently skip
                         // hydrating every pagination response after the first.
-                        if (window.ElemacyElementorLifecycle) {
-                            window.ElemacyElementorLifecycle.release($loopGrid[0]);
-                            window.ElemacyElementorLifecycle.hydrate($loopGrid[0]);
+                        if (window.elemacyElementorLifecycle) {
+                            window.elemacyElementorLifecycle.release($loopGrid[0]);
+                            window.elemacyElementorLifecycle.hydrate($loopGrid[0]);
                         }
 
                         // Smooth scroll to top of the grid

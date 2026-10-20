@@ -72,7 +72,7 @@ class AdminScripts
         }
 
         $script_data = apply_filters(Hooks::ADMIN_SCRIPT_DATA_FILTER, [
-            'api_base' => esc_url_raw(rest_url()) . 'elemacy/',
+            'api_base' => esc_url_raw(rest_url('elemacy/v1/')),
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url(),
             'modules' => Elemacy::get_instance()->get_module_manager()->to_array(),

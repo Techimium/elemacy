@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { __ } from '@wordpress/i18n';
-import { ConditionRuleSchema } from '@/schemas/condition';
+import { ConditionRuleSchema, ConditionRulesHaveRequiredValues } from '@/schemas/condition';
 import { AvailabilitySchema } from '@/schemas/availability';
 
 const StatusSchema = z.enum(['publish', 'draft', 'trash']);
@@ -71,7 +71,9 @@ export const CreatePopupSchema = z.object({
     title: z.string().min(1, __('Title is required.', 'elemacy')),
     type: PopupTypeValueSchema,
     status: StatusSchema,
-    conditions: z.array(ConditionRuleSchema),
+    conditions: z.array(ConditionRuleSchema).refine(ConditionRulesHaveRequiredValues, {
+        message: __('Choose a post for each "Specific Post / Page" condition.', 'elemacy'),
+    }),
     triggers: z.array(TriggerSchema),
     rules: z.array(RuleSchema),
 });

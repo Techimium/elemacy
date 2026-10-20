@@ -50,32 +50,32 @@
         prevent_body_scroll: false, z_index: 9999
       };
     };
-    window.elemacyPopups = {
+    window.elemacyPopupsConfig = {
       debug: true,
       popups: [
-        { id: 201, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_popup_201',
+        { id: 201, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_1_popup_201',
           triggers: [{ type: 'page_load', delay: 0 }, { type: 'auto' }, { type: 'click', selector: '.reopen-201' }] },
-        { id: 202, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_popup_202',
+        { id: 202, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_1_popup_202',
           triggers: [{ type: 'boom' }] },
-        { id: 203, type: 'floating', modal: false, display: display(), storage_key: 'elemacy_popup_203',
+        { id: 203, type: 'floating', modal: false, display: display(), storage_key: 'elemacy_1_popup_203',
           triggers: [{ type: 'page_load', delay: 0 }], rules: [{ type: 'explode' }] },
-        { id: 204, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_popup_204',
+        { id: 204, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_1_popup_204',
           triggers: [{ type: 'click', selector: '.open-204' }] },
-        { id: 205, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_popup_205',
+        { id: 205, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_1_popup_205',
           triggers: [{ type: 'click', selector: '.never' }] },
-        { id: 206, type: 'floating', modal: false, rules: [], display: display({ in: 'fade', out: 'fade' }), storage_key: 'elemacy_popup_206',
+        { id: 206, type: 'floating', modal: false, rules: [], display: display({ in: 'fade', out: 'fade' }), storage_key: 'elemacy_1_popup_206',
           triggers: [{ type: 'click', selector: '.never' }] },
-        { id: 207, type: 'popup', modal: true, rules: [], storage_key: 'elemacy_popup_207',
+        { id: 207, type: 'popup', modal: true, rules: [], storage_key: 'elemacy_1_popup_207',
           display: Object.assign(display(), { overlay: { enabled: true, color: '#000000', opacity: 0.6, blur: 0 }, prevent_body_scroll: true }),
           triggers: [{ type: 'click', selector: '.never' }] },
-        { id: 208, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_popup_208',
+        { id: 208, type: 'floating', modal: false, rules: [], display: display(), storage_key: 'elemacy_1_popup_208',
           triggers: [{ type: 'never_registered' }] }
       ],
       i18n: { close: 'Close' }
     };
 
     window.__events = [];
-    ['shown', 'closed', 'destroyed'].forEach(function (name) {
+    ['opened', 'closed', 'destroyed'].forEach(function (name) {
       document.addEventListener('elemacy-popup:' + name, function (e) {
         window.__events.push([name, e.detail.id, e.detail.wasShown, typeof e.detail.id]);
       });
@@ -86,12 +86,12 @@
   <script src="engine.js"></script>
   <script>
     // Handlers registered after engine.js, before DOMContentLoaded.
-    window.ElemacyPopups.registerTrigger('auto', function (id, params, api) {
+    window.elemacyPopups.registerTrigger('auto', function (id, params, api) {
       window.__autoApis[id] = api;
       api.onCleanup(function () { window.__cleanups++; });
     });
-    window.ElemacyPopups.registerTrigger('boom', function () { throw new Error('trigger handler exploded'); });
-    window.ElemacyPopups.registerRule('explode', function () { throw new Error('rule handler exploded'); });
+    window.elemacyPopups.registerTrigger('boom', function () { throw new Error('trigger handler exploded'); });
+    window.elemacyPopups.registerRule('explode', function () { throw new Error('rule handler exploded'); });
   </script>
 </body>
 </html>

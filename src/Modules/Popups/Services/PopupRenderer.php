@@ -128,7 +128,7 @@ class PopupRenderer
 
     /**
      * Whether a top bar is shown as soon as the page loads with nothing for the
-     * browser to decide first: a top-positioned bar with no triggers, or only a
+     * browser to decide first: a top-positioned bar whose only trigger is a
      * page-load trigger without a delay, and no client-side rules. Such a bar
      * is printed visible; every other popup is opened by the engine.
      *
@@ -153,10 +153,7 @@ class PopupRenderer
 
         $triggers = is_array($config['triggers'] ?? null) ? $config['triggers'] : [];
 
-        if (empty($triggers)) {
-            return true;
-        }
-
+        // A bar with no triggers opens only from links and the JavaScript API.
         return 1 === count($triggers)
             && 'page_load' === ($triggers[0]['type'] ?? '')
             && 0.0 === (float) ($triggers[0]['delay'] ?? 0);
@@ -194,7 +191,7 @@ class PopupRenderer
         $close = '';
         if ($close_button) {
             $label = __('Close', 'elemacy');
-            $close = '<button type="button" class="elemacy-popup__close elemacy-close-popup" aria-label="' . esc_attr($label) . '">&times;</button>';
+            $close = '<button type="button" class="elemacy-popup__close elemacy-popup-close" aria-label="' . esc_attr($label) . '">&times;</button>';
         }
 
         return substr($content, 0, $open_start)

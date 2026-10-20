@@ -39,16 +39,18 @@ class ConditionRepository
     }
 
     /**
-     * Rejects a rule that names no condition. A rule already stored on
-     * $post_id is let through unchanged even when blank or unknown, so saving
-     * an unrelated field never fails and never rewrites it; it stays
-     * preserved and suspends the item like any unavailable condition.
+     * Rejects a new rule that names no condition, or that leaves out the value
+     * its condition requires (BaseCondition::requires_value()). A rule already
+     * stored on $post_id is let through unchanged even when blank, unknown or
+     * valueless, so saving an unrelated field never fails and never rewrites
+     * it; it stays preserved and suspends the item, or matches nothing, as
+     * before. Templates and popups both check their rules here before saving.
      *
      * @param int   $post_id The item being updated, or 0 when creating.
      * @param array $rules ConditionRuleDTOs and/or their array form.
-     * @throws ValidationException A new rule has a blank condition type.
+     * @throws ValidationException A new rule has a blank condition type or a missing required value.
      */
-    public function assert_rules_have_types(int $post_id, array $rules): void
+    public function assert_new_rules_are_complete(int $post_id, array $rules): void
     {
         $stored = [];
 
@@ -57,9 +59,27 @@ class ConditionRepository
         }
 
         foreach (ConditionRuleDTO::collection_or_fail($rules) as $rule) {
-            if (trim($rule->type) === '' && !in_array($rule->to_array(), $stored, true)) {
+            if (in_array($rule->to_array(), $stored, true)) {
+                continue;
+            }
+
+            if (trim($rule->type) === '') {
                 throw ValidationException::with_errors([
                     'conditions' => [esc_html__('Each display condition needs a type.', 'elemacy')],
+                ]);
+            }
+
+            $condition = ConditionManager::instance()->get($rule->type);
+
+            if ($condition instanceof BaseCondition && $condition->requires_value() && trim((string) $rule->value) === '') {
+                $message = sprintf(
+                    /* translators: %s: display condition name, e.g. "Specific Post / Page". */
+                    __('Choose which post "%s" applies to.', 'elemacy'),
+                    $condition->get_label()
+                );
+
+                throw ValidationException::with_errors([
+                    'conditions' => [esc_html($message)],
                 ]);
             }
         }

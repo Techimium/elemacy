@@ -3258,10 +3258,8 @@ check('every Free mock condition declares the same level its real Pro counterpar
     $value = ConditionRuleDTO::from_array(['value' => '7']);
 
     $expected = [
-        ['Mock\AllArchives',    $empty, Specificity::SECTION],
         ['Mock\Blog',           $empty, Specificity::TYPE],
         ['Mock\NotFound',       $empty, Specificity::TYPE],
-        ['Mock\SearchResults',  $empty, Specificity::TYPE],
         ['Mock\SearchPostType', $empty, Specificity::TYPE],
         ['Mock\SearchPostType', $value, Specificity::OBJECT],
         ['Mock\DateArchive',    $empty, Specificity::TYPE],
@@ -3308,26 +3306,23 @@ check('Free\'s Search Results condition matches exactly a search request and ran
         && Specificity::TYPE === $all->get_specificity($rule);
 });
 
-check('the Search Results conditions apply to Search templates only, and no other template type gains them', static function () {
+check('Free\'s Search Results applies to Search, Header and Footer templates; the post type variant to Search templates only; no other type gains either', static function () {
     $all  = new \Elemacy\Conditions\Search\AllResults();
     $post = new \Elemacy\Conditions\Mock\SearchPostType();
 
-    foreach ([$all, $post] as $condition) {
-        if (!$condition->applies_to('search')) {
+    foreach (['search', 'header', 'footer'] as $context) {
+        if (!$all->applies_to($context)) {
             return false;
-        }
-
-        foreach (['header', 'footer', 'single', 'archive', '404'] as $other) {
-            if ($condition->applies_to($other)) {
-                return false;
-            }
         }
     }
 
-    // The existing Header/Footer condition keeps its scope.
-    $existing = new \Elemacy\Conditions\Mock\SearchResults();
+    foreach (['single', 'archive', '404'] as $other) {
+        if ($all->applies_to($other) || $post->applies_to($other)) {
+            return false;
+        }
+    }
 
-    return $existing->applies_to('header') && $existing->applies_to('footer') && !$existing->applies_to('search');
+    return $post->applies_to('search') && !$post->applies_to('header') && !$post->applies_to('footer') && $all->applies_to('popup');
 });
 
 check('Free\'s Search Results post type condition is a locked placeholder that never matches and carries the level Pro\'s real one declares', static function () {
@@ -4129,6 +4124,25 @@ check('PopupConfigResource omits a trigger whose type is not registered instead 
     $config = (new PopupConfigResource($popup))->to_array();
 
     return count($config['triggers']) === 1 && $config['triggers'][0]['type'] === 'elemacy_fixture/known_trigger';
+});
+
+check('a popup\'s browser storage key names the site: on site 3 it is elemacy_3_popup_{id}, and the prefix is elemacy_3_', static function () {
+    switch_to_blog(3);
+
+    try {
+        $popup = new PopupDTO();
+        $popup->id = 909003;
+        $popup->type = 'popup';
+        $popup->triggers = [];
+        $popup->rules = [];
+
+        $config = (new PopupConfigResource($popup))->to_array();
+
+        return 'elemacy_3_popup_909003' === $config['storage_key']
+            && 'elemacy_3_' === \Elemacy\Modules\Popups\Support\StorageKeys::prefix();
+    } finally {
+        restore_current_blog();
+    }
 });
 
 check('PopupConfigResource omits a rule whose type is not registered instead of forwarding raw type/params', static function () {

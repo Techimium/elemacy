@@ -40,12 +40,24 @@ export async function openCreateDialog(page, { title, type = 'Popup' }) {
 }
 
 /**
- * Creates a popup of the given type, with its triggers and rules, through the admin dialog and lands in the
- * Elementor editor, as a person would. `type` is the type's button label as the dialog shows it.
+ * Removes every trigger in the open popup dialog, as a person would, including the Page Load trigger a new
+ * popup starts with.
  */
-export async function createPopup(page, { title, type = 'Popup', triggers = [], rules = [] }) {
+export async function clearTriggers(page, dialog) {
+  await dialog.getByRole('tab', { name: 'Triggers' }).click();
+  const remove = dialog.getByRole('button', { name: 'Remove trigger', exact: true });
+  while (await remove.count()) await remove.first().click();
+}
+
+/**
+ * Creates a popup of the given type, with its triggers and rules, through the admin dialog and lands in the
+ * Elementor editor, as a person would. `type` is the type's button label as the dialog shows it. Without
+ * `triggers` the popup keeps the Page Load trigger it starts with; a list (even an empty one) replaces it.
+ */
+export async function createPopup(page, { title, type = 'Popup', triggers, rules = [] }) {
   const dialog = await openCreateDialog(page, { title, type });
-  for (const entry of triggers) await addEntry(page, dialog, 'trigger', entry);
+  if (triggers) await clearTriggers(page, dialog);
+  for (const entry of triggers ?? []) await addEntry(page, dialog, 'trigger', entry);
   for (const entry of rules) await addEntry(page, dialog, 'rule', entry);
   await dialog.getByRole('button', { name: 'Create & Edit with Elementor', exact: true }).click();
   await page.waitForURL(url => url.searchParams.get('action') === 'elementor');

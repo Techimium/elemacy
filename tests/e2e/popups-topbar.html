@@ -7,7 +7,7 @@
 </head>
 <body>
   <!-- 401: what PopupRenderer prints for a default top bar: visible at first paint, no <template>. -->
-  <div class="elemacy-popup elemacy-popup-401 elemacy-popup--topbar is-open elemacy-popup--pos-top" data-elemacy-popup-id="401" data-elemacy-popup-type="topbar" style="z-index:9990" data-elemacy-prerendered aria-hidden="false"><div class="elemacy-popup__box elementor elementor-401"><div class="elemacy-popup__scroll"><p style="margin:0;height:40px">promo</p></div><button type="button" class="elemacy-popup__close elemacy-close-popup" aria-label="Close">&times;</button></div></div>
+  <div class="elemacy-popup elemacy-popup-401 elemacy-popup--topbar is-open elemacy-popup--pos-top" data-elemacy-popup-id="401" data-elemacy-popup-type="topbar" style="z-index:9990" data-elemacy-prerendered aria-hidden="false"><div class="elemacy-popup__box elementor elementor-401"><div class="elemacy-popup__scroll"><p style="margin:0;height:40px">promo</p></div><button type="button" class="elemacy-popup__close elemacy-popup-close" aria-label="Close">&times;</button></div></div>
 
   <main id="content" style="height:2000px">page content</main>
 
@@ -29,16 +29,16 @@
       close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
       prevent_body_scroll: false, z_index: 9990
     };
-    window.elemacyPopups = {
+    window.elemacyPopupsConfig = {
       popups: [
-        { id: 401, type: 'topbar', modal: false, triggers: [], rules: [], display: display, storage_key: 'elemacy_popup_401' },
-        { id: 402, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_popup_402' },
-        { id: 403, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_popup_403' }
+        { id: 401, type: 'topbar', modal: false, triggers: [{ type: 'page_load', delay: 0 }], rules: [], display: display, storage_key: 'elemacy_1_popup_401' },
+        { id: 402, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_1_popup_402' },
+        { id: 403, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_1_popup_403' }
       ],
       i18n: { close: 'Close' }
     };
     window.__events = [];
-    ['shown', 'closed'].forEach(function (name) {
+    ['opened', 'closed'].forEach(function (name) {
       document.addEventListener('elemacy-popup:' + name, function (e) { window.__events.push([name, e.detail.id]); });
     });
     window.__firstPaintTop = null;

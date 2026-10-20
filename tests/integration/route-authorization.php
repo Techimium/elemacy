@@ -89,6 +89,20 @@ final class RouteAuthorizationTest extends IntegrationTestCase
         return $unguarded;
     }
 
+    public function testEveryRouteIsVersionedUnderElemacyV1(): void
+    {
+        $index = rest_do_request(new \WP_REST_Request('GET', '/'))->get_data();
+        $namespaces = (array) ($index['namespaces'] ?? []);
+        self::assertContains('elemacy/v1', $namespaces, 'The REST index lists elemacy/v1: ' . wp_json_encode($namespaces));
+        self::assertNotContains('elemacy', $namespaces, 'No unversioned elemacy namespace.');
+
+        $elemacy_routes = array_values(array_filter(array_keys((array) ($index['routes'] ?? [])), static fn(string $route): bool => 0 === strpos($route, '/elemacy')));
+        self::assertNotEmpty($elemacy_routes, 'The index lists the Elemacy routes.');
+        foreach ($elemacy_routes as $route) {
+            self::assertStringStartsWith('/elemacy/v1/', $route === '/elemacy/v1' ? '/elemacy/v1/' : $route, 'Every Elemacy route is versioned.');
+        }
+    }
+
     public function testEveryRouteIsAdminOnlyOrOnTheExplicitPublicList(): void
     {
         self::assertNotEmpty($this->routes(), 'The sweep must see the registered routes.');
@@ -130,7 +144,7 @@ final class RouteAuthorizationTest extends IntegrationTestCase
                     continue;
                 }
 
-                $url = '/elemacy' . str_replace(['{id}', '{name}'], ['1', 'x'], $route['endpoint']);
+                $url = '/elemacy/v1' . str_replace(['{id}', '{name}'], ['1', 'x'], $route['endpoint']);
 
                 foreach (['an editor' => $editor, 'a visitor' => 0] as $who => $user) {
                     wp_set_current_user($user);

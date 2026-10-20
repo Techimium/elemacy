@@ -14,7 +14,7 @@ check('box_markup() tags the Elementor root as the box, moves its children into 
 
     return '<div class="elemacy-popup__box elementor elementor-5" data-elementor-id="5">'
         . '<div class="elemacy-popup__scroll"><div class="e-con">hi</div></div>'
-        . '<button type="button" class="elemacy-popup__close elemacy-close-popup" aria-label="Close">&times;</button></div>' === $out;
+        . '<button type="button" class="elemacy-popup__close elemacy-popup-close" aria-label="Close">&times;</button></div>' === $out;
 });
 
 check('box_markup() leaves sibling markup around the root, and omits the close button when disabled', static function () use ($popup_box) {

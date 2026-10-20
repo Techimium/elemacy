@@ -39,6 +39,49 @@ class BlockThemeCompatibility implements ThemeCompatibilityInterface
     }
 
     /**
+     * The theme's own $side ('header' or 'footer') template part, rendered,
+     * for a page whose shell Elemacy prints in place of the block template.
+     * The part is the one the block template WordPress resolved for this
+     * request uses for that side, so a Single gets the header its own
+     * template would have shown; failing that, the part named after the side.
+     */
+    public function theme_part(string $side): string
+    {
+        global $_wp_current_template_content;
+
+        $template = is_string($_wp_current_template_content) ? $_wp_current_template_content : '';
+        $part = $this->find_part(parse_blocks($template), $side) ?? [
+            'blockName' => 'core/template-part',
+            'attrs' => ['slug' => $side],
+            'innerBlocks' => [],
+            'innerHTML' => '',
+            'innerContent' => [],
+        ];
+
+        return render_block($part);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $blocks
+     * @return array<string, mixed>|null The first template-part block for $side.
+     */
+    private function find_part(array $blocks, string $side): ?array
+    {
+        foreach ($blocks as $block) {
+            if ('core/template-part' === ($block['blockName'] ?? null) && $side === $this->side_of((array) ($block['attrs'] ?? []))) {
+                return $block;
+            }
+
+            $inner = $this->find_part((array) ($block['innerBlocks'] ?? []), $side);
+            if (null !== $inner) {
+                return $inner;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param array<string, mixed> $attrs The template-part block's attributes.
      * @return string|null 'header', 'footer', or null for any other part.
      */

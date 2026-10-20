@@ -13,7 +13,7 @@ class CreatePopupRequest extends Request
 {
     public function rules()
     {
-        return [
+        $rules = [
             'title' => 'required|string',
             'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('popup')),
             'status' => 'nullable|string|in:publish,draft,trash',
@@ -23,14 +23,25 @@ class CreatePopupRequest extends Request
             'conditions.*.operator' => 'required|string|in:include,exclude',
             'conditions.*.value' => 'string',
             'triggers' => 'nullable|array',
-            'triggers.*.id' => 'string',
-            'triggers.*.type' => 'required|string',
-            'triggers.*.params' => 'nullable|array',
             'rules' => 'nullable|array',
             'rules.*.id' => 'string',
             'rules.*.type' => 'required|string',
             'rules.*.params' => 'nullable|array',
         ];
+
+        // A request may leave triggers out: the popup then starts with the
+        // default Page Load trigger (PopupService::create()). Each entry is
+        // checked only when a list is sent, since the validator would read a
+        // missing list as a missing required `triggers.*.type`.
+        if ($this->has('triggers')) {
+            $rules += [
+                'triggers.*.id' => 'string',
+                'triggers.*.type' => 'required|string',
+                'triggers.*.params' => 'nullable|array',
+            ];
+        }
+
+        return $rules;
     }
 
     public function filters()

@@ -149,6 +149,10 @@ class PopupService
 
     public function create(CreatePopupDTO $dto)
     {
+        if (isset($dto->conditions)) {
+            $this->conditions->assert_new_rules_are_complete(0, (array) $dto->conditions);
+        }
+
         $post_id = $this->writer->create(self::GROUP, [
             'post_title' => $dto->title ?? '',
             'post_status' => $dto->status ?? PostStatus::DRAFT,
@@ -160,9 +164,10 @@ class PopupService
             $this->conditions->save($post_id, (array) $dto->conditions);
         }
 
-        if (isset($dto->triggers)) {
-            $this->save_triggers($post_id, (array) $dto->triggers);
-        }
+        // A new popup opens on page load until its author says otherwise; one
+        // with no triggers opens only from links and the JavaScript API. A
+        // request that supplies its own list, even an empty one, keeps it.
+        $this->save_triggers($post_id, isset($dto->triggers) ? (array) $dto->triggers : self::default_triggers());
 
         if (isset($dto->rules)) {
             $this->save_rules($post_id, (array) $dto->rules);
@@ -175,6 +180,10 @@ class PopupService
 
     public function update(int $id, UpdatePopupDTO $dto)
     {
+        if (isset($dto->conditions)) {
+            $this->conditions->assert_new_rules_are_complete($id, (array) $dto->conditions);
+        }
+
         $post_fields = [];
 
         if (isset($dto->title)) {
@@ -248,6 +257,21 @@ class PopupService
         $type = (string) $this->repository->get_meta($id, LibraryMetaKeys::TEMPLATE_TYPE);
 
         do_action(Hooks::LIBRARY_CHANGED_ACTION, new LibraryChanged($id, self::GROUP, $type, $action));
+    }
+
+    /**
+     * The triggers a new popup starts with: one Page Load trigger, no delay.
+     *
+     * @return array<int, array{type: string, params: array{delay: int}}>
+     */
+    public static function default_triggers(): array
+    {
+        return [
+            [
+                'type' => 'page_load',
+                'params' => ['delay' => 0],
+            ],
+        ];
     }
 
     protected function get_triggers(int $popup_id): array

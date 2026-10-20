@@ -27,10 +27,15 @@ interface ConditionRuleRowProps {
 
 export function ConditionRuleRow({ rule, conditionGroups, onChange, onRemove }: ConditionRuleRowProps) {
     return (
-        <div className="flex items-center gap-2">
-            <OperatorSelect rule={rule} onChange={onChange} />
-            <TypeSelect groups={conditionGroups} rule={rule} onChange={onChange} />
-            <RemoveButton onClick={onRemove} />
+        <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                <OperatorSelect rule={rule} onChange={onChange} />
+                <TypeSelect groups={conditionGroups} rule={rule} onChange={onChange} />
+                <RemoveButton onClick={onRemove} />
+            </div>
+            {rule.requires_value && rule.value === '' && (
+                <p className="text-xs text-destructive">{__('Choose a post for this condition.', 'elemacy')}</p>
+            )}
         </div>
     );
 }
@@ -68,7 +73,10 @@ function TypeSelect({
         <>
             <Select
                 value={rule.type || undefined}
-                onValueChange={(v) => onChange({ ...rule, type: v, value: '' })}
+                onValueChange={(v) => {
+                    const next = allConditions.find((c) => c.value === v);
+                    onChange({ ...rule, type: v, value: '', requires_value: next?.requires_value || undefined });
+                }}
             >
                 <SelectTrigger className="flex-1 min-w-0" aria-label={__('Condition', 'elemacy')}>
                     <SelectValue placeholder={__('Select condition…', 'elemacy')} />
@@ -108,6 +116,7 @@ function TypeSelect({
             {selected?.value_type === 'search' && (
                 <AsyncCombobox
                     condition={selected.value}
+                    required={selected.requires_value}
                     value={rule.value}
                     onChange={(value) => onChange({ ...rule, value })}
                 />
@@ -134,7 +143,7 @@ function SubValueSelect({
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value={ANY_VALUE}>{__('Any', 'elemacy')}</SelectItem>
+                <SelectItem value={ANY_VALUE}>{__('All', 'elemacy')}</SelectItem>
                 {condition.sub_values.map((sv) => (
                     <SelectItem key={sv.value} value={sv.value}>
                         {sv.label}

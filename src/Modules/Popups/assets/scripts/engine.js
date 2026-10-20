@@ -1,9 +1,10 @@
 /**
  * Elemacy Popups — frontend engine.
  *
- * Self-contained IIFE. Reads window.elemacyPopups.popups (array of per-popup
- * configs emitted by PopupConfigResource) and wires up triggers, open/close,
- * a11y focus-trap, and frequency storage.
+ * Self-contained IIFE. Reads window.elemacyPopupsConfig.popups (array of
+ * per-popup configs emitted by PopupConfigResource) and wires up triggers,
+ * open/close, a11y focus-trap, and frequency storage. Its API is
+ * window.elemacyPopups.
  *
  * Works with or without Elementor on the page. jQuery is a declared dependency
  * but only used for convenience; falls back to vanilla where possible.
@@ -45,7 +46,7 @@
 
 	// Rule handlers return false to block an open. Free ships the frequency-cap
 	// rule ("show up to X times"); pro registers the rest via
-	// window.ElemacyPopups.registerRule. `store` is this popup's saved counters.
+	// window.elemacyPopups.registerRule. `store` is this popup's saved counters.
 	var ruleHandlers = {
 		frequency_cap: function (rule, config, store) {
 			var max = rule && rule.max ? parseInt(rule.max, 10) : 0;
@@ -327,14 +328,15 @@
 		content.appendChild(scroller);
 
 		// Auto-injected close button when enabled. It carries the
-		// `elemacy-close-popup` class so the delegated click handler closes it.
+		// `elemacy-popup-close` class so the delegated click handler closes it.
 		// PopupRenderer::box_markup() prints the same structure for a top bar
 		// the server shows at first paint: keep the two in step.
 		if (display.close && display.close.button) {
 			var closeBtn = document.createElement('button');
 			closeBtn.type = 'button';
-			closeBtn.className = 'elemacy-popup__close elemacy-close-popup';
-			closeBtn.setAttribute('aria-label', (window.elemacyPopups && window.elemacyPopups.i18n && window.elemacyPopups.i18n.close) || 'Close');
+			closeBtn.className = 'elemacy-popup__close elemacy-popup-close';
+			var config = window.elemacyPopupsConfig;
+			closeBtn.setAttribute('aria-label', (config && config.i18n && config.i18n.close) || 'Close');
 			closeBtn.innerHTML = '&times;';
 			content.appendChild(closeBtn);
 		}
@@ -353,8 +355,8 @@
 			return;
 		}
 		state.widgetsHydrated = true;
-		if (window.ElemacyElementorLifecycle) {
-			window.ElemacyElementorLifecycle.hydrate(state.content);
+		if (window.elemacyElementorLifecycle) {
+			window.elemacyElementorLifecycle.hydrate(state.content);
 		}
 	}
 
@@ -377,6 +379,26 @@
 
 	function modalContains(modalState, el) {
 		return !!el && (modalState.root === el || modalState.root.contains(el));
+	}
+
+	// A layer opened above a modal: an element outside the modal's root that
+	// comes after it in the document. Modal roots are printed with the page;
+	// Elementor's lightbox, CAPTCHA challenges and date pickers are appended to
+	// <body> when they open, so they come later. It handles its own focus and
+	// Escape, and the modal leaves both alone while it is there.
+	function isAboveModal(modalState, el) {
+		return !!el && el.nodeType === 1 && !modalContains(modalState, el)
+			&& !!(modalState.root.compareDocumentPosition(el) & 4 /* Node.DOCUMENT_POSITION_FOLLOWING */);
+	}
+
+	// Whether such a layer covers the modal now, whatever has focus: Elementor's
+	// lightbox opens without moving focus off the image link in the popup.
+	function coveredByLayerAbove(modalState) {
+		var box = (modalState.content || modalState.root).getBoundingClientRect();
+		if (!box.width || !box.height || !document.elementFromPoint) {
+			return false;
+		}
+		return isAboveModal(modalState, document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2));
 	}
 
 	// After a modal popup closes/is destroyed. While another modal is still
@@ -404,8 +426,7 @@
 	/* (z-index, Escape, focus trap) and the shared body-scroll lock     */
 	/* across every currently-open MODAL popup. Topbars/banners/floating */
 	/* elements never join it unless authored to behave modally          */
-	/* (state.config.modal) — each of those keeps closing independently  */
-	/* on its own on_esc setting, exactly as before.                     */
+	/* (state.config.modal), and never respond to Escape.                */
 	/* ---------------------------------------------------------------- */
 
 	var ModalStack = (function () {
@@ -497,6 +518,27 @@
 			releaseScrollLock: releaseScrollLock
 		};
 	})();
+
+	// While any modal is open, <html> carries `elemacy-has-modal` and the top
+	// modal's z-index as `--elemacy-popup-top-z`, so popups.css can lift
+	// layers that open above it (Elementor's lightbox) over every open popup.
+	function syncTopLayer() {
+		var html = document.documentElement;
+		var topId = ModalStack.top();
+		var topState = topId !== null ? registry[topId] : null;
+		if (!topState) {
+			html.classList.remove('elemacy-has-modal');
+			html.style.removeProperty('--elemacy-popup-top-z');
+			return;
+		}
+		var z = parseInt(window.getComputedStyle(topState.root).zIndex, 10);
+		html.classList.add('elemacy-has-modal');
+		if (isNaN(z)) {
+			html.style.removeProperty('--elemacy-popup-top-z');
+		} else {
+			html.style.setProperty('--elemacy-popup-top-z', String(z));
+		}
+	}
 
 	/* ---------------------------------------------------------------- */
 	/* Open / close / destroy core — explicit per-instance state         */
@@ -622,7 +664,7 @@
 		// 'elemacy-popup:closed'.
 		try {
 			document.dispatchEvent(
-				new CustomEvent('elemacy-popup:shown', { detail: { id: id } })
+				new CustomEvent('elemacy-popup:opened', { detail: { id: id } })
 			);
 		} catch (error) {
 			/* CustomEvent unsupported — ignore */
@@ -673,6 +715,7 @@
 			if (display.z_index) {
 				root.style.zIndex = String(parseInt(display.z_index, 10) + stackOrder);
 			}
+			syncTopLayer();
 
 			state.lastFocused = document.activeElement;
 			focusInside(state);
@@ -721,6 +764,7 @@
 		// one's close animation.
 		if (state.config.modal) {
 			ModalStack.remove(id);
+			syncTopLayer();
 		}
 
 		var finishClose = function () {
@@ -796,6 +840,7 @@
 		// idempotent, so calling it unconditionally is always safe.
 		if (state.config.modal) {
 			ModalStack.remove(id);
+			syncTopLayer();
 		}
 
 		if (wasActive) {
@@ -815,8 +860,8 @@
 			}
 		}
 
-		if (window.ElemacyElementorLifecycle && state.content) {
-			window.ElemacyElementorLifecycle.release(state.content);
+		if (window.elemacyElementorLifecycle && state.content) {
+			window.elemacyElementorLifecycle.release(state.content);
 		}
 
 		try {
@@ -909,12 +954,10 @@
 	function setupTriggers(config) {
 		var state = registry[config.id];
 
-		// No trigger configured: show on page load by default so the element
-		// actually appears. Topbars, floating elements and banners are
-		// persistent UI; popups default to showing on load. Authors add explicit
-		// triggers (scroll, click, exit-intent…) to refine this.
+		// No trigger: the popup never opens on its own, only from links to it,
+		// open classes and the JavaScript API, as in Elementor Pro. A new popup
+		// starts with an explicit Page Load trigger instead.
 		if (!config.triggers || !config.triggers.length) {
-			setupPageLoad(state, {});
 			return;
 		}
 
@@ -944,7 +987,7 @@
 						break;
 					default:
 						// Pro triggers (scroll, exit-intent, inactivity, …) register
-						// a handler via window.ElemacyPopups.registerTrigger.
+						// a handler via window.elemacyPopups.registerTrigger.
 						if (triggerHandlers[trigger.type]) {
 							triggerHandlers[trigger.type](config.id, params, triggerApi);
 						}
@@ -1007,8 +1050,8 @@
 	function handleClick(event) {
 		var target = event.target;
 
-		// 1. Open: a link to #elemacy-popup-{id}, or [data-elemacy-popup-open].
-		//    Explicit opens skip the rules and frequency bookkeeping.
+		// 1. Open: a link to #elemacy-popup-{id}. Explicit opens skip the rules
+		//    and frequency bookkeeping.
 		var link = closest(target, 'a[href]');
 		var href = link ? (link.getAttribute('href') || '').replace(/^\s+|\s+$/g, '') : '';
 		var linkOpen = href.match(OPEN_HREF);
@@ -1017,21 +1060,10 @@
 			open(toId(linkOpen[1]));
 			return;
 		}
-		var openEl = closest(target, '[data-elemacy-popup-open]');
-		if (openEl) {
-			var openId = toId(openEl.getAttribute('data-elemacy-popup-open'));
-			if (openId !== null) {
-				event.preventDefault();
-				open(openId);
-				return;
-			}
-		}
 
-		// 2. Close: a link to #elemacy-popup-close, .elemacy-close-popup or
-		//    [data-elemacy-popup-close], inside a popup.
-		var closeEl = href === CLOSE_HREF
-			? link
-			: (closest(target, '.elemacy-close-popup') || closest(target, '[data-elemacy-popup-close]'));
+		// 2. Close: a link to #elemacy-popup-close, or the elemacy-popup-close
+		//    class, inside a popup.
+		var closeEl = href === CLOSE_HREF ? link : closest(target, '.elemacy-popup-close');
 		if (closeEl) {
 			var rootForClose = closest(closeEl, '[data-elemacy-popup-id]');
 			if (rootForClose) {
@@ -1093,33 +1125,24 @@
 		});
 
 		// ESC + focus-trap tab cycling. Both act on the modal stack's own
-		// topmost entry only: with
-		// several modals open, Escape/Tab release and trap one at a time,
-		// innermost first, not every open modal simultaneously.
+		// topmost entry only: with several modals open, Escape/Tab release and
+		// trap one at a time, innermost first. Neither touches a layer opened
+		// above the modal (Elementor's lightbox), which handles its own keys.
 		document.addEventListener('keydown', function (event) {
 			if (event.key === 'Escape' || event.keyCode === 27) {
-				// A modal on top of the stack always closes on Escape,
-				// regardless of its own on_esc setting — required to avoid a
-				// keyboard trap (WCAG 2.1.2) for whichever modal is
-				// currently trapping Tab, i.e. the topmost one.
-				var topModal = ModalStack.top();
-				if (topModal !== null) {
-					close(topModal);
+				// Only the topmost modal responds, and only when its own
+				// "Close on Esc" is on, as in Elementor Pro; with it off, Escape
+				// closes nothing, not even a modal below. Its close button stays
+				// reachable with Tab, so this is no keyboard trap. Non-modal types
+				// (top bar, banner, floating) never respond to Escape.
+				var escState = topModalState();
+				if (!escState || isAboveModal(escState, event.target) || coveredByLayerAbove(escState)) {
+					return;
 				}
-
-				// Non-modal bars (topbar/banner/floating) never join the
-				// stack; each still closes independently on its own
-				// authored on_esc setting.
-				Object.keys(registry).forEach(function (id) {
-					var state = registry[id];
-					if (state.config.modal || !isActive(state.phase)) {
-						return;
-					}
-					var closeConfig = state.config.display && state.config.display.close;
-					if (closeConfig && closeConfig.on_esc) {
-						close(id);
-					}
-				});
+				var closeConfig = escState.config.display && escState.config.display.close;
+				if (closeConfig && closeConfig.on_esc) {
+					close(escState.config.id);
+				}
 				return;
 			}
 
@@ -1127,7 +1150,7 @@
 				// Only the topmost modal traps Tab; non-modal bars and any
 				// modal buried under it leave page focus alone.
 				var openState = topModalState();
-				if (!openState) {
+				if (!openState || isAboveModal(openState, document.activeElement) || coveredByLayerAbove(openState)) {
 					return;
 				}
 				var focusables = getFocusable(openState.content);
@@ -1153,15 +1176,16 @@
 		});
 
 		// Focus that lands outside the topmost modal while it is open is brought
-		// back into it. Not `inert` on the page: that would also lock out fixed
-		// headers and cookie banners that are meant to stay usable.
+		// back into it, unless it went to a layer opened above the modal. Not
+		// `inert` on the page: that would also lock out fixed headers and
+		// cookie banners that are meant to stay usable.
 		var pulling = false;
 		document.addEventListener('focusin', function (event) {
 			if (pulling) {
 				return;
 			}
 			var openState = topModalState();
-			if (!openState || modalContains(openState, event.target)) {
+			if (!openState || modalContains(openState, event.target) || isAboveModal(openState, event.target)) {
 				return;
 			}
 			pulling = true;
@@ -1269,7 +1293,7 @@
 			return;
 		}
 
-		var data = window.elemacyPopups;
+		var data = window.elemacyPopupsConfig;
 		if (!data || !data.popups || !data.popups.length) {
 			return;
 		}
@@ -1305,7 +1329,7 @@
 	/* Public API + bootstrapping.                                      */
 	/* ---------------------------------------------------------------- */
 
-	var api = window.ElemacyPopups = {
+	var api = window.elemacyPopups = {
 		open: open,
 		close: close,
 		closeAll: closeAll,

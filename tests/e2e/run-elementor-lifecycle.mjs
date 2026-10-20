@@ -85,7 +85,7 @@ await check('subtree A is not initialized before hydrate() is even called', asyn
 );
 
 await page.evaluate(() => {
-  window.ElemacyElementorLifecycle.hydrate(document.getElementById('subtree-a'));
+  window.elemacyElementorLifecycle.hydrate(document.getElementById('subtree-a'));
 });
 
 await check('calling hydrate() before elementor/frontend/init has fired does not initialize immediately', async () =>
@@ -104,7 +104,7 @@ await check('delayed readiness: firing elementor/frontend/init afterwards initia
 /* ---------------------------------------------------------------- */
 
 await page.evaluate(() => {
-  window.ElemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
+  window.elemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
 });
 
 await check('already-ready: hydrate() called after elementor/frontend/init has fired initializes synchronously', async () =>
@@ -117,8 +117,8 @@ await check('already-ready: hydrate() called after elementor/frontend/init has f
 /* ---------------------------------------------------------------- */
 
 await page.evaluate(() => {
-  window.ElemacyElementorLifecycle.hydrate(document.getElementById('subtree-a'));
-  window.ElemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
+  window.elemacyElementorLifecycle.hydrate(document.getElementById('subtree-a'));
+  window.elemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
 });
 
 await check('reopen: a second hydrate() call for an already-initialized subtree does not run its ready trigger again', async () =>
@@ -131,8 +131,8 @@ await check('reopen: a second hydrate() call for an already-initialized subtree 
 /* ---------------------------------------------------------------- */
 
 await page.evaluate(() => {
-  window.ElemacyElementorLifecycle.release(document.getElementById('subtree-b'));
-  window.ElemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
+  window.elemacyElementorLifecycle.release(document.getElementById('subtree-b'));
+  window.elemacyElementorLifecycle.hydrate(document.getElementById('subtree-b'));
 });
 
 await check('release() lets a later hydrate() call for the same subtree initialize it again', async () =>

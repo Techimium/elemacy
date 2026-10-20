@@ -3,29 +3,6 @@
   "owner": "elemacy",
   "features": [
     {
-      "id": "elemacy:condition:archive/all",
-      "owner": "elemacy",
-      "kind": "condition",
-      "identifier": "archive/all",
-      "source": "src/Conditions/Mock/AllArchives.php",
-      "implementation": "placeholder",
-      "prerequisites": [],
-      "coverage": [],
-      "journey": {
-        "id": "elemacy:journey:condition:archive/all",
-        "status": "pending",
-        "profiles": [
-          "free-only",
-          "free-pro"
-        ],
-        "expected": [
-          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
-        ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
-      }
-    },
-    {
       "id": "elemacy:condition:archive/author",
       "owner": "elemacy",
       "kind": "condition",
@@ -92,7 +69,8 @@
         "expected": [
           "Configure through supported UI, save, reopen and verify persisted choices.",
           "Verify the authored output or interaction as a visitor.",
-          "Verify applicable invalid, empty and unavailable dependency behavior."
+          "Verify applicable invalid, empty and unavailable dependency behavior.",
+          "With no post type it is the one \"every archive\" condition (Pro's archive/all was removed)."
         ],
         "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
         "follow_up": "automate-release-browser-testing"
@@ -218,29 +196,6 @@
       }
     },
     {
-      "id": "elemacy:condition:general/search_results",
-      "owner": "elemacy",
-      "kind": "condition",
-      "identifier": "general/search_results",
-      "source": "src/Conditions/Mock/SearchResults.php",
-      "implementation": "placeholder",
-      "prerequisites": [],
-      "coverage": [],
-      "journey": {
-        "id": "elemacy:journey:condition:general/search_results",
-        "status": "pending",
-        "profiles": [
-          "free-only",
-          "free-pro"
-        ],
-        "expected": [
-          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
-        ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
-      }
-    },
-    {
       "id": "elemacy:condition:search/all",
       "owner": "elemacy",
       "kind": "condition",
@@ -249,8 +204,8 @@
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
-        "elemacy:runner:run",
-        "elemacy:integration:search-template-conditions"
+        "elemacy:integration:search-template-conditions",
+        "elemacy:runner:run"
       ],
       "journey": {
         "id": "elemacy:journey:condition:search/all",
@@ -264,7 +219,7 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Authoring a Search template with the condition, the refused blank row, save, reopen and visitor checks pass in the free-only and free-pro profiles (tests/e2e/journeys/search-conditions.spec.mjs, elemacy:journey:condition:search/all); the remaining applicable profiles and branches are pending.",
+        "reason": "The only Search Results condition; offered on Search Results, Header and Footer templates and on popups (finalize-builders-for-release removed Pro's duplicate general/search_results). Authoring a Search template with the condition, the refused blank row, save, reopen and visitor checks pass in the free-only and free-pro profiles (tests/e2e/journeys/search-conditions.spec.mjs, elemacy:journey:condition:search/all); a Header on search pages is covered by tests/integration/search-template-conditions.php. The remaining applicable profiles and branches are pending.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -407,7 +362,8 @@
           "free-pro"
         ],
         "expected": [
-          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier."
+          "Placeholder remains locked; unavailable saved dependency suspends affected content; Pro restores the same identifier.",
+          "Like Pro's real condition it requires a post (requires_value), so a valueless rule is refused when saved."
         ],
         "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
         "follow_up": "automate-release-browser-testing"

@@ -148,7 +148,7 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
         }
     }
 
-    public function testFreeAloneOffersTheSearchConditionsToSearchTemplatesOnly(): void
+    public function testFreeAloneOffersSearchResultsToSearchHeaderAndFooterTemplatesOnly(): void
     {
         $manager = $this->freeOnlyManager();
         $names   = static function (string $template_type) use ($manager): array {
@@ -165,8 +165,43 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
 
         self::assertSame(['search/all', 'search/post_type'], $names('search'));
         self::assertSame([], $names('single'));
-        self::assertSame([], $names('header'));
+        self::assertSame([], $names('archive'));
+        self::assertSame([], $names('404'));
+        self::assertSame(['search/all'], $names('header'), 'Free\'s Search Results is offered on Header templates.');
+        self::assertSame(['search/all'], $names('footer'), 'And on Footer templates.');
         self::assertTrue($manager->get('search/post_type')->is_mock());
+    }
+
+    public function testFreeAloneDisplaysAHeaderWithSearchResultsOnEverySearchPage(): void
+    {
+        $header = $this->service()->create(CreateTemplateDTO::from_array([
+            'title' => 'Search header', 'type' => 'header', 'status' => 'publish',
+            'conditions' => [$this->rule('search/all')],
+        ]))->id;
+        $this->documents->adopt((int) $header);
+
+        $this->visit('/?s=anything');
+        self::assertSame((int) $header, TemplateResolver::instance()->resolve('header'), 'The header is displayed on a search results page.');
+
+        $this->request->visit(home_url('/'));
+        TemplateResolver::reset();
+        self::assertNull(TemplateResolver::instance()->resolve('header'), 'And nowhere else.');
+    }
+
+    public function testThereIsOneSearchResultsConditionAndNoAllArchivesCondition(): void
+    {
+        foreach (['free-only' => $this->freeOnlyManager(), 'active' => ConditionManager::instance()] as $profile => $manager) {
+            self::assertNull($manager->get('general/search_results'), "$profile: general/search_results is not registered.");
+            self::assertNull($manager->get('archive/all'), "$profile: archive/all is not registered.");
+
+            foreach (['header', 'footer', 'popup', 'search'] as $context) {
+                $search_results = array_keys(array_filter(
+                    $manager->get_all(),
+                    static fn($condition): bool => 'Search Results' === $condition->get_label() && $condition->applies_to($context)
+                ));
+                self::assertSame(['search/all'], $search_results, "$profile: exactly one Search Results option for $context.");
+            }
+        }
     }
 
     public function testCreatingATemplateWithABlankTypeRuleIsRejectedAndNothingIsSaved(): void

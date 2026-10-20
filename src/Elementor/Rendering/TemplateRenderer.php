@@ -91,8 +91,16 @@ class TemplateRenderer
         // wp_enqueue_scripts) that every page passes through, so a throwing
         // widget must cost that document its content, never the host page.
         // The failure is cached as '' so it is not retried this request.
+        //
+        // Anything printed outside Elementor's own buffers while rendering
+        // (it prints a document's CSS inline when its frontend stylesheet is
+        // not registered yet) belongs to the document: it is kept at the
+        // front of the fragment and output wherever the fragment is, never at
+        // the point in the request where preparation ran.
         try {
+            ob_start();
             $fragment = $this->render($id);
+            $fragment = (string) ob_get_clean() . $fragment;
         } catch (\Throwable $error) {
             $fragment = '';
             $this->log_failure($id, $context, $placement, $error);

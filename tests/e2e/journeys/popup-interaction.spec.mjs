@@ -3,7 +3,7 @@ import { fixture } from '../shared/environment.mjs';
 import { publishedPopup, visitor, popupRoot, isOpen } from '../shared/popups.mjs';
 
 const home = page => new URL('/', page.url()).href;
-const open = (page, id) => page.evaluate(popup => window.ElemacyPopups.open(popup), Number(id));
+const open = (page, id) => page.evaluate(popup => window.elemacyPopups.open(popup), Number(id));
 const pad = ids => ids.map(Number);
 
 // A modal popup that only opens when asked (its click trigger never matches), filled with a form, an image
@@ -66,7 +66,7 @@ test('elemacy:journey:popup-interaction:focus @popups', async ({ page, author, b
     expect(await focusInside(guest.page, second)).toBe(true);
 
     // The older one closes while the newer one is open: focus stays with the newer.
-    await guest.page.evaluate(id => window.ElemacyPopups.close(id), Number(first));
+    await guest.page.evaluate(id => window.elemacyPopups.close(id), Number(first));
     await expect(popupRoot(guest.page, first)).toBeHidden();
     expect(await focusInside(guest.page, second), 'Focus did not go back to the page').toBe(true);
     await guest.page.keyboard.press('Tab');

@@ -81,9 +81,15 @@
 }
 
 /* Generic close button helper (authors may also use their own). */
-.elemacy-popup .elemacy-close-popup,
-.elemacy-popup [data-elemacy-popup-close] {
+.elemacy-popup .elemacy-popup-close {
 	cursor: pointer;
+}
+
+/* While a modal popup is open (engine.js sets the class and the top modal's
+   z-index on <html>), Elementor's lightbox, opened from an image inside the
+   popup, shows above every open popup instead of behind it. */
+.elemacy-has-modal .elementor-lightbox {
+	z-index: calc(var(--elemacy-popup-top-z, 9999) + 1);
 }
 
 /* Close button. Structure lives here; size/colour/border/shadow and the

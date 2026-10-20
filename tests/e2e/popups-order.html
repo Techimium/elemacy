@@ -24,17 +24,17 @@
       close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
       prevent_body_scroll: false, z_index: 9999
     };
-    window.elemacyPopups = {
+    window.elemacyPopupsConfig = {
       popups: [
-        { id: 301, type: 'floating', modal: false, rules: [], display: display, storage_key: 'elemacy_popup_301',
+        { id: 301, type: 'floating', modal: false, rules: [], display: display, storage_key: 'elemacy_1_popup_301',
           triggers: [{ type: 'scroll', percent: 5 }] },
-        { id: 302, type: 'floating', modal: false, display: display, storage_key: 'elemacy_popup_302',
+        { id: 302, type: 'floating', modal: false, display: display, storage_key: 'elemacy_1_popup_302',
           triggers: [{ type: 'click', selector: '.open-302' }], rules: [{ type: 'mystery' }] }
       ],
       i18n: { close: 'Close' }
     };
     window.__events = [];
-    document.addEventListener('elemacy-popup:shown', function (e) { window.__events.push(['shown', e.detail.id]); });
+    document.addEventListener('elemacy-popup:opened', function (e) { window.__events.push(['shown', e.detail.id]); });
     window.__extCalls = 0;
 
     // A minimal scroll trigger, standing in for Pro's.
@@ -59,7 +59,7 @@
   <script>
     if (variant === 'late') {
       // Registered 500ms after the engine started.
-      window.setTimeout(function () { window.__registerScroll(window.ElemacyPopups); }, 500);
+      window.setTimeout(function () { window.__registerScroll(window.elemacyPopups); }, 500);
     }
     if (variant === 'queue-late') {
       // Pushed after the engine has run: called at once, exactly once.

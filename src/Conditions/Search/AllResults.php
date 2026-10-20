@@ -35,6 +35,16 @@ class AllResults extends BaseCondition
         return Specificity::TYPE;
     }
 
+    /**
+     * The only condition for every search results page, so it is offered
+     * wherever such a page is targeted: Search Results templates, and the
+     * Header and Footer shown on them (and popups, as every condition is).
+     */
+    public function get_applicable_template_types(): array
+    {
+        return ['header', 'footer', 'search'];
+    }
+
     public function check(ConditionRuleDTO $rule): bool
     {
         return is_search();

@@ -70,7 +70,7 @@ class LibraryPostType
             'menu_position'      => null,
             'supports'           => ['title', 'editor', 'author', 'thumbnail', 'elementor'],
             // No core wp/v2/elemacy_library controller: the plugin's own
-            // /elemacy/library REST routes (Route::*) are registered
+            // /elemacy/v1/library REST routes (Route::*) are registered
             // independently and unaffected by this flag. Elementor's editor
             // reaches posts via post.php, not core REST, so nothing needs it.
             'show_in_rest'       => false,

@@ -238,9 +238,9 @@
                 $(grid).after(result.pagination);
             }
 
-            if (window.ElemacyElementorLifecycle) {
+            if (window.elemacyElementorLifecycle) {
                 added.forEach(function (item) {
-                    window.ElemacyElementorLifecycle.hydrate(item);
+                    window.elemacyElementorLifecycle.hydrate(item);
                 });
             }
 

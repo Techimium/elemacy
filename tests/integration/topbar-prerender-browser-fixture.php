@@ -48,6 +48,8 @@ try {
         update_post_meta($popup, '_elementor_data', wp_slash(wp_json_encode($elements)));
         delete_post_meta($popup, '_elementor_css');
         update_post_meta($popup, '_elemacy_template_type', 'topbar');
+        // A top bar created in the admin starts with one immediate Page Load trigger.
+        update_post_meta($popup, '_elemacy_popup_triggers', [['id' => 'fixture-page-load', 'type' => 'page_load', 'params' => ['delay' => 0]]]);
         (new Elemacy\Conditions\ConditionRepository())->save($popup, Elemacy\TemplateLibrary\TypeRegistry::instance()->get('topbar')->default_conditions);
         $host = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Prerender host', 'post_content' => 'Content below the bar.']);
         switch_theme('hello-elementor');

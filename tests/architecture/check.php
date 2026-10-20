@@ -19,6 +19,15 @@
  *    ELEMACY_PERSISTED_IDENTIFIERS points at another list (used to plant a
  *    rename).
  *
+ * 5. No retired public popup name (content hooks, JavaScript globals, events)
+ *    appears in Free's or Pro's shipped source: the 1.0 names are final and
+ *    nothing keeps an alias. Pro is checked when its checkout sits beside
+ *    this one, as it does in development and CI.
+ *
+ * 6. Every REST route and REST URL either plugin hands out is versioned
+ *    (`elemacy/v1/...`): no unversioned namespace, `rest_url('elemacy/...')`
+ *    or `/elemacy/...` route literal in shipped source.
+ *
  * There is no allowlist; an exception is a violation.
  *
  * Run: php tests/architecture/check.php
@@ -81,6 +90,60 @@ foreach (['src', 'assets', 'src-react/src'] as $tree) {
         foreach (file($file_info->getPathname()) as $number => $line) {
             if (preg_match($planning, $line)) {
                 $violations[] = sprintf('[planning reference] %s:%d: %s', $relative_path, $number + 1, trim($line));
+            }
+        }
+    }
+}
+
+// Retired names, with what replaced them. Case-sensitive: `elemacyPopups` is
+// the current API global, `ElemacyPopups` the retired one.
+$retired_names = [
+    '/elemacy-close-popup/' => 'elemacy-close-popup (use the class elemacy-popup-close)',
+    '/data-elemacy-popup-(?:open|close|convert)\b/' => 'data-elemacy-popup-open/-close/-convert (use #elemacy-popup-{id}, elemacy-popup-close, elemacy-popup-convert)',
+    '/elemacy-open-popup/' => 'elemacy-open-popup (use a link to #elemacy-popup-{id})',
+    '/\bElemacyPopups\b/' => 'ElemacyPopups (the API is window.elemacyPopups)',
+    '/wp_localize_script\([^,]+,\s*\'elemacyPopups\'/' => "the config global 'elemacyPopups' (the config is elemacyPopupsConfig)",
+    '/elemacy-popup:shown/' => 'elemacy-popup:shown (the event is elemacy-popup:opened)',
+    '/\belemacyPopupsAnalytics\b/' => 'elemacyPopupsAnalytics (the config is elemacyPopupsAnalyticsConfig)',
+    '/\belemacyVisitCounts\b/' => 'elemacyVisitCounts (the global is elemacyPopupsVisitCounts)',
+    '/\bElemacyElementorLifecycle\b/' => 'ElemacyElementorLifecycle (the global is elemacyElementorLifecycle)',
+];
+// REST namespaces, URLs and route literals that leave out the version.
+$unversioned_rest = [
+    '/set_namespace\(\s*[\'"]elemacy[\'"]\s*\)/',
+    '/rest_url\(\s*[\'"]\/?elemacy\/(?!v\d+\/)/',
+    '/rest_url\(\s*\)\s*\)?\s*\.\s*[\'"]\/?elemacy\/(?!v\d+\/)/',
+    '/[\'"`]\/(?:wp-json\/)?elemacy\/(?!v\d+\/)[a-z{]/',
+];
+$public_name_roots = ['Free' => $plugin_root];
+if (is_dir(dirname($plugin_root) . '/elemacy-pro/src')) {
+    $public_name_roots['Pro'] = dirname($plugin_root) . '/elemacy-pro/';
+}
+
+foreach ($public_name_roots as $plugin => $root) {
+    foreach (['src', 'assets', 'src-react/src'] as $tree) {
+        if (!is_dir($root . $tree)) {
+            continue;
+        }
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . $tree, FilesystemIterator::SKIP_DOTS)) as $file_info) {
+            if (!in_array($file_info->getExtension(), ['php', 'js', 'ts', 'tsx', 'css', 'html'], true)) {
+                continue;
+            }
+
+            $relative_path = $plugin . ':' . ltrim(str_replace($root, '', $file_info->getPathname()), '/');
+
+            foreach (file($file_info->getPathname()) as $number => $line) {
+                foreach ($retired_names as $pattern => $name) {
+                    if (preg_match($pattern, $line)) {
+                        $violations[] = sprintf('[retired public name] %s:%d: %s', $relative_path, $number + 1, $name);
+                    }
+                }
+                foreach ($unversioned_rest as $pattern) {
+                    if (preg_match($pattern, $line)) {
+                        $violations[] = sprintf('[unversioned REST route] %s:%d: %s', $relative_path, $number + 1, trim($line));
+                    }
+                }
             }
         }
     }
@@ -181,9 +244,9 @@ if ($violations) {
         fwrite(STDERR, '  - ' . $violation . "\n");
     }
 
-    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, and migrate stored values you rename. There is no allowlist.\n");
+    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, and version every REST route. There is no allowlist.\n");
 
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, dynamic-tag-name and PHP 7.4 syntax-floor rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name and PHP 7.4 syntax-floor rules all pass.\n";

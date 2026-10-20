@@ -134,12 +134,14 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         $this->assertSingleDocumentShell($html);
     }
 
-    public function testAHeaderWhoseWidgetThrowsNeitherFailsThePageNorLeavesItWithoutAnyHeader(): void
+    public function testAHeaderWhoseWidgetThrowsLeavesTheHeaderAreaEmptyWithoutFailingThePage(): void
     {
-        // A header whose widget throws renders no content. The page must still
-        // load, and it must show the theme's own header rather than ending up
-        // with the template's (empty) header and nothing else. Rendered in its
-        // own process so the theme's header.php loads as it does on a real request.
+        // A published header is used as published, like a Single template:
+        // one whose widget throws renders nothing, and the theme's own header
+        // stays replaced. Deciding otherwise would mean rendering the
+        // template before the page starts, which printed its styles before
+        // <!DOCTYPE html>. Rendered in its own process so the theme's
+        // header.php loads as it does on a real request.
         $id = $this->documents->create_everywhere('Elemacy throwing header', 'header', 'publish', [[
             'id' => 'eac9401', 'elType' => 'widget', 'widgetType' => 'elemacy-fixture-throws', 'settings' => [], 'elements' => [],
         ]]);
@@ -148,8 +150,145 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         $html = ThemePageRequest::render('theme-generic-chrome', get_permalink($this->post_id))['html'];
 
         self::assertStringContainsString('Theme lifecycle fixture content.', $html, 'The page still renders its content: ' . $html);
-        self::assertStringContainsString('Generic native header', $html, "A header that rendered nothing must not suppress the theme's own header: " . $html);
-        self::assertSame(1, substr_count($html, 'Generic native header'), "The theme's header appears once.");
+        self::assertStringNotContainsString('Generic native header', $html, "The theme's own header stays replaced: " . $html);
+        self::assertStringNotContainsString('elementor-' . $id . '"', $html, 'The header area is empty.');
+        self::assertStringContainsString('Generic native footer', $html, 'The other side is untouched.');
+        $this->assertSingleDocumentShell($html);
+    }
+
+    /** A published Entire Site header whose heading has a color, so its CSS is not empty. */
+    private function create_styled_header(string $marker, string $color): int
+    {
+        $elements = LibraryDocument::heading($marker);
+        $elements[0]['elements'][0]['settings']['title_color'] = $color;
+
+        $id = $this->documents->create_everywhere($marker, 'header', 'publish', $elements);
+        $this->owned[] = $id;
+
+        return $id;
+    }
+
+    /** @param array<int, array{id: int, during: string[]}> $renders */
+    private static function renders_of(int $id, array $renders): array
+    {
+        return array_values(array_filter($renders, static fn(array $render): bool => $id === $render['id']));
+    }
+
+    public function testInternalEmbeddingPrintsTheHeaderStylesInsideTheHeadAndNothingBeforeTheDoctype(): void
+    {
+        $id = $this->create_styled_header('Elemacy inline-css header', '#1a2b3c');
+
+        $page = ThemePageRequest::render('elemacy-fixture', get_permalink($this->post_id), 'guest', [], false, [], [
+            'options' => ['elementor_css_print_method' => 'internal'],
+        ]);
+        $html = $page['html'];
+
+        self::assertMatchesRegularExpression('/^<!doctype html>/i', $html, 'The response starts with the doctype: ' . substr($html, 0, 300));
+        self::assertSame(1, substr_count($html, 'Elemacy inline-css header'), 'The header renders once.');
+        $rule = strpos($html, '#1a2b3c');
+        self::assertNotFalse($rule, "The header's styles are printed: " . $html);
+        self::assertLessThan(strpos($html, '</head>'), $rule, "The header's styles are inside <head>.");
+        foreach (self::renders_of($id, $page['renders']) as $render) {
+            self::assertNotContains('wp', $render['during'], 'The header is not rendered on the wp action.');
+        }
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testInFileModeTheHeaderStylesheetLoadsAfterElementorsFrontendStylesheet(): void
+    {
+        $id = $this->create_styled_header('Elemacy file-css header', '#2b3c4d');
+
+        $html = ThemePageRequest::render('elemacy-fixture', get_permalink($this->post_id), 'guest', [], false, [], [
+            'options' => ['elementor_css_print_method' => 'external'],
+        ])['html'];
+
+        $frontend = strpos($html, "id='elementor-frontend-css'");
+        $header = strpos($html, "id='elementor-post-" . $id . "-css'");
+        self::assertNotFalse($frontend, "Elementor's frontend stylesheet is linked: " . $html);
+        self::assertNotFalse($header, "The header's stylesheet is linked.");
+        self::assertGreaterThan($frontend, $header, "The header's stylesheet comes after Elementor's frontend stylesheet.");
+    }
+
+    public function testARedirectedRequestNeverRendersTheHeader(): void
+    {
+        $id = $this->create_styled_header('Elemacy redirect header', '#3c4d5e');
+        $page_id = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Redirected page', 'post_content' => 'x'], true);
+        self::assertIsInt($page_id);
+        $this->owned[] = $page_id;
+
+        // ?p= names a post, so WordPress redirects a page's id to ?page_id=.
+        $page = ThemePageRequest::render('elemacy-fixture', home_url('/?p=' . $page_id), 'guest', [], false, [], [
+            'options' => ['elementor_css_print_method' => 'internal'],
+        ]);
+
+        self::assertNotNull($page['redirect'], 'Sanity: the request is redirected.');
+        self::assertSame('', $page['html'], 'The redirect response carries no template output.');
+        self::assertSame([], self::renders_of($id, $page['renders']), 'The header is never rendered for a redirect.');
+    }
+
+    public function testAWooCommerceAjaxRequestRendersNoTemplateAndKeepsItsBody(): void
+    {
+        $header = $this->create_styled_header('Elemacy wc-ajax header', '#4d5e6f');
+        $footer = $this->create_footer('Elemacy wc-ajax footer');
+        $body = '{"fragments":{"div.widget_shopping_cart_content":"<div>cart<\/div>"},"cart_hash":""}';
+
+        $page = ThemePageRequest::render('elemacy-fixture', home_url('/?wc-ajax=get_refreshed_fragments'), 'guest', [], false, [], [
+            'options' => ['elementor_css_print_method' => 'internal'],
+            'exit_on_template_redirect' => $body,
+        ]);
+
+        self::assertSame($body, $page['html'], 'The JSON response is exactly what the endpoint printed.');
+        self::assertSame([], self::renders_of($header, $page['renders']), 'The header is not rendered.');
+        self::assertSame([], self::renders_of($footer, $page['renders']), 'The footer is not rendered.');
+    }
+
+    public function testABlockThemeKeepsItsOwnHeaderAndFooterAroundASingleTemplate(): void
+    {
+        $this->assertSkippedIfThemeMissing('twentytwentyfive');
+        $id = $this->documents->create_everywhere('Elemacy block single', 'single', 'publish', LibraryDocument::heading('Elemacy block single'));
+        $this->owned[] = $id;
+
+        $html = ThemePageRequest::render('twentytwentyfive', get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy block single'), 'The Single template renders once: ' . $html);
+        self::assertSame(1, substr_count($html, '<header class="wp-block-template-part'), "Twenty Twenty-Five's own header part is shown.");
+        self::assertSame(1, substr_count($html, '<footer class="wp-block-template-part'), "Twenty Twenty-Five's own footer part is shown.");
+        $blocks = strpos($html, '<div class="wp-site-blocks">');
+        self::assertNotFalse($blocks, "The page is laid out in the theme's site wrapper.");
+        self::assertLessThan(strpos($html, '<header class="wp-block-template-part'), $blocks, 'The header part is inside the site wrapper.');
+        self::assertLessThan(strpos($html, 'Elemacy block single'), strpos($html, '<header class="wp-block-template-part'), 'The Single template follows the header.');
+        self::assertLessThan(strpos($html, '<footer class="wp-block-template-part'), strpos($html, 'Elemacy block single'), 'The footer follows the Single template.');
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testABlockThemeShowsAnElemacyHeaderOnceAndItsOwnFooterAroundASingleTemplate(): void
+    {
+        $this->assertSkippedIfThemeMissing('twentytwentyfive');
+        $id = $this->documents->create_everywhere('Elemacy block single two', 'single', 'publish', LibraryDocument::heading('Elemacy block single two'));
+        $this->owned[] = $id;
+        $this->create_header('Elemacy block header');
+
+        $html = ThemePageRequest::render('twentytwentyfive', get_permalink($this->post_id))['html'];
+
+        self::assertSame(1, substr_count($html, 'Elemacy block header'), 'The Elemacy header renders once: ' . $html);
+        self::assertSame(1, substr_count($html, 'Elemacy block single two'), 'The Single template renders once.');
+        self::assertSame(0, substr_count($html, '<header class="wp-block-template-part'), "The theme's header part is replaced.");
+        self::assertSame(1, substr_count($html, '<footer class="wp-block-template-part'), "The theme's own footer part is shown.");
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testInternalEmbeddingOnABlockThemeStartsWithTheDoctypeAndStylesTheHeader(): void
+    {
+        $this->assertSkippedIfThemeMissing('twentytwentyfive');
+        $this->create_styled_header('Elemacy block inline header', '#6f7081');
+
+        $html = ThemePageRequest::render('twentytwentyfive', get_permalink($this->post_id), 'guest', [], false, [], [
+            'options' => ['elementor_css_print_method' => 'internal'],
+        ])['html'];
+
+        self::assertMatchesRegularExpression('/^<!DOCTYPE html>/i', $html, 'The response starts with the doctype: ' . substr($html, 0, 300));
+        self::assertSame(1, substr_count($html, 'Elemacy block inline header'), 'The header renders once.');
+        self::assertStringContainsString('#6f7081', $html, 'The header is styled.');
         $this->assertSingleDocumentShell($html);
     }
 

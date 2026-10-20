@@ -45,7 +45,7 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
 
     private function rest_request(array $params): WP_REST_Request
     {
-        $request = new WP_REST_Request('POST', '/elemacy/popups');
+        $request = new WP_REST_Request('POST', '/elemacy/v1/popups');
         foreach (array_merge(['conditions' => [], 'rules' => [], 'triggers' => []], $params) as $key => $value) {
             $request->set_param($key, $value);
         }
@@ -148,7 +148,7 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
 
     private function create_through_rest(array $overrides = []): int
     {
-        $response = $this->dispatch('POST', '/elemacy/popups', $this->payload($overrides));
+        $response = $this->dispatch('POST', '/elemacy/v1/popups', $this->payload($overrides));
         self::assertSame(201, $response->get_status(), wp_json_encode($response->get_data()));
         $id = (int) $response->get_data()['data']['id'];
         $this->documents->adopt($id);
@@ -156,12 +156,61 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
         return $id;
     }
 
+    public function testANewPopupStartsWithOneImmediatePageLoadTriggerWhenTheRequestNamesNone(): void
+    {
+        $payload = $this->payload(['type' => 'topbar']);
+        unset($payload['triggers']);
+        $response = $this->dispatch('POST', '/elemacy/v1/popups', $payload);
+        self::assertSame(201, $response->get_status(), wp_json_encode($response->get_data()));
+        $id = $this->documents->adopt((int) $response->get_data()['data']['id']);
+
+        $saved = get_post_meta($id, MetaKeys::TRIGGERS, true);
+        self::assertIsArray($saved, 'Triggers are saved.');
+        self::assertCount(1, $saved, 'Exactly one trigger: ' . wp_json_encode($saved));
+        self::assertSame('page_load', $saved[0]['type']);
+        self::assertSame(['delay' => 0], $saved[0]['params'], 'No delay.');
+        self::assertNotSame('', $saved[0]['id'], 'It has an id, like a trigger the author added.');
+        self::assertSame([], get_post_meta($id, MetaKeys::RULES, true) ?: [], 'Rules still start empty.');
+    }
+
+    public function testACreateRequestKeepsExactlyTheTriggersItSupplies(): void
+    {
+        $type = class_exists(\ElemacyPro\Extensions\Popups\Triggers\Scroll::class) ? 'scroll' : 'elemacy_fixture/mock_trigger';
+        $scroll = ['id' => 't1', 'type' => $type, 'params' => ['percentage' => 40]];
+
+        $id = $this->create_through_rest(['triggers' => [$scroll]]);
+        $saved = get_post_meta($id, MetaKeys::TRIGGERS, true);
+        self::assertCount(1, $saved, 'Only the supplied trigger: ' . wp_json_encode($saved));
+        self::assertSame($type, $saved[0]['type'], 'No Page Load trigger is added.');
+
+        $empty = $this->create_through_rest(['triggers' => []]);
+        self::assertSame([], get_post_meta($empty, MetaKeys::TRIGGERS, true), 'An empty list is kept empty.');
+    }
+
+    public function testDuplicatingAPopupKeepsItsSourcesTriggersEvenAnEmptyList(): void
+    {
+        $delayed = $this->create_through_rest(['triggers' => [['id' => 't1', 'type' => 'page_load', 'params' => ['delay' => 5]]]]);
+        $linkOnly = $this->create_through_rest(['triggers' => []]);
+
+        foreach ([$delayed, $linkOnly] as $source) {
+            $response = $this->dispatch('POST', '/elemacy/v1/popups/' . $source . '/duplicate');
+            self::assertContains($response->get_status(), [200, 201], wp_json_encode($response->get_data()));
+            $copy = $this->documents->adopt((int) $response->get_data()['data']['id']);
+
+            self::assertSame(
+                get_post_meta($source, MetaKeys::TRIGGERS, true),
+                get_post_meta($copy, MetaKeys::TRIGGERS, true),
+                'The copy has exactly its source\'s triggers; no default is added.'
+            );
+        }
+    }
+
     public function testAnUnknownTriggerOrRuleTypeIsRefusedNamingItAndLeavesThePopupUnchanged(): void
     {
         $id = $this->create_through_rest(['triggers' => [['id' => 't1', 'type' => 'page_load', 'params' => ['delay' => 3]]]]);
         $before = get_post_meta($id, MetaKeys::TRIGGERS, true);
 
-        $response = $this->dispatch('PUT', '/elemacy/popups/' . $id, $this->payload([
+        $response = $this->dispatch('PUT', '/elemacy/v1/popups/' . $id, $this->payload([
             'id' => $id,
             'title' => 'Changed title',
             'triggers' => [['id' => 't2', 'type' => 'made_up', 'params' => []]],
@@ -171,7 +220,7 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
         self::assertSame($before, get_post_meta($id, MetaKeys::TRIGGERS, true), 'The saved triggers are untouched.');
         self::assertSame('Params popup', get_the_title($id), 'The rejected save changed nothing, the title included.');
 
-        $response = $this->dispatch('POST', '/elemacy/popups', $this->payload(['rules' => [['id' => 'r1', 'type' => 'no_such_rule', 'params' => []]]]));
+        $response = $this->dispatch('POST', '/elemacy/v1/popups', $this->payload(['rules' => [['id' => 'r1', 'type' => 'no_such_rule', 'params' => []]]]));
         self::assertSame(422, $response->get_status());
         self::assertStringContainsString('no_such_rule', wp_json_encode($response->get_data()));
     }
@@ -187,7 +236,7 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
         self::assertSame([$trigger], get_post_meta($id, MetaKeys::TRIGGERS, true));
 
         // The admin app sends the whole popup back when only the title changed.
-        $response = $this->dispatch('PUT', '/elemacy/popups/' . $id, $this->payload(['id' => $id, 'title' => 'Renamed', 'rules' => [$rule], 'triggers' => [$trigger]]));
+        $response = $this->dispatch('PUT', '/elemacy/v1/popups/' . $id, $this->payload(['id' => $id, 'title' => 'Renamed', 'rules' => [$rule], 'triggers' => [$trigger]]));
         self::assertSame(200, $response->get_status(), wp_json_encode($response->get_data()));
         self::assertSame('Renamed', get_the_title($id));
         self::assertSame([$rule], get_post_meta($id, MetaKeys::RULES, true), 'The rule and its parameters survive a title-only edit.');
@@ -227,7 +276,7 @@ final class PopupRuleTriggerParamsGuardTest extends IntegrationTestCase
 
         self::assertSame('example.com/?q=a%20b', get_post_meta($id, MetaKeys::RULES, true)[0]['params']['url']);
 
-        $response = $this->dispatch('GET', '/elemacy/popups/' . $id);
+        $response = $this->dispatch('GET', '/elemacy/v1/popups/' . $id);
         $read = json_decode((string) wp_json_encode($response->get_data()), true);
         self::assertSame('example.com/?q=a%20b', $read['data']['rules'][0]['params']['url'], 'And so does what the admin app reads back.');
     }

@@ -121,9 +121,7 @@ function elemacy_display_manager(): \Elemacy\Modules\ThemeBuilder\Services\Theme
         $locations,
         new TemplateResolver(new FixedResolverCache(['header' => [$entry(11)], 'footer' => [$entry(12)], 'single' => [$entry(13)]])),
         TypeRegistry::instance(),
-        // Without Elementor loaded the real renderer renders nothing, and a
-        // template that renders nothing is not displayed (see
-        // ThemeBuilderManager::replaces_native_chrome()).
+        // Without Elementor loaded the real renderer renders nothing.
         new class extends \Elemacy\Elementor\Rendering\TemplateRenderer {
             public function render(int $id): string
             {
@@ -172,24 +170,35 @@ check('a location Elementor Pro serves is left to it, and every other location i
     }
 });
 
-check('a header or footer that renders nothing does not replace the theme\'s own chrome', static function () {
+check('a header or footer is used as published: one that renders nothing still replaces the theme\'s own chrome, and deciding renders neither', static function () {
     TemplateResolver::reset();
     \Elemacy\Elementor\Rendering\TemplateRenderer::reset();
     $entry = static fn(int $id): array => ['id' => $id, 'conditions' => [['type' => 'prec/site', 'operator' => 'include', 'value' => '']]];
+    $rendered = [];
     $manager = new \Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager(
         \Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager::instance(),
         new \Elemacy\Modules\ThemeBuilder\Services\LocationRegistry(),
         new TemplateResolver(new FixedResolverCache(['header' => [$entry(21)], 'footer' => [$entry(22)]])),
         TypeRegistry::instance(),
-        new class extends \Elemacy\Elementor\Rendering\TemplateRenderer {
+        new class ($rendered) extends \Elemacy\Elementor\Rendering\TemplateRenderer {
+            private array $rendered;
+
+            public function __construct(array &$rendered)
+            {
+                parent::__construct();
+                $this->rendered = &$rendered;
+            }
+
             public function render(int $id): string
             {
+                $this->rendered[] = $id;
+
                 return 21 === $id ? '' : '<div class="elementor">footer</div>';
             }
         }
     );
 
-    return !$manager->replaces_native_chrome('header') && $manager->replaces_native_chrome('footer');
+    return $manager->replaces_native_chrome('header') && $manager->replaces_native_chrome('footer') && [] === $rendered;
 });
 
 check('Elementor Pro is not asked before the main query has run', static function () {

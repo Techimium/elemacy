@@ -51,7 +51,10 @@ final class PopupServerRenderingTest extends IntegrationTestCase
     }
 
     /** A published popup of $type shown on the entire site. */
-    private function create_popup(string $marker, string $type = 'popup', array $elements = [], array $rules = [], array $triggers = []): int
+    /**
+     * @param array|null $triggers Null for the Page Load trigger a popup created in the admin starts with.
+     */
+    private function create_popup(string $marker, string $type = 'popup', array $elements = [], array $rules = [], ?array $triggers = null): int
     {
         $id = $this->documents->create($marker, 'popup', 'publish', $elements ?: LibraryDocument::heading($marker));
         $this->owned[] = $id;
@@ -62,9 +65,7 @@ final class PopupServerRenderingTest extends IntegrationTestCase
         if ($rules) {
             update_post_meta($id, MetaKeys::RULES, $rules);
         }
-        if ($triggers) {
-            update_post_meta($id, MetaKeys::TRIGGERS, $triggers);
-        }
+        update_post_meta($id, MetaKeys::TRIGGERS, $triggers ?? [['id' => 'fixture-page-load', 'type' => 'page_load', 'params' => ['delay' => 0]]]);
 
         return $id;
     }
@@ -116,7 +117,7 @@ final class PopupServerRenderingTest extends IntegrationTestCase
 
         self::assertStringContainsString('Viewed popup marker', $html, "The previewed popup's own content is the page: " . $html);
         self::assertStringNotContainsString('data-elemacy-popup-id=', $html, 'No popup root is printed over a popup\'s own page.');
-        self::assertStringNotContainsString('elemacyPopups', $html, 'No popup config is printed over a popup\'s own page.');
+        self::assertStringNotContainsString('elemacyPopupsConfig', $html, 'No popup config is printed over a popup\'s own page.');
         self::assertStringNotContainsString('Other site-wide popup marker', $html);
         self::assertNotSame($viewed, $other);
     }
@@ -171,6 +172,17 @@ final class PopupServerRenderingTest extends IntegrationTestCase
         self::assertMatchesRegularExpression('#<template class="elemacy-popup-tpl">(?:(?!</template>).)*Capped bar marker#s', $html);
 
         self::assertStringContainsString(' hidden', $this->root($html, $bottom), 'A bottom bar is opened by the engine.');
+    }
+
+    public function testATopBarWithNoTriggersIsNotPrintedVisible(): void
+    {
+        $bar = $this->create_popup('Link-only bar marker', 'topbar', [], [], []);
+
+        $root = $this->root($this->render_host(), $bar);
+
+        self::assertNotSame('', $root, 'The bar is delivered, so a link can open it.');
+        self::assertStringContainsString(' hidden', $root, 'It is not shown on load.');
+        self::assertStringNotContainsString('data-elemacy-prerendered', $root);
     }
 
     public function testATopBarIsPrintedExactlyOnceMarkedForRelocationWhenTheThemeNeverCallsWpBodyOpen(): void

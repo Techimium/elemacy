@@ -1,5 +1,5 @@
 /**
- * Elemacy — Elementor frontend lifecycle adapter (design.md D9, task 9.5).
+ * Elemacy — Elementor frontend lifecycle adapter.
  *
  * Initializes a subtree of Elementor-built markup that was inserted into the
  * page outside Elementor's own render pipeline — a hydrated popup
@@ -126,7 +126,7 @@
 		window.jQuery(window).on('elementor/frontend/init', markReady);
 	}
 
-	window.ElemacyElementorLifecycle = {
+	window.elemacyElementorLifecycle = {
 		hydrate: hydrate,
 		release: release
 	};

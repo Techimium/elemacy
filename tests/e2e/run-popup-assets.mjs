@@ -80,8 +80,8 @@ try {
   const response = await page.goto(fixture.url, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
 
-  // No trigger configured on the popup: engine.js defaults to page_load with
-  // no delay, so it should already be open by the time the network is idle.
+  // The popup has the Page Load trigger every new popup starts with, no
+  // delay, so it should already be open by the time the network is idle.
   const popupRoot = page.locator(`[data-elemacy-popup-id="${fixture.popup_id}"]`);
   await popupRoot.waitFor();
   await page.waitForFunction(
@@ -173,7 +173,7 @@ try {
     await popupRoot.elementHandle(),
     { timeout: 5000 }
   );
-  await page.evaluate((id) => window.ElemacyPopups.open(id), fixture.popup_id);
+  await page.evaluate((id) => window.elemacyPopups.open(id), fixture.popup_id);
   await page.waitForFunction(
     (el) => !el.hasAttribute('hidden'),
     await popupRoot.elementHandle(),

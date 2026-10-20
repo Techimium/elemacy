@@ -26,6 +26,14 @@ class TemplateAssetsRegistrar
     protected array $registered_ids = [];
 
     /**
+     * Documents to prepare once Elementor's styles are queued, as
+     * [id, context, placement]; see prepare_after_elementor_styles().
+     *
+     * @var array<int, array{0: int, 1: string, 2: string}>
+     */
+    protected array $deferred = [];
+
+    /**
      * @var TemplateRenderer
      */
     protected TemplateRenderer $renderer;
@@ -56,6 +64,7 @@ class TemplateAssetsRegistrar
 
         RequestState::register(self::class, function (): void {
             $this->registered_ids = [];
+            $this->deferred = [];
         });
         add_action('wp_enqueue_scripts', [$this, 'collect']);
         add_filter('elementor/document/related_posts', [$this, 'get_related_posts'], 10, 2);
@@ -69,6 +78,12 @@ class TemplateAssetsRegistrar
      * Elementor, which would otherwise never enqueue Elementor's frontend
      * stylesheet/scripts or active kit at all.
      *
+     * Elementor enqueues its styles once per request, and emits the atomic
+     * styles of every document announced through `elementor/post/render` by
+     * then, so that happens after every module has announced its documents.
+     * Documents queued with prepare_after_elementor_styles() are prepared
+     * last, so their CSS is queued after Elementor's frontend and Kit styles.
+     *
      * @return void
      */
     public function collect(): void
@@ -81,7 +96,68 @@ class TemplateAssetsRegistrar
 
         $frontend = \Elementor\Plugin::instance()->frontend;
         $frontend->enqueue_styles();
+
+        $deferred = $this->deferred;
+        $this->deferred = [];
+        foreach ($deferred as [$id, $context, $placement]) {
+            $this->enqueue_classic_css($id);
+            $this->renderer->prepare($id, $context, $placement);
+        }
+        $this->load_after_elementor_styles(array_map(static fn(array $entry): int => $entry[0], $deferred));
+
         $frontend->enqueue_scripts();
+    }
+
+    /**
+     * Like prepare(), for a document whose styles must load after Elementor's
+     * own (a Theme Builder location): it is announced to Elementor now, so its
+     * atomic styles are emitted with every other document's, and rendered at
+     * the end of collect(), once Elementor's frontend and Kit styles are
+     * queued. Read the fragment with get_prepared() afterwards.
+     *
+     * @param int    $id
+     * @param string $context
+     * @param string $placement
+     * @return void
+     */
+    public function prepare_after_elementor_styles(int $id, string $context, string $placement): void
+    {
+        $this->announce($id);
+        $this->deferred[] = [$id, $context, $placement];
+    }
+
+    /**
+     * Makes each of $ids' classic stylesheets depend on Elementor's frontend
+     * stylesheet and the active Kit's, so they print after them even when a
+     * template rendered before those were registered (a block theme renders
+     * its header part before `wp_enqueue_scripts`).
+     *
+     * @param int[] $ids
+     * @return void
+     */
+    protected function load_after_elementor_styles(array $ids): void
+    {
+        if ([] === $ids || !$this->capabilities->plugin_loaded()) {
+            return;
+        }
+
+        $styles = wp_styles();
+        $bases = ['elementor-frontend'];
+        $kits = \Elementor\Plugin::instance()->kits_manager ?? null;
+        $kit_id = is_object($kits) ? (int) $kits->get_active_id() : 0;
+        if ($kit_id) {
+            $bases[] = 'elementor-post-' . $kit_id;
+        }
+        $bases = array_filter($bases, static fn(string $handle): bool => (bool) $styles->query($handle, 'registered'));
+
+        foreach ($ids as $id) {
+            $style = $styles->query('elementor-post-' . $id, 'registered');
+            if (!$style instanceof \_WP_Dependency || $id === $kit_id) {
+                continue;
+            }
+
+            $style->deps = array_values(array_unique(array_merge($style->deps, $bases)));
+        }
     }
 
     /**
@@ -97,13 +173,28 @@ class TemplateAssetsRegistrar
             return;
         }
 
+        $this->enqueue_classic_css($id);
+        $this->announce($id);
+    }
+
+    /** Records $id and hands it to Elementor's atomic CSS pipeline, once per request. */
+    protected function announce(int $id): void
+    {
+        if (isset($this->registered_ids[$id])) {
+            return;
+        }
+
         $this->registered_ids[$id] = $id;
 
+        do_action('elementor/post/render', $id); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Elementor owns this public hook name.
+    }
+
+    /** Queues $id's classic Post CSS (Elementor prints each once per request). */
+    protected function enqueue_classic_css(int $id): void
+    {
         if ($this->capabilities->classic_css_files()) {
             \Elementor\Core\Files\CSS\Post::create($id)->enqueue();
         }
-
-        do_action('elementor/post/render', $id); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Elementor owns this public hook name.
     }
 
     /**

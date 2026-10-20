@@ -8,6 +8,7 @@ use Elemacy\Core\Hooks;
 use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
+use Elemacy\Modules\Popups\Support\StorageKeys;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
@@ -208,8 +209,11 @@ class PopupManager
         wp_enqueue_script('elemacy-popups-engine');
         wp_enqueue_style('elemacy-popups');
 
-        wp_localize_script('elemacy-popups-engine', 'elemacyPopups', [
+        wp_localize_script('elemacy-popups-engine', 'elemacyPopupsConfig', [
             'popups' => PopupConfigResource::collection($matched),
+            // Start of every browser storage key on this site; Pro builds its
+            // visit-count keys from it.
+            'storage_prefix' => StorageKeys::prefix(),
             'i18n'   => [
                 'close' => __('Close', 'elemacy'),
             ],

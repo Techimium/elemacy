@@ -57,7 +57,7 @@ class Route
     /**
      * Sets the REST namespace shared by every route registered afterward.
      *
-     * @param string $namespace_name The REST namespace, e.g. `elemacy`.
+     * @param string $namespace_name The REST namespace, e.g. `elemacy/v1`.
      * @return void
      */
     public static function set_namespace(string $namespace_name): void

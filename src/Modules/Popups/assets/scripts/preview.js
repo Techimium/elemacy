@@ -22,7 +22,7 @@
 
 		var btn = document.createElement('button');
 		btn.type = 'button';
-		btn.className = 'elemacy-popup__close elemacy-close-popup';
+		btn.className = 'elemacy-popup__close elemacy-popup-close';
 		btn.setAttribute('aria-label', 'Close');
 		btn.setAttribute('tabindex', '-1');
 		btn.innerHTML = '&times;';

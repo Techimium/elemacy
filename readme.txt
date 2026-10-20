@@ -242,7 +242,7 @@ Elemacy includes a modern admin dashboard where you can enable or disable indivi
 Elemacy Pro installs on top of the free plugin and unlocks advanced features. Nothing in the free plugin is crippled — Pro purely **adds** capabilities.
 
 * **Animations** – Add scroll, entrance, and on-load animations to any Elementor element with no code. Presets, configurable trigger (On View / On Page Load), duration, delay, easing, viewport threshold, and reduced-motion handling. Powered by GSAP.
-* **Advanced Display Conditions** – Front Page, Blog, 404, Search Results, By Author, Specific Post, Child Of, In {Taxonomy}, {Taxonomy} Archive, All Archives, Date Archive, and Author Archive.
+* **Advanced Display Conditions** – Front Page, Blog, 404, Search Results: Post Type, By Author, Specific Post, Child Of, In {Taxonomy}, {Taxonomy} Archive, Date Archive, and Author Archive.
 * **Advanced Popup Triggers** – Scroll, Exit Intent, Inactivity, Scroll to Element, and On Popup Close.
 * **Advanced Popup Rules** – Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, and Browser targeting.
 * **Popup Analytics** – Track impressions and conversions.
@@ -335,7 +335,7 @@ No. Deleting the plugin keeps your templates, popups and settings, so reinstalli
 
 = How do I open a popup from a button? =
 
-In Elementor, set the button's link to `#elemacy-popup-` followed by the popup's ID, for example `#elemacy-popup-42`. You can find the ID in the popup's address in the editor (`post=42`). Clicking the button opens the popup without changing the page address or scrolling. To close a popup from inside it, link a button or text to `#elemacy-popup-close`, or give it the CSS class `elemacy-close-popup`. Any other element can open a popup too with the attribute `data-elemacy-popup-open="42"`.
+In Elementor, set the button's link to `#elemacy-popup-` followed by the popup's ID, for example `#elemacy-popup-42`. You can find the ID in the popup's address in the editor (`post=42`). Clicking the button opens the popup without changing the page address or scrolling. To close a popup from inside it, link a button or text to `#elemacy-popup-close`, or give it the CSS class `elemacy-popup-close`. Scripts can open one with `window.elemacyPopups.open(42)`.
 
 = Can I use Elemacy's Theme Builder together with Elementor Pro's? =
 

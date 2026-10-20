@@ -872,7 +872,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
     {
         $server = rest_get_server();
 
-        if (!isset($server->get_routes()['/elemacy/theme-builder/templates'])) {
+        if (!isset($server->get_routes()['/elemacy/v1/theme-builder/templates'])) {
             foreach (Route::get_routes() as $route) {
                 $route->register();
             }
@@ -883,7 +883,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
 
     private function put_template(int $id, array $body): \WP_REST_Response
     {
-        $request = new \WP_REST_Request('PUT', '/elemacy/theme-builder/templates/' . $id);
+        $request = new \WP_REST_Request('PUT', '/elemacy/v1/theme-builder/templates/' . $id);
         $request->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(wp_json_encode($body));
@@ -894,7 +894,7 @@ final class LibraryPersistenceTest extends IntegrationTestCase
     /** @return array<int, array<string, mixed>> Listed templates by id. */
     private function list_templates(): array
     {
-        $request = new \WP_REST_Request('GET', '/elemacy/theme-builder/templates');
+        $request = new \WP_REST_Request('GET', '/elemacy/v1/theme-builder/templates');
         $request->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
         $request->set_query_params(['per_page' => 100]);
         $response = $this->elemacy_rest()->dispatch($request);

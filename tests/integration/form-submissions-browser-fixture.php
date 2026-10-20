@@ -45,6 +45,8 @@ try {
             $owned_posts[] = $header_id;
             $popup_id = $documents->create('Form submissions popup ' . $suffix, 'popup', 'publish', $elements);
             $owned_posts[] = $popup_id;
+            // A popup created in the admin starts with one immediate Page Load trigger.
+            update_post_meta($popup_id, '_elemacy_popup_triggers', [['id' => 'fixture-page-load', 'type' => 'page_load', 'params' => ['delay' => 0]]]);
 
             $fixture = [
                 'token' => ELEMACY_INTEGRATION_TOKEN,

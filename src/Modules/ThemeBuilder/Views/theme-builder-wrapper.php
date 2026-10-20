@@ -29,8 +29,16 @@ $elemacy_content_id = $elemacy_manager->get_location_template_id();
 $elemacy_theme_compat_dir = ABSPATH . WPINC . '/theme-compat/';
 $elemacy_located_header = locate_template(['header.php']);
 $elemacy_located_footer = locate_template(['footer.php']);
+$elemacy_owns_header = '' === $elemacy_located_header || 0 === strpos($elemacy_located_header, $elemacy_theme_compat_dir);
+$elemacy_owns_footer = '' === $elemacy_located_footer || 0 === strpos($elemacy_located_footer, $elemacy_theme_compat_dir);
 
-if ('' !== $elemacy_located_header && 0 !== strpos($elemacy_located_header, $elemacy_theme_compat_dir)) {
+// A block theme's header and footer are template parts of the block template
+// this wrapper replaces. When Elemacy prints both sides, the support views
+// show the theme's own part on a side no Elemacy template covers, inside the
+// theme's site wrapper.
+$elemacy_block_theme_shell = $elemacy_owns_header && $elemacy_owns_footer && wp_is_block_theme();
+
+if (!$elemacy_owns_header) {
     get_header();
 } else {
     require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-support-header.php';
@@ -40,7 +48,7 @@ did_action('wp_body_open') || wp_body_open();
 
 $elemacy_manager->render_template($elemacy_content_id, 'location');
 
-if ('' !== $elemacy_located_footer && 0 !== strpos($elemacy_located_footer, $elemacy_theme_compat_dir)) {
+if (!$elemacy_owns_footer) {
     get_footer();
 } else {
     require ELEMACY_PATH . 'src/Modules/ThemeBuilder/Views/theme-support-footer.php';
