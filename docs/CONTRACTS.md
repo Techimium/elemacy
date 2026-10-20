@@ -14,6 +14,7 @@ These are written into sites' databases and saved Elementor data. Renaming one s
 - **Stored meta and option keys**: every key in § Storage ownership.
 - **Elementor widget names and loop data-source keys**: every value in § Saved module, widget and data-source names, saved as `widgetType` and `data_source` in `_elementor_data`.
 - **Dynamic tag names**: every value in § Dynamic tag names, saved inside `[elementor-tag name="..."]` references.
+- **Form Builder**: the built-in field type and submit action keys, the form source key `elementor`, the Form widget's control IDs and their defaults, and the field and action setting keys: § Form Builder.
 - **Popup trigger and rule identifiers and their parameter keys**, the **popup document setting names** (`DisplayKeys` and the close button style controls), the **position and animation option values**, and the browser storage key templates (`elemacy_{blog}_` and each popup's `elemacy_{blog}_popup_{id}`, declared in `Popups\Support\StorageKeys`): § Popup targeting and display settings. Pro's visit-counter storage keys (the site prefix followed by `pageviews`, `sessions` and `session_counted`) are pinned by `P/tests/php/run.php`, which also fails when a Pro trigger or rule differs from its Free placeholder in id or parameter keys.
 
 `tests/architecture/check.php` enforces this. `tests/architecture/persisted-identifiers.php` lists each identifier with the source file that declares it, and the check fails when an identifier is no longer declared there unless a migration under `src/Core/Migrations/` still names it.
@@ -45,7 +46,7 @@ The same holds for a module's `Module::is_default_active()`: `elemacy_active_mod
 | `elemacy_widgets` | `src/Modules/Widgets/Services/WidgetService.php`; widget status map, built through `Utils::with_prefix('widgets')` |
 | `elemacy_pro_license_key` | Pro `Core/License/LicenseManager.php`; stored license key; never include its value in fixtures/logs |
 | `elemacy_pro_license_status` | Same owner; `{valid, expires, plan}` with defaults supplied on read |
-| `elemacy_form_limit_*` | Free form submission rate-limit rows (options, non-autoloaded, HMAC of the IP) |
+| `elemacy_form_limit_*` | `src/Forms/Services/SubmissionRateLimiter.php`; form submission rate-limit rows (options, non-autoloaded), `elemacy_form_limit_<HMAC of the client IP>` holding `<window end>:<count>` |
 | `elemacy_pro_update` | Pro updater transient/cache identifier |
 | `elemacy_pro_license_revalidate` | Pro license cron hook; existing daily revalidation |
 
@@ -203,6 +204,50 @@ Authors, themes and extensions use these on the page. They are permanent: from 1
 
 Condition identifiers come from `src/Conditions/*/get_name()` and Pro's matching implementations: `general/entire_site`, `general/front_page`, `general/not_found`, `general/blog`, `singular/post_type`, `singular/by_author`, `singular/specific_post`, `singular/child_of`, `archive/post_type`, `archive/date`, `archive/author`, `search/all`, `search/post_type`, plus `singular/in_tax/{taxonomy}` and `archive/tax/{taxonomy}` for registered taxonomies. `tests/architecture/persisted-identifiers.php` guards each one. Each display check has exactly one identifier: every archive is `archive/post_type` with no value, every search results page is `search/all`, and `singular/specific_post` always names a post (`BaseCondition::requires_value()`). Preserve the full path when a predicate moves or is unavailable; do not replace an unknown condition with an empty list.
 
+## Form Builder
+
+The forms engine lives in `src/Forms/` (`Elemacy\Forms`); the Form widget (`elemacy-form`) is its Elementor UI and registers itself as the form source `elementor`. Everything below is 1.0 contract: it changes only by adding to it, and `tests/architecture/persisted-identifiers.php` guards the saved parts.
+
+### Saved form settings
+
+- **Field type keys** (the `type` of each `form_fields` row), in the editor's order from `src/Config/form_field_types.php`: `text`, `email`, `textarea`, `url`, `tel`, `number`, `date`, `time`, `select`, `radio`, `checkbox`, `acceptance`, `hidden`, `html`.
+- **Submit action keys** (`submit_actions`), from `src/Config/form_actions.php`: `email`.
+- **Row keys** every field has: Elementor's `_id`, `type`, `label`, `custom_id` (shown as "ID") and `width`. Shared field settings with a fixed kind (`Settings\Setting::STANDARD`): `placeholder`, `required`, `options` (one option per line, `Label` or `Label|value`), `field_value`. Type settings: `field_min`, `field_max`, `field_step` (Number), `min_date`, `max_date` (Date, `YYYY-MM-DD`), `acceptance_text`, `checked_by_default` (Acceptance), `field_html` (HTML). An enabled switcher saves `yes`.
+- **Email action settings**: `email_to`, `email_subject`, `email_content`, `email_from_name`, `email_from`, `email_reply_to`. Every setting of an action starts with its key and `_`, and its editor section is `section_{key}`.
+- **Widget controls**: `form_fields`, `labels_display`, `button_text`, `button_align`, `button_width`, `submit_actions`, and the style controls listed in the identifier check. `submit_actions` and the row `type` declare `save_default`, so a saved form never follows a later default; every other default is frozen by the defaults snapshot in the identifier check. A new widget starts with the fields `name`, `email` and `message`.
+
+**Field ID.** A field's ID is its `custom_id` when that is 1-64 letters, digits, `_` or `-` and no earlier field claimed it; otherwise it is the row's `_id` (and, for malformed data only, `field_{index}`). `Forms\Definition\FieldIdResolver` decides it, for rendering and submission alike. Values, errors and email placeholders use it, so reordering fields never moves a value.
+
+### Submission request and response
+
+`POST admin-ajax.php` with:
+
+| Field | Value |
+| --- | --- |
+| `action` | `elemacy_form_submit` |
+| `form_source` | the form source key, `elementor` for the widget |
+| `form_owner` | the post that stores the form (a page, post or library template) |
+| `form_id` | the form's ID in its owner (the widget's element ID) |
+| `form_fields[<field ID>]` | each value; a checkbox group posts `form_fields[<field ID>][]` |
+| `elemacy_honeypot` | must be empty; when filled, the normal success answer comes back and nothing runs |
+| `_wpnonce` | only from a logged-in visitor's page: a nonce for the action `elemacy_form_submit`, which attaches the user to the submission. Without a valid one the submission is processed as anonymous. |
+
+Rendered markup holds nothing that expires or differs per visitor: no nonce, no signed token, no timestamp. The response is WordPress's JSON envelope. Success is `{"success": true, "data": {"message": ..., "data": {<action key>: ...}}}`, where the inner `data` appears only when an action returned some. Failure is `{"success": false, "data": {"message": ..., "errors": {<field ID or "form">: ...}}}` with status 400 (bad parameters, an unavailable form, an unregistered saved action, or an action's own failure message), 422 (field errors) or 429 (rate limit). Messages are plain text; the browser inserts them as text.
+
+### Email placeholders
+
+`[all-fields]` lists every field that submits a value, in field order, as `Label: value` (HTML fields are left out). `[field id="<field ID>"]` inserts one field's value; an unknown ID gives an empty string. Values are formatted by their field type (several choices joined with commas, an acceptance as "Accepted") and HTML-escaped. Reply-To takes a field ID, whose value must be a valid address, or a literal address.
+
+### PHP extension points
+
+Register field types, actions and form sources on the three `FORM_*_REGISTER_ACTION` hooks (§ Public hook inventory); each receives its registry, and a key that is already registered is refused with a `_doing_it_wrong` notice. The `@api` interfaces are `Forms\Contracts\FieldTypeInterface`, `FormActionInterface` and `FormSourceInterface`. Extend `Forms\Fields\AbstractFieldType` or `AbstractChoiceFieldType` rather than implementing the field interface directly, so later optional methods arrive with defaults. Settings are described with `Forms\Settings\Setting` (kinds `text`, `textarea`, `number`, `switcher`, `select`), which the widget turns into Elementor controls. An action receives a `Submission` (the `FormDefinition`, values by field ID, and `SubmissionMeta`: page URL, verified user ID or 0, time) and returns an `ActionResult`. It never reads the request and never uses `get_current_user_id()`.
+
+### Browser runtime
+
+- **Config**: `window.elemacyFormsConfig` (`ajaxUrl`, `i18n` with `required`, `error` and `network`, and `nonce` only for a logged-in visitor), printed with the `elemacy-form` script. The script and style handles are both `elemacy-form`.
+- **Events** dispatched on the form element, bubbling: `elemacy-form:submit` before sending (cancelable: `preventDefault()` sends nothing), then `elemacy-form:success` or `elemacy-form:error`. `detail` is `{form, response}`, where `response` is the envelope's `data`, or `null` after a network failure.
+- **Markup**: one delegated listener handles every `form[data-elemacy-form]` on the page, including forms added later. Each field wrapper carries `data-field-id`. The `elemacy-form*` classes style the form; they are not saved data.
+
 ## HTTP endpoints
 
 Every route below, Free's and Pro's, lives under the versioned `elemacy/v1` REST namespace (`Route::set_namespace()` in `Core/Elemacy.php`); no route is registered under an unversioned `elemacy` namespace, and `tests/architecture/check.php` rejects an unversioned namespace, `rest_url('elemacy/...')` or route literal. The normal pretty-permalink base is `/wp-json/elemacy/v1`; clients must use WordPress's generated REST URL so plain permalinks and subdirectory installs work: the admin apps build every request from `api_base` (`rest_url('elemacy/v1/')`), and Pro's tracking URL is `rest_url('elemacy/v1/popups')`. An incompatible change ships as a new namespace such as `elemacy/v2`, alongside `elemacy/v1`. Braced parameters represent the existing registered parameter pattern, not a new URL version.
@@ -219,14 +264,14 @@ Every route below, Free's and Pro's, lives under the versioned `elemacy/v1` REST
 | `P/src/Extensions/Popups/Config/api.php` | `GET /popups/{id}/analytics` | Admin middleware |
 | Same | `POST /popups/{id}/track` | Public tracking middleware: no nonce (a nonce in a cached page expires while the page is still served), the request is size-bound and rate-limited per client address, and only a deliverable popup can be counted. `tests/integration/route-authorization.php` pins this as the only public route. |
 
-Frontend `admin-ajax.php` actions from `Modules/Widgets/Config/ajax.php`:
+Frontend `admin-ajax.php` actions:
 
-| Action | Nonce action |
-| --- | --- |
-| `elemacy_widgets_loop_grid_pagination` | `elemacy_ajax_nonce` |
-| `elemacy_widgets_form_submit` | `elemacy_widgets_form_submit` |
+| Action | Registered by | Nonce action |
+| --- | --- | --- |
+| `elemacy_widgets_loop_grid_pagination` | `Modules/Widgets/Config/ajax.php` | `elemacy_ajax_nonce` (required) |
+| `elemacy_form_submit` | `Forms\FormsBootstrap` | none required; `elemacy_form_submit` only proves a logged-in visitor's identity (§ Form Builder) |
 
-Both actions serve guests and authenticated users. The public nonce is request hygiene, not authorization; each handler applies its own application policy. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`.
+Both actions serve guests and authenticated users, and each handler applies its own application policy. The loop's public nonce is request hygiene, not authorization. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`. The form endpoint deliberately takes no public nonce, so a cached page keeps submitting however old it is.
 
 ## Shared PHP and admin entry points
 
@@ -271,6 +316,14 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `POPUP_DUPLICATE_EXCLUDED_META_FILTER` | `elemacy/filter/popups/duplicate_excluded_meta` |
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `elemacy/action/popups/triggers/register` |
 | `POPUP_RULES_REGISTER_ACTION` | `elemacy/action/popups/rules/register` |
+| `FORM_FIELD_TYPES_REGISTER_ACTION` | `elemacy/action/forms/field_types/register` |
+| `FORM_ACTIONS_REGISTER_ACTION` | `elemacy/action/forms/actions/register` |
+| `FORM_SOURCES_REGISTER_ACTION` | `elemacy/action/forms/sources/register` |
+| `FORM_VALIDATION_FILTER` | `elemacy/filter/forms/validation` |
+| `FORM_ACTION_RUN_ACTION` | `elemacy/action/forms/action_run` |
+| `FORM_SUBMITTED_ACTION` | `elemacy/action/forms/submitted` |
+| `FORM_RATE_LIMIT_FILTER` | `elemacy/filter/forms/rate_limit` |
+| `FORM_CLIENT_IP_FILTER` | `elemacy/filter/forms/client_ip` |
 | `DYNAMIC_TAGS_REGISTER_ACTION` | `elemacy/action/dynamic_tags/register` |
 
 Pro's own hook: `ElemacyPro\Extensions\Popups\Services\TrackingRateLimiter::CLIENT_IP_FILTER` (`P/src/Extensions/Popups/Services/TrackingRateLimiter.php`), `elemacy/filter/popups/track_client_ip`. It receives the connecting address (`REMOTE_ADDR`) and returns the real client address, for a site behind a reverse proxy or CDN that does not rewrite it. Forwarding headers are never trusted unless the site returns them here. An IPv6 client is counted by its /64 network.

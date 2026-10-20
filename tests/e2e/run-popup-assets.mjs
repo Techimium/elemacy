@@ -89,7 +89,7 @@ try {
     await popupRoot.elementHandle(),
     { timeout: 5000 }
   );
-  check('the popup itself opens and its widget markup is present', await popupRoot.locator('.elemacy-form-wrapper').count() > 0
+  check('the popup itself opens and its widget markup is present', await popupRoot.locator('form.elemacy-form').count() > 0
     && await popupRoot.locator('.elemacy-loop-carousel-container').count() > 0
     && await popupRoot.locator('[data-elemacy-fixture-thirdparty]').count() > 0);
 

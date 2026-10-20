@@ -109,7 +109,7 @@ final class ForeignDocumentAssetsTest extends IntegrationTestCase
 
         $html = $this->render_host();
 
-        self::assertStringContainsString('elemacy-form-wrapper', $html, 'The form widget itself must render: ' . $html);
+        self::assertStringContainsString('<form class="elemacy-form"', $html, 'The form widget itself must render: ' . $html);
         self::assertMatchesRegularExpression('#<script[^>]+elemacy-form[^>]*\.js#', $html, "The form's own script (needed for AJAX submission handling) must be delivered, not just its markup.");
         self::assertMatchesRegularExpression('#<link[^>]+elemacy-form[^>]*\.css#', $html, "The form's own stylesheet must be delivered.");
     }

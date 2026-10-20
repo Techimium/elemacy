@@ -1,6 +1,13 @@
 <?php
 
 /** Disposable ordinary, Theme Builder and popup form browser fixture. */
+
+function elemacy_form_browser_reset_limiter(): void
+{
+    global $wpdb;
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like('elemacy_form_limit_') . '%'));
+}
+
 try {
     require __DIR__ . '/bootstrap.php';
     require_once __DIR__ . '/fixtures/LibraryDocument.php';
@@ -18,6 +25,9 @@ try {
         // foreign-document-assets.php's own note on this. Orthogonal to
         // what this fixture verifies.
         update_option('elementor_element_cache_ttl', 'disable');
+        // The runner sends five valid submissions from one address, the whole
+        // per-IP allowance; start every run with an empty limiter.
+        elemacy_form_browser_reset_limiter();
 
         $documents = new Elemacy\Tests\Integration\Fixtures\LibraryDocument();
         $owned_posts = [];
@@ -25,14 +35,30 @@ try {
         try {
             $suffix = wp_generate_uuid4();
 
-            $elements = [[
-                'id' => 'form123', 'elType' => 'widget', 'widgetType' => 'elemacy-form',
-                'settings' => ['form_fields' => [
-                    ['type' => 'text', 'label' => 'Name', 'required' => 'yes'],
-                    ['type' => 'email', 'label' => 'Email', 'required' => 'yes'],
-                ], 'submit_actions' => ['email'], 'email_to' => 'fixture@example.invalid'],
-                'elements' => [],
-            ]];
+            $form = static function (string $id, array $fields, array $settings = []): array {
+                return [
+                    'id' => $id, 'elType' => 'widget', 'widgetType' => 'elemacy-form',
+                    'settings' => $settings + ['form_fields' => $fields, 'submit_actions' => ['email'], 'email_to' => 'fixture@example.invalid'],
+                    'elements' => [],
+                ];
+            };
+            $contact = [
+                ['_id' => 'nam0001', 'custom_id' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => 'yes'],
+                ['_id' => 'ema0002', 'custom_id' => 'email', 'type' => 'email', 'label' => 'Email', 'required' => 'yes'],
+            ];
+            // The form every location shows (page, Theme Builder header, popup).
+            $elements = [$form('form123', $contact)];
+            $host_elements = [
+                $elements[0],
+                // Same field IDs as form123, with labels hidden.
+                $form('form456', $contact, ['labels_display' => '']),
+                $form('form789', [
+                    ['_id' => 'top0003', 'custom_id' => 'topics', 'type' => 'checkbox', 'label' => 'Topics', 'required' => 'yes', 'options' => "News|news\nOffers|offers\nEvents|events"],
+                    ['_id' => 'pla0004', 'custom_id' => 'plan', 'type' => 'select', 'label' => 'Plan', 'required' => 'yes', 'placeholder' => 'Choose a plan', 'options' => "Basic|basic\nPro|pro"],
+                    ['_id' => 'qty0005', 'custom_id' => 'quantity', 'type' => 'number', 'label' => 'Quantity', 'field_min' => 1, 'field_max' => 10, 'width' => '50'],
+                    ['_id' => 'day0006', 'custom_id' => 'day', 'type' => 'date', 'label' => 'Day', 'min_date' => '2030-01-01', 'max_date' => '2030-12-31', 'width' => '50'],
+                ]),
+            ];
             $document = \Elementor\Plugin::instance()->documents->create('wp-page', [
                 'post_type' => 'page', 'post_title' => 'Form submissions host ' . $suffix, 'post_status' => 'draft',
             ]);
@@ -40,7 +66,7 @@ try {
             $host_id = $document->get_main_id();
             $owned_posts[] = $host_id;
             update_post_meta($host_id, '_elemacy_fixture_environment', ELEMACY_INTEGRATION_TOKEN);
-            elemacy_test_assert($document->save(['elements' => $elements, 'settings' => ['post_status' => 'publish']]), 'Could not save form page.');
+            elemacy_test_assert($document->save(['elements' => $host_elements, 'settings' => ['post_status' => 'publish']]), 'Could not save form page.');
             $header_id = $documents->create_everywhere('Form submissions header ' . $suffix, 'header', 'publish', $elements);
             $owned_posts[] = $header_id;
             $popup_id = $documents->create('Form submissions popup ' . $suffix, 'popup', 'publish', $elements);
@@ -85,6 +111,7 @@ try {
             elemacy_test_assert(!get_post($id), 'Fixture cleanup failed for post ' . $id . '.');
         }
         delete_option('elementor_element_cache_ttl');
+        elemacy_form_browser_reset_limiter();
         unlink($path);
         echo "Form submissions browser fixture removed.\n";
     } else {

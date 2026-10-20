@@ -5472,7 +5472,7 @@ check('CoreServiceProvider builds every bootstrap through the container rather t
     $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Providers/CoreServiceProvider.php');
 
     return false === strpos($source, '(new ')
-        && substr_count($source, '$container->make(') === 11;
+        && substr_count($source, '$container->make(') === 12;
 });
 
 check('Core\Preview\PreviewManager and Core\Documents\PreviewablePageBase source files import no concrete Elemacy\Modules\Widgets class', static function () {
@@ -6652,5 +6652,6 @@ require __DIR__ . '/archive-title.php';
 require __DIR__ . '/nav-menu-breakpoints.php';
 require __DIR__ . '/theme-builder.php';
 require __DIR__ . '/popup-markup.php';
+require __DIR__ . '/forms.php';
 
 conclude();

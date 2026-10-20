@@ -64,11 +64,13 @@ and the remaining `elemacy_pro_%` options (the schema version among them) unless
 Pro and uploading it again loses no analytics.
 Keep that boundary when adding keys.
 
-## Form submission context and limits
+## Form submissions and limits
 
-Saved library forms emit `elemacy_form_context`, a purpose-specific HMAC proof bound to site, visitor user ID, widget, owner, host query, placement and current authoring metadata. It expires after 24 hours; live host accessibility and placement are checked again on submission. Form widgets use Elementor's dynamic-content path so element caching cannot share the proof between hosts or users. External page caches must exclude logged-in pages and expire guest form pages before their nonce/proof expires. Refresh stale pages after template edits or salt rotation; a stale proof fails closed and asks the visitor to refresh.
+Forms store nothing of their own: a form is its builder's saved data (for the Form widget, the `elemacy-form` element in the owner's `_elementor_data`), and submissions are not saved.
 
-`elemacy_form_limit_<HMAC of IP>` is a non-autoloaded, per-site options row holding `expiry:count`. The default limit remains five accepted attempts per IP across forms per 60 seconds. Bounded compare-and-swap retries coordinate concurrent requests; each consumption deletes at most 20 expired owned buckets. The limiter runs before actions and consumes an attempt even when mail fails. It does not guarantee exactly-once email delivery. Raw IP addresses are not stored.
+**No time-bound tokens in form markup.** A rendered form carries only its source, owner and form ID, the field names and the empty honeypot; no nonce, no signed token, no timestamp. A page cache may therefore keep a form page for any time, and a template edit never invalidates cached copies: each submission is checked against the owner and form as saved now. Page caches still exclude logged-in pages as usual, since a logged-in visitor's runtime config carries the nonce that proves their identity, and a submission without a valid one is processed as anonymous.
+
+`elemacy_form_limit_<HMAC of the client IP>` is a non-autoloaded, per-site options row holding `expiry:count`. The default limit is five accepted attempts per IP across forms per 60 seconds. `elemacy/filter/forms/rate_limit` receives `['limit' => 5, 'window' => 60]` and may change both (clamped to 1-100 attempts and 1-3600 seconds). `elemacy/filter/forms/client_ip` receives `REMOTE_ADDR` and may return the visitor address a trusted proxy of the site reports; forwarding headers are never trusted otherwise. Bounded compare-and-swap retries coordinate concurrent requests, and each consumption deletes at most 20 expired owned buckets. The limiter runs after validation and before actions, and consumes an attempt even when mail fails. It does not guarantee exactly-once email delivery. Raw IP addresses are not stored.
 
 ## Pro counters and public tracking
 

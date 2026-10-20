@@ -82,7 +82,7 @@ test('elemacy:journey:popup-interaction:content @popups', async ({ page, author,
   try {
     await guest.page.goto(home(page));
     const submissions = [];
-    guest.page.on('request', request => { if (request.url().includes('admin-ajax.php') && (request.postData() ?? '').includes('elemacy_widgets_form_submit')) submissions.push(request.url()); });
+    guest.page.on('request', request => { if (request.url().includes('admin-ajax.php') && (request.postData() ?? '').includes('elemacy_form_submit')) submissions.push(request.url()); });
 
     // A carousel in a popup is sized and shows its slides on the first open.
     await open(guest.page, id);

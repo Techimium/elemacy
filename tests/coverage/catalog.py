@@ -112,16 +112,11 @@ def declarations(root):
         types = 'src/Modules/Popups/Support/PopupTypes.php'
         for name in re.findall(r"public const \w+\s*=\s*'([^']+)'", php(root / types)):
             result.append(feature(root, 'popup-type', name, types))
-        form = 'src/Modules/Widgets/Widgets/Form.php'
-        text = php(root / form)
-        for kind, method in [('form-field', 'register_form_fields_section'),
-                             ('form-action', 'register_actions_after_submit_section')]:
-            body = text.split('function ' + method + '()', 1)[1]
-            options = re.search(r"'options'\s*=>\s*\[(.*?)\]", body, re.S)
-            if not options:
-                raise ValueError('Cannot read form options for ' + kind)
-            for name in re.findall(r"'([^']+)'\s*=>", options[1]):
-                result.append(feature(root, kind, name, form))
+        for kind, config in [('form-field', 'src/Config/form_field_types.php'),
+                             ('form-action', 'src/Config/form_actions.php')]:
+            for classname in configured_classes(root, config):
+                path = class_file(root, classname)
+                result.append(feature(root, kind, identifier(path, 'key'), str(path.relative_to(root))))
         providers = [('src/Modules/Widgets/Widgets.php', 'src/Modules/Widgets/DataSources')]
     else:
         providers = [('src/Extensions/LoopDataSources/ProLoopDataSources.php',

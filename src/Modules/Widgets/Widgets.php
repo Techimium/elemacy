@@ -17,11 +17,8 @@ use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
 use Elemacy\Modules\Widgets\Documents\DocumentManager;
 use Elemacy\Modules\Widgets\Documents\LoopDocument;
-use Elemacy\Modules\Widgets\Forms\Actions\EmailAction;
-use Elemacy\Modules\Widgets\Forms\Services\PublishedFormDefinitionResolver;
-use Elemacy\Modules\Widgets\Forms\Services\SubmissionRateLimiter;
-use Elemacy\Modules\Widgets\Forms\Services\SubmissionService;
-use Elemacy\Modules\Widgets\Forms\Services\SubmissionValidator;
+use Elemacy\Forms\FormSourceRegistry;
+use Elemacy\Modules\Widgets\Forms\ElementorFormSource;
 use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
@@ -63,17 +60,6 @@ class Widgets extends Module
     public function register(Container $container): void
     {
         $container->bind(WidgetManager::class, static fn () => WidgetManager::instance());
-
-        // The submission pipeline's action list is configuration, so a
-        // factory owns it rather than reflection.
-        $container->bind(SubmissionService::class, static function (Container $container) {
-            return new SubmissionService(
-                $container->make(PublishedFormDefinitionResolver::class),
-                $container->make(SubmissionValidator::class),
-                $container->make(SubmissionRateLimiter::class),
-                [$container->make(EmailAction::class)]
-            );
-        });
     }
 
     public function boot(): void
@@ -87,7 +73,20 @@ class Widgets extends Module
         $this->register_types();
         $this->register_data_sources();
         $this->register_placement_resolvers();
+        $this->register_form_source();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
+    }
+
+    /**
+     * The Form widget's forms, for the shared forms engine. Registered only
+     * while this module is active, so a disabled module's forms are
+     * unavailable rather than half-working.
+     */
+    protected function register_form_source(): void
+    {
+        add_action(Hooks::FORM_SOURCES_REGISTER_ACTION, static function (FormSourceRegistry $registry): void {
+            $registry->register(new ElementorFormSource());
+        });
     }
 
     /**

@@ -3,7 +3,7 @@
 /**
  * Architecture check.
  *
- * 1. Shared layers (Core, Http, Elementor, Loop, Conditions, TemplateLibrary,
+ * 1. Shared layers (Core, Http, Elementor, Loop, Conditions, Forms, TemplateLibrary,
  *    Integrations, Support) never import a feature module, and a feature
  *    module never imports another module's classes; modules cooperate only
  *    through the shared layers' contracts and the hooks in Core\Hooks.
@@ -19,8 +19,9 @@
  *    ELEMACY_PERSISTED_IDENTIFIERS points at another list (used to plant a
  *    rename).
  *
- * 5. No retired public popup name (content hooks, JavaScript globals, events)
- *    appears in Free's or Pro's shipped source: the 1.0 names are final and
+ * 5. No retired public popup or form name (content hooks, JavaScript globals,
+ *    events, the old form endpoint and placement token) appears in Free's or
+ *    Pro's shipped source: the 1.0 names are final and
  *    nothing keeps an alias. Pro is checked when its checkout sits beside
  *    this one, as it does in development and CI.
  *
@@ -34,7 +35,7 @@
  */
 
 $plugin_root = dirname(__DIR__, 2) . '/';
-$shared_layers = ['Core', 'Http', 'Elementor', 'Loop', 'Conditions', 'TemplateLibrary', 'Integrations', 'Support'];
+$shared_layers = ['Core', 'Http', 'Elementor', 'Loop', 'Conditions', 'Forms', 'TemplateLibrary', 'Integrations', 'Support'];
 $violations = [];
 
 $php_files = new RecursiveIteratorIterator(
@@ -107,6 +108,8 @@ $retired_names = [
     '/\belemacyPopupsAnalytics\b/' => 'elemacyPopupsAnalytics (the config is elemacyPopupsAnalyticsConfig)',
     '/\belemacyVisitCounts\b/' => 'elemacyVisitCounts (the global is elemacyPopupsVisitCounts)',
     '/\bElemacyElementorLifecycle\b/' => 'ElemacyElementorLifecycle (the global is elemacyElementorLifecycle)',
+    '/\belemacy_widgets_form_submit\b/' => 'elemacy_widgets_form_submit (the form endpoint is elemacy_form_submit)',
+    '/\belemacy_form_context\b/' => 'elemacy_form_context (forms carry no placement token)',
 ];
 // REST namespaces, URLs and route literals that leave out the version.
 $unversioned_rest = [

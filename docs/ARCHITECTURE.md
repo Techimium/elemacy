@@ -13,11 +13,12 @@ This document is the map. `docs/CONTRACTS.md` lists the identifiers that must ne
 | `src/Elementor/` | Everything that calls Elementor's PHP API on behalf of the rest of the plugin: template rendering and preparation, classic and atomic CSS, editor preview, previewable documents, query controls, the widget base class, and the compatibility probes and adapters that isolate version-sensitive calls | `Core`, `Http`, shared domains |
 | `src/Loop/` | The loop domain: source contract and registry, loop items and context, render pipeline, pagination security model, placement resolvers, limits | `Core`, `Http`, `Elementor`, `TemplateLibrary`, `Integrations` |
 | `src/Conditions/` | Display conditions: registry, evaluator, repository, DTOs, built-in predicates | `Core`, `Http` |
+| `src/Forms/` | The builder-neutral forms engine: field-type, action and form-source registries and contracts, built-in field types and the Email action, the renderer, the submission pipeline and its endpoint | `Core`, `Http`, `TemplateLibrary`, `Support` |
 | `src/TemplateLibrary/` | The one library post type and its types, persistence primitives, resolver and cache | `Core`, `Http`, `Conditions` |
 | `src/Integrations/` | Optional third-party plugins (ACF today), each behind its own boundary | `Core` |
 | `src/Modules/<Name>/` | User-facing features. Each module is a `Module` with a consistent inner layout | any shared layer, never another module |
 | `src/Support/` | Small stateless helpers | nothing above it |
-| `src/Config/` | The composition root's declarations: module list, shared routes, built-in conditions | may name modules |
+| `src/Config/` | The composition root's declarations: module list, shared routes, built-in conditions, query resolvers, form field types and form actions | may name modules |
 
 Inside a module the folders mean the same thing everywhere: `Config/` (routes, AJAX actions, document classes), `Controllers/` (HTTP handlers), `Services/` (application services), `Requests/` and `Resources/` (HTTP input and output shapes), `DTO/`, `Documents/` (Elementor documents), `Widgets/` (Elementor widgets), `Support/` (module-local helpers), `Views/` and `assets/`.
 
@@ -99,11 +100,59 @@ A rule with a blank condition type is an unknown identifier, so the template hol
 
 ## Transport
 
-REST access is enforced only by the middleware attached to a route; a route without middleware is public, so every protected route must attach one (`AdminMiddleware` for administrative routes). Group prefixes and middleware compose through every nesting level. Handlers are built inside the error boundary and every `Throwable` becomes the safe response envelope without a stack trace. The two intentionally public handlers, loop pagination and form submission, apply their own application policies: a nonce is request hygiene, not authorization.
+REST access is enforced only by the middleware attached to a route; a route without middleware is public, so every protected route must attach one (`AdminMiddleware` for administrative routes). Group prefixes and middleware compose through every nesting level. Handlers are built inside the error boundary and every `Throwable` becomes the safe response envelope without a stack trace. The two intentionally public handlers, loop pagination and form submission, apply their own application policies. Loop pagination's nonce is request hygiene, not authorization; form submission takes no public nonce at all and uses one only to prove a logged-in visitor's identity (§ Forms).
 
 ## Popups
 
 Matched popups are prepared before the head and footer deadlines and emitted later from the prepared fragment. The frontend engine has explicit per-instance states (closed, opening, open, closing, destroyed) with cancellable transitions, initializes inserted Elementor subtrees exactly once, and a single modal stack owns opening order, Escape, focus return and the shared scroll lock. Escape closes the topmost modal only when its "Close on Esc" is on (the default, as in Elementor Pro); non-modal types never respond to it. A layer opened above a modal, meaning an element outside its root that comes after it in the document, as Elementor's lightbox, CAPTCHA challenges and date pickers do when appended to `<body>`, keeps its own focus and Escape: the engine skips it in the focus reclaim, the Tab trap and the Escape handler, also when it covers the modal while focus is still inside. While a modal is open, `<html>` carries `elemacy-has-modal` and `--elemacy-popup-top-z`, and `popups.css` lifts `.elementor-lightbox` above it.
+
+## Forms
+
+The forms engine in `src/Forms/` knows no builder: it holds no Elementor code and imports no module, so a future form builder (an atomic form element, a block) reuses it unchanged. The Form widget is one builder's UI on top of it.
+
+```
+src/Forms/                       engine (Elemacy\Forms): no Elementor, no Modules
+  Contracts/   FieldTypeInterface, FormActionInterface, FormSourceInterface
+  Fields/      AbstractFieldType, AbstractChoiceFieldType and the 14 built-in types
+  Actions/     EmailAction
+  Settings/    Setting (builder-neutral setting description)
+  Definition/  FormDefinition, Field, FieldIdResolver
+  Submission/  Submission, SubmissionMeta, FieldResult, ActionResult
+  Rendering/   FormRenderer, RenderContext
+  Services/    SubmissionService, SubmissionValidator, SubmissionRateLimiter,
+               OwnerAccessPolicy, EmailTemplate
+  Http/        SubmissionController (admin-ajax elemacy_form_submit)
+  FieldTypeRegistry, FormActionRegistry, FormSourceRegistry, FormsBootstrap
+src/Config/form_field_types.php, src/Config/form_actions.php
+assets/frontend/js/form.js, assets/frontend/css/form.css
+
+src/Modules/Widgets/             the Elementor UI
+  Widgets/Form.php                  controls from the registries, markup from FormRenderer
+  Forms/ElementorFormDefinitions    saved widget settings -> FormDefinition
+  Forms/ElementorFormSource         form source 'elementor': the saved element of an owner
+  Forms/ElementorSettingControls    Setting -> Elementor control
+```
+
+`CoreServiceProvider` binds the three registries through factories (never reflection) and boots `FormsBootstrap`, which registers the endpoint, the `elemacy-form` script and style handles and the renderer's request state. The registries load on their first lookup: built-ins from the config lists, then their registration hook. The Widgets module registers its source on `Hooks::FORM_SOURCES_REGISTER_ACTION` from `Widgets::boot()`, so with the module off a widget form is simply unavailable.
+
+**One definition for rendering and submission.** The widget's render and the source's resolve both turn saved settings into a `FormDefinition` through `ElementorFormDefinitions`, and both name fields through `FieldIdResolver`, so the page and the server can never disagree about which field a value belongs to. Values, errors and email placeholders are keyed by that stable field ID, never by position.
+
+**The pipeline**, in `SubmissionController` (transport) and `SubmissionService`:
+
+1. Shape check of the request fields (400).
+2. Identity: a logged-in visitor keeps their identity only with a valid `elemacy_form_submit` nonce; otherwise the request runs as a guest (`wp_set_current_user(0)`).
+3. A filled honeypot gets the normal success answer, and nothing runs.
+4. The form source resolves the saved form, after `OwnerAccessPolicy`: a published owner, or a private one the visitor may read; not password-locked; publicly viewable, or a library template of a registered type (400 "unavailable", one message for every reason).
+5. `SubmissionValidator` rejects unknown field IDs and lets each field's type validate its value (a type no longer registered is skipped), then `Hooks::FORM_VALIDATION_FILTER` may add errors (422).
+6. Every saved action must be registered (400).
+7. The rate limiter counts the attempt against the filtered client IP (429).
+8. The actions run in saved order; the first failure stops the rest and its own message reaches the visitor (400). `FORM_ACTION_RUN_ACTION` fires after each, `FORM_SUBMITTED_ACTION` once after all succeed.
+
+**Adding a field type or an action** is one class and one registration, with no edit to Free and no migration. A field type extends `AbstractFieldType` (single-line text rules, the required check) or `AbstractChoiceFieldType` (`Label|value` options), declares a key, a label, its `Setting`s and a layout, renders only its control through `RenderContext` (the engine renders the wrapper, label or legend and error slot), validates the raw value into a `FieldResult` and formats a value for email. An action declares settings whose keys start with `{key}_`, reads them from `$submission->form()->setting()`, uses the validated values and `SubmissionMeta` (never the request or the current user), and returns an `ActionResult`. Built-ins are a line in `src/Config/form_field_types.php` or `form_actions.php`; add-ons register on `Hooks::FORM_FIELD_TYPES_REGISTER_ACTION` or `Hooks::FORM_ACTIONS_REGISTER_ACTION`. The widget turns the settings into Elementor controls: a field setting appears for the types that declare it, and an action's settings get their own section, shown while the action is selected. A key that is already registered, an action setting without the prefix, a field setting redeclared with another kind, or one of the core row keys is refused with a `_doing_it_wrong` notice.
+
+**Why there is no placement proof.** Before 1.0 a form in a library template (a popup, header, footer or loop item) carried a 24-hour signed token proving the template was placed on the requesting page, and every form carried a public nonce. Both made cached pages fail after a day or after any template edit, and the proof rebuilt the host's query to check placement, which coupled forms to the loop, the template resolver and popup storage. It proved little. Recipients, actions and fields come from the saved form only, so someone who skips the proof can only send the author's own form to the author's own recipient, with validated values, under the honeypot and the rate limiter. That is the same exposure as any form on a public page, and the same model as Elementor Pro's form. A published template that is not placed anywhere can therefore still receive submissions sent to it directly; that is accepted. Without a public nonce a guest submission can be cross-site, but a guest has no identity or privilege to abuse, and a logged-in identity always needs the nonce. The markup now holds nothing per visitor or time-bound; the nonce is printed only into `window.elemacyFormsConfig` for logged-in visitors.
+
+**Unique DOM IDs.** Control IDs are `elemacy-form-{owner}-{form ID}-{field ID}`, plus `-{n}` from the second time the same form renders in one request (a loop item repeated per post, a template shown twice). That counter resets per request through `RequestState`.
 
 ## Native chrome replacement
 
@@ -145,7 +194,7 @@ Free owns shared infrastructure and works alone. Pro contributes through `Hooks:
 
 Request-level caches (matched popups, resolved templates, display settings) reset on library changes and on `switch_blog`.
 
-**One page render is one request, even in a long-running process.** The caches the rendering pipeline keeps for a page — prepared foreign-document fragments (`TemplateRenderer`), loop base-style markers (`LoopItemStyles`), resolved templates (`TemplateResolver`), the render-once guard for header and footer (`ThemeBuilderManager`), matched popups (`PopupManager`) and registered asset ids (`TemplateAssetsRegistrar`) — each register a reset with `Core\RequestState`. It flushes them as the first callback on `wp`, which `WP::main()` fires once per page after the main query exists and before anything resolves or prepares a template. The fragment, style-marker and resolution caches also key every entry by the acting blog id, so a site never reads another site's entry and a `switch_to_blog()` round trip keeps the current site's.
+**One page render is one request, even in a long-running process.** The caches the rendering pipeline keeps for a page — prepared foreign-document fragments (`TemplateRenderer`), loop base-style markers (`LoopItemStyles`), resolved templates (`TemplateResolver`), the render-once guard for header and footer (`ThemeBuilderManager`), matched popups (`PopupManager`), registered asset ids (`TemplateAssetsRegistrar`) and form instance counts (`Forms\Rendering\FormRenderer`) — each register a reset with `Core\RequestState`. It flushes them as the first callback on `wp`, which `WP::main()` fires once per page after the main query exists and before anything resolves or prepares a template. The fragment, style-marker and resolution caches also key every entry by the acting blog id, so a site never reads another site's entry and a `switch_to_blog()` round trip keeps the current site's.
 
 `RequestState` is the entry point for anything that renders outside `WP::main()`: a WP-CLI command or batch job that renders several pages, or a test harness, calls `RequestState::flush()` before each page. A new request-scoped cache calls `RequestState::register()` from the code that owns it; a cache that does not register outlives its page in every such process. `elemacy_db_version` records the release last seen; `elemacy_schema_version` records completed data migrations and only `Migrator::run()` advances it, one completed step at a time, resumable and never lowered on downgrade. Pro owns `elemacy_pro_schema_version` independently.
 

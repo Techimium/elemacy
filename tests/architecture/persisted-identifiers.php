@@ -39,6 +39,30 @@ $option = static fn(string $value): array => [
     'declaration' => "/'" . preg_quote($value, '/') . "'\\s*=>\\s*esc_html__\\(/",
 ];
 
+// Form widget controls: a plain, responsive or group control declared in Form.php.
+$form_widget = 'src/Modules/Widgets/Widgets/Form.php';
+$form_control = static fn(string $id): array => [
+    'id' => $id,
+    'file' => $form_widget,
+    'declaration' => "/add_(?:responsive_)?control\\(\\s*'" . preg_quote($id, '/') . "'|'name'\\s*=>\\s*'" . preg_quote($id, '/') . "'/",
+];
+// A form field-type or action setting key, declared through the Setting builder.
+$form_setting = static fn(string $id, string $file): array => [
+    'id' => $id,
+    'file' => $file,
+    'declaration' => "/Setting::[a-z]+\\(\\s*'" . preg_quote($id, '/') . "'/",
+];
+// A form control's default, written as the PHP literal Form.php declares
+// (whitespace-insensitive), found inside that control's own declaration.
+// Elementor does not store a value equal to its default, so a saved form
+// that never touched the control follows whatever default ships.
+$form_default = static fn(string $id, string $literal): array => [
+    'id' => $id,
+    'file' => $form_widget,
+    'declaration' => "/add_(?:responsive_)?control\\(\\s*'" . preg_quote($id, '/') . "',\\s*\\[(?:(?!add_(?:responsive_|group_)?control\\().)*?'default'\\s*=>\\s*"
+        . preg_replace('/\\s+/', '\\s*', preg_quote($literal, '/')) . '/s',
+];
+
 return [
     // Module slugs (elemacy_active_modules).
     $returned('theme-builder', 'src/Modules/ThemeBuilder/ThemeBuilder.php'),
@@ -246,6 +270,91 @@ return [
     // session_counted) are pinned by Pro's own tests/php/run.php.
     ['id' => 'elemacy_{blog}_', 'file' => 'src/Modules/Popups/Support/StorageKeys.php'],
     ['id' => 'elemacy_{blog}_popup_{id}', 'file' => 'src/Modules/Popups/Support/StorageKeys.php'],
+
+    // Form Builder. Built-in field type keys (`type` of each saved form_fields
+    // row) and submit action keys (submit_actions), the form source key
+    // posted by every rendered form, and the limiter's option-row prefix.
+    $returned('text', 'src/Forms/Fields/Text.php'),
+    $returned('email', 'src/Forms/Fields/Email.php'),
+    $returned('textarea', 'src/Forms/Fields/Textarea.php'),
+    $returned('url', 'src/Forms/Fields/Url.php'),
+    $returned('tel', 'src/Forms/Fields/Tel.php'),
+    $returned('number', 'src/Forms/Fields/Number.php'),
+    $returned('date', 'src/Forms/Fields/Date.php'),
+    $returned('time', 'src/Forms/Fields/Time.php'),
+    $returned('select', 'src/Forms/Fields/Select.php'),
+    $returned('radio', 'src/Forms/Fields/Radio.php'),
+    $returned('checkbox', 'src/Forms/Fields/Checkbox.php'),
+    $returned('acceptance', 'src/Forms/Fields/Acceptance.php'),
+    $returned('hidden', 'src/Forms/Fields/Hidden.php'),
+    $returned('html', 'src/Forms/Fields/Html.php'),
+    $returned('email', 'src/Forms/Actions/EmailAction.php'),
+    ['id' => 'elementor', 'file' => 'src/Modules/Widgets/Forms/ElementorFormDefinitions.php', 'declaration' => "/const\\s+SOURCE\\s*=\\s*'elementor'/"],
+    ['id' => 'elemacy_form_limit_', 'file' => 'src/Forms/Services/SubmissionRateLimiter.php'],
+
+    // Form widget control IDs (saved widget settings and form_fields rows).
+    $form_control('form_fields'), $form_control('type'), $form_control('label'), $form_control('custom_id'), $form_control('width'),
+    $form_control('labels_display'), $form_control('button_text'), $form_control('button_align'), $form_control('button_width'),
+    $form_control('submit_actions'),
+    $form_control('column_gap'), $form_control('row_gap'), $form_control('label_spacing'), $form_control('label_color'),
+    $form_control('label_typography'), $form_control('field_text_color'), $form_control('field_placeholder_color'),
+    $form_control('field_typography'), $form_control('field_bg_color'), $form_control('field_border'),
+    $form_control('field_border_radius'), $form_control('field_padding'), $form_control('button_typography'),
+    $form_control('button_text_color'), $form_control('button_background_color'), $form_control('button_border'),
+    $form_control('button_text_color_hover'), $form_control('button_background_color_hover'),
+    $form_control('button_border_color_hover'), $form_control('button_border_radius'), $form_control('button_box_shadow'),
+    $form_control('button_padding'), $form_control('message_spacing'), $form_control('message_typography'),
+    $form_control('message_border_type'), $form_control('message_border_width'), $form_control('message_border_radius'),
+    $form_control('message_padding'), $form_control('success_message_color'), $form_control('success_message_background_color'),
+    $form_control('success_message_border_color'), $form_control('error_message_color'),
+    $form_control('error_message_background_color'), $form_control('error_message_border_color'),
+    // Field-type and action settings, saved under these keys by the widget.
+    ['id' => 'placeholder', 'file' => 'src/Forms/Settings/Setting.php', 'declaration' => "/'placeholder'\\s*=>\\s*self::TEXT/"],
+    ['id' => 'required', 'file' => 'src/Forms/Settings/Setting.php', 'declaration' => "/'required'\\s*=>\\s*self::SWITCHER/"],
+    ['id' => 'options', 'file' => 'src/Forms/Settings/Setting.php', 'declaration' => "/'options'\\s*=>\\s*self::TEXTAREA/"],
+    ['id' => 'field_value', 'file' => 'src/Forms/Settings/Setting.php', 'declaration' => "/'field_value'\\s*=>\\s*self::TEXT/"],
+    $form_setting('field_min', 'src/Forms/Fields/Number.php'),
+    $form_setting('field_max', 'src/Forms/Fields/Number.php'),
+    $form_setting('field_step', 'src/Forms/Fields/Number.php'),
+    $form_setting('min_date', 'src/Forms/Fields/Date.php'),
+    $form_setting('max_date', 'src/Forms/Fields/Date.php'),
+    $form_setting('acceptance_text', 'src/Forms/Fields/Acceptance.php'),
+    $form_setting('checked_by_default', 'src/Forms/Fields/Acceptance.php'),
+    $form_setting('field_html', 'src/Forms/Fields/Html.php'),
+    $form_setting('email_to', 'src/Forms/Actions/EmailAction.php'),
+    $form_setting('email_subject', 'src/Forms/Actions/EmailAction.php'),
+    $form_setting('email_content', 'src/Forms/Actions/EmailAction.php'),
+    $form_setting('email_from_name', 'src/Forms/Actions/EmailAction.php'),
+    $form_setting('email_from', 'src/Forms/Actions/EmailAction.php'),
+    $form_setting('email_reply_to', 'src/Forms/Actions/EmailAction.php'),
+    // The value an enabled switcher setting saves.
+    ['id' => 'yes', 'file' => 'src/Forms/Settings/Setting.php', 'declaration' => "/const\\s+ON\\s*=\\s*'yes'/"],
+
+    // Form widget defaults snapshot (see $form_default). The repeater `type`
+    // and submit_actions also declare save_default, so saved forms keep them.
+    $form_default('type', "'text'"),
+    $form_default('label', "esc_html__('Label', 'elemacy')"),
+    $form_default('width', "'100'"),
+    $form_default('labels_display', "'yes'"),
+    $form_default('button_text', "esc_html__('Send', 'elemacy')"),
+    $form_default('button_align', "'stretch'"),
+    $form_default('button_width', "'100'"),
+    $form_default('submit_actions', "[ 'email', ]"),
+    $form_default('column_gap', "[ 'unit' => 'px', 'size' => 10, ]"),
+    $form_default('row_gap', "[ 'unit' => 'px', 'size' => 10, ]"),
+    $form_default('message_spacing', "[ 'unit' => 'px', 'size' => 0, ]"),
+    $form_default('message_border_radius', "[ 'top' => '2', 'right' => '2', 'bottom' => '2', 'left' => '2', 'unit' => 'px', ]"),
+    $form_default('message_padding', "[ 'top' => '15', 'right' => '15', 'bottom' => '15', 'left' => '15', 'unit' => 'px', ]"),
+    $form_default('success_message_color', "'#155724'"),
+    $form_default('success_message_background_color', "'#d4edda'"),
+    $form_default('success_message_border_color', "'#c3e6cb'"),
+    $form_default('error_message_color', "'#721c24'"),
+    $form_default('error_message_background_color', "'#f8d7da'"),
+    $form_default('error_message_border_color', "'#f5c6cb'"),
+    // A new form's default fields and their readable IDs.
+    ['id' => 'name', 'file' => $form_widget, 'declaration' => "/'type'\\s*=>\\s*'text',\\s*'label'\\s*=>\\s*esc_html__\\('Name', 'elemacy'\\),[^\\]]*'custom_id'\\s*=>\\s*'name'/"],
+    ['id' => 'email', 'file' => $form_widget, 'declaration' => "/'type'\\s*=>\\s*'email',\\s*'label'\\s*=>\\s*esc_html__\\('Email', 'elemacy'\\),[^\\]]*'custom_id'\\s*=>\\s*'email'/"],
+    ['id' => 'message', 'file' => $form_widget, 'declaration' => "/'type'\\s*=>\\s*'textarea',\\s*'label'\\s*=>\\s*esc_html__\\('Message', 'elemacy'\\),[^\\]]*'custom_id'\\s*=>\\s*'message'/"],
 
     // Stored post type, meta and option keys.
     ['id' => 'elemacy_library', 'file' => 'src/TemplateLibrary/LibraryPostType.php'],

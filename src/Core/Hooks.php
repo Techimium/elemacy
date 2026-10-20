@@ -116,6 +116,32 @@ final class Hooks
     public const POPUP_TRIGGERS_REGISTER_ACTION = 'elemacy/action/popups/triggers/register';
     public const POPUP_RULES_REGISTER_ACTION    = 'elemacy/action/popups/rules/register';
 
+    // Forms.
+    // Fired on the first lookup of each forms registry, after free registers
+    // its built-ins, so add-ons can register their own field types, submit
+    // actions and form sources (passes the registry). A key that is already
+    // registered is refused, never replaced.
+    public const FORM_FIELD_TYPES_REGISTER_ACTION = 'elemacy/action/forms/field_types/register';
+    public const FORM_ACTIONS_REGISTER_ACTION     = 'elemacy/action/forms/actions/register';
+    public const FORM_SOURCES_REGISTER_ACTION     = 'elemacy/action/forms/sources/register';
+
+    // Runs once every field of a submission is valid, before any action
+    // (passes the errors array, keyed by field ID or 'form', and the
+    // Submission). Returning errors stops the submission.
+    public const FORM_VALIDATION_FILTER = 'elemacy/filter/forms/validation';
+
+    // Fired after each submit action runs (passes the action key, its
+    // ActionResult and the Submission), and once after every action succeeded
+    // (passes the Submission and the results keyed by action key).
+    public const FORM_ACTION_RUN_ACTION = 'elemacy/action/forms/action_run';
+    public const FORM_SUBMITTED_ACTION  = 'elemacy/action/forms/submitted';
+
+    // The submission rate limit (passes ['limit' => 5, 'window' => 60]) and
+    // the client IP it is counted against (passes REMOTE_ADDR). Filter the IP
+    // only to an address a trusted proxy of this site reports.
+    public const FORM_RATE_LIMIT_FILTER = 'elemacy/filter/forms/rate_limit';
+    public const FORM_CLIENT_IP_FILTER  = 'elemacy/filter/forms/client_ip';
+
     // Dynamic Tags.
     // Fired after free registers its dynamic tags and groups, so add-ons can
     // register their own (passes Elementor's dynamic tags manager). A tag

@@ -374,7 +374,7 @@
       "owner": "elemacy",
       "kind": "form-action",
       "identifier": "email",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Actions/EmailAction.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -395,11 +395,36 @@
       }
     },
     {
+      "id": "elemacy:form-field:acceptance",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "acceptance",
+      "source": "src/Forms/Fields/Acceptance.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:acceptance",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:form-field:checkbox",
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "checkbox",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Checkbox.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -420,11 +445,36 @@
       }
     },
     {
+      "id": "elemacy:form-field:date",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "date",
+      "source": "src/Forms/Fields/Date.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:date",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:form-field:email",
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "email",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Email.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -445,11 +495,86 @@
       }
     },
     {
+      "id": "elemacy:form-field:hidden",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "hidden",
+      "source": "src/Forms/Fields/Hidden.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:hidden",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:html",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "html",
+      "source": "src/Forms/Fields/Html.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:html",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:number",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "number",
+      "source": "src/Forms/Fields/Number.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:number",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:form-field:radio",
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "radio",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Radio.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -474,7 +599,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "select",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Select.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -499,7 +624,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "tel",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Tel.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -524,7 +649,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "text",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Text.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -549,12 +674,62 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "textarea",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Forms/Fields/Textarea.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
       "journey": {
         "id": "elemacy:journey:form-field:textarea",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:time",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "time",
+      "source": "src/Forms/Fields/Time.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:time",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:form-field:url",
+      "owner": "elemacy",
+      "kind": "form-field",
+      "identifier": "url",
+      "source": "src/Forms/Fields/Url.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [],
+      "journey": {
+        "id": "elemacy:journey:form-field:url",
         "status": "pending",
         "profiles": [
           "free-only",

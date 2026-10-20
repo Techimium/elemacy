@@ -21,6 +21,10 @@ use Elemacy\Elementor\Preview\PreviewAssets;
 use Elemacy\Elementor\Preview\PreviewManager;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
+use Elemacy\Forms\FieldTypeRegistry;
+use Elemacy\Forms\FormActionRegistry;
+use Elemacy\Forms\FormsBootstrap;
+use Elemacy\Forms\FormSourceRegistry;
 use Elemacy\Http\HttpBootstrap;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
@@ -32,8 +36,8 @@ use Elemacy\TemplateLibrary\TypeRegistry;
 
 /**
  * Shared services outside any module: the bootstraps and managers boot
- * builds (admin menu, HTTP routes, library, conditions, Elementor
- * integration), plus a container binding for every shared registry so a
+ * builds (admin menu, HTTP routes, library, conditions, forms engine,
+ * Elementor integration), plus a container binding for every shared registry so a
  * container-built service always receives the populated singleton, and for
  * the contracts those bootstraps depend on.
  */
@@ -59,6 +63,11 @@ class CoreServiceProvider implements ServiceProviderInterface
         // Resolvers load on the registry's first lookup (a picker search), so a
         // request that never runs one builds none of them and fires no action.
         $container->bind(QueryResolverRegistry::class, static fn () => QueryResolverRegistry::from_config());
+
+        // Forms registries load the same way, on the first render, edit or submission.
+        $container->bind(FieldTypeRegistry::class, static fn (Container $container) => FieldTypeRegistry::from_config($container));
+        $container->bind(FormActionRegistry::class, static fn (Container $container) => FormActionRegistry::from_config($container));
+        $container->bind(FormSourceRegistry::class, static fn () => FormSourceRegistry::from_hook());
     }
 
     public function boot(): void
@@ -78,6 +87,7 @@ class CoreServiceProvider implements ServiceProviderInterface
         $container->make(FrontendScripts::class)->register_hooks();
         $container->make(PluginLinks::class)->register_hooks();
         $container->make(ConditionsBootstrap::class)->register_hooks();
+        $container->make(FormsBootstrap::class)->register_hooks();
         $container->make(LibraryBootstrap::class)->register_hooks();
         $container->make(PreviewManager::class)->register_hooks();
         $container->make(PreviewAssets::class)->register_hooks();
