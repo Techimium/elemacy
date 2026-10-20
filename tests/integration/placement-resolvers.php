@@ -35,6 +35,13 @@ final class PlacementResolversTest extends IntegrationTestCase
         $this->fixtures = new ArchitectureCatalog();
         try {
             $this->catalog = $this->fixtures->create();
+            // A theme template with no inclusion rule displays nowhere, so give the
+            // catalog's header, single and footer the conditions a new template of
+            // their type starts with. Only here: other catalog users render pages
+            // that a site-wide header would change.
+            foreach ($this->catalog['locations'] as $type => $id) {
+                (new \Elemacy\Conditions\ConditionRepository())->save($id, \Elemacy\TemplateLibrary\TypeRegistry::instance()->get($type)->default_conditions);
+            }
         } catch (\Throwable $error) {
             $this->fixtures->cleanup();
             throw $error;
