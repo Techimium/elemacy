@@ -50,6 +50,9 @@
             <file>popup-required-capability-suspension.php</file>
             <file>popup-rule-trigger-params-guard.php</file>
             <file>popup-display-defaults.php</file>
+            <file>popup-server-rendering.php</file>
+            <file>route-authorization.php</file>
+            <file>popup-pro-delivery.php</file>
             <file>cache-lifecycle.php</file>
             <file>availability-repair-round-trip.php</file>
             <file>condition-registry-extension.php</file>

@@ -42,14 +42,14 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `module:popups` | real | Elementor Free | pending |
 | `module:theme-builder` | real | Elementor Free | pending |
 | `module:widgets` | real | Elementor Free | pending |
-| `popup-type:banner` | real | Elementor Free | pending |
-| `popup-type:floating` | real | Elementor Free | pending |
-| `popup-type:popup` | real | Elementor Free | pending |
-| `popup-type:topbar` | real | Elementor Free | pending |
+| `popup-type:banner` | real | Elementor Free | implemented |
+| `popup-type:floating` | real | Elementor Free | implemented |
+| `popup-type:popup` | real | Elementor Free | implemented |
+| `popup-type:topbar` | real | Elementor Free | implemented |
 | `rule:browser` | placeholder | Elementor Free | pending |
 | `rule:devices` | placeholder | Elementor Free | pending |
-| `rule:frequency_cap` | real | Elementor Free | pending |
-| `rule:logged_in` | real | Elementor Free | pending |
+| `rule:frequency_cap` | real | Elementor Free | implemented |
+| `rule:logged_in` | real | Elementor Free | implemented |
 | `rule:once_per` | placeholder | Elementor Free | pending |
 | `rule:page_views` | placeholder | Elementor Free | pending |
 | `rule:referrer` | placeholder | Elementor Free | pending |
@@ -115,11 +115,11 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `template:search` | real | Elementor Free | pending |
 | `template:section` | real | Elementor Free | pending |
 | `template:single` | real | Elementor Free | pending |
-| `trigger:click` | real | Elementor Free | pending |
+| `trigger:click` | real | Elementor Free | implemented |
 | `trigger:exit_intent` | placeholder | Elementor Free | pending |
 | `trigger:inactivity` | placeholder | Elementor Free | pending |
 | `trigger:on_popup_close` | placeholder | Elementor Free | pending |
-| `trigger:page_load` | real | Elementor Free | pending |
+| `trigger:page_load` | real | Elementor Free | implemented |
 | `trigger:scroll` | placeholder | Elementor Free | pending |
 | `trigger:scroll_to_element` | placeholder | Elementor Free | pending |
 | `widget:elemacy-acf-accordion` | real | acf | pending |
@@ -153,6 +153,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-nav-menu-parity` | native-browser | `tests/e2e/run-nav-menu-parity.mjs` |
 | `elemacy:runner:run-nav-menu` | native-browser | `tests/e2e/run-nav-menu.mjs` |
 | `elemacy:runner:run-popup-assets` | native-browser | `tests/e2e/run-popup-assets.mjs` |
+| `elemacy:runner:run-topbar-prerender` | native-browser | `tests/e2e/run-topbar-prerender.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
 | `elemacy:runner:check` | architecture | `tests/architecture/check.php` |
 | `elemacy:runner:verify-package-test` | release | `tests/release/verify-package-test.py` |
@@ -200,6 +201,9 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:popup-required-capability-suspension` | native-integration | `tests/integration/popup-required-capability-suspension.php` |
 | `elemacy:integration:popup-rule-trigger-params-guard` | native-integration | `tests/integration/popup-rule-trigger-params-guard.php` |
 | `elemacy:integration:popup-display-defaults` | native-integration | `tests/integration/popup-display-defaults.php` |
+| `elemacy:integration:popup-server-rendering` | native-integration | `tests/integration/popup-server-rendering.php` |
+| `elemacy:integration:route-authorization` | native-integration | `tests/integration/route-authorization.php` |
+| `elemacy:integration:popup-pro-delivery` | native-integration | `tests/integration/popup-pro-delivery.php` |
 | `elemacy:integration:cache-lifecycle` | native-integration | `tests/integration/cache-lifecycle.php` |
 | `elemacy:integration:availability-repair-round-trip` | native-integration | `tests/integration/availability-repair-round-trip.php` |
 | `elemacy:integration:condition-registry-extension` | native-integration | `tests/integration/condition-registry-extension.php` |

@@ -331,7 +331,11 @@ Each Theme Builder template can have Include ("show on") and Exclude ("hide on")
 
 = Does deleting Elemacy remove my templates? =
 
-No. Deleting the plugin keeps your templates, popups and settings, so reinstalling it brings everything back. To remove all Elemacy data when you delete the plugin, first add `define( 'ELEMACY_REMOVE_ALL_DATA', true );` to your `wp-config.php` file.
+No. Deleting the plugin keeps your templates, popups and settings, so reinstalling it brings everything back. To remove all Elemacy data when you delete the plugin, first add `define( 'ELEMACY_REMOVE_ALL_DATA', true );` to your `wp-config.php` file. Elemacy Pro follows the same rule: deleting it keeps your popups' impression and conversion counts (only its license and temporary data are removed), and the same line removes the counts too.
+
+= How do I open a popup from a button? =
+
+In Elementor, set the button's link to `#elemacy-popup-` followed by the popup's ID, for example `#elemacy-popup-42`. You can find the ID in the popup's address in the editor (`post=42`). Clicking the button opens the popup without changing the page address or scrolling. To close a popup from inside it, link a button or text to `#elemacy-popup-close`, or give it the CSS class `elemacy-close-popup`. Any other element can open a popup too with the attribute `data-elemacy-popup-open="42"`.
 
 = Can I use Elemacy's Theme Builder together with Elementor Pro's? =
 

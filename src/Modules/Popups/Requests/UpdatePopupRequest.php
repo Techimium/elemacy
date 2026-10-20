@@ -49,33 +49,25 @@ class UpdatePopupRequest extends Request
             'triggers' => Sanitizer::ARRAY,
             'triggers.*.id' => Sanitizer::TEXT,
             'triggers.*.type' => Sanitizer::TEXT,
-            'triggers.*.params' => Sanitizer::ARRAY_DEEP,
+            'triggers.*.params' => Sanitizer::ARRAY,
             'rules' => Sanitizer::ARRAY,
             'rules.*.id' => Sanitizer::TEXT,
             'rules.*.type' => Sanitizer::TEXT,
-            'rules.*.params' => Sanitizer::ARRAY_DEEP,
+            'rules.*.params' => Sanitizer::ARRAY,
         ];
     }
 
     /**
-     * The rules() and filters() only check that params is an array; a params shape
-     * that tries to smuggle a reserved discriminator key is
-     * rejected here, at the request boundary, before the popup is ever
-     * saved — the same check RuleDTO/TriggerDTO::collection_or_fail() runs
-     * again at the write boundary regardless of caller.
+     * The rules() and filters() only check that params is an array. The rest is
+     * done here, at the request boundary, before the popup is ever saved: a type
+     * that is not registered is refused, a params shape that tries to smuggle a
+     * reserved discriminator key is rejected (the same check
+     * RuleDTO/TriggerDTO::collection_or_fail() runs again at the write boundary
+     * regardless of caller), and text parameters are cleaned without altering
+     * percent-encoded sequences.
      */
     public function clean()
     {
-        $data = parent::clean();
-
-        foreach (($data['rules'] ?? []) as $rule) {
-            RuleTriggerParams::assert_valid('rules', is_array($rule['params'] ?? null) ? $rule['params'] : []);
-        }
-
-        foreach (($data['triggers'] ?? []) as $trigger) {
-            RuleTriggerParams::assert_valid('triggers', is_array($trigger['params'] ?? null) ? $trigger['params'] : []);
-        }
-
-        return $data;
+        return RuleTriggerParams::clean_payload(parent::clean());
     }
 }

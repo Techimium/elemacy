@@ -76,6 +76,18 @@ export async function saveEditor(page) {
   expect((await response.json()).success, 'Elementor must accept the native save').toBe(true);
 }
 
+// Saves the document as a draft through the footer's save options, the way a person who is not ready
+// to publish does. The document keeps whatever content it has, and stays unpublished.
+export async function saveDraft(page) {
+  const save = page.waitForResponse(response => response.url().includes('admin-ajax.php')
+    && response.request().postData()?.includes('save_builder'));
+  await page.getByRole('button', { name: 'Save Options', exact: true }).click();
+  await page.getByText('Save Draft', { exact: true }).click();
+  const response = await save;
+  expect(response.ok()).toBe(true);
+  expect((await response.json()).success, 'Elementor must accept the native draft save').toBe(true);
+}
+
 export async function setHeadingColor(page, hex) {
   await page.getByRole('button', { name: /Style$/ }).click();
   await page.locator('.elementor-control-title_color .pcr-button').click();

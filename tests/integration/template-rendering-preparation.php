@@ -190,10 +190,24 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
         ]];
     }
 
-    public function testPrepareRestoresAmbientStateWhenRenderingThrows(): void
+    /**
+     * @return array<string, array{0: string, 1: string}> widget type => expected error class
+     */
+    public static function failingWidgets(): array
+    {
+        return [
+            'an Exception' => ['elemacy-fixture-throws', \RuntimeException::class],
+            'a PHP TypeError' => ['elemacy-fixture-type-error', \TypeError::class],
+        ];
+    }
+
+    /**
+     * @dataProvider failingWidgets
+     */
+    public function testPrepareDropsAFailingDocumentAndRestoresAmbientState(string $widget, string $error_class): void
     {
         $document = $this->documents->create('Prepare error restoration', 'popup', 'publish', [[
-            'id' => 'eac9301', 'elType' => 'widget', 'widgetType' => 'elemacy-fixture-throws', 'settings' => [], 'elements' => [],
+            'id' => 'eac9301', 'elType' => 'widget', 'widgetType' => $widget, 'settings' => [], 'elements' => [],
         ]]);
         $this->posts[] = $document;
 
@@ -208,17 +222,24 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
         $edit_mode_before = $editor->is_edit_mode();
         $ob_level_before = ob_get_level();
 
-        $renderer = new TemplateRenderer();
-        $caught = null;
+        $log = tempnam(sys_get_temp_dir(), 'elemacy-log-');
+        $previous_log = ini_set('error_log', $log);
 
         try {
-            $renderer->prepare($document, 'test', 'error-1');
-        } catch (\Throwable $error) {
-            $caught = $error;
+            $fragment = (new TemplateRenderer())->prepare($document, 'test', 'error-1');
+            $log_contents = (string) file_get_contents($log);
+        } finally {
+            ini_set('error_log', (string) $previous_log);
+            unlink($log);
         }
 
-        self::assertNotNull($caught, 'The widget fixture must actually throw for this scenario to be meaningful.');
-        self::assertStringContainsString('elemacy-fixture-throws widget always throws', $caught->getMessage());
+        self::assertSame('', $fragment, 'A document whose widget throws must prepare to an empty fragment instead of failing the page.');
+        self::assertSame('', (new TemplateRenderer())->get_prepared($document, 'test', 'error-1'), 'The failure is cached so the document is not retried this request.');
+        self::assertStringContainsString(
+            sprintf('Elemacy: failed to render document %d (test/error-1): %s:', $document, $error_class),
+            $log_contents,
+            'The failure must be written to the PHP error log with the document id, context and error class.'
+        );
 
         self::assertSame($host, get_the_ID(), 'The ambient post must be restored to what it was before the failed render.');
         self::assertSame($document_before, $documents_manager->get_current(), 'Elementor\'s current document must be restored after a failed render.');
@@ -228,7 +249,7 @@ final class TemplateRenderingPreparationTest extends IntegrationTestCase
         // The pipeline must remain usable for a later, unrelated render.
         $unrelated = $this->create_marked_document('Prepare after failure');
         $this->set_ambient_post($host);
-        $fragment = $renderer->prepare($unrelated, 'test', 'after-failure');
+        $fragment = (new TemplateRenderer())->prepare($unrelated, 'test', 'after-failure');
         self::assertStringContainsString('data-elemacy-fixture-current-post>' . $host . '<', $fragment);
     }
 

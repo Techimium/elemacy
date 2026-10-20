@@ -12,7 +12,7 @@
 .elementor-109 button.elemacy-popup__close{top:-30px;right:-30px}
 </style>
 <link rel="stylesheet" href="popups.css">
-<style>.spacer{height:3000px}</style>
+<style>.spacer{height:3000px}@keyframes blip{from{opacity:.2}to{opacity:1}}</style>
 </head>
 <body>
   <!-- Markup mirrors PopupRenderer::build_markup() exactly. -->
@@ -30,7 +30,7 @@
   <!-- 102: modal popup, click trigger -->
   <div class="elemacy-popup elemacy-popup-102 elemacy-popup--popup" data-elemacy-popup-id="102" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup B" aria-hidden="true" hidden>
     <template class="elemacy-popup-tpl">
-      <div class="elementor elementor-102"><p>popup B content</p></div>
+      <div class="elementor elementor-102"><p>popup B content</p><a href="#elemacy-popup-close" id="p102-closelink">close link</a></div>
     </template>
   </div>
 
@@ -44,7 +44,7 @@
   <!-- 104: modal popup, click trigger, fade in/out (task 3.6 state-machine cases) -->
   <div class="elemacy-popup elemacy-popup-104 elemacy-popup--popup" data-elemacy-popup-id="104" data-elemacy-popup-type="popup" role="dialog" aria-modal="true" aria-label="Popup D" aria-hidden="true" hidden>
     <template class="elemacy-popup-tpl">
-      <div class="elementor elementor-104"><p>popup D content</p></div>
+      <div class="elementor elementor-104"><p>popup D content</p><button type="button" class="elemacy-close-popup" id="p104-customclose">custom close</button></div>
     </template>
   </div>
 
@@ -83,8 +83,50 @@
     </template>
   </div>
 
+  <!-- 120: non-modal popup the animation checks drive through every in/out pair -->
+  <div class="elemacy-popup elemacy-popup-120 elemacy-popup--floating" data-elemacy-popup-id="120" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-120" style="width:240px">
+        <p>animated content</p>
+        <span id="p120-blip" style="display:inline-block;animation:blip 50ms 1">blip</span>
+      </div>
+    </template>
+  </div>
+
+  <!-- 121/122: click triggers on links that go nowhere (122 is capped at one show) -->
+  <div class="elemacy-popup elemacy-popup-121 elemacy-popup--floating" data-elemacy-popup-id="121" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-121" style="width:200px"><p>link target A</p></div></template>
+  </div>
+  <div class="elemacy-popup elemacy-popup-122 elemacy-popup--floating" data-elemacy-popup-id="122" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-122" style="width:200px"><p>link target B</p></div></template>
+  </div>
+
+  <!-- 123: media that must stop when the popup closes -->
+  <div class="elemacy-popup elemacy-popup-123 elemacy-popup--floating" data-elemacy-popup-id="123" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl">
+      <div class="elementor elementor-123" style="width:320px">
+        <video id="p123-video" muted loop width="160" height="90"></video>
+        <iframe id="p123-embed" title="video" src="/stub/youtube.com/embed/abc" width="160" height="90"></iframe>
+        <iframe id="p123-other" title="other" src="/stub/example.com/page" width="40" height="40"></iframe>
+      </div>
+    </template>
+  </div>
+
+  <div id="centered" style="width:600px;margin:0 auto;height:40px;background:#ddd">centered content</div>
+
   <button type="button" class="open-b">open popup B (click trigger)</button>
-  <button type="button" class="elemacy-open-popup" data-popup-id="102">explicit open B</button>
+  <button type="button" class="explicit-open-b" data-elemacy-popup-open="102">explicit open B (data attribute)</button>
+  <button type="button" class="elemacy-open-popup" id="legacy-open" data-popup-id="102">legacy open B (no longer supported)</button>
+  <a href="#elemacy-popup-102" class="link-open-b">link to popup B</a>
+  <a href="#elemacy-popup-999" class="link-open-missing">link to a popup that is not on this page</a>
+  <a href="#" class="dead-hash">dead hash</a>
+  <a href="" class="dead-empty">dead empty</a>
+  <a href="javascript:void(0)" class="dead-js">dead javascript</a>
+  <a href="/other" class="dead-other">real link</a>
+  <div class="dead-wrap"><a href="#" class="inner-dead"><span class="inner-dead-label">wrapped dead hash</span></a></div>
+  <a href="#" class="capped-hash">capped dead hash</a>
+  <button type="button" class="open-anim">open animation popup</button>
+  <button type="button" class="open-media">open media popup</button>
   <button type="button" class="open-d">open popup D (click trigger)</button>
   <button type="button" class="open-e">open popup E (click trigger)</button>
   <button type="button" class="open-f">open popup F (click trigger)</button>
@@ -236,14 +278,74 @@
             prevent_body_scroll: false, z_index: 9999
           },
           storage_key: 'elemacy_popup_110'
+        },
+        {
+          id: 120, type: 'floating', modal: false,
+          triggers: [{ type: 'click', selector: '.open-anim' }],
+          rules: [],
+          display: {
+            position: 'bottom-right', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'fade', out: 'fade' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_120'
+        },
+        {
+          id: 121, type: 'floating', modal: false,
+          triggers: [{ type: 'click', selector: '.dead-hash, .dead-empty, .dead-js, .dead-other, .dead-wrap' }],
+          rules: [],
+          display: {
+            position: 'bottom-left', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_121'
+        },
+        {
+          id: 122, type: 'floating', modal: false,
+          triggers: [{ type: 'click', selector: '.capped-hash' }],
+          rules: [{ type: 'frequency_cap', max: 1 }],
+          display: {
+            position: 'bottom-left', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_122'
+        },
+        {
+          id: 123, type: 'floating', modal: false,
+          triggers: [{ type: 'click', selector: '.open-media' }],
+          rules: [],
+          display: {
+            position: 'bottom-right', sticky: false,
+            overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+            animation: { in: 'none', out: 'none' },
+            close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+            prevent_body_scroll: false, z_index: 9999
+          },
+          storage_key: 'elemacy_popup_123'
         }
       ],
       i18n: { close: 'Close' }
     };
 
+    // Stand-in for elementor-lifecycle.js: records how big a popup's content is
+    // when its widgets are initialized (a carousel needs a real size).
+    window.__hydrated = [];
+    window.ElemacyElementorLifecycle = {
+      hydrate: function (el) { window.__hydrated.push({ cls: el.className, width: el.offsetWidth }); },
+      release: function () {}
+    };
+
     window.__events = [];
     document.addEventListener('elemacy-popup:shown', function (e) { window.__events.push(['shown', e.detail.id]); });
-    document.addEventListener('elemacy-popup:closed', function (e) { window.__events.push(['closed', e.detail.id]); });
+    document.addEventListener('elemacy-popup:closed', function (e) { window.__events.push(['closed', e.detail.id, e.detail.wasShown]); });
     document.addEventListener('elemacy-popup:destroyed', function (e) { window.__events.push(['destroyed', e.detail.id]); });
   </script>
   <script src="engine.js"></script>

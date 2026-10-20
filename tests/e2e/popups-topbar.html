@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Elemacy popups: top bars printed by the server</title>
+<link rel="stylesheet" href="popups.css">
+</head>
+<body>
+  <!-- 401: what PopupRenderer prints for a default top bar: visible at first paint, no <template>. -->
+  <div class="elemacy-popup elemacy-popup-401 elemacy-popup--topbar is-open elemacy-popup--pos-top" data-elemacy-popup-id="401" data-elemacy-popup-type="topbar" style="z-index:9990" data-elemacy-prerendered aria-hidden="false"><div class="elemacy-popup__box elementor elementor-401"><div class="elemacy-popup__scroll"><p style="margin:0;height:40px">promo</p></div><button type="button" class="elemacy-popup__close elemacy-close-popup" aria-label="Close">&times;</button></div></div>
+
+  <main id="content" style="height:2000px">page content</main>
+
+  <!-- 402: the same bar, opened by the engine from a template. -->
+  <div class="elemacy-popup elemacy-popup-402 elemacy-popup--topbar" data-elemacy-popup-id="402" data-elemacy-popup-type="topbar" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-402"><p style="margin:0;height:40px">promo</p></div></template>
+  </div>
+
+  <!-- 403: a top bar printed at the end of the page because the theme never called wp_body_open. -->
+  <div class="elemacy-popup elemacy-popup-403 elemacy-popup--topbar" data-elemacy-popup-id="403" data-elemacy-popup-type="topbar" data-elemacy-relocate="top" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-403"><p style="margin:0">relocated</p></div></template>
+  </div>
+
+  <script>
+    var display = {
+      position: 'top', sticky: false,
+      overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+      animation: { in: 'slide-down', out: 'slide-up' },
+      close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: false },
+      prevent_body_scroll: false, z_index: 9990
+    };
+    window.elemacyPopups = {
+      popups: [
+        { id: 401, type: 'topbar', modal: false, triggers: [], rules: [], display: display, storage_key: 'elemacy_popup_401' },
+        { id: 402, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_popup_402' },
+        { id: 403, type: 'topbar', modal: false, triggers: [{ type: 'click', selector: '.never' }], rules: [], display: display, storage_key: 'elemacy_popup_403' }
+      ],
+      i18n: { close: 'Close' }
+    };
+    window.__events = [];
+    ['shown', 'closed'].forEach(function (name) {
+      document.addEventListener('elemacy-popup:' + name, function (e) { window.__events.push([name, e.detail.id]); });
+    });
+    window.__firstPaintTop = null;
+    document.addEventListener('DOMContentLoaded', function () {
+      window.__firstPaintTop = document.getElementById('content').getBoundingClientRect().top;
+    });
+  </script>
+  <script src="engine.js"></script>
+</body>
+</html>

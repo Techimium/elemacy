@@ -38,6 +38,15 @@ class PopupManager
      */
     protected $matched = null;
 
+    /**
+     * IDs of the top bars already printed this request, so a theme that fires
+     * wp_body_open more than once cannot print one twice, and the footer prints
+     * only the bars the body-open hook missed.
+     *
+     * @var array<int, true>
+     */
+    protected array $printed_top_bars = [];
+
     protected TypeRegistry $types;
     protected PopupDisplayResolver $display_resolver;
     protected PopupRenderer $renderer;
@@ -75,6 +84,7 @@ class PopupManager
     public function reset(): void
     {
         $this->matched = null;
+        $this->printed_top_bars = [];
     }
 
     /**
@@ -189,7 +199,7 @@ class PopupManager
      */
     public function maybe_enqueue(): void
     {
-        $matched = $this->get_matched();
+        $matched = $this->get_deliverable();
 
         if (empty($matched)) {
             return;
@@ -203,7 +213,29 @@ class PopupManager
             'i18n'   => [
                 'close' => __('Close', 'elemacy'),
             ],
+            // Lets the engine name, in the browser console, a popup it cannot
+            // start because an extension's trigger or rule handler is missing.
+            'debug'  => defined('WP_DEBUG') && WP_DEBUG,
         ]);
+    }
+
+    /**
+     * The matched popups that actually have something to show. A popup whose
+     * document renders nothing — an empty widget, or one that threw while
+     * rendering — is dropped from the markup and the browser config alike, so
+     * the visitor never gets an overlay with no content in it.
+     *
+     * Reads the fragments TemplateAssetsRegistrar prepared on
+     * wp_enqueue_scripts (priority 10), which is why callers run after it.
+     *
+     * @return \Elemacy\Modules\Popups\DTO\PopupDTO[]
+     */
+    public function get_deliverable(): array
+    {
+        return array_values(array_filter(
+            $this->get_matched(),
+            fn ($popup): bool => '' !== trim($this->renderer->prepared_content($popup))
+        ));
     }
 
     /**
@@ -212,8 +244,9 @@ class PopupManager
      */
     public function render_top_bars(): void
     {
-        foreach ($this->get_matched() as $popup) {
-            if ($this->is_top_bar($popup)) {
+        foreach ($this->get_deliverable() as $popup) {
+            if ($this->is_top_bar($popup) && !isset($this->printed_top_bars[(int) $popup->id])) {
+                $this->printed_top_bars[(int) $popup->id] = true;
                 $this->renderer->render($popup);
             }
         }
@@ -221,13 +254,18 @@ class PopupManager
 
     /**
      * Render the remaining popups (modals, floating, banners, bottom bars) in the
-     * footer; CSS positions each one. Top bars are handled by render_top_bars().
+     * footer; CSS positions each one. Top bars are handled by render_top_bars(),
+     * except on a theme that never fires wp_body_open: those are printed here,
+     * marked for the engine to move to the top of <body>.
      */
     public function render_footer_popups(): void
     {
-        foreach ($this->get_matched() as $popup) {
+        foreach ($this->get_deliverable() as $popup) {
             if (!$this->is_top_bar($popup)) {
                 $this->renderer->render($popup);
+            } elseif (!isset($this->printed_top_bars[(int) $popup->id])) {
+                $this->printed_top_bars[(int) $popup->id] = true;
+                $this->renderer->render($popup, true);
             }
         }
     }

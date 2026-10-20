@@ -14,12 +14,15 @@ These are written into sites' databases and saved Elementor data. Renaming one s
 - **Stored meta and option keys**: every key in § Storage ownership.
 - **Elementor widget names and loop data-source keys**: every value in § Saved module, widget and data-source names, saved as `widgetType` and `data_source` in `_elementor_data`.
 - **Dynamic tag names**: every value in § Dynamic tag names, saved inside `[elementor-tag name="..."]` references.
+- **Popup trigger and rule identifiers and their parameter keys**, the **popup document setting names** (`DisplayKeys` and the close button style controls), the **position and animation option values**, and the prefix of the browser storage key each popup uses (`elemacy_popup_{id}`): § Popup targeting and display settings. Pro's visit-counter storage keys (`elemacy_pageviews`, `elemacy_sessions`, `elemacy_session_counted`) are pinned by `P/tests/php/run.php`, which also fails when a Pro trigger or rule differs from its Free placeholder in id or parameter keys.
 
 `tests/architecture/check.php` enforces this. `tests/architecture/persisted-identifiers.php` lists each identifier with the source file that declares it, and the check fails when an identifier is no longer declared there unless a migration under `src/Core/Migrations/` still names it.
 
 ### Released defaults are frozen too
 
 Elementor saves document, element and dynamic tag settings with `toJSON({remove: ["default"]})`: a setting left at its control's default is not stored at all. Changing a released control's `default` therefore silently changes every saved site that never touched that control. Add a new control (or a new option value) instead of changing a default.
+
+**Popup control defaults are pinned by a test.** `tests/integration/fixtures/popup-control-defaults.json` holds the default of every `elemacy_*` control the popup document registers, for each of the four popup types, and `popup-display-defaults.php` fails with the control, the type and both values when one changes, when a new control has no frozen default, or when a frozen control disappears. A deliberate change ships a migration that writes the old default into saved popups, and then regenerates the fixture (the command is in that test's docblock) with the diff reviewed by hand.
 
 The same holds for a module's `Module::is_default_active()`: `elemacy_active_modules` stores only explicit choices, so flipping a released module's declared default changes every site that never toggled it.
 
@@ -169,13 +172,34 @@ Trigger identifiers: `page_load`, `click`, `scroll`, `exit_intent`, `inactivity`
 
 Rule identifiers: `frequency_cap`, `logged_in`, `once_per`, `devices`, `schedule`, `page_views`, `sessions`, `referrer`, `roles`, `browser`.
 
-Free supplies real page-load/click triggers and frequency/logged-in rules; Pro supplies implementations for the corresponding Free mocks. Source registries and `get_name()` values, rather than translated labels, identify stored configuration. Rule/trigger `params` retain their type-owned shapes. Schedule datetime values currently use timezone-naive `YYYY-MM-DDTHH:mm` strings.
+Free supplies real page-load/click triggers and frequency/logged-in rules; Pro supplies implementations for the corresponding Free mocks, under the same identifier and with the same parameter keys. Source registries and `get_name()` values, rather than translated labels, identify stored configuration. Rule/trigger `params` retain their type-owned shapes. Saving refuses a trigger or rule whose type is not registered; a Free placeholder for a Pro type counts as registered, so a popup built with Pro can still be edited without it. The `logged_in` rule means "hide for logged-in users".
+
+Parameter keys, by identifier: `page_load` (`delay`), `click` (`selector`), `scroll` (`percentage`), `inactivity` (`delay`), `scroll_to_element` (`selector`), `on_popup_close` (`popup_id`: the source popup's id, `0` or absent meaning any other popup), `frequency_cap` (`max`), `once_per` (`period`), `devices` (`allow`), `schedule` (`start`, `end`), `page_views` and `sessions` (`count`), `referrer` (`url`), `browser` (`browsers`), `roles` (`roles`). `exit_intent` and `logged_in` take none.
+
+Schedule `start` and `end` are stored as the `YYYY-MM-DDTHH:mm` wall-clock text the administrator entered and mean that time in the site's timezone (`wp_timezone()`). They reach the browser as offset-qualified ISO 8601 instants, and a popup whose `end` has passed is not delivered at all.
+
+A trigger opens its popup automatically at most once per page view; click triggers, open links and the JavaScript API are not limited. A client-side rule with no handler blocks the popup's triggers (it fails closed, as the server does for an unavailable rule).
 
 The following `DisplayKeys` values are stored in Elementor page settings and consumed by `DocumentDisplay`. Their authority is `src/Modules/Popups/Support/DisplayKeys.php`; defaults are in `DisplayDefaults.php`:
 
 `elemacy_position`, `elemacy_sticky`, `elemacy_width`, `elemacy_z_index`, `elemacy_offset_x`, `elemacy_offset_y`, `elemacy_overlay_color`, `elemacy_overlay_opacity`, `elemacy_overlay_blur`, `elemacy_animation_in`, `elemacy_animation_out`, `elemacy_close_button`, `elemacy_auto_close`, `elemacy_close_on_overlay`, `elemacy_close_on_esc`, `elemacy_prevent_scroll`.
 
+The animation values are `none`, `fade`, `slide-down` and `slide-up`, for both directions. Slide Down moves the popup downward and Slide Up upward, whether entering or leaving. The position values are `center`, `top`, `bottom`, `top-left`, `top-right`, `bottom-left`, `bottom-right` and `custom`.
+
 Responsive variants and legacy display settings must continue following `DocumentDisplay` and the existing popup positioning spec. `elemacy_animation_in/out` here belong to native popup transitions, not the excluded Animations module.
+
+## Popup page markup, events and JavaScript
+
+Authors, themes and extensions use these on the page. They are permanent: from 1.0 they change only by adding to them.
+
+- **Open a popup**: a link whose `href` is `#elemacy-popup-{id}` (an Elementor button's link field, for instance) or any element with `data-elemacy-popup-open="{id}"`. Opening skips the popup's rules and frequency bookkeeping, and never navigates, scrolls or changes the address bar. A link to a popup that is not on the page does nothing.
+- **Close a popup**: inside a popup, a link to `#elemacy-popup-close`, an element with the class `elemacy-close-popup`, or an element with `data-elemacy-popup-close`. The unprefixed `.elemacy-open-popup` with `data-popup-id` was never released and is not supported.
+- **Events** on `document`: `elemacy-popup:shown` and `elemacy-popup:destroyed` with `detail.id` (the numeric popup id), and `elemacy-popup:closed` with `detail.id` and `detail.wasShown` (`true` when the popup had finished opening before this close). Destroying a popup dispatches `destroyed` only.
+- **`window.ElemacyPopups`**: `open(id)`, `close(id)`, `closeAll()`, `destroy(id)`, `registerTrigger(type, handler)` and `registerRule(type, handler)`. Every function taking an id accepts a number or its string form. A trigger handler is `fn(id, params, api)`: `api.open()` opens the popup automatically (once per page view) and `api.onCleanup(fn)` registers what to release once the trigger can no longer fire. A rule handler is `fn(rule, config, store)` and returns `false` to block.
+- **`window.elemacyPopupsExtensions`**: an array to `push` a function onto, before or after the popup runtime loads; each is called once with `window.ElemacyPopups`. This is how Pro registers, so it works under any script order. A popup's automatic and click triggers start only once every trigger and rule type it uses has a handler.
+- **Config**: `window.elemacyPopups` (`popups`, `i18n`, and `debug` when `WP_DEBUG` is on, which makes the runtime name in the console a popup waiting for a missing handler). Pro adds `window.elemacyPopupsAnalytics` (`rest_url`) and `window.elemacyVisitCounts` (`pageViews`, `sessions`).
+- **Browser storage**: `localStorage[elemacy_popup_{id}]` (`shown_count`, `last_shown_at`) and `sessionStorage[elemacy_popup_{id}]` for frequency; Pro's `elemacy_pageviews`, `elemacy_sessions` and `sessionStorage[elemacy_session_counted]` for visit counts.
+- **Root markup**: `[data-elemacy-popup-id]` roots with the classes `elemacy-popup`, `elemacy-popup--{type}`, `is-open`, and the box and scroll elements `elemacy-popup__box`, `elemacy-popup__scroll`, plus `elemacy-popup__close`. A top bar that shows as soon as the page loads is printed already open (`data-elemacy-prerendered`); one printed late because the theme never calls `wp_body_open` carries `data-elemacy-relocate="top"`.
 
 Condition identifiers come from `src/Conditions/*/get_name()` and Pro's matching implementations: `general/entire_site`, `general/front_page`, `general/not_found`, `general/search_results`, `general/blog`, `singular/post_type`, `singular/by_author`, `singular/specific_post`, `singular/child_of`, `archive/post_type`, `archive/all`, `archive/date`, `archive/author`, `search/all`, `search/post_type`, plus `singular/in_tax/{taxonomy}` and `archive/tax/{taxonomy}` for registered taxonomies. `tests/architecture/persisted-identifiers.php` guards each one. Preserve the full path when a predicate moves or is unavailable; do not replace an unknown condition with an empty list.
 
@@ -190,10 +214,10 @@ All routes below currently use the `elemacy` REST namespace. The normal pretty-p
 | Same | `GET /library/template-types`; `GET, POST /library/templates`; `GET, PUT, DELETE /library/templates/{id}`; `POST /library/templates/{id}/duplicate` | Admin middleware |
 | `F/src/Modules/Widgets/Config/api.php` | `GET /widgets`; `PUT /widgets/{name}/toggle` | Admin middleware |
 | `F/src/Modules/ThemeBuilder/Config/api.php` | `GET /theme-builder/template-types`; `GET, POST /theme-builder/templates`; `GET, PUT, DELETE /theme-builder/templates/{id}`; `POST /theme-builder/templates/{id}/duplicate` | Admin middleware |
-| `F/src/Modules/Popups/Config/api.php` | `GET /popups/triggers`; `GET /popups/rules`; `GET, POST /popups`; `GET, PUT, DELETE /popups/{id}`; `POST /popups/{id}/duplicate` | Admin middleware |
+| `F/src/Modules/Popups/Config/api.php` | `GET /popups/types`; `GET /popups/triggers`; `GET /popups/rules`; `GET, POST /popups`; `GET, PUT, DELETE /popups/{id}`; `POST /popups/{id}/duplicate` | Admin middleware |
 | `P/src/Core/License/Config/api.php` | `GET /license`; `POST /license/activate`; `POST /license/deactivate` | Auth and admin middleware |
 | `P/src/Extensions/Popups/Config/api.php` | `GET /popups/{id}/analytics` | Admin middleware |
-| Same | `POST /popups/{id}/track` | Public tracking middleware |
+| Same | `POST /popups/{id}/track` | Public tracking middleware: no nonce (a nonce in a cached page expires while the page is still served), the request is size-bound and rate-limited per client address, and only a deliverable popup can be counted. `tests/integration/route-authorization.php` pins this as the only public route. |
 
 Frontend `admin-ajax.php` actions from `Modules/Widgets/Config/ajax.php`:
 
@@ -248,6 +272,8 @@ Every `Core\Hooks` constant. New hooks are added there; a consumer never uses a 
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `elemacy/action/popups/triggers/register` |
 | `POPUP_RULES_REGISTER_ACTION` | `elemacy/action/popups/rules/register` |
 | `DYNAMIC_TAGS_REGISTER_ACTION` | `elemacy/action/dynamic_tags/register` |
+
+Pro's own hook: `ElemacyPro\Extensions\Popups\Services\TrackingRateLimiter::CLIENT_IP_FILTER` (`P/src/Extensions/Popups/Services/TrackingRateLimiter.php`), `elemacy/filter/popups/track_client_ip`. It receives the connecting address (`REMOTE_ADDR`) and returns the real client address, for a site behind a reverse proxy or CDN that does not rewrite it. Forwarding headers are never trusted unless the site returns them here. An IPv6 client is counted by its /64 network.
 
 The pre-1.0 `elemacy/filter/theme_builder/template_types` filter is retired: it only changed the type picker, and a type added through it could not be saved. Register a `TypeDefinition` instead.
 

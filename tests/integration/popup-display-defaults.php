@@ -123,4 +123,94 @@ final class PopupDisplayDefaultsTest extends IntegrationTestCase
             'A topbar popup positioned at the top (DisplayDefaults default) must be classified as a top bar.'
         );
     }
+
+    /** Where the frozen defaults live; see testPopupControlDefaultsAreFrozen(). */
+    private const FROZEN_DEFAULTS = __DIR__ . '/fixtures/popup-control-defaults.json';
+
+    /**
+     * Every `elemacy_*` control the popup document registers for $type, as
+     * name => {type, default}. Responsive variants and group sub-controls are
+     * separate controls, so they are included.
+     *
+     * @return array<string, array{type: string, default: mixed}>
+     */
+    private function registered_controls(string $type): array
+    {
+        $id = $this->documents->create('Control defaults (' . $type . ')', 'popup', 'draft');
+        update_post_meta($id, MetaKeys::TEMPLATE_TYPE, $type);
+
+        // A fresh instance: the document manager's cache would hand back one
+        // whose controls were registered for another popup type.
+        $document = \Elementor\Plugin::instance()->documents->get($id, false);
+        self::assertInstanceOf(\Elemacy\Modules\Popups\Documents\PopupDocument::class, $document, "$type: the popup document type must load.");
+
+        // Elementor caches a control stack per document type name, not per
+        // document, so the previous popup type's controls would be reused.
+        $manager = \Elementor\Plugin::instance()->controls_manager;
+        $manager->delete_stack($document);
+
+        // Read the whole stack: Elementor keeps controls that have CSS selectors in a
+        // second list, and its getters narrow both to the document's current settings.
+        $document->get_controls();
+        $stack = $manager->get_stacks()[$document->get_unique_name()] ?? null;
+        self::assertIsArray($stack, "$type: the document's control stack must be registered.");
+
+        $controls = [];
+        foreach (array_merge($stack['controls'], $stack['style_controls']) as $name => $control) {
+            if (0 === strpos((string) $name, 'elemacy_')) {
+                $controls[$name] = ['type' => (string) ($control['type'] ?? ''), 'default' => $control['default'] ?? null];
+            }
+        }
+        ksort($controls);
+        $manager->delete_stack($document);
+
+        return $controls;
+    }
+
+    /**
+     * Elementor saves a document's settings without the defaults of controls
+     * left untouched, so a saved popup relies on today's defaults without
+     * storing them: changing one silently changes every saved popup that never
+     * touched it. This pins them all (CONTRACTS.md: "Released defaults are
+     * frozen too"). Changing one needs a migration that writes the old default
+     * into saved popups, and then a deliberate regeneration of the fixture:
+     *
+     *     ELEMACY_WRITE_CONTROL_DEFAULTS=1 php tests/integration/run.php popup-display-defaults.php
+     *
+     * Review the diff by hand against DisplayDefaults.php and PopupDocument.php.
+     */
+    public function testPopupControlDefaultsAreFrozen(): void
+    {
+        $current = [];
+        foreach ([PopupTypes::POPUP, PopupTypes::TOPBAR, PopupTypes::BANNER, PopupTypes::FLOATING] as $type) {
+            $current[$type] = $this->registered_controls($type);
+        }
+
+        if (getenv('ELEMACY_WRITE_CONTROL_DEFAULTS')) {
+            file_put_contents(self::FROZEN_DEFAULTS, wp_json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
+            self::markTestSkipped('Wrote ' . self::FROZEN_DEFAULTS . '; review it, then run the suite again without ELEMACY_WRITE_CONTROL_DEFAULTS.');
+        }
+
+        self::assertFileExists(self::FROZEN_DEFAULTS, 'The frozen defaults fixture is missing.');
+        $frozen = json_decode((string) file_get_contents(self::FROZEN_DEFAULTS), true, 512, JSON_THROW_ON_ERROR);
+        $export = static fn ($value): string => (string) wp_json_encode($value);
+
+        foreach ($current as $type => $controls) {
+            foreach ($controls as $name => $control) {
+                self::assertArrayHasKey(
+                    $name,
+                    $frozen[$type] ?? [],
+                    "$type: control \"$name\" is new and its default (" . $export($control['default']) . ') is not in the frozen set. Add it to popup-control-defaults.json (see this test\'s docblock).'
+                );
+                self::assertSame(
+                    $export($frozen[$type][$name]['default']),
+                    $export($control['default']),
+                    "$type: the default of control \"$name\" (type {$control['type']}) changed from " . $export($frozen[$type][$name]['default']) . ' to ' . $export($control['default']) . '. Released defaults are frozen: ship a migration that writes the old default into saved popups, or restore it.'
+                );
+            }
+            foreach (array_keys($frozen[$type] ?? []) as $name) {
+                self::assertArrayHasKey($name, $controls, "$type: control \"$name\" is in the frozen set but no longer registered; saved popups still hold it.");
+            }
+        }
+    }
 }

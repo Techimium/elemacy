@@ -87,8 +87,15 @@ class TemplateRenderer
 
         $state = $this->snapshot_state();
 
+        // A foreign document runs third-party widget code on a hook (usually
+        // wp_enqueue_scripts) that every page passes through, so a throwing
+        // widget must cost that document its content, never the host page.
+        // The failure is cached as '' so it is not retried this request.
         try {
             $fragment = $this->render($id);
+        } catch (\Throwable $error) {
+            $fragment = '';
+            $this->log_failure($id, $context, $placement, $error);
         } finally {
             $this->restore_state($state);
         }
@@ -96,6 +103,27 @@ class TemplateRenderer
         self::$prepared[$key] = $fragment;
 
         return $fragment;
+    }
+
+    /**
+     * Records a render failure in the PHP error log when debug logging is on.
+     */
+    protected function log_failure(int $id, string $context, string $placement, \Throwable $error): void
+    {
+        if (!defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+            return;
+        }
+
+        error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- opt-in debug log, same idiom as ApiExceptionHandler.
+            sprintf(
+                'Elemacy: failed to render document %d (%s/%s): %s: %s',
+                $id,
+                $context,
+                $placement,
+                get_class($error),
+                $error->getMessage()
+            )
+        );
     }
 
     /**

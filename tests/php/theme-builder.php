@@ -121,7 +121,15 @@ function elemacy_display_manager(): \Elemacy\Modules\ThemeBuilder\Services\Theme
         $locations,
         new TemplateResolver(new FixedResolverCache(['header' => [$entry(11)], 'footer' => [$entry(12)], 'single' => [$entry(13)]])),
         TypeRegistry::instance(),
-        new \Elemacy\Elementor\Rendering\TemplateRenderer()
+        // Without Elementor loaded the real renderer renders nothing, and a
+        // template that renders nothing is not displayed (see
+        // ThemeBuilderManager::replaces_native_chrome()).
+        new class extends \Elemacy\Elementor\Rendering\TemplateRenderer {
+            public function render(int $id): string
+            {
+                return '<div class="elementor">template ' . $id . '</div>';
+            }
+        }
     );
 }
 
@@ -162,6 +170,26 @@ check('a location Elementor Pro serves is left to it, and every other location i
     } finally {
         unset($GLOBALS['__pro_served_locations']);
     }
+});
+
+check('a header or footer that renders nothing does not replace the theme\'s own chrome', static function () {
+    TemplateResolver::reset();
+    \Elemacy\Elementor\Rendering\TemplateRenderer::reset();
+    $entry = static fn(int $id): array => ['id' => $id, 'conditions' => [['type' => 'prec/site', 'operator' => 'include', 'value' => '']]];
+    $manager = new \Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager(
+        \Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager::instance(),
+        new \Elemacy\Modules\ThemeBuilder\Services\LocationRegistry(),
+        new TemplateResolver(new FixedResolverCache(['header' => [$entry(21)], 'footer' => [$entry(22)]])),
+        TypeRegistry::instance(),
+        new class extends \Elemacy\Elementor\Rendering\TemplateRenderer {
+            public function render(int $id): string
+            {
+                return 21 === $id ? '' : '<div class="elementor">footer</div>';
+            }
+        }
+    );
+
+    return !$manager->replaces_native_chrome('header') && $manager->replaces_native_chrome('footer');
 });
 
 check('Elementor Pro is not asked before the main query has run', static function () {

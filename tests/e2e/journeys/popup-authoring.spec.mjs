@@ -1,5 +1,5 @@
 import { test, expect } from '../shared/fixtures.mjs';
-import { readyEditor, addHeading, saveEditor } from '../shared/editor.mjs';
+import { readyEditor, addHeading, saveDraft, saveEditor } from '../shared/editor.mjs';
 import { templateCard } from '../shared/templates.mjs';
 
 test('elemacy:journey:popup:modal-authoring @popups @smoke', async ({ page, author, browser, checkpoint }) => {
@@ -15,11 +15,15 @@ test('elemacy:journey:popup:modal-authoring @popups @smoke', async ({ page, auth
   const guest = await browser.newContext();
   try {
     const visitor = await guest.newPage();
-    await visitor.goto(new URL('/', page.url()).href);
     const popup = visitor.locator('[data-elemacy-popup-id="' + id + '"]');
-    await expect(popup, 'Draft popup must not be delivered to visitors').toHaveCount(0);
     await addHeading(page, text);
     await checkpoint('popup-authored');
+    // A draft with content is what a publishing mistake would expose, so the visitor check
+    // waits until the popup has content and is saved, still unpublished.
+    await saveDraft(page);
+    await visitor.goto(new URL('/', page.url()).href);
+    await expect(popup, 'A draft popup, content and all, must not be delivered to visitors').toHaveCount(0);
+    await expect(visitor.getByText(text, { exact: true }), 'Nor its content, even outside the popup root').toHaveCount(0);
     await saveEditor(page);
     await page.reload();
     const frame = await readyEditor(page);

@@ -53,6 +53,27 @@ add_action('elementor/widgets/register', static function ($widgets_manager): voi
     }
 
     $widgets_manager->register(new Elemacy_Fixture_Throwing_Widget());
+
+    // A variant of the same widget that raises a PHP Error (not an Exception).
+    if (!class_exists('Elemacy_Fixture_Type_Error_Widget')) {
+        class Elemacy_Fixture_Type_Error_Widget extends Elemacy_Fixture_Throwing_Widget
+        {
+            public function get_name()
+            {
+                return 'elemacy-fixture-type-error';
+            }
+
+            protected function render()
+            {
+                // Deliberate TypeError: an object passed for a string parameter.
+                (static function (string $value): string {
+                    return $value;
+                })(...[new \stdClass()]);
+            }
+        }
+    }
+
+    $widgets_manager->register(new Elemacy_Fixture_Type_Error_Widget());
 });
 
 /**
@@ -82,3 +103,17 @@ add_filter('elementor/frontend/the_content', static function (string $content): 
 
     return $sibling . $marker . $content;
 });
+
+/**
+ * A document marked with `_elemacy_fixture_render_nothing` renders to an empty
+ * string, as when Elementor has no content to return for it.
+ */
+add_filter('elementor/frontend/the_content', static function (string $content): string {
+    if (!class_exists('\\Elementor\\Plugin')) {
+        return $content;
+    }
+
+    $current = \Elementor\Plugin::instance()->documents->get_current();
+
+    return $current && '' !== (string) get_post_meta($current->get_main_id(), '_elemacy_fixture_render_nothing', true) ? '' : $content;
+}, 20);

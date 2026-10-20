@@ -509,12 +509,27 @@ class ThemeBuilderManager
     public function replaces_native_chrome(string $side): bool
     {
         if (!isset($this->replaced_sides[$side])) {
-            $has_template = (bool) ('header' === $side ? $this->get_header_id() : $this->get_footer_id());
-            $this->replaced_sides[$side] = $has_template
-                && (bool) apply_filters(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, true, $side);
+            $id = 'header' === $side ? $this->get_header_id() : $this->get_footer_id();
+            $this->replaced_sides[$side] = (bool) $id
+                && (bool) apply_filters(Hooks::THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER, true, $side)
+                && $this->renders_content((int) $id, $side);
         }
 
         return $this->replaced_sides[$side];
+    }
+
+    /**
+     * Whether the $side template renders any content. One that fails to render
+     * is prepared as an empty fragment (see TemplateRenderer::prepare()), and
+     * replacing the theme's own chrome with nothing would leave the page with
+     * neither, so such a template is treated as not displayed.
+     *
+     * Preparing here caches the fragment the adapter prints later, so the
+     * template still renders once.
+     */
+    private function renders_content(int $id, string $side): bool
+    {
+        return '' !== trim($this->get_template_content($id, $side));
     }
 
     /**

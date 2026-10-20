@@ -44,6 +44,34 @@ final class AnalyticsCountersTest extends IntegrationTestCase
         }
     }
 
+    public function testRecordingAnEventKeepsTheRestOfThePopupsCachedMetaAndUpdatesTheCounterInPlace(): void
+    {
+        global $wpdb;
+        $id = $this->documents->create('Counter cache', 'popup');
+        update_post_meta($id, '_elemacy_popup_triggers', [['id' => 't1', 'type' => 'page_load', 'params' => ['delay' => 2]]]);
+        $service = Container::instance()->make(AnalyticsService::class);
+
+        // Core's non-persistent object cache stands in for a persistent one.
+        wp_cache_delete($id, 'post_meta');
+        update_meta_cache('post', [$id]);
+        self::assertIsArray(wp_cache_get($id, 'post_meta'), 'Fixture: the popup\'s meta is cached.');
+
+        foreach ([1, 2] as $expected) {
+            $service->track($id, 'impression');
+
+            $cached = wp_cache_get($id, 'post_meta');
+            self::assertIsArray($cached, 'Recording an event must not evict the popup\'s cached meta.');
+            self::assertArrayHasKey('_elemacy_popup_triggers', $cached, 'Its other cached meta (triggers) is still there.');
+            self::assertArrayHasKey('_elementor_data', $cached, 'Including its Elementor data.');
+
+            $stored = (string) $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $id, AnalyticsService::META_IMPRESSIONS));
+            self::assertSame((string) $expected, $stored);
+            self::assertSame([$stored], $cached[AnalyticsService::META_IMPRESSIONS], 'The cached counter equals the stored one.');
+        }
+
+        self::assertSame(2, $service->get($id)['impressions'], 'Reading through the cache gives the same count.');
+    }
+
     public function testFailedUpdateDoesNotFallbackToInsertion(): void
     {
         global $wpdb;

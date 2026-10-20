@@ -110,6 +110,97 @@ try {
         $fixture['menus'] = array_merge((array) ($fixture['menus'] ?? []), [(int) $menu]);
         elemacy_test_assert((bool) file_put_contents($path, wp_json_encode($fixture)), 'Cannot record seeded content.');
         echo wp_json_encode(['menu' => ['id' => (int) $menu, 'name' => $name, 'slug' => wp_get_nav_menu_object($menu)->slug]]);
+    } elseif ($command === 'seed-host-page') {
+        // An Elementor page the popup journeys act on as a visitor: a Button linked "#" with a CSS class (a click
+        // trigger target), a tall spacer, a heading with an element id deep down (scroll to element), and links to
+        // the home page and to another page. Owned by the run author, so cleanup removes it.
+        $path = realpath($argv[2] ?? '');
+        elemacy_test_assert($path && dirname($path) === $directory
+            && preg_match('/\Ajourney-fixture-[a-f0-9-]+\.json\z/', basename($path)), 'Refusing an unrelated journey manifest.');
+        $fixture = json_decode(file_get_contents($path), true);
+        elemacy_test_assert(($fixture['environment_token'] ?? '') === ELEMACY_INTEGRATION_TOKEN, 'Wrong journey environment.');
+        $run = substr(basename($path, '.json'), strlen('journey-fixture-'), 8);
+        $widget = static fn (string $id, string $type, array $settings): array => [
+            'id' => $id, 'elType' => 'widget', 'widgetType' => $type, 'settings' => $settings, 'elements' => [],
+        ];
+        $popup = (int) ($argv[3] ?? 0);
+        $links = $popup > 0 ? [
+            $widget('jh00006', 'button', ['text' => 'Journey popup link', 'link' => ['url' => '#elemacy-popup-' . $popup, 'is_external' => '', 'nofollow' => ''], '_css_classes' => 'journey-link']),
+            $widget('jh00007', 'button', ['text' => 'Journey missing popup link', 'link' => ['url' => '#elemacy-popup-999999', 'is_external' => '', 'nofollow' => ''], '_css_classes' => 'journey-missing']),
+        ] : [];
+        $elements = [[
+            'id' => 'jh00001', 'elType' => 'container', 'settings' => [], 'elements' => array_merge($links, [
+                $widget('jh00002', 'button', ['text' => 'Journey opener', 'link' => ['url' => '#', 'is_external' => '', 'nofollow' => ''], '_css_classes' => 'journey-open']),
+                $widget('jh00003', 'html', ['html' => '<p><a class="journey-home" href="' . esc_url(home_url('/')) . '">Journey home link</a></p>']),
+                $widget('jh00004', 'spacer', ['space' => ['unit' => 'px', 'size' => 3000]]),
+                $widget('jh00005', 'heading', ['title' => 'Journey deep target', '_element_id' => 'journey-target']),
+            ]),
+        ]];
+        $page = wp_insert_post([
+            'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Journey Host ' . $run,
+            'post_author' => (int) $fixture['user'],
+        ]);
+        elemacy_test_assert(!is_wp_error($page) && $page > 0, 'Cannot create the journey host page.');
+        update_post_meta($page, '_elementor_edit_mode', 'builder');
+        update_post_meta($page, '_elementor_template_type', 'wp-page');
+        update_post_meta($page, '_elementor_version', defined('ELEMENTOR_VERSION') ? ELEMENTOR_VERSION : '');
+        update_post_meta($page, '_elementor_data', wp_slash(wp_json_encode($elements)));
+        echo wp_json_encode(['page' => ['id' => (int) $page, 'url' => get_permalink($page), 'title' => 'Journey Host ' . $run]]);
+    } elseif ($command === 'seed-user') {
+        // A signed-in visitor of a given role (argument 3), for audience-rule journeys. Recorded in the manifest so
+        // cleanup deletes it; returns the cookies of a session of its own.
+        $path = realpath($argv[2] ?? '');
+        elemacy_test_assert($path && dirname($path) === $directory
+            && preg_match('/\Ajourney-fixture-[a-f0-9-]+\.json\z/', basename($path)), 'Refusing an unrelated journey manifest.');
+        $fixture = json_decode(file_get_contents($path), true);
+        elemacy_test_assert(($fixture['environment_token'] ?? '') === ELEMACY_INTEGRATION_TOKEN, 'Wrong journey environment.');
+        $role = (string) ($argv[3] ?? '');
+        elemacy_test_assert(in_array($role, ['subscriber', 'editor', 'author', 'contributor'], true), 'Unsupported journey role.');
+        $run = substr(basename($path, '.json'), strlen('journey-fixture-'), 8);
+        $user = wp_insert_user([
+            'user_login' => 'journey-' . $role . '-' . $run,
+            'user_pass' => wp_generate_password(48),
+            'user_email' => 'journey-' . $role . '-' . $run . '@example.invalid',
+            'role' => $role,
+        ]);
+        elemacy_test_assert(!is_wp_error($user), 'Cannot create the journey ' . $role . '.');
+        update_user_meta($user, '_elemacy_fixture_environment', ELEMACY_INTEGRATION_TOKEN);
+        $expires = time() + 1800;
+        $session = WP_Session_Tokens::get_instance($user)->create($expires);
+        $fixture['users'] = array_merge((array) ($fixture['users'] ?? []), [(int) $user]);
+        elemacy_test_assert((bool) file_put_contents($path, wp_json_encode($fixture)), 'Cannot record the journey user.');
+        echo wp_json_encode(['user' => (int) $user, 'cookies' => [
+            ['name' => AUTH_COOKIE, 'value' => wp_generate_auth_cookie($user, $expires, 'auth', $session)],
+            ['name' => LOGGED_IN_COOKIE, 'value' => wp_generate_auth_cookie($user, $expires, 'logged_in', $session)],
+        ]]);
+    } elseif ($command === 'seed-popup-content') {
+        // Content a popup journey interacts with: a form, an image carousel and a video element. The popup itself is
+        // created and published through the UI; this only fills a popup the run author owns (argument 3).
+        $path = realpath($argv[2] ?? '');
+        elemacy_test_assert($path && dirname($path) === $directory
+            && preg_match('/\Ajourney-fixture-[a-f0-9-]+\.json\z/', basename($path)), 'Refusing an unrelated journey manifest.');
+        $fixture = json_decode(file_get_contents($path), true);
+        elemacy_test_assert(($fixture['environment_token'] ?? '') === ELEMACY_INTEGRATION_TOKEN, 'Wrong journey environment.');
+        $popup = (int) ($argv[3] ?? 0);
+        elemacy_test_assert($popup > 0 && 'elemacy_library' === get_post_type($popup)
+            && (int) get_post_field('post_author', $popup) === (int) $fixture['user'], 'Refusing to fill a popup this run did not create.');
+        $widget = static fn (string $id, string $type, array $settings): array => [
+            'id' => $id, 'elType' => 'widget', 'widgetType' => $type, 'settings' => $settings, 'elements' => [],
+        ];
+        $elements = [[
+            'id' => 'jp00001', 'elType' => 'container', 'settings' => [], 'elements' => [
+                $widget('jp00002', 'heading', ['title' => 'Journey interaction popup']),
+                $widget('jp00003', 'elemacy-form', ['form_fields' => [
+                    ['type' => 'text', 'label' => 'Name', 'required' => 'yes'],
+                    ['type' => 'email', 'label' => 'Email', 'required' => 'yes'],
+                ], 'submit_actions' => ['email'], 'email_to' => 'journey@example.invalid']),
+                $widget('jp00004', 'image-carousel', ['slides_to_show' => '1', 'carousel' => array_map(static fn (int $n): array => ['id' => '', 'url' => \Elementor\Utils::get_placeholder_image_src()], [1, 2, 3])]),
+                $widget('jp00005', 'html', ['html' => '<video id="journey-video" muted loop width="120" height="68"></video>']),
+            ],
+        ]];
+        update_post_meta($popup, '_elementor_data', wp_slash(wp_json_encode($elements)));
+        delete_post_meta($popup, '_elementor_css');
+        echo wp_json_encode(['popup' => $popup]);
     } elseif ($command === 'delete-term') {
         // Deletes one term this run seeded, to see what an editor shows when a saved choice is gone.
         $path = realpath($argv[2] ?? '');

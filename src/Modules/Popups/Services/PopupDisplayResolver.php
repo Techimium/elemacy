@@ -9,6 +9,7 @@ use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
+use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
 
 /**
@@ -36,6 +37,13 @@ class PopupDisplayResolver
      */
     public function resolve_all(): array
     {
+        // A library item's own front-end page or preview already renders that
+        // document as the page. Every other popup over it would be an overlay
+        // on the thing being previewed.
+        if (is_singular(LibraryPostType::POST_TYPE)) {
+            return [];
+        }
+
         // The shared resolver returns popups whose display conditions match the
         // request (using the cached candidate index); popup-specific gates are
         // applied here.
@@ -54,6 +62,12 @@ class PopupDisplayResolver
             $popup = $service->get($id);
 
             if (!$popup) {
+                continue;
+            }
+
+            // A password-protected popup is never a public overlay: its
+            // content would be shown to everyone, or an empty shell would.
+            if ('' !== (string) get_post_field('post_password', (int) $popup->id)) {
                 continue;
             }
 

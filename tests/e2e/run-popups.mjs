@@ -32,6 +32,12 @@ copyFileSync(path.join(repo, 'src/Modules/Popups/assets/styles/popups.css'), pat
 
 const server = createServer((req, res) => {
   const file = req.url === '/' ? '/popups.html' : req.url.split('?')[0];
+  // Stand-ins for a video embed and for a link to another page.
+  if (file.startsWith('/stub/') || file === '/other') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end('<!DOCTYPE html><title>stub</title><p>stub</p>');
+    return;
+  }
   try {
     const body = readFileSync(path.join(dir, file));
     const contentType = file.endsWith('.js')
@@ -119,6 +125,8 @@ await check('103 topbar opens too, non-modal (no overlay)', async () => {
   const s = await state(103);
   return s.open && !s.hasOverlay;
 });
+await check('widgets initialize after their popup is visible (non-zero size at init)', () =>
+  page.evaluate(() => window.__hydrated.length >= 2 && window.__hydrated.every((h) => h.width > 0)));
 await check('shown events fired for 101 and 103 only', () =>
   page.evaluate(() => {
     const shown = window.__events.filter((e) => e[0] === 'shown').map((e) => e[1]).sort();
@@ -164,9 +172,9 @@ await page.evaluate(() => document.querySelector('.elemacy-popup-102 .elemacy-po
 await page.waitForTimeout(100);
 await check('102 closes via injected close button', async () => !(await state(102)).open);
 
-await page.click('.elemacy-open-popup');
+await page.click('.explicit-open-b');
 await page.waitForTimeout(100);
-await check('102 explicit open button opens without counting frequency', async () => {
+await check('102 explicit open attribute opens without counting frequency', async () => {
   const s = await state(102);
   const st = await store('elemacy_popup_102');
   return s.open && st.local.shown_count === 1; // still 1 — explicit opens bypass recordShown
@@ -442,6 +450,325 @@ await check('scrolling the content (by 300px) leaves the close button where it w
   && Math.abs(g110scrolled.btn.t - g110.btn.t) < 0.5 && Math.abs(g110scrolled.btn.l - g110.btn.l) < 0.5);
 await page.evaluate(() => window.ElemacyPopups.close(110));
 
+/* ── Page-markup contract: #elemacy-popup-{id} opens, #elemacy-popup-close and
+   .elemacy-close-popup close, the unprefixed legacy markup is gone ── */
+await page.goto(base + '/');
+await page.waitForTimeout(200);
+const urlBefore = page.url();
+await page.evaluate(() => document.querySelector('.link-open-b').click());
+await page.waitForTimeout(100);
+await check('<a href="#elemacy-popup-102"> opens popup 102 and leaves the URL unchanged', async () =>
+  (await state(102)).open && page.url() === urlBefore);
+await page.evaluate(() => document.getElementById('p102-closelink')?.click());
+await page.waitForTimeout(100);
+await check('<a href="#elemacy-popup-close"> inside a popup closes it', async () => !(await state(102)).open && page.url() === urlBefore);
+
+await page.evaluate(() => window.ElemacyPopups.open(104));
+await page.waitForTimeout(450);
+await page.evaluate(() => document.getElementById('p104-customclose')?.click());
+await page.waitForTimeout(450);
+await check('a custom button with the elemacy-close-popup class closes its popup', async () => !(await state(104)).open);
+
+await page.evaluate(() => window.scrollTo(0, 500));
+await page.evaluate(() => document.querySelector('.link-open-missing').click());
+await page.waitForTimeout(100);
+await check('a link to a popup that is not on the page opens nothing, keeps the URL and does not scroll', () =>
+  page.evaluate((url) => location.href === url && Math.abs(window.scrollY - 500) < 1 && !document.querySelector('.is-open[data-elemacy-popup-id="102"]'), urlBefore));
+await page.evaluate(() => window.scrollTo(0, 0));
+
+await page.evaluate(() => document.getElementById('legacy-open').click());
+await page.waitForTimeout(100);
+await check('the unprefixed .elemacy-open-popup + data-popup-id markup no longer opens anything', async () => !(await state(102)).open);
+
+/* ── Click triggers on links that go nowhere must not navigate or jump ── */
+// The last one is how Elementor prints a button: the selector's class is on the wrapper, the link inside it.
+const deadLinkCases = [['.dead-hash', '#'], ['.dead-empty', ''], ['.dead-js', 'javascript:void(0)'], ['.inner-dead-label', '# inside a matching wrapper']];
+for (const [selector, label] of deadLinkCases) {
+  await page.goto(base + '/');
+  await page.waitForTimeout(150);
+  const start = page.url();
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await page.evaluate((sel) => document.querySelector(sel).click(), selector);
+  await page.waitForTimeout(100);
+  await check(`click trigger on <a href="${label}">: opens the popup, no URL change, no jump to the top`, async () =>
+    (await state(121)).open && await page.evaluate((url) => location.href === url && Math.abs(window.scrollY - 600) < 1, start));
+}
+
+await page.goto(base + '/');
+await page.waitForTimeout(150);
+await page.evaluate(() => window.scrollTo(0, 600));
+await page.evaluate(() => document.querySelector('.capped-hash').click());
+await page.waitForTimeout(100);
+await page.evaluate(() => window.ElemacyPopups.close(122));
+await page.evaluate(() => document.querySelector('.capped-hash').click()); // blocked by the one-show cap
+await page.waitForTimeout(100);
+await check('a frequency cap that blocks the open still does not navigate or jump', async () =>
+  !(await state(122)).open && await page.evaluate(() => !location.href.endsWith('#') && Math.abs(window.scrollY - 600) < 1));
+
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.evaluate(() => document.querySelector('.dead-other').click());
+await page.waitForURL(/\/other$/, { timeout: 3000 }).catch(() => {});
+await check('a click trigger on a link to another page leaves its navigation alone', () => page.url().endsWith('/other'));
+
+/* ── Animations: every In/Out choice combines, in both directions ── */
+const animNames = {
+  in: { none: 'none', fade: 'elemacy-popup-fade-in', 'slide-down': 'elemacy-popup-slide-in-down', 'slide-up': 'elemacy-popup-slide-in-up' },
+  out: { none: 'none', fade: 'elemacy-popup-fade-out', 'slide-down': 'elemacy-popup-slide-out-down', 'slide-up': 'elemacy-popup-slide-out-up' },
+};
+const boxAnimation = () => page.evaluate(() => getComputedStyle(document.querySelector('.elemacy-popup-120 .elemacy-popup__box')).animationName);
+await page.goto(base + '/');
+await page.waitForTimeout(150);
+for (const animIn of Object.keys(animNames.in)) {
+  for (const animOut of Object.keys(animNames.out)) {
+    await page.evaluate(([i, o]) => {
+      window.elemacyPopups.popups.find((c) => c.id === 120).display.animation = { in: i, out: o };
+    }, [animIn, animOut]);
+
+    // Reading the computed style in the same task as open()/close() sees the
+    // class the engine just added, with no timing involved.
+    const opening = await page.evaluate(() => {
+      window.ElemacyPopups.open(120);
+      return getComputedStyle(document.querySelector('.elemacy-popup-120 .elemacy-popup__box')).animationName;
+    });
+    await page.waitForTimeout(animIn === 'none' ? 50 : 450);
+    const closing = await page.evaluate(() => {
+      window.__closedAt = performance.now();
+      window.ElemacyPopups.close(120);
+      return getComputedStyle(document.querySelector('.elemacy-popup-120 .elemacy-popup__box')).animationName;
+    });
+    const hiddenIn = await page.waitForFunction(
+      () => document.querySelector('[data-elemacy-popup-id="120"]').hasAttribute('hidden'),
+      null,
+      { timeout: 450, polling: 16 },
+    ).then(() => true, () => false);
+    await check(`animation in=${animIn} out=${animOut}: opens as ${animNames.in[animIn]}, closes as ${animNames.out[animOut]} and is hidden within 450ms`, async () =>
+      opening === animNames.in[animIn] && closing === animNames.out[animOut] && hiddenIn);
+  }
+}
+
+// A widget's own short animation inside the box must not settle the box's transition.
+await page.evaluate(() => {
+  window.elemacyPopups.popups.find((c) => c.id === 120).display.animation = { in: 'fade', out: 'fade' };
+  window.ElemacyPopups.open(120);
+});
+await page.waitForTimeout(200); // the 50ms child animation is long over; the box's 350ms one is not
+await check("a child element's animationend does not settle the popup's own entrance early", () =>
+  page.evaluate(() => document.querySelector('[data-elemacy-popup-id="120"]').classList.contains('is-animating')));
+await page.waitForTimeout(400);
+await page.evaluate(() => window.ElemacyPopups.close(120));
+await page.waitForTimeout(450);
+
+const reducedCtx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+const reducedPage = await reducedCtx.newPage();
+await reducedPage.goto(base + '/');
+const reduced = await reducedPage.evaluate(() => {
+  window.elemacyPopups.popups.find((c) => c.id === 120).display.animation = { in: 'fade', out: 'slide-up' };
+  window.ElemacyPopups.open(120);
+  const root = document.querySelector('[data-elemacy-popup-id="120"]');
+  const opened = { animating: root.classList.contains('is-animating'), name: getComputedStyle(root.querySelector('.elemacy-popup__box')).animationName, open: root.classList.contains('is-open') };
+  window.ElemacyPopups.close(120);
+  return { opened, hiddenAtOnce: root.hasAttribute('hidden') };
+});
+await reducedCtx.close();
+await check('reduced motion: popups appear and disappear with no animation', async () =>
+  reduced.opened.open && !reduced.opened.animating && reduced.opened.name === 'none' && reduced.hiddenAtOnce);
+
+/* ── Focus: stays in the newest modal when an older one closes; a focus that escapes comes back ── */
+await page.goto(base + '/');
+await page.waitForTimeout(150);
+await page.focus('.open-e');
+await page.keyboard.press('Enter'); // opens 105 from a real button
+await page.waitForTimeout(80);
+await page.evaluate(() => document.querySelector('.open-f').click()); // opens 106 on top of it
+await page.waitForTimeout(80);
+const inModal = (id) => page.evaluate((pid) => {
+  const box = document.querySelector(`.elemacy-popup-${pid} .elemacy-popup__box`);
+  return !!box && box.contains(document.activeElement);
+}, id);
+await check('105 opened from a page button, 106 opened on top: focus is in 106', () => inModal(106));
+await page.evaluate(() => window.ElemacyPopups.close(105));
+await page.waitForTimeout(80);
+await check('the older modal (105) closing leaves focus in 106, not on the page button that opened 105', () => inModal(106));
+await page.keyboard.press('Tab');
+await check('Tab keeps cycling inside 106 after the older modal closed', () => inModal(106));
+await page.keyboard.press('Shift+Tab');
+await check('Shift+Tab keeps cycling inside 106 as well', () => inModal(106));
+await page.evaluate(() => document.querySelector('.open-g').focus());
+await page.keyboard.press('Tab');
+await check('focus moved to a page link while 106 is open comes back into 106 on Tab', () => inModal(106));
+await page.evaluate(() => window.ElemacyPopups.close(106));
+await page.waitForTimeout(80);
+// A real keyboard open from a page button, then close: focus goes back to that button.
+await page.focus('.open-f');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(80);
+await page.evaluate(() => window.ElemacyPopups.close(106));
+await page.waitForTimeout(80);
+await check('closing the last modal (106) returns focus to the connected opener that opened it', () =>
+  page.evaluate(() => document.activeElement && document.activeElement.classList.contains('open-f')));
+
+/* ── Media stops when its popup closes ── */
+await page.goto(base + '/');
+await page.waitForTimeout(150);
+await page.evaluate(() => window.ElemacyPopups.open(123));
+await page.waitForTimeout(80);
+await page.evaluate(async () => {
+  const video = document.getElementById('p123-video');
+  const canvas = document.createElement('canvas');
+  canvas.width = 32; canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  window.__ticker = setInterval(() => { ctx.fillStyle = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'); ctx.fillRect(0, 0, 32, 32); }, 40);
+  video.srcObject = canvas.captureStream(20);
+  await video.play();
+  window.__srcWrites = [];
+  new MutationObserver((records) => records.forEach((r) => window.__srcWrites.push(r.target.id)))
+    .observe(document.querySelector('.elemacy-popup-123'), { subtree: true, attributes: true, attributeFilter: ['src'] });
+});
+await check('the popup video is really playing before it is closed (otherwise the check proves nothing)', () =>
+  page.evaluate(() => !document.getElementById('p123-video').paused));
+await page.evaluate(() => window.ElemacyPopups.close(123));
+await page.waitForTimeout(100);
+await check('closing the popup pauses its video', () => page.evaluate(() => document.getElementById('p123-video').paused));
+await check('closing the popup reloads its YouTube embed, and only that iframe', () =>
+  page.evaluate(() => window.__srcWrites.includes('p123-embed') && !window.__srcWrites.includes('p123-other')));
+await page.evaluate(() => clearInterval(window.__ticker));
+
+/* ── Automatic opening, fault isolation, ids, closed events ── */
+const consoleMessages = [];
+const onConsole = (m) => consoleMessages.push({ type: m.type(), text: m.text() });
+page.on('console', onConsole);
+await page.goto(base + '/popups-auto.html');
+await page.waitForTimeout(500);
+const open201 = () => page.evaluate(() => document.querySelector('[data-elemacy-popup-id="201"]').classList.contains('is-open'));
+await check('a popup beside one whose trigger handler throws still opens on page load', open201);
+await check('a throwing trigger handler is reported, not thrown', async () =>
+  consoleMessages.some((m) => m.type === 'error' && m.text.includes('trigger "boom" of popup 202 threw')));
+await check('a popup whose rule handler throws is blocked, not opened', () =>
+  page.evaluate(() => !document.querySelector('[data-elemacy-popup-id="203"]').classList.contains('is-open')));
+await check('registered trigger cleanups ran exactly once when the popup opened automatically', () =>
+  page.evaluate(() => window.__cleanups === 1));
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(100);
+await check('Escape still closes an open popup although another popup\'s trigger threw', async () => !(await open201()));
+await page.evaluate(() => window.__autoApis[201].open());
+await page.waitForTimeout(100);
+await check('an automatic trigger firing after the popup was dismissed does not reopen it', async () => !(await open201()));
+await page.evaluate(() => document.querySelector('.reopen-201').click());
+await page.waitForTimeout(100);
+await check('a click trigger still reopens a popup that opened automatically', open201);
+await page.evaluate(() => document.querySelector('.elemacy-popup-201 .elemacy-popup__close')?.click());
+await page.waitForTimeout(100);
+await check('the close button still works', async () => !(await open201()));
+await page.evaluate(() => window.ElemacyPopups.destroy(201));
+await check('cleanups are not run a second time on destroy', () => page.evaluate(() => window.__cleanups === 1));
+
+await page.evaluate(() => { window.__events.length = 0; });
+await page.evaluate(() => document.querySelector('.open-204').click());
+await page.waitForTimeout(80);
+await page.evaluate(() => window.ElemacyPopups.close(204));
+await page.waitForTimeout(80);
+await check('closed reports wasShown=true for a popup that was displayed', () =>
+  page.evaluate(() => window.__events.some((e) => e[0] === 'closed' && e[1] === 204 && e[2] === true)));
+await page.evaluate(() => { window.ElemacyPopups.open(205); window.ElemacyPopups.destroy(205); });
+await check('destroy dispatches destroyed and never closed', () =>
+  page.evaluate(() => window.__events.some((e) => e[0] === 'destroyed' && e[1] === 205) && !window.__events.some((e) => e[0] === 'closed' && e[1] === 205)));
+await page.evaluate(() => { window.ElemacyPopups.open(206); window.ElemacyPopups.close(206); });
+await page.waitForTimeout(450); // the fade-out has to finish before closed is dispatched
+await check('closed reports wasShown=false for a popup closed while it was still animating in', () =>
+  page.evaluate(() => window.__events.some((e) => e[0] === 'closed' && e[1] === 206 && e[2] === false)));
+
+await page.evaluate(() => { window.__events.length = 0; window.ElemacyPopups.open('207'); });
+await page.waitForTimeout(80);
+await check('a popup opened with a string id locks the page scroll', () => page.evaluate(() => document.body.style.overflow === 'hidden'));
+await page.evaluate(() => document.querySelector('.elemacy-popup-207 .elemacy-popup__close')?.click());
+await page.waitForTimeout(80);
+await check('closing it with its close button releases the scroll lock', () => page.evaluate(() => document.body.style.overflow === ''));
+await check('the closed event reports the numeric popup id', () =>
+  page.evaluate(() => window.__events.some((e) => e[0] === 'closed' && e[1] === 207 && e[3] === 'number')));
+await page.evaluate(() => window.ElemacyPopups.open(207));
+await page.waitForTimeout(80);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(80);
+await check('Escape closes the popup once reopened with a numeric id, leaving nothing locked', () =>
+  page.evaluate(() => !document.querySelector('[data-elemacy-popup-id="207"]').classList.contains('is-open') && document.body.style.overflow === ''));
+
+await check('debug mode names the handler a waiting popup is missing', async () =>
+  consoleMessages.some((m) => m.type === 'warning' && m.text.includes('popup 208') && m.text.includes('trigger "never_registered"')));
+await check('debug mode does not warn about popups that are armed', async () =>
+  !consoleMessages.some((m) => m.type === 'warning' && m.text.includes('popup 201')));
+page.off('console', onConsole);
+
+/* ── Extension load order ── */
+const scrollOpens = async () => {
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await page.waitForTimeout(150);
+  return page.evaluate(() => document.querySelector('[data-elemacy-popup-id="301"]').classList.contains('is-open'));
+};
+await page.goto(base + '/popups-order.html?variant=late');
+await page.waitForTimeout(800); // the scroll handler registers 500ms after the engine started
+await check('a trigger handler registered 500ms after init still opens its popup on scroll', scrollOpens);
+
+await page.goto(base + '/popups-order.html?variant=late');
+await page.waitForTimeout(100);
+await page.evaluate(() => window.scrollTo(0, 400));
+await page.waitForTimeout(100);
+await check('before its handler arrives the popup stays closed (fail closed)', () =>
+  page.evaluate(() => !document.querySelector('[data-elemacy-popup-id="301"]').classList.contains('is-open')));
+
+await page.goto(base + '/popups-order.html?variant=queue');
+await page.waitForTimeout(200);
+await check('an extension pushed before the engine loads is called exactly once and its trigger works', async () =>
+  (await page.evaluate(() => window.__extCalls)) === 1 && await scrollOpens());
+
+await page.goto(base + '/popups-order.html?variant=queue-late');
+await page.waitForTimeout(200);
+await check('an extension pushed after the engine loads is called exactly once and its trigger works', async () =>
+  (await page.evaluate(() => window.__extCalls)) === 1 && await scrollOpens());
+
+await page.goto(base + '/popups-order.html?variant=none');
+await page.waitForTimeout(200);
+await page.evaluate(() => document.querySelector('.open-302').click());
+await page.waitForTimeout(100);
+await check('a popup whose client rule has no handler is not opened by its trigger', () =>
+  page.evaluate(() => !document.querySelector('[data-elemacy-popup-id="302"]').classList.contains('is-open')));
+await page.evaluate(() => window.ElemacyPopups.open(302));
+await page.waitForTimeout(100);
+await check('...but an explicit open still works', () =>
+  page.evaluate(() => document.querySelector('[data-elemacy-popup-id="302"]').classList.contains('is-open')));
+
+/* ── Top bars the server printed ── */
+await page.goto(base + '/popups-topbar.html');
+await page.waitForTimeout(1000);
+const topbar = await page.evaluate(() => {
+  const sig = (el) => ({ tag: el.tagName, cls: [...el.classList].map((c) => c.replace(/\d+$/, 'N')).sort(), aria: el.getAttribute('aria-label'), kids: [...el.children].map(sig) });
+  const root = document.querySelector('[data-elemacy-popup-id="401"]');
+  return {
+    firstPaintTop: window.__firstPaintTop,
+    contentTop: document.getElementById('content').getBoundingClientRect().top,
+    open: root.classList.contains('is-open') && !root.hasAttribute('hidden'),
+    shown401: window.__events.filter((e) => e[0] === 'shown' && e[1] === 401).length,
+    relocatedFirst: document.body.firstElementChild.getAttribute('data-elemacy-popup-id') === '403',
+    boxSig: JSON.stringify(sig(root.querySelector('.elemacy-popup__box'))),
+  };
+});
+await check('a prerendered top bar occupies space at first paint and the page does not shift afterwards', async () =>
+  topbar.firstPaintTop > 0 && Math.abs(topbar.firstPaintTop - topbar.contentTop) < 0.5);
+await check('the engine adopts a prerendered top bar: it stays open and fires shown exactly once', async () =>
+  topbar.open && topbar.shown401 === 1);
+await check('a top bar printed late is moved to the top of <body> before it is ever opened', async () => topbar.relocatedFirst);
+await page.evaluate(() => window.ElemacyPopups.open(402));
+await page.waitForTimeout(450);
+const hydratedSig = await page.evaluate(() => {
+  const sig = (el) => ({ tag: el.tagName, cls: [...el.classList].map((c) => c.replace(/\d+$/, 'N')).sort(), aria: el.getAttribute('aria-label'), kids: [...el.children].map(sig) });
+  return JSON.stringify(sig(document.querySelector('[data-elemacy-popup-id="402"] .elemacy-popup__box')));
+});
+await check('a prerendered top bar has the same box structure as one the engine hydrated', async () => topbar.boxSig === hydratedSig);
+await page.evaluate(() => document.querySelector('.elemacy-popup-401 .elemacy-popup__close')?.click());
+await page.waitForTimeout(500);
+await check('a prerendered top bar closes with its close button', () =>
+  page.evaluate(() => document.querySelector('[data-elemacy-popup-id="401"]').hasAttribute('hidden') && window.__events.some((e) => e[0] === 'closed' && e[1] === 401)));
+
 /* ── The default run hides scrollbars (headless default), which is exactly the
    condition where a button-over-scrollbar overlap cannot show. Re-check the
    tall popup in a browser that draws classic scrollbars. ── */
@@ -459,7 +786,37 @@ const sb = await scrollbarPage.evaluate(() => {
     overlap: btn.getBoundingClientRect().right - (scroller.getBoundingClientRect().left + scroller.clientWidth),
   };
 });
+const lockPage = await (await scrollbarBrowser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
+await lockPage.addInitScript(() => localStorage.setItem('elemacy_popup_101', JSON.stringify({ shown_count: 5 }))); // keep 101 from opening on load
+await lockPage.goto(base + '/');
+await lockPage.waitForTimeout(150);
+const lockLeft = () => lockPage.evaluate(() => document.getElementById('centered').getBoundingClientRect().left);
+const before = {
+  left: await lockLeft(),
+  scrollbar: await lockPage.evaluate(() => window.innerWidth - document.documentElement.clientWidth),
+};
+await lockPage.evaluate(() => window.ElemacyPopups.open(105));
+await lockPage.waitForTimeout(100);
+const locked = await lockPage.evaluate(() => ({
+  left: document.getElementById('centered').getBoundingClientRect().left,
+  htmlOverflow: document.documentElement.style.overflow,
+  bodyOverflow: document.body.style.overflow,
+}));
+await lockPage.evaluate(() => window.ElemacyPopups.close(105));
+await lockPage.waitForTimeout(100);
+const restored = await lockPage.evaluate(() => ({
+  left: document.getElementById('centered').getBoundingClientRect().left,
+  bodyStyle: document.body.style.cssText,
+  htmlStyle: document.documentElement.style.cssText,
+}));
 await scrollbarBrowser.close();
+await check('the page has a classic scrollbar in this check (otherwise it proves nothing)', async () => before.scrollbar > 0);
+await check('locking scroll does not shift centered content sideways when the scrollbar disappears', async () =>
+  Math.abs(locked.left - before.left) < 0.5);
+await check('locking scroll hides overflow on both <body> and <html>', async () =>
+  locked.bodyOverflow === 'hidden' && locked.htmlOverflow === 'hidden');
+await check('closing restores the page styles exactly', async () =>
+  restored.bodyStyle === '' && restored.htmlStyle === '' && Math.abs(restored.left - before.left) < 0.5);
 await check('classic scrollbars are actually drawn in this check (otherwise it proves nothing)', async () => sb.scrollbarWidth > 0);
 await check('a visible scrollbar on a tall popup does not sit under the default-offset close button', async () => sb.overlap <= 0.5);
 

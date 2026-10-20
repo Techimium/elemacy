@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Run with wp --skip-plugins --skip-themes eval-file ... <free|free-retain|pro>.
+ * Run with wp --skip-plugins --skip-themes eval-file ... <free|free-retain|pro|pro-retain>.
  * `free` and `pro` uninstall with removal opted in; `free-retain` uninstalls
- * Free without it and checks that everything is kept.
+ * Free without it and checks that everything is kept; `pro-retain` uninstalls
+ * Pro without it and checks that the analytics counters and options are kept
+ * while the licence and temporary data are gone.
  */
 require_once dirname(__DIR__) . '/environment.php';
 $environment = elemacy_test_environment((string) getenv('ELEMACY_TEST_ENV'));
@@ -11,8 +13,8 @@ if (realpath(ABSPATH) !== $environment['root'] || DB_NAME !== $environment['data
     || get_option('elemacy_integration_environment') !== $environment['token']) {
     throw new RuntimeException('Refusing uninstall outside the guarded disposable site.');
 }
-$pro = ($args[0] ?? '') === 'pro';
-$retain = ($args[0] ?? '') === 'free-retain';
+$pro = in_array($args[0] ?? '', ['pro', 'pro-retain'], true);
+$retain = in_array($args[0] ?? '', ['free-retain', 'pro-retain'], true);
 $prefix = $pro ? 'elemacy_pro' : 'elemacy';
 $plugin = $pro ? 'elemacy-pro' : 'elemacy';
 $root = dirname(__DIR__, 3);
@@ -52,6 +54,14 @@ for ($i = 0; $i < 104; ++$i) {
 add_option('unrelated_uninstall_fixture', 'keep', '', true);
 add_option($pro ? 'elemacy_uninstall_sibling' : 'elemacy_pro_uninstall_sibling', 'keep', '', true);
 set_transient($prefix . '_uninstall_fixture', 'owned', 60);
+if ($pro) {
+    // What Pro keeps and what it always removes: the licence, rate-limit windows,
+    // counter leases and the licence check's scheduled event.
+    update_option('elemacy_pro_license', ['fixture' => 'licence'], true);
+    add_option('elemacy_pro_track_limit_fixture', (time() + 60) . ':1', '', false);
+    add_option('elemacy_pro_counter_lock_999', 'fixture', '', false);
+    wp_schedule_event(time() + 3600, 'daily', 'elemacy_pro_license_check');
+}
 $css = trailingslashit(wp_upload_dir()['basedir']) . 'elementor/css/post-' . $doc . '.css';
 wp_mkdir_p(dirname($css));
 file_put_contents($css, '.fixture{}');
@@ -64,6 +74,24 @@ try {
         define('ELEMACY_REMOVE_ALL_DATA', true);
     }
     require $source . '/uninstall.php';
+    if ($retain && $pro) {
+        // Reinstalling Pro by deleting and uploading it keeps every count.
+        $check(get_post_meta($unrelated, '_elemacy_popup_impressions', true) === '7', 'Pro uninstall without the opt-in removed the impression counter.');
+        $check(get_post_meta($unrelated, '_elemacy_popup_conversions', true) === '2', 'Pro uninstall without the opt-in removed the conversion counter.');
+        $check(get_option('elemacy_pro_uninstall_fixture_103') === 'owned', 'Pro uninstall without the opt-in removed its options (the schema version among them).');
+        $check(get_option('elemacy_pro_license', false) === false, 'The licence survived Pro uninstall.');
+        $check(get_option('elemacy_pro_track_limit_fixture', false) === false, 'A rate-limit record survived Pro uninstall.');
+        $check(get_option('elemacy_pro_counter_lock_999', false) === false, 'A counter lease survived Pro uninstall.');
+        $check(get_transient('elemacy_pro_uninstall_fixture') === false, 'A transient survived Pro uninstall.');
+        $check(false === wp_next_scheduled('elemacy_pro_license_check'), 'The licence check stayed scheduled after Pro uninstall.');
+        $check(get_post($doc) && get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Pro uninstall touched Free-owned data.');
+        for ($i = 0; $i < 104; ++$i) {
+            delete_option($prefix . '_uninstall_fixture_' . $i);
+        }
+        echo wp_json_encode(['plugin' => $plugin, 'status' => 'passed', 'retained' => true]) . "\n";
+
+        return;
+    }
     if ($retain) {
         $check(get_post($doc) && get_post($revision) && get_comment($comment), 'Uninstall without the opt-in removed a library document.');
         $check(get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Uninstall without the opt-in removed metadata.');
@@ -83,6 +111,8 @@ try {
     $check(get_option($prefix . '_uninstall_fixture_103', false) === false, 'Cleanup stopped before the last option batch.');
     $check(get_transient($prefix . '_uninstall_fixture') === false, 'Owned transient survived.');
     if ($pro) {
+        $check(get_option('elemacy_pro_license', false) === false && get_option('elemacy_pro_track_limit_fixture', false) === false, 'Pro licence or temporary data survived opted-in removal.');
+        $check(false === wp_next_scheduled('elemacy_pro_license_check'), 'The licence check stayed scheduled after Pro uninstall.');
         $check((bool) get_post($doc) && (bool) get_post($revision) && (bool) get_comment($comment), 'Pro deleted Free-owned documents.');
         $check(get_post_meta($unrelated, '_elemacy_popup_impressions', true) === '', 'Pro counter survived.');
         $check(get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Pro deleted Free metadata.');
@@ -106,6 +136,12 @@ try {
     wp_delete_term($term_id, 'uninstall_fixture');
     delete_option('unrelated_uninstall_fixture');
     delete_option($pro ? 'elemacy_uninstall_sibling' : 'elemacy_pro_uninstall_sibling');
+    if ($pro) {
+        delete_option('elemacy_pro_license');
+        delete_option('elemacy_pro_track_limit_fixture');
+        delete_option('elemacy_pro_counter_lock_999');
+        wp_clear_scheduled_hook('elemacy_pro_license_check');
+    }
     if (file_exists($css)) {
         wp_delete_file($css);
     }

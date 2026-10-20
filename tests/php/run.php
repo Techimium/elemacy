@@ -6637,5 +6637,6 @@ require __DIR__ . '/query-pickers.php';
 require __DIR__ . '/archive-title.php';
 require __DIR__ . '/nav-menu-breakpoints.php';
 require __DIR__ . '/theme-builder.php';
+require __DIR__ . '/popup-markup.php';
 
 conclude();

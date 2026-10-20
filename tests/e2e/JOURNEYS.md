@@ -32,6 +32,18 @@ export ELEMACY_TEST_ENV=/tmp/elemacy-browser-<printed-token>/environment.json
 
 Registration compares every installed release file with the supplied ZIPs, records hashes and a site ownership token, and uses the existing external server. It cannot register `elemacy.test`. Reuse the printed manifest for subsequent runs; changing configuration or installed package files invalidates it. Never point the isolated PHP server/router at a managed site. The harness uses temporary per-case authors and requires a matching site/database/token before cleanup; it never deletes the site.
 
+## Popup journeys
+
+`journeys/popup-{types,triggers,rules,interaction}.spec.mjs` and `popup-authoring.spec.mjs` carry the `@popups` tag. A visitor is a fresh browser context, so storage, sessions and the controlled clock (`page.clock`) are isolated per case. The popups, triggers and rules are authored through the admin dialog and the Elementor editor. Three things come from native guarded fixture commands in `tests/integration/journey-fixture.php`, because the UI offers no practical way to author them: `seed-host-page` (an Elementor page with a Button linked `#`, popup links, a tall spacer and a deep element), `seed-user` (a signed-in subscriber or editor) and `seed-popup-content` (a form, an image carousel and a video element inside a popup the run created). Schedule dates are set through the admin app's own endpoint, since the calendar picker cannot be driven reliably; the saved schedule is still checked in the dialog.
+
+Cases that need Elemacy Pro also carry `@pro`. Run the Free-only profile on a site provisioned without `--with-pro`, excluding them:
+
+```bash
+node run-journeys.mjs --grep '@popups' --grep-invert '@pro'    # Free-only
+node run-journeys.mjs --grep '@popups'                         # Free + Pro
+node run-topbar-prerender.mjs                                  # a prerendered top bar on Hello Elementor (needs --hello-elementor-theme)
+```
+
 ## Run and choose media
 
 Explicit output directories must be new; an existing directory is rejected to protect unrelated files. Defaults create a fresh private directory automatically.

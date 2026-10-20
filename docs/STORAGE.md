@@ -12,7 +12,7 @@ uninstall sweeps and the migration runner stay uniform.
 
 - `elemacy_db_version` records the installed release version. `elemacy_schema_version` independently records completed Free data migrations; release numbers never infer a completed data transformation.
 - `Core\Migrator` runs an ordered schema-version map. Each successful step advances its own marker; a failed/incomplete step does not. Fresh installs seed the latest schema, upgrades resume pending steps, and downgrades never lower a completed marker. Free has no data migrations yet; its marker stays at `0.0.0` until the first one ships.
-- Pro owns `elemacy_pro_schema_version` and its schema `1` counter migration independently. Migration callbacks must be idempotent and bounded. Use a new schema identifier for a new persisted shape; do not reuse a release version as an implicit migration marker.
+- Pro owns `elemacy_pro_schema_version` independently of Free and of the license; it has no data migrations yet. Migration callbacks must be idempotent and bounded. Use a new schema identifier for a new persisted shape; do not reuse a release version as an implicit migration marker.
 
 ## Options
 
@@ -35,7 +35,7 @@ uninstall sweeps and the migration runner stay uniform.
 | --- | --- | --- |
 | `_elemacy_template_type` | `TemplateLibrary\Constants\MetaKeys::TEMPLATE_TYPE` | The type discriminator for **every** library item (`header`/`footer`/`single`/`archive`/`404`/`search`/`loop`/`section`/`popup`/`topbar`/`banner`/`floating`). Type names are stable identifiers. |
 | `_elemacy_conditions` | `Conditions\ConditionRepository::META_KEY` | `array` of condition rules; each item validated by `Conditions\DTO\ConditionRuleDTO`. The only place display conditions are stored. |
-| `_elemacy_popup_triggers` | `Modules\Popups\Constants\MetaKeys::TRIGGERS` | `array` of trigger items, each validated by `Modules\Popups\DTO\TriggerDTO` (every item carries a uuid `id`). |
+| `_elemacy_popup_triggers` | `Modules\Popups\Constants\MetaKeys::TRIGGERS` | `array` of trigger items, each validated by `Modules\Popups\DTO\TriggerDTO`. Every item carries a string `id`: the admin app's own (`trigger_<time>_<random>`), or a uuid the server fills in when none was sent. The `type` must be a registered trigger (a Free placeholder for a Pro type counts), and text `params` are stored without altering percent-encoded sequences. |
 | `_elemacy_popup_rules` | `Modules\Popups\Constants\MetaKeys::RULES` | `array` of rule items, each validated by `Modules\Popups\DTO\RuleDTO`. Each item's `params` bag is owned by the rule type's `get_config_schema()`; `datetime` params (e.g. pro's schedule) are stored as timezone-naive `YYYY-MM-DDTHH:mm` strings — the evaluating side owns the timezone interpretation, so changing that is a shape change requiring a migration. |
 | `_elemacy_popup_impressions` | Pro `Extensions\Popups\Services\AnalyticsService::META_IMPRESSIONS` | `int`. Total displays. Incremented via a single atomic `meta_value = meta_value + 1` SQL UPDATE so concurrent frontend beacons can't lose a count. |
 | `_elemacy_popup_conversions` | Pro `Extensions\Popups\Services\AnalyticsService::META_CONVERSIONS` | `int`. Total in-popup conversions (capped once per display client-side). Same atomic increment as impressions. |
@@ -56,8 +56,12 @@ Each plugin owns and deletes only its own keys. Free's removal is opt-in: deleti
 Free keeps everything unless `ELEMACY_REMOVE_ALL_DATA` is defined as `true` (in
 `wp-config.php`), and only then does `elemacy/uninstall.php` remove the
 `elemacy_library` posts + meta and `elemacy_%` options (excluding `elemacy_pro_%`);
-`elemacy-pro/uninstall.php` removes the `_elemacy_popup_impressions` /
-`_elemacy_popup_conversions` meta and `elemacy_pro_%` options + transients.
+`elemacy-pro/uninstall.php` always removes the license and temporary data
+(rate-limit records, counter leases, transients and the license check's schedule),
+but keeps the `_elemacy_popup_impressions` / `_elemacy_popup_conversions` meta
+and the remaining `elemacy_pro_%` options (the schema version among them) unless
+`ELEMACY_REMOVE_ALL_DATA` is `true`, exactly as Free keeps its library, so deleting
+Pro and uploading it again loses no analytics.
 Keep that boundary when adding keys.
 
 ## Form submission context and limits
@@ -72,10 +76,10 @@ Saved library forms emit `elemacy_form_context`, a purpose-specific HMAC proof b
 
 `elemacy_pro_schema_version` advances only after a completed migration, under its own `elemacy_pro_schema_version_lock` lease (the same `DatabaseLease` Free's migrator uses). Pro has no data migrations yet, and owns both options independently of Free and license status.
 
-Tracking accepts only `impression` and `conversion` for published, accessible popup documents with content and available server-side rules/triggers/conditions. It does not prove a human saw the popup or deduplicate all replayed events. Request input is limited to 2 KiB/four parameters; a nonce is hygiene, not authorization. `elemacy_pro_track_limit_<HMAC of IP>` enforces 120 requests per IP per minute across popups with bounded database compare-and-swap retries and expiry cleanup. It is non-autoloaded and never stores the raw IP.
+Tracking accepts only `impression` and `conversion` for published, accessible popup documents with content and available server-side rules/triggers/conditions. It does not prove a human saw the popup or deduplicate all replayed events. Request input is limited to 2 KiB/four parameters. The beacon carries no nonce and no cookies: a nonce printed into a cached page expires while the page is still served, and it never kept anyone out, since a visitor can read it from the page. `elemacy_pro_track_limit_<HMAC of the client address>` enforces 120 requests per client address per minute across popups with bounded database compare-and-swap retries and expiry cleanup. The address is `REMOTE_ADDR` unless the site returns the real one from the `elemacy/filter/popups/track_client_ip` filter (forwarding headers are never trusted otherwise), and an IPv6 client is counted by its /64. The row is non-autoloaded and never stores the raw address. Recording an event updates the popup's cached counter in place; it does not evict the rest of the popup's cached meta. Cross-site inflation of the counters is a known limitation, bounded by the rate limit and by the eligibility check.
 
 ## Large-network removal
 
-Deactivation retains data. Deleting Free retains it too unless `ELEMACY_REMOVE_ALL_DATA` is `true`; Pro's deletion removes its own license/settings and counter metadata. Free owns library posts and Free options/meta. Both exhaust batches synchronously through their own `SiteBatchIterator`; no cron callback is scheduled after removal. Site failures are reported after attempting later sites, and blog context is always restored. Retry cleanup before deleting plugin files after a failure.
+Deactivation retains data. Deleting Free retains it too unless `ELEMACY_REMOVE_ALL_DATA` is `true`. Pro's deletion always removes its license and temporary data, and removes its analytics counters and remaining options only under the same opt-in. Free owns library posts and Free options/meta. Both exhaust batches synchronously through their own `SiteBatchIterator`; no cron callback is scheduled after removal. Site failures are reported after attempting later sites, and blog context is always restored. Retry cleanup before deleting plugin files after a failure.
 
 On a large network, use WP-CLI without a web request timeout before removing files: `wp plugin deactivate elemacy-pro --network` followed by `wp plugin uninstall elemacy-pro`; then, if Free's library data should also be removed, define `ELEMACY_REMOVE_ALL_DATA` as `true` and deactivate/uninstall Free the same way. Back up first because an opted-in uninstall intentionally deletes owned data. Each uninstaller works with the sibling runtime absent. Batching bounds memory, not total network execution time.

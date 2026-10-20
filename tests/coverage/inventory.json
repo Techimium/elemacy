@@ -792,7 +792,13 @@
       "source": "src/Modules/Popups/Popups.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-display-defaults",
+        "elemacy:integration:popup-rule-trigger-params-guard",
+        "elemacy:integration:popup-server-rendering",
+        "elemacy:integration:route-authorization",
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:module:popups",
         "status": "pending",
@@ -870,10 +876,13 @@
       "source": "src/Modules/Popups/Support/PopupTypes.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-display-defaults",
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:popup-type:banner",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -883,8 +892,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -895,10 +904,13 @@
       "source": "src/Modules/Popups/Support/PopupTypes.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-display-defaults",
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:popup-type:floating",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -908,8 +920,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -920,10 +932,14 @@
       "source": "src/Modules/Popups/Support/PopupTypes.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-display-defaults",
+        "elemacy:integration:popup-server-rendering",
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:popup-type:popup",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -933,8 +949,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native default modal Draft-to-publish author/save/reopen, visitor opening, close-button focus, close/reload/Escape slice passes on production Free+Pro. Other type settings, trigger/rule branches and profiles remain pending.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -945,10 +961,15 @@
       "source": "src/Modules/Popups/Support/PopupTypes.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-display-defaults",
+        "elemacy:integration:popup-server-rendering",
+        "elemacy:runner:run-popups",
+        "elemacy:runner:run-topbar-prerender"
+      ],
       "journey": {
         "id": "elemacy:journey:popup-type:topbar",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -958,8 +979,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -1016,10 +1037,12 @@
       "source": "src/Modules/Popups/Rules/FrequencyCap.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:rule:frequency_cap",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -1029,8 +1052,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -1041,10 +1064,12 @@
       "source": "src/Modules/Popups/Rules/LoggedInUsers.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-required-capability-suspension"
+      ],
       "journey": {
         "id": "elemacy:journey:rule:logged_in",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -1054,8 +1079,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -2757,10 +2782,12 @@
       "source": "src/Modules/Popups/Triggers/Click.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:trigger:click",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -2770,8 +2797,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -2828,7 +2855,9 @@
       "source": "src/Modules/Popups/Triggers/Mock/OnPopupClose.php",
       "implementation": "placeholder",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:popup-pro-delivery"
+      ],
       "journey": {
         "id": "elemacy:journey:trigger:on_popup_close",
         "status": "pending",
@@ -2851,10 +2880,12 @@
       "source": "src/Modules/Popups/Triggers/PageLoad.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:runner:run-popups"
+      ],
       "journey": {
         "id": "elemacy:journey:trigger:page_load",
-        "status": "pending",
+        "status": "implemented",
         "profiles": [
           "free-only",
           "free-pro"
@@ -2864,8 +2895,8 @@
           "Verify the authored output or interaction as a visitor.",
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
+        "reason": "Passed in the harden-popups-for-release gate (evidence/RELEASE-GATE.md).",
+        "follow_up": ""
       }
     },
     {
@@ -3235,6 +3266,11 @@
       "path": "tests/e2e/run-popup-assets.mjs"
     },
     {
+      "id": "elemacy:runner:run-topbar-prerender",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-topbar-prerender.mjs"
+    },
+    {
       "id": "elemacy:runner:run",
       "layer": "logic",
       "path": "tests/php/run.php"
@@ -3468,6 +3504,21 @@
       "id": "elemacy:integration:popup-display-defaults",
       "layer": "native-integration",
       "path": "tests/integration/popup-display-defaults.php"
+    },
+    {
+      "id": "elemacy:integration:popup-server-rendering",
+      "layer": "native-integration",
+      "path": "tests/integration/popup-server-rendering.php"
+    },
+    {
+      "id": "elemacy:integration:route-authorization",
+      "layer": "native-integration",
+      "path": "tests/integration/route-authorization.php"
+    },
+    {
+      "id": "elemacy:integration:popup-pro-delivery",
+      "layer": "native-integration",
+      "path": "tests/integration/popup-pro-delivery.php"
     },
     {
       "id": "elemacy:integration:cache-lifecycle",

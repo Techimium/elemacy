@@ -6,10 +6,12 @@ use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Tests\Integration\Fixtures\LibraryDocument;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
+use Elemacy\Tests\Integration\Fixtures\ThemePageRequest;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/ThemeLifecycleHarness.php';
+require_once __DIR__ . '/fixtures/ThemePageRequest.php';
 
 /**
  * Test double proving Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION lets
@@ -129,6 +131,25 @@ final class ThemeLifecycleTest extends IntegrationTestCase
         self::assertSame(0, substr_count($html, 'id="site-footer"'), "Hello's own default footer block must not render.");
         self::assertSame(1, $third_party_head, 'A third-party wp_head callback must still fire exactly once.');
         self::assertSame(1, $third_party_footer, 'A third-party wp_footer callback must still fire exactly once.');
+        $this->assertSingleDocumentShell($html);
+    }
+
+    public function testAHeaderWhoseWidgetThrowsNeitherFailsThePageNorLeavesItWithoutAnyHeader(): void
+    {
+        // A header whose widget throws renders no content. The page must still
+        // load, and it must show the theme's own header rather than ending up
+        // with the template's (empty) header and nothing else. Rendered in its
+        // own process so the theme's header.php loads as it does on a real request.
+        $id = $this->documents->create_everywhere('Elemacy throwing header', 'header', 'publish', [[
+            'id' => 'eac9401', 'elType' => 'widget', 'widgetType' => 'elemacy-fixture-throws', 'settings' => [], 'elements' => [],
+        ]]);
+        $this->owned[] = $id;
+
+        $html = ThemePageRequest::render('theme-generic-chrome', get_permalink($this->post_id))['html'];
+
+        self::assertStringContainsString('Theme lifecycle fixture content.', $html, 'The page still renders its content: ' . $html);
+        self::assertStringContainsString('Generic native header', $html, "A header that rendered nothing must not suppress the theme's own header: " . $html);
+        self::assertSame(1, substr_count($html, 'Generic native header'), "The theme's header appears once.");
         $this->assertSingleDocumentShell($html);
     }
 

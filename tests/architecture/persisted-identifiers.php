@@ -23,6 +23,22 @@ $returned = static fn(string $id, string $file): array => [
     'declaration' => "/return\\s+'" . preg_quote($id, '/') . "';/",
 ];
 
+$param = static fn(string $key, string $file): array => [
+    'id' => $key,
+    'file' => $file,
+    'declaration' => "/'key'\\s*=>\\s*'" . preg_quote($key, '/') . "'/",
+];
+$display_key = static fn(string $id, string $constant): array => [
+    'id' => $id,
+    'file' => 'src/Modules/Popups/Support/DisplayKeys.php',
+    'declaration' => '/const\\s+' . $constant . "\\s*=\\s*'" . preg_quote($id, '/') . "'/",
+];
+$option = static fn(string $value): array => [
+    'id' => $value,
+    'file' => 'src/Modules/Popups/Documents/PopupDocument.php',
+    'declaration' => "/'" . preg_quote($value, '/') . "'\\s*=>\\s*esc_html__\\(/",
+];
+
 return [
     // Module slugs (elemacy_active_modules).
     $returned('theme-builder', 'src/Modules/ThemeBuilder/ThemeBuilder.php'),
@@ -147,6 +163,90 @@ return [
     $returned('elemacy-product-short-description', 'src/Modules/DynamicTags/Tags/WooCommerce/ProductShortDescription.php'),
     $returned('elemacy-product-sku', 'src/Modules/DynamicTags/Tags/WooCommerce/ProductSku.php'),
     $returned('elemacy-product-stock', 'src/Modules/DynamicTags/Tags/WooCommerce/ProductStock.php'),
+
+    // Popup trigger and rule type ids (the `type` of every entry in
+    // _elemacy_popup_triggers / _elemacy_popup_rules). Free declares the working
+    // ones and the placeholders Pro replaces under the same id.
+    $returned('page_load', 'src/Modules/Popups/Triggers/PageLoad.php'),
+    $returned('click', 'src/Modules/Popups/Triggers/Click.php'),
+    $returned('scroll', 'src/Modules/Popups/Triggers/Mock/Scroll.php'),
+    $returned('exit_intent', 'src/Modules/Popups/Triggers/Mock/ExitIntent.php'),
+    $returned('inactivity', 'src/Modules/Popups/Triggers/Mock/Inactivity.php'),
+    $returned('scroll_to_element', 'src/Modules/Popups/Triggers/Mock/ScrollToElement.php'),
+    $returned('on_popup_close', 'src/Modules/Popups/Triggers/Mock/OnPopupClose.php'),
+    $returned('frequency_cap', 'src/Modules/Popups/Rules/FrequencyCap.php'),
+    $returned('logged_in', 'src/Modules/Popups/Rules/LoggedInUsers.php'),
+    $returned('once_per', 'src/Modules/Popups/Rules/Mock/OncePer.php'),
+    $returned('devices', 'src/Modules/Popups/Rules/Mock/Devices.php'),
+    $returned('schedule', 'src/Modules/Popups/Rules/Mock/Schedule.php'),
+    $returned('page_views', 'src/Modules/Popups/Rules/Mock/PageViews.php'),
+    $returned('sessions', 'src/Modules/Popups/Rules/Mock/Sessions.php'),
+    $returned('referrer', 'src/Modules/Popups/Rules/Mock/Referrer.php'),
+    $returned('browser', 'src/Modules/Popups/Rules/Mock/Browser.php'),
+    $returned('roles', 'src/Modules/Popups/Rules/Mock/Roles.php'),
+
+    // Their parameter keys (the keys of `params` in the same entries).
+    $param('delay', 'src/Modules/Popups/Triggers/PageLoad.php'),
+    $param('selector', 'src/Modules/Popups/Triggers/Click.php'),
+    $param('percentage', 'src/Modules/Popups/Triggers/Mock/Scroll.php'),
+    $param('delay', 'src/Modules/Popups/Triggers/Mock/Inactivity.php'),
+    $param('selector', 'src/Modules/Popups/Triggers/Mock/ScrollToElement.php'),
+    $param('popup_id', 'src/Modules/Popups/Triggers/Mock/OnPopupClose.php'),
+    $param('max', 'src/Modules/Popups/Rules/FrequencyCap.php'),
+    $param('period', 'src/Modules/Popups/Rules/Mock/OncePer.php'),
+    $param('allow', 'src/Modules/Popups/Rules/Mock/Devices.php'),
+    $param('start', 'src/Modules/Popups/Rules/Mock/Schedule.php'),
+    $param('end', 'src/Modules/Popups/Rules/Mock/Schedule.php'),
+    $param('count', 'src/Modules/Popups/Rules/Mock/PageViews.php'),
+    $param('count', 'src/Modules/Popups/Rules/Mock/Sessions.php'),
+    $param('url', 'src/Modules/Popups/Rules/Mock/Referrer.php'),
+    $param('browsers', 'src/Modules/Popups/Rules/Mock/Browser.php'),
+    $param('roles', 'src/Modules/Popups/Rules/Mock/Roles.php'),
+
+    // Popup document settings (Elementor stores these in the popup's page
+    // settings, without the defaults of controls an author never touched).
+    $display_key('elemacy_position', 'POSITION'),
+    $display_key('elemacy_sticky', 'STICKY'),
+    $display_key('elemacy_width', 'WIDTH'),
+    $display_key('elemacy_z_index', 'Z_INDEX'),
+    $display_key('elemacy_offset_x', 'OFFSET_X'),
+    $display_key('elemacy_offset_y', 'OFFSET_Y'),
+    $display_key('elemacy_overlay_color', 'OVERLAY_COLOR'),
+    $display_key('elemacy_overlay_opacity', 'OVERLAY_OPACITY'),
+    $display_key('elemacy_overlay_blur', 'OVERLAY_BLUR'),
+    $display_key('elemacy_animation_in', 'ANIMATION_IN'),
+    $display_key('elemacy_animation_out', 'ANIMATION_OUT'),
+    $display_key('elemacy_close_button', 'CLOSE_BUTTON'),
+    $display_key('elemacy_auto_close', 'AUTO_CLOSE'),
+    $display_key('elemacy_close_on_overlay', 'CLOSE_ON_OVERLAY'),
+    $display_key('elemacy_close_on_esc', 'CLOSE_ON_ESC'),
+    $display_key('elemacy_prevent_scroll', 'PREVENT_SCROLL'),
+    // Close button style controls, declared by name in PopupDocument.
+    ['id' => 'elemacy_close_size', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_font', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_offset', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_radius', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_border', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_box_shadow', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_color', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_bg', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_color_hover', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_bg_hover', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_border_color_hover', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_color_active', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_bg_active', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+    ['id' => 'elemacy_close_border_color_active', 'file' => 'src/Modules/Popups/Documents/PopupDocument.php'],
+
+    // Option values of those settings.
+    $option('center'), $option('top'), $option('bottom'), $option('top-left'), $option('top-right'),
+    $option('bottom-left'), $option('bottom-right'), $option('custom'),
+    $option('none'), $option('fade'), $option('slide-down'), $option('slide-up'),
+
+    // Browser storage keys the popup runtime writes in visitors' browsers.
+    // Free's engine builds each popup's key from this prefix (the popup id
+    // follows). Pro's visit-counter keys (elemacy_pageviews, elemacy_sessions,
+    // elemacy_session_counted) are pinned by Pro's own tests/php/run.php.
+    ['id' => 'elemacy_popup_', 'file' => 'src/Modules/Popups/Resources/PopupConfigResource.php'],
 
     // Stored post type, meta and option keys.
     ['id' => 'elemacy_library', 'file' => 'src/TemplateLibrary/LibraryPostType.php'],
