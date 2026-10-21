@@ -440,7 +440,7 @@ class LoopCarousel extends LoopWidget
         $this->end_controls_section();
     }
 
-    protected function render()
+    protected function render_loop(): void
     {
         $settings = $this->get_settings_for_display();
 

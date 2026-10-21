@@ -134,7 +134,7 @@ final class LoopContextTest extends IntegrationTestCase
         }
     }
 
-    public function testPartialEnterFailureReEntersTheEnclosingItemToRecoverItsState(): void
+    public function testPartialEnterFailureRestoresTheEnclosingItemsNativeState(): void
     {
         $template_id = $this->documents->create('Loop item template for partial-enter recovery', 'loop', 'publish');
         $outer_post = self::insertPost(['post_title' => 'Outer loop post']);
@@ -151,11 +151,12 @@ final class LoopContextTest extends IntegrationTestCase
                 // WordPressPostScope entirely) and throws before completing
                 // its own setup — reproducing a partial enter() from a
                 // legacy/hand-rolled LoopItemInterface implementation, not
-                // just a well-behaved one. LoopRenderer::render_item() is the
-                // fix design.md D8 assigns to this: on a failed enter(), it
-                // re-enters whatever item was already active (design.md D8's
-                // "cover partial failure during enter"), not merely relying
-                // on the failing item's own (here, absent) reversibility.
+                // just a well-behaved one. On a failed enter(),
+                // LoopRenderer::render_item() restores the native state it
+                // snapshotted just before (never re-entering the enclosing
+                // item, which would replace an ACF row's own cursor snapshot),
+                // not merely relying on the failing item's own (here, absent)
+                // reversibility.
                 $failing_item = new PartiallyFailingLoopItem(get_post($failing_post));
                 ob_start();
                 try {
@@ -166,7 +167,7 @@ final class LoopContextTest extends IntegrationTestCase
 
                 self::assertFalse($ok, 'A failing enter() must make render_item() report failure, not throw out to the caller.');
                 self::assertSame($outer_item, LoopContext::current(), 'The stack must unwind back to the outer item after a partial enter() failure.');
-                self::assertSame($outer_snapshot, self::snapshotPostGlobals(), 'A partial enter() failure must not leave global $post (or any other native global) mutated toward the failing item\'s post — LoopRenderer must re-enter the enclosing item to recover it.');
+                self::assertSame($outer_snapshot, self::snapshotPostGlobals(), 'A partial enter() failure must not leave global $post (or any other native global) mutated toward the failing item\'s post — LoopRenderer must restore the state from before the failed enter().');
             } finally {
                 $outer_item->exit();
                 LoopContext::pop();

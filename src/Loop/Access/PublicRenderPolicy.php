@@ -9,6 +9,7 @@ use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\LoopQueryDispatcher;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
@@ -137,7 +138,7 @@ final class PublicRenderPolicy
     }
 
     /**
-     * The public-facing equivalent of $source->get_items($settings) for a
+     * The public-facing equivalent of a source's own items query for a
      * Grid/Carousel widget's own classic, non-AJAX render: applies the
      * identical template and source eligibility policy the AJAX endpoint
      * enforces, so a rejected private template/source cannot appear on the
@@ -157,7 +158,7 @@ final class PublicRenderPolicy
         $placement = $this->placements->resolve_current($owner_id);
         $item_settings = $this->settings($source, $settings, $placement['facts'] ?? [], $page);
 
-        return $source->get_items($item_settings);
+        return LoopQueryDispatcher::items($source, $item_settings, $page);
     }
 
     /**

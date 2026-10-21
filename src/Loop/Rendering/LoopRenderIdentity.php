@@ -10,8 +10,9 @@ use Elemacy\Loop\Support\LoopItemIdentity;
  * The full presentation identity of one rendered loop item — everything names
  * as distinguishing one occurrence from another: placement/widget instance,
  * template, source namespace, item identity, occurrence (this item repeating
- * within one render), and AJAX batch context. See docs/ARCHITECTURE.md §
- * Rationale digest.
+ * within one render), AJAX batch context, and the enclosing loop item's own
+ * render key, so the same inner widget under two parent items never shares a
+ * scope. See docs/ARCHITECTURE.md § Rationale digest.
  */
 final class LoopRenderIdentity
 {
@@ -21,8 +22,9 @@ final class LoopRenderIdentity
     private string $item;
     private int $occurrence;
     private string $batch;
+    private string $parent;
 
-    public function __construct(string $placement, string $template, string $source, string $item, int $occurrence = 0, string $batch = '')
+    public function __construct(string $placement, string $template, string $source, string $item, int $occurrence = 0, string $batch = '', string $parent = '')
     {
         $this->placement = $placement;
         $this->template = $template;
@@ -30,6 +32,7 @@ final class LoopRenderIdentity
         $this->item = $item;
         $this->occurrence = $occurrence;
         $this->batch = $batch;
+        $this->parent = $parent;
     }
 
     /**
@@ -44,6 +47,7 @@ final class LoopRenderIdentity
             $this->source,
             (string) $this->occurrence,
             $this->batch,
+            $this->parent,
         ])), 0, 12);
 
         return LoopItemIdentity::sanitize($this->item) . '-' . $scope;

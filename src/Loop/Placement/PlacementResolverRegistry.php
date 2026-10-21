@@ -47,7 +47,9 @@ final class PlacementResolverRegistry
         foreach ($this->resolvers as $key => $resolver) {
             $facts = $resolver->resolve($owner_id);
             if (null !== $facts) {
-                unset($facts[HostFacts::POST_ID], $facts[HostFacts::TERM_ID]);
+                foreach (HostFacts::NAMES as $name) {
+                    unset($facts[$name]);
+                }
 
                 return [
                     'type' => $key,

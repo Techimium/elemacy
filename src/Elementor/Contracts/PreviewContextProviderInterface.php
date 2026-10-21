@@ -24,4 +24,10 @@ interface PreviewContextProviderInterface
      * @return void
      */
     public function leave($context): void;
+
+    /**
+     * Whether a real item (or an item this provider entered) is rendering
+     * right now, so the document's own preview must not replace its context.
+     */
+    public function is_inside_item(): bool;
 }

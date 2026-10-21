@@ -568,6 +568,10 @@
             }
         },
         "elemacy_loop": {
+            "acf_repeater_preview_path": {
+                "type": "select",
+                "default": ""
+            },
             "options_page_id": {
                 "type": "select",
                 "default": ""

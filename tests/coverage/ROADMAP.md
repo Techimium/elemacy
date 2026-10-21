@@ -157,6 +157,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-loop-pagination` | native-browser | `tests/e2e/run-loop-pagination.mjs` |
 | `elemacy:runner:run-nav-menu-parity` | native-browser | `tests/e2e/run-nav-menu-parity.mjs` |
 | `elemacy:runner:run-nav-menu` | native-browser | `tests/e2e/run-nav-menu.mjs` |
+| `elemacy:runner:run-nested-repeater-load-more` | native-browser | `tests/e2e/run-nested-repeater-load-more.mjs` |
 | `elemacy:runner:run-popup-assets` | native-browser | `tests/e2e/run-popup-assets.mjs` |
 | `elemacy:runner:run-topbar-prerender` | native-browser | `tests/e2e/run-topbar-prerender.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
@@ -184,6 +185,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:loop-pagination-phase1-closeout` | native-integration | `tests/integration/loop-pagination-phase1-closeout.php` |
 | `elemacy:integration:loop-context` | native-integration | `tests/integration/loop-context.php` |
 | `elemacy:integration:loop-renderer` | native-integration | `tests/integration/loop-renderer.php` |
+| `elemacy:integration:loop-addresses` | native-integration | `tests/integration/loop-addresses.php` |
 | `elemacy:integration:loop-host-context` | native-integration | `tests/integration/loop-host-context.php` |
 | `elemacy:integration:loop-control-defaults` | native-integration | `tests/integration/loop-control-defaults.php` |
 | `elemacy:integration:loop-base-css-file-fallback` | native-integration | `tests/integration/loop-base-css-file-fallback.php` |
@@ -194,6 +196,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:placement-resolvers` | native-integration | `tests/integration/placement-resolvers.php` |
 | `elemacy:integration:acf-repeater-public-policy` | native-integration | `tests/integration/acf-repeater-public-policy.php` |
 | `elemacy:integration:acf-repeater-query-pagination` | native-integration | `tests/integration/acf-repeater-query-pagination.php` |
+| `elemacy:integration:nested-loops` | native-integration | `tests/integration/nested-loops.php` |
 | `elemacy:integration:template-precedence` | native-integration | `tests/integration/template-precedence.php` |
 | `elemacy:integration:theme-lifecycle` | native-integration | `tests/integration/theme-lifecycle.php` |
 | `elemacy:integration:native-chrome-replacement` | native-integration | `tests/integration/native-chrome-replacement.php` |

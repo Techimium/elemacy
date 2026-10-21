@@ -4,6 +4,8 @@ namespace Elemacy\Loop\Rendering;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Loop\Support\LoopLimits;
+
 /**
  * Refuses an *active* recursive template cycle — direct or indirect — and caps
  * nesting depth, without refusing a repeated template across sequential (non-
@@ -11,7 +13,7 @@ defined('ABSPATH') || exit;
  */
 final class TemplateRecursionGuard
 {
-    public const MAX_DEPTH = 10;
+    public const MAX_DEPTH = LoopLimits::MAX_DEPTH;
 
     /** @var int[] Outermost first; the last entry is the template rendering right now. */
     private static array $stack = [];

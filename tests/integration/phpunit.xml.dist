@@ -28,6 +28,7 @@
             <file>loop-pagination-phase1-closeout.php</file>
             <file>loop-context.php</file>
             <file>loop-renderer.php</file>
+            <file>loop-addresses.php</file>
             <file>loop-host-context.php</file>
             <file>loop-control-defaults.php</file>
             <file>loop-base-css-file-fallback.php</file>
@@ -38,6 +39,7 @@
             <file>placement-resolvers.php</file>
             <file>acf-repeater-public-policy.php</file>
             <file>acf-repeater-query-pagination.php</file>
+            <file>nested-loops.php</file>
             <file>template-precedence.php</file>
             <file>theme-lifecycle.php</file>
             <file>native-chrome-replacement.php</file>

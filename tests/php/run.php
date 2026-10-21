@@ -5419,13 +5419,13 @@ final class TrackedPreviewLoopItem implements LoopItemInterface
     }
 }
 
-check('LoopItemPreviewContextProvider::enter() pushes the item onto LoopContext and calls its own enter(), returning the item as the opaque token', static function () {
+check('LoopItemPreviewContextProvider::enter() pushes the item onto LoopContext and calls its own enter(), returning the entered items as the opaque token', static function () {
     $item = new TrackedPreviewLoopItem();
     $provider = new \Elemacy\Loop\Preview\LoopItemPreviewContextProvider();
 
     $token = $provider->enter($item);
 
-    $result = $token === $item && $item->enter_calls === 1 && LoopContext::current() === $item;
+    $result = $token === [$item] && $item->enter_calls === 1 && LoopContext::current() === $item && $provider->is_inside_item();
 
     // Clean up regardless of the assertion above, so a failure here doesn't
     // leave a stale item on the shared stack for every later test.
@@ -5453,6 +5453,11 @@ check('PreviewManager stores an injected PreviewContextProviderInterface instead
 
         public function leave($context): void
         {
+        }
+
+        public function is_inside_item(): bool
+        {
+            return false;
         }
     };
 
@@ -6633,5 +6638,6 @@ require __DIR__ . '/nav-menu-breakpoints.php';
 require __DIR__ . '/theme-builder.php';
 require __DIR__ . '/popup-markup.php';
 require __DIR__ . '/forms.php';
+require __DIR__ . '/nested-loops.php';
 
 conclude();

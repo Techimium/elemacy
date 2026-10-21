@@ -5,7 +5,9 @@ namespace Elemacy\Loop\Access;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Address\ItemAddress;
 use Elemacy\Loop\Placement\HostFacts;
+use Elemacy\Loop\Support\LoopLimits;
 use JsonException;
 
 /**
@@ -74,10 +76,25 @@ final class PaginationContextSigner
         $host = (int) ($claims['host_id'] ?? 0);
         $lineage = $claims['type'] === 'nested_loop' ? ($claims['facts']['lineage'] ?? []) : [];
         if (
-            !is_array($lineage) || count($lineage) > 10
+            !is_array($lineage) || count($lineage) > LoopLimits::MAX_DEPTH
             || ($claims['type'] === 'nested_loop' && (!$lineage || end($lineage) !== $owner_id))
         ) {
             throw self::unavailable();
+        }
+        // A parent chain only exists inside a nested loop, one item per
+        // template in the lineage; the controller rebuilds and re-checks it.
+        if (array_key_exists(HostFacts::PARENT, $claims['facts'])) {
+            $parent = $claims['facts'][HostFacts::PARENT];
+            $address = is_string($parent) ? ItemAddress::from_canonical($parent) : null;
+            if (
+                'nested_loop' !== $claims['type']
+                || null === $address || !$address->is_rebuildable()
+                || $address->depth() !== count($lineage)
+                || !is_string($claims['facts'][HostFacts::PARENT_FP] ?? null)
+                || !is_string($claims['facts'][HostFacts::PARENT_RENDER] ?? null)
+            ) {
+                throw self::unavailable();
+            }
         }
         // The host facts were public when signed; anything that stopped being
         // public since then must not be served from a still-valid token.

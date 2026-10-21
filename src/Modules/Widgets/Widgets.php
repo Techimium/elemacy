@@ -22,6 +22,10 @@ use Elemacy\Modules\Widgets\Forms\ElementorFormSource;
 use Elemacy\Modules\Widgets\Services\EditorAssets;
 use Elemacy\Modules\Widgets\Services\FrontendAssets;
 use Elemacy\Modules\Widgets\Services\WidgetManager;
+use Elemacy\Loop\Address\AddressStepResolverRegistry;
+use Elemacy\Loop\Address\Resolvers\PostStepResolver;
+use Elemacy\Loop\Address\Resolvers\TermStepResolver;
+use Elemacy\Loop\Address\Resolvers\UserStepResolver;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Placement\NestedLoopPlacementResolver;
 use Elemacy\Loop\Placement\PagePlacementResolver;
@@ -73,6 +77,7 @@ class Widgets extends Module
         $this->register_types();
         $this->register_data_sources();
         $this->register_placement_resolvers();
+        $this->register_address_step_resolvers();
         $this->register_form_source();
         require_once Utils::get_plugin_path('src/Modules/Widgets/Config/ajax.php');
     }
@@ -122,6 +127,24 @@ class Widgets extends Module
             $registry->register(new NestedLoopPlacementResolver());
 
             do_action(Hooks::LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION, $registry);
+        }, 99);
+    }
+
+    /**
+     * The resolvers that rebuild the built-in loop items (posts, terms, users)
+     * from a signed address, so a later page of a loop nested inside one of
+     * them renders inside its real parent.
+     */
+    protected function register_address_step_resolvers(): void
+    {
+        add_action('init', static function () {
+            $registry = AddressStepResolverRegistry::instance();
+
+            $registry->register(new PostStepResolver());
+            $registry->register(new TermStepResolver());
+            $registry->register(new UserStepResolver());
+
+            do_action(Hooks::LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION, $registry);
         }, 99);
     }
 

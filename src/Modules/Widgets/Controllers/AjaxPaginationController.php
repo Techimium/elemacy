@@ -6,11 +6,14 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Http\SiteRequest as Request;
 use Elemacy\Loop\Access\PaginationContextSigner;
+use Elemacy\Loop\Access\SignedParentChain;
+use Elemacy\Loop\Address\ItemAddressResolver;
 use Elemacy\Loop\Pagination\PaginationRenderer;
 use Elemacy\Loop\Access\PublicRenderPolicy;
 use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Loop\Access\PublicLoopRequest;
+use Elemacy\Loop\LoopQueryDispatcher;
 
 /**
  * Resolves request → authored definition → policy → source query → render,
@@ -67,34 +70,44 @@ class AjaxPaginationController
         }
 
         $source = $policy->endpoint_source($definition->source_key());
-        $item_settings = $policy->settings($source, $definition->settings(), $context, $public_request->page());
 
-        $result = $source->get_items($item_settings);
+        // A nested loop's later page runs inside the same loop items its
+        // first page did, rebuilt from the signed context and checked again,
+        // before its policy, query or render sees anything.
+        $chain = SignedParentChain::enter($context, new ItemAddressResolver());
 
-        if (empty($result->items)) {
-            wp_send_json_error(esc_html__('No items found.', 'elemacy'));
+        try {
+            $item_settings = $policy->settings($source, $definition->settings(), $context, $public_request->page());
+
+            $result = LoopQueryDispatcher::items($source, $item_settings, $public_request->page());
+
+            if (empty($result->items)) {
+                wp_send_json_error(esc_html__('No items found.', 'elemacy'));
+            }
+
+            $template_id = $definition->template_id();
+            $placement = $definition->owner_id() . '-' . $definition->widget_id();
+            $batch = (string) $public_request->page();
+
+            ob_start();
+            foreach ($result->items as $occurrence => $item) {
+                $this->renderer->render_item($template_id, $item, $placement, $definition->source_key(), $occurrence, $batch);
+            }
+            $items_html = ob_get_clean();
+
+            // Pagination HTML, using the widget's own saved display settings —
+            // never request-supplied except for the cosmetic URL base below.
+            $pagination_settings = $definition->settings();
+
+            ob_start();
+            if (!empty($pagination_settings['pagination_type']) && $result->max_num_pages > 1) {
+                $pagination_settings['paginate_base'] = $request->get_string('paginate_base', '');
+                $this->pagination_renderer->render($pagination_settings, $result->max_num_pages, $public_request->page());
+            }
+            $pagination_html = ob_get_clean();
+        } finally {
+            $chain->leave();
         }
-
-        $template_id = $definition->template_id();
-        $placement = $definition->owner_id() . '-' . $definition->widget_id();
-        $batch = (string) $public_request->page();
-
-        ob_start();
-        foreach ($result->items as $occurrence => $item) {
-            $this->renderer->render_item($template_id, $item, $placement, $definition->source_key(), $occurrence, $batch);
-        }
-        $items_html = ob_get_clean();
-
-        // Pagination HTML, using the widget's own saved display settings —
-        // never request-supplied except for the cosmetic URL base below.
-        $pagination_settings = $definition->settings();
-
-        ob_start();
-        if (!empty($pagination_settings['pagination_type']) && $result->max_num_pages > 1) {
-            $pagination_settings['paginate_base'] = $request->get_string('paginate_base', '');
-            $this->pagination_renderer->render($pagination_settings, $result->max_num_pages, $public_request->page());
-        }
-        $pagination_html = ob_get_clean();
 
         // The server alone decides what comes next (offsets and the page cap
         // included), so the browser never derives it from markup or URLs.

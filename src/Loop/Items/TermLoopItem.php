@@ -4,21 +4,26 @@ namespace Elemacy\Loop\Items;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Integrations\Acf\AcfCursor;
 use Elemacy\Integrations\Acf\AcfFieldReader;
 use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
+use Elemacy\Loop\Address\AddressStep;
+use Elemacy\Loop\Contracts\AddressableItemInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\NativeTermItemInterface;
 use Elemacy\Loop\Support\LoopItemIdentity;
 use WP_Term;
 
 /**
- * A loop item backed by a WP_Term. enter/exit are no-ops — there is no native
- * "current term in a content loop" WordPress global comparable to
+ * A loop item backed by a WP_Term. enter/exit set no WordPress global — there
+ * is no native "current term in a content loop" comparable to
  * setup_postdata()/$post that any existing dynamic tag or third-party widget
- * could already depend on.
+ * could already depend on. They only hide an enclosing ACF row.
  */
-class TermLoopItem implements LoopItemInterface, NativeTermItemInterface
+class TermLoopItem implements LoopItemInterface, NativeTermItemInterface, AddressableItemInterface
 {
+    private ?AcfCursor $acf_rows = null;
+
     protected WP_Term $term;
     protected FieldReaderInterface $acf;
 
@@ -46,12 +51,29 @@ class TermLoopItem implements LoopItemInterface, NativeTermItemInterface
         return $this->term;
     }
 
+    public function get_address_step(): AddressStep
+    {
+        return new AddressStep('term', (string) $this->term->term_id);
+    }
+
+    /** Hides any enclosing ACF row while entered, so a same-named sub-field never answers for this term. */
     public function enter(): void
     {
+        $this->acf_rows()->isolate();
     }
 
     public function exit(): void
     {
+        $this->acf_rows()->exit();
+    }
+
+    private function acf_rows(): AcfCursor
+    {
+        if (null === $this->acf_rows) {
+            $this->acf_rows = new AcfCursor();
+        }
+
+        return $this->acf_rows;
     }
 
     /**

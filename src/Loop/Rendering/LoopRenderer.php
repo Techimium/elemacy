@@ -5,6 +5,8 @@ namespace Elemacy\Loop\Rendering;
 defined('ABSPATH') || exit;
 
 use Elemacy\Elementor\Rendering\TemplateRenderer;
+use Elemacy\Integrations\Acf\AcfCursor;
+use Elemacy\Loop\Items\WordPressPostScope;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
 use Throwable;
@@ -44,44 +46,56 @@ final class LoopRenderer
             return false;
         }
 
-        $identity = new LoopRenderIdentity($placement, (string) $template_id, $source, $item->get_identity(), $occurrence, $batch);
+        $parent = LoopContext::current_frame();
+        $identity = new LoopRenderIdentity(
+            $placement,
+            (string) $template_id,
+            $source,
+            $item->get_identity(),
+            $occurrence,
+            $batch,
+            $parent ? $parent->render_key() : ''
+        );
 
         try {
-            return $this->render_entered_item($template_id, $item, $identity);
+            return $this->render_entered_item($template_id, $item, $identity, $source, $occurrence);
         } finally {
             TemplateRecursionGuard::exit();
         }
     }
 
-    private function render_entered_item(int $template_id, LoopItemInterface $item, LoopRenderIdentity $identity): bool
+    private function render_entered_item(int $template_id, LoopItemInterface $item, LoopRenderIdentity $identity, string $source, int $occurrence): bool
     {
         $this->styles->print_base_css($template_id);
 
-        // Whichever item (if any) is already active when this one is
-        // entered — captured before push() so a failed enter() below can
-        // ask it to re-establish its own native scope, since its partial
-        // setup may have disturbed it ("cover partial
-        // failure during enter").
-        $outer = LoopContext::current();
-        $ok = true;
+        $ok = false;
 
         ob_start();
 
-        LoopContext::push($item);
+        // The frame is pushed before enter(), and carries the item's address
+        // (the enclosing frame's address plus its own step), so everything
+        // inside — a nested loop, a dynamic tag, a later-page token — sees the
+        // full chain.
+        LoopContext::push($item, $source, $template_id, $occurrence, $identity->key());
         LoopRenderContext::push($identity);
 
         try {
             $entered = false;
 
+            // An item whose enter() throws is skipped. Whatever native state
+            // it changed before failing is put back from a snapshot; the
+            // enclosing item is never re-entered, since that would replace its
+            // native scope (an ACF row's cursor snapshot) instead of restoring it.
+            $posts = WordPressPostScope::snapshot();
+            $acf_rows = AcfCursor::snapshot();
+
             try {
                 $item->enter();
                 $entered = true;
             } catch (Throwable $e) {
-                $ok = false;
-
-                if ($outer) {
-                    $outer->enter();
-                }
+                $entered = false;
+                WordPressPostScope::restore_snapshot($posts);
+                AcfCursor::restore($acf_rows);
             }
 
             if ($entered) {

@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
 
 class AcfColor extends Tag
 {
+    use LoopLevelControl;
+
     public function get_name()
     {
         return 'elemacy-acf-color';
@@ -46,7 +48,7 @@ class AcfColor extends Tag
             return;
         }
 
-        $value = (new AcfFieldReader())->get_field_value((string) $key);
+        $value = $this->read_at_loop_level(fn() => (new AcfFieldReader())->get_field_value((string) $key));
 
         if (is_string($value) || is_numeric($value)) {
             echo wp_kses_post($value);
@@ -66,6 +68,8 @@ class AcfColor extends Tag
                 ],
             ]
         );
+
+        $this->register_loop_level_control();
     }
 
     public function get_supported_fields()

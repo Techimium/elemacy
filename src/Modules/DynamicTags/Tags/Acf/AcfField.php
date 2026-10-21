@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
 
 class AcfField extends Tag
 {
+    use LoopLevelControl;
+
     public function get_name()
     {
         return 'elemacy-acf-field';
@@ -50,6 +52,8 @@ class AcfField extends Tag
                 ],
             ]
         );
+
+        $this->register_loop_level_control();
     }
 
     public function get_panel_template_setting_key()
@@ -65,7 +69,7 @@ class AcfField extends Tag
             return;
         }
 
-        $value = (new AcfFieldReader())->get_field_value((string) $key);
+        $value = $this->read_at_loop_level(fn() => (new AcfFieldReader())->get_field_value((string) $key));
 
         if (is_string($value) || is_numeric($value)) {
             echo wp_kses_post($value);

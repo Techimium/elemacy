@@ -3,7 +3,7 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Http\Exceptions\ValidationException;
-use Elemacy\Integrations\Acf\AcfRowScope;
+use Elemacy\Integrations\Acf\AcfCursor;
 use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterPolicy;
 use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterQuery;
 
@@ -179,13 +179,13 @@ final class AcfRepeaterQueryPaginationTest extends IntegrationTestCase
             $query = new AcfRepeaterQuery();
             $settings = ['repeater_field' => $child, 'source_type' => 'specific_post', 'specific_post_id' => $this->post_id, 'rows_number' => 0, 'rows_offset' => 0];
 
-            $cursor = AcfRowScope::snapshot();
+            $cursor = AcfCursor::snapshot();
             try {
                 self::assertTrue(have_rows($parent, $this->post_id));
                 the_row();
                 $inside_parent_row = $query->get_items($settings);
             } finally {
-                AcfRowScope::restore($cursor);
+                AcfCursor::restore($cursor);
             }
 
             self::assertSame([], $inside_parent_row->items, 'The editor must not list a sub-repeater\'s rows.');

@@ -89,6 +89,12 @@ final class Hooks
     // register their own (passes the PlacementResolverRegistry).
     public const LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION = 'elemacy/action/loop/placement_resolvers/register';
 
+    // Fired after the Widgets module registers its built-in loop item address
+    // step resolvers (post, term, user), so add-ons that produce another kind
+    // of loop item can make it rebuildable for nested later pages (passes the
+    // AddressStepResolverRegistry).
+    public const LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION = 'elemacy/action/loop/address_step_resolvers/register';
+
     // Fired after free registers its elemacy_query picker resolvers, so add-ons
     // can register their own kind of live-search picker (passes the
     // QueryResolverRegistry). Runs on the first picker search, never earlier.

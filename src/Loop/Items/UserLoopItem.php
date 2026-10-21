@@ -4,21 +4,27 @@ namespace Elemacy\Loop\Items;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Integrations\Acf\AcfCursor;
+use Elemacy\Loop\Address\AddressStep;
+use Elemacy\Loop\Contracts\AddressableItemInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\NativeUserItemInterface;
 use Elemacy\Loop\Support\LoopItemIdentity;
 use WP_User;
 
 /**
- * A loop item backed by a WP_User. enter/exit are no-ops — there is no native
+ * A loop item backed by a WP_User. enter/exit set no WordPress global (they
+ * only hide an enclosing ACF row) — there is no native
  * "current user in a content loop" WordPress global comparable to
  * setup_postdata()/$post that any existing dynamic tag or third-party widget
  * could already depend on, and wp_set_current_user() is explicitly ruled out
  * here since it would change current_user_can() results for the rest of the
  * request.
  */
-class UserLoopItem implements LoopItemInterface, NativeUserItemInterface
+class UserLoopItem implements LoopItemInterface, NativeUserItemInterface, AddressableItemInterface
 {
+    private ?AcfCursor $acf_rows = null;
+
     protected WP_User $user;
 
     public function __construct(WP_User $user)
@@ -44,12 +50,29 @@ class UserLoopItem implements LoopItemInterface, NativeUserItemInterface
         return $this->user;
     }
 
+    public function get_address_step(): AddressStep
+    {
+        return new AddressStep('user', (string) $this->user->ID);
+    }
+
+    /** Hides any enclosing ACF row while entered, so a same-named sub-field never answers for this user. */
     public function enter(): void
     {
+        $this->acf_rows()->isolate();
     }
 
     public function exit(): void
     {
+        $this->acf_rows()->exit();
+    }
+
+    private function acf_rows(): AcfCursor
+    {
+        if (null === $this->acf_rows) {
+            $this->acf_rows = new AcfCursor();
+        }
+
+        return $this->acf_rows;
     }
 
     /**

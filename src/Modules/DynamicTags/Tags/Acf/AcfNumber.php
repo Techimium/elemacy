@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 
 class AcfNumber extends Tag
 {
+    use LoopLevelControl;
+
     public function get_name()
     {
         return 'elemacy-acf-number';
@@ -38,7 +40,7 @@ class AcfNumber extends Tag
 
     public function render()
     {
-        $value = (new AcfFieldReader())->get_field_value((string) $this->get_settings('key'));
+        $value = $this->read_at_loop_level(fn() => (new AcfFieldReader())->get_field_value((string) $this->get_settings('key')));
 
         echo wp_kses_post($value);
     }
@@ -61,6 +63,8 @@ class AcfNumber extends Tag
                 ],
             ]
         );
+
+        $this->register_loop_level_control();
     }
 
     public function get_supported_fields()

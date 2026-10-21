@@ -36,6 +36,25 @@ final class WordPressPostScope
         $this->snapshot = null;
     }
 
+    /**
+     * Every native "current post" global as it is now, for restoring after
+     * an item's enter() failed partway (see LoopRenderer).
+     *
+     * @return array<string,mixed>
+     */
+    public static function snapshot(): array
+    {
+        return self::capture();
+    }
+
+    /**
+     * @param array<string,mixed> $snapshot What snapshot() returned.
+     */
+    public static function restore_snapshot(array $snapshot): void
+    {
+        self::restore($snapshot);
+    }
+
     /** @return array<string,mixed> */
     private static function capture(): array
     {

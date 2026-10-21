@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 
 class AcfUrl extends Data_Tag
 {
+    use LoopLevelControl;
+
     public function get_name()
     {
         return 'elemacy-acf-url';
@@ -39,7 +41,7 @@ class AcfUrl extends Data_Tag
 
     public function get_value(array $options = [])
     {
-        $value = (new AcfFieldReader())->get_field_value((string) $this->get_settings('key'));
+        $value = $this->read_at_loop_level(fn() => (new AcfFieldReader())->get_field_value((string) $this->get_settings('key')));
 
         if (empty($value) && $this->get_settings('fallback')) {
             $value = $this->get_settings('fallback');
@@ -68,6 +70,8 @@ class AcfUrl extends Data_Tag
                 'label' => esc_html__('Fallback', 'elemacy'),
             ]
         );
+
+        $this->register_loop_level_control();
     }
 
     public function get_supported_fields()

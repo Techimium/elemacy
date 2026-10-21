@@ -67,7 +67,40 @@ class PreviewManager
 
     public function before_tags_render(): void
     {
-        $this->tags_context = $this->enter_preview((int) get_the_ID());
+        // Inside a loop item the tag reads that item; the document's own
+        // preview only stands in where no item is rendering.
+        $this->tags_context = $this->loop_provider->is_inside_item()
+            ? ['kind' => '']
+            : $this->enter_preview((int) get_the_ID());
+    }
+
+    /**
+     * Runs $render inside the edited document's preview item, so a loop widget
+     * placed in a Loop Item template (or re-rendered alone after a setting
+     * change) renders as it would nested inside that item on the page.
+     * Outside a previewable document, or inside a real item, $render runs as is.
+     *
+     * @param int      $document_post_id The document being edited.
+     * @param callable $render
+     */
+    public function within_preview_item(int $document_post_id, callable $render): void
+    {
+        $document = $this->loop_provider->is_inside_item() ? null : $this->previewable_document($document_post_id);
+        $item = $document ? $document->get_preview_item() : null;
+
+        if (!$item) {
+            $render();
+
+            return;
+        }
+
+        $context = $this->loop_provider->enter($item);
+
+        try {
+            $render();
+        } finally {
+            $this->loop_provider->leave($context);
+        }
     }
 
     public function after_tags_render(): void

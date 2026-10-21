@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PlacementResolverInterface;
 use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
+use Elemacy\Loop\Support\LoopLimits;
 
 /**
  * A Loop Grid widget authored inside a loop item template — the owner is the
@@ -13,7 +14,7 @@ use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
  */
 final class NestedLoopPlacementResolver implements PlacementResolverInterface
 {
-    public const MAX_DEPTH = 10;
+    public const MAX_DEPTH = LoopLimits::MAX_DEPTH;
 
     public function get_key(): string
     {

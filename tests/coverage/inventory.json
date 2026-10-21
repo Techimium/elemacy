@@ -757,7 +757,8 @@
         "elemacy:runner:run-loop-load-more",
         "elemacy:runner:run-loop-load-more-editor",
         "elemacy:integration:loop-host-context",
-        "elemacy:integration:loop-control-defaults"
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-addresses"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:posts",
@@ -822,7 +823,8 @@
         "elemacy:runner:run-loop-load-more",
         "elemacy:runner:run-loop-load-more-editor",
         "elemacy:integration:loop-host-context",
-        "elemacy:integration:loop-control-defaults"
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-addresses"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:terms",
@@ -853,7 +855,8 @@
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
         "elemacy:runner:run-loop-load-more-editor",
-        "elemacy:integration:loop-control-defaults"
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-addresses"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:users",
@@ -1424,7 +1427,9 @@
       "prerequisites": [
         "acf"
       ],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:nested-loops"
+      ],
       "journey": {
         "id": "elemacy:journey:tag:elemacy-acf-field",
         "status": "pending",
@@ -2811,7 +2816,9 @@
       "prerequisites": [],
       "coverage": [
         "elemacy:integration:query-pickers",
-        "elemacy:integration:loop-control-defaults"
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:nested-loops",
+        "elemacy:runner:run-nested-repeater-load-more"
       ],
       "journey": {
         "id": "elemacy:journey:template:loop",
@@ -3232,7 +3239,10 @@
         "elemacy:runner:run-loop-load-more",
         "elemacy:runner:run-loop-load-more-editor",
         "elemacy:integration:loop-host-context",
-        "elemacy:integration:loop-control-defaults"
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-addresses",
+        "elemacy:integration:nested-loops",
+        "elemacy:runner:run-nested-repeater-load-more"
       ],
       "journey": {
         "id": "elemacy:journey:widget:elemacy-loop-grid",
@@ -3403,6 +3413,11 @@
       "path": "tests/e2e/run-nav-menu.mjs"
     },
     {
+      "id": "elemacy:runner:run-nested-repeater-load-more",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-nested-repeater-load-more.mjs"
+    },
+    {
       "id": "elemacy:runner:run-popup-assets",
       "layer": "native-browser",
       "path": "tests/e2e/run-popup-assets.mjs"
@@ -3538,6 +3553,11 @@
       "path": "tests/integration/loop-renderer.php"
     },
     {
+      "id": "elemacy:integration:loop-addresses",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-addresses.php"
+    },
+    {
       "id": "elemacy:integration:loop-host-context",
       "layer": "native-integration",
       "path": "tests/integration/loop-host-context.php"
@@ -3586,6 +3606,11 @@
       "id": "elemacy:integration:acf-repeater-query-pagination",
       "layer": "native-integration",
       "path": "tests/integration/acf-repeater-query-pagination.php"
+    },
+    {
+      "id": "elemacy:integration:nested-loops",
+      "layer": "native-integration",
+      "path": "tests/integration/nested-loops.php"
     },
     {
       "id": "elemacy:integration:template-precedence",

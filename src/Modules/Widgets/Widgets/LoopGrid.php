@@ -481,7 +481,7 @@ class LoopGrid extends LoopWidget
         $this->end_controls_section();
     }
 
-    protected function render()
+    protected function render_loop(): void
     {
         $settings = $this->get_settings_for_display();
 
@@ -515,7 +515,7 @@ class LoopGrid extends LoopWidget
             $wrapper_classes .= ' elemacy-ajax-pagination';
             $wrapper_attrs .= $source instanceof PageUrlPaginatedSourceInterface
                 ? $this->page_url_attrs()
-                : $this->ajax_request_attrs();
+                : $this->ajax_request_attrs($result->max_num_pages > 1);
             $wrapper_attrs .= $this->pagination_style_attrs($settings);
         }
 
@@ -596,16 +596,20 @@ class LoopGrid extends LoopWidget
      * identity and definition revision, resolved and signed the same way
      * PublishedLoopDefinitionResolver/PaginationContextSigner verify them,
      * plus an independently-verified host-context token when a contributed
-     * placement resolver recognizes the current request.
+     * placement resolver recognizes the current request. A loop with no next
+     * page never makes a request, so it carries no signed context (inside a
+     * repeater row that token would otherwise repeat once per row).
+     *
+     * @param bool $has_next_page
      */
-    private function ajax_request_attrs(): string
+    private function ajax_request_attrs(bool $has_next_page = true): string
     {
         try {
             $policy = Container::instance()->singleton(PublicRenderPolicy::class);
             $definition = Container::instance()->singleton(PublishedLoopDefinitionResolver::class)->find($this->current_owner_id(), $this->get_id());
 
             $context = '';
-            $placement = PlacementResolverRegistry::instance()->resolve_current($definition->owner_id());
+            $placement = $has_next_page ? PlacementResolverRegistry::instance()->resolve_current($definition->owner_id()) : null;
             if (null !== $placement) {
                 $context = Container::instance()->singleton(PaginationContextSigner::class)->sign(
                     $definition->owner_id(),

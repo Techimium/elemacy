@@ -3,11 +3,15 @@
 namespace Elemacy\Modules\Widgets\Widgets;
 
 use Elemacy\Core\Container;
+use Elemacy\Elementor\Preview\PreviewManager;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
+use Elemacy\Loop\LoopContext;
 use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\LoopQueryDispatcher;
 use Elemacy\Loop\Access\PublicRenderPolicy;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Support\LoopLimits;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elementor\Controls_Manager;
@@ -33,6 +37,13 @@ abstract class LoopWidget extends BaseWidget
      * @var string|null
      */
     private ?string $ineligibility_notice = null;
+
+    /**
+     * The source's own explanation for an empty editor render, if it gave one.
+     *
+     * @var string|null
+     */
+    private ?string $editor_notice = null;
 
     private $loop_templates;
 
@@ -123,7 +134,10 @@ abstract class LoopWidget extends BaseWidget
     protected function items_for_display(array $settings, LoopDataSourceInterface $source, int $page = 1): LoopResultDTO
     {
         if (Plugin::instance()->editor->is_edit_mode()) {
-            return $source->get_items($settings);
+            $result = LoopQueryDispatcher::items($source, $settings, $page);
+            $this->editor_notice = $result->notice;
+
+            return $result;
         }
 
         $policy = Container::instance()->singleton(PublicRenderPolicy::class);
@@ -140,11 +154,47 @@ abstract class LoopWidget extends BaseWidget
         }
     }
 
+    /**
+     * In the editor, a loop inside a Loop Item template renders inside that
+     * template's preview item, as it will render nested inside real items on
+     * the page — on the editor's first render and when re-rendered alone.
+     */
+    protected function render()
+    {
+        // One more loop item inside this many would pass the nesting limit:
+        // render nothing, and tell an editor why.
+        if (count(LoopContext::frames()) >= LoopLimits::MAX_DEPTH) {
+            if (Plugin::instance()->editor->is_edit_mode() || current_user_can('edit_post', $this->current_owner_id())) {
+                /* translators: %d: the maximum number of loops inside one another */
+                echo '<div class="elemacy-alert elemacy-alert-warning">' . esc_html(sprintf(__('This loop is nested more than %d levels deep, so it is not shown.', 'elemacy'), LoopLimits::MAX_DEPTH)) . '</div>';
+            }
+
+            return;
+        }
+
+        if (!Plugin::instance()->editor->is_edit_mode()) {
+            $this->render_loop();
+
+            return;
+        }
+
+        Container::instance()->singleton(PreviewManager::class)->within_preview_item(
+            $this->current_owner_id(),
+            function (): void {
+                $this->render_loop();
+            }
+        );
+    }
+
+    /** The widget's own markup: layout, items and pagination. */
+    abstract protected function render_loop(): void;
+
     /** What a render with no items shows: an editor hint, or why visitors see nothing. */
     protected function print_empty_notice(): void
     {
         if (Plugin::instance()->editor->is_edit_mode()) {
-            echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No items found matching this query.', 'elemacy') . '</div>';
+            $notice = null !== $this->editor_notice ? $this->editor_notice : __('No items found matching this query.', 'elemacy');
+            echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html($notice) . '</div>';
         } elseif (null !== $this->ineligibility_notice) {
             echo '<div class="elemacy-loop-notice" role="status">' . esc_html($this->ineligibility_notice) . '</div>';
         }

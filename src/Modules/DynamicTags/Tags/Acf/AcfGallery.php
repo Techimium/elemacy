@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 
 class AcfGallery extends Data_Tag
 {
+    use LoopLevelControl;
+
     public function get_name()
     {
         return 'elemacy-acf-gallery';
@@ -41,7 +43,7 @@ class AcfGallery extends Data_Tag
     {
         $images = [];
 
-        $value = (new AcfFieldReader())->get_field_value((string) $this->get_settings('key'));
+        $value = $this->read_at_loop_level(fn() => (new AcfFieldReader())->get_field_value((string) $this->get_settings('key')));
 
         if (is_array($value) && !empty($value)) {
             foreach ($value as $image) {
@@ -67,6 +69,8 @@ class AcfGallery extends Data_Tag
                 ],
             ]
         );
+
+        $this->register_loop_level_control();
     }
 
     public function get_supported_fields()

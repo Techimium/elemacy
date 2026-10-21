@@ -4,8 +4,11 @@ namespace Elemacy\Loop\Items;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Integrations\Acf\AcfCursor;
 use Elemacy\Integrations\Acf\AcfFieldReader;
 use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
+use Elemacy\Loop\Address\AddressStep;
+use Elemacy\Loop\Contracts\AddressableItemInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\NativePostItemInterface;
 use Elemacy\Loop\Support\LoopItemIdentity;
@@ -16,18 +19,25 @@ use WP_Post;
  * LoopItemInterface. enter/exit acquire/release the same native "current post"
  * context WP_Query::the_post() already sets up, so every existing dynamic tag
  * and any third-party widget in the loop item template keeps resolving
- * correctly with no changes to any of them.
+ * correctly with no changes to any of them. While entered, any enclosing ACF
+ * row is hidden, so the post's own fields never resolve to a same-named
+ * sub-field of that row.
  */
-class PostLoopItem implements LoopItemInterface, NativePostItemInterface
+class PostLoopItem implements LoopItemInterface, NativePostItemInterface, AddressableItemInterface
 {
     protected WP_Post $post;
     protected FieldReaderInterface $acf;
-    private ?WordPressPostScope $scope = null;
+
+    /** @var WordPressPostScope[] One per active enter(), so an ancestor read can enter an item that is already entered. */
+    private array $scopes = [];
+
+    private AcfCursor $acf_rows;
 
     public function __construct(WP_Post $post, ?FieldReaderInterface $acf = null)
     {
         $this->post = $post;
         $this->acf = $acf ?? new AcfFieldReader();
+        $this->acf_rows = new AcfCursor();
     }
 
     public function get_identity(): string
@@ -40,20 +50,27 @@ class PostLoopItem implements LoopItemInterface, NativePostItemInterface
         return $this->post;
     }
 
+    public function get_address_step(): AddressStep
+    {
+        return new AddressStep('post', (string) $this->post->ID);
+    }
+
     public function enter(): void
     {
-        $this->scope = new WordPressPostScope();
-        $this->scope->enter($this->post);
+        $this->acf_rows->isolate();
+        $scope = new WordPressPostScope();
+        $scope->enter($this->post);
+        $this->scopes[] = $scope;
     }
 
     public function exit(): void
     {
-        if (null === $this->scope) {
-            return;
-        }
+        $scope = array_pop($this->scopes);
 
-        $this->scope->exit();
-        $this->scope = null;
+        if (null !== $scope) {
+            $scope->exit();
+            $this->acf_rows->exit();
+        }
     }
 
     /**
