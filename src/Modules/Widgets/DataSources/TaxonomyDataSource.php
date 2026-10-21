@@ -148,11 +148,6 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         return $this->query->get_items($settings);
     }
 
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        return $this->query->sanitize_ajax_settings($raw_settings, $paged);
-    }
-
     public function register_preview_controls(PreviewablePageBase $document): void
     {
         $condition = ['preview_data_source' => $this->get_key()];

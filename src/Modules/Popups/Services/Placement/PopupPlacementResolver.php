@@ -5,26 +5,14 @@ namespace Elemacy\Modules\Popups\Services\Placement;
 defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\Services\PopupManager;
-use Elemacy\Modules\Popups\Services\PopupDisplayResolver;
-use Elemacy\Loop\Contracts\PublicContextPlacementResolverInterface;
+use Elemacy\Loop\Contracts\PlacementResolverInterface;
 
 /** Proves a popup document is one the server actually matched for this request. */
-final class PopupPlacementResolver implements PublicContextPlacementResolverInterface
+final class PopupPlacementResolver implements PlacementResolverInterface
 {
     public function get_key(): string
     {
         return 'popup';
-    }
-
-    public function resolve_public_context(int $owner_id): ?array
-    {
-        foreach (PopupDisplayResolver::instance()->resolve_all() as $popup) {
-            if ((int) $popup->id === $owner_id) {
-                return ['popup_id' => $owner_id];
-            }
-        }
-
-        return null;
     }
 
     public function resolve(int $owner_id): ?array

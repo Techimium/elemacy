@@ -11,7 +11,6 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
 use Elemacy\Loop\Sources\CurrentQueryQuery;
 use Elementor\Controls_Manager;
 
@@ -78,16 +77,6 @@ class CurrentQueryDataSource implements LoopDataSourceInterface, PublicLoopSourc
     public function get_public_settings(array $settings, array $context, int $page): array
     {
         return [];
-    }
-
-    /**
-     * Never served by the signed-definition endpoint; see the marker interface.
-     *
-     * {@inheritDoc}
-     */
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        throw PublicLoopLimits::invalid_settings();
     }
 
     public function register_preview_controls(PreviewablePageBase $document): void

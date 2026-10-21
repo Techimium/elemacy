@@ -4,6 +4,9 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Modules\Popups\Services\Placement\PopupPlacementResolver;
 use Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver;
+use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\Items\PostLoopItem;
+use Elemacy\Loop\LoopContext;
 use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
 use Elemacy\Loop\Placement\NestedLoopPlacementResolver;
 use Elemacy\Loop\Placement\PagePlacementResolver;
@@ -179,8 +182,131 @@ final class PlacementResolversTest extends IntegrationTestCase
 
         $resolved = $registry->resolve_current($this->catalog['locations']['header']);
         self::assertSame('theme_builder', $resolved['type']);
-        self::assertSame(['location' => 'header'], $resolved['facts']);
+        self::assertSame(['location' => 'header', 'post_id' => $this->catalog['posts']['published']], $resolved['facts']);
 
         self::assertNull($registry->resolve_current(PHP_INT_MAX - 1));
+    }
+
+    public function testRegistrySuppliesTheViewedSingularAsTheCurrentPostInEveryHostPlacement(): void
+    {
+        $registry = PlacementResolverRegistry::instance();
+        $published = $this->catalog['posts']['published'];
+        $this->request->visit(get_permalink($published));
+
+        self::assertSame(['location' => 'single', 'post_id' => $published], $registry->resolve_current($this->catalog['locations']['single'])['facts']);
+        self::assertSame(['popup_id' => $this->catalog['popups']['center'], 'post_id' => $published], $registry->resolve_current($this->catalog['popups']['center'])['facts']);
+        self::assertSame(['post_id' => $published], $registry->resolve_current($published)['facts']);
+    }
+
+    public function testRegistrySuppliesTheViewedTermButNoPostOnATermArchive(): void
+    {
+        $archive = $this->documents->create_everywhere('Archive fixture', 'archive');
+        $this->request->visit(get_term_link($this->catalog['term']));
+
+        $resolved = PlacementResolverRegistry::instance()->resolve_current($archive);
+        self::assertSame(['location' => 'archive', 'term_id' => $this->catalog['term']], $resolved['facts']);
+    }
+
+    public function testNestedCurrentPostIsTheNearestEnclosingPostItemEvenInsideANonPostItem(): void
+    {
+        $published = $this->catalog['posts']['published'];
+        $this->request->visit(get_permalink($this->catalog['elementor_host']));
+
+        $facts = $this->nested_facts([new PostLoopItem(get_post($published)), $this->non_post_item()]);
+
+        self::assertSame(['lineage' => [$this->catalog['nested_loop']], 'post_id' => $published], $facts);
+    }
+
+    public function testNestedNonPostItemOnAnArchiveHasNoCurrentPost(): void
+    {
+        $this->request->visit(get_term_link($this->catalog['term']));
+
+        $facts = $this->nested_facts([$this->non_post_item()]);
+
+        self::assertSame(['lineage' => [$this->catalog['nested_loop']], 'term_id' => $this->catalog['term']], $facts);
+    }
+
+    /** @dataProvider nonPublicPosts */
+    public function testANonPublicPostItemIsNeverTheCurrentPost(string $status): void
+    {
+        $this->request->visit(get_permalink($this->catalog['elementor_host']));
+        wp_set_current_user(0);
+
+        $facts = $this->nested_facts([new PostLoopItem(get_post($this->catalog['posts'][$status]))]);
+
+        self::assertSame(['lineage' => [$this->catalog['nested_loop']]], $facts);
+    }
+
+    public static function nonPublicPosts(): array
+    {
+        return ['draft' => ['draft'], 'private' => ['private'], 'password protected' => ['protected']];
+    }
+
+    public function testAResolverCannotRedefineTheRegistryOwnedFacts(): void
+    {
+        $registry = PlacementResolverRegistry::instance();
+        $original = $registry->all();
+        $registry->register(new class () implements \Elemacy\Loop\Contracts\PlacementResolverInterface {
+            public function get_key(): string
+            {
+                return 'aaa_spoofing';
+            }
+
+            public function resolve(int $owner_id): ?array
+            {
+                return ['post_id' => 1, 'term_id' => 1, 'own' => true];
+            }
+        });
+        $property = new \ReflectionProperty($registry, 'resolvers');
+        $property->setAccessible(true);
+        // Ask the spoofing resolver first, as if a contributor registered early.
+        $property->setValue($registry, ['aaa_spoofing' => $registry->all()['aaa_spoofing']] + $original);
+
+        try {
+            $this->request->visit(get_term_link($this->catalog['term']));
+            self::assertSame(['own' => true, 'term_id' => $this->catalog['term']], $registry->resolve_current(123)['facts']);
+        } finally {
+            $property->setValue($registry, $original);
+        }
+    }
+
+    /** @param LoopItemInterface[] $items Outermost first, as LoopRenderer pushes them. */
+    private function nested_facts(array $items): array
+    {
+        foreach ($items as $item) {
+            LoopContext::push($item);
+        }
+        LoopTemplateRenderStack::push($this->catalog['nested_loop']);
+        try {
+            return PlacementResolverRegistry::instance()->resolve_current($this->catalog['nested_loop'])['facts'];
+        } finally {
+            LoopTemplateRenderStack::pop();
+            foreach ($items as $item) {
+                LoopContext::pop();
+            }
+        }
+    }
+
+    private function non_post_item(): LoopItemInterface
+    {
+        return new class () implements LoopItemInterface {
+            public function get_identity(): string
+            {
+                return 'row';
+            }
+
+            public function get_field(string $key)
+            {
+                return null;
+            }
+
+            public function enter(): void
+            {
+            }
+
+            public function exit(): void
+            {
+            }
+        };
     }
 }

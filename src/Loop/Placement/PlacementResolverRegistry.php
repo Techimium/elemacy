@@ -5,7 +5,6 @@ namespace Elemacy\Loop\Placement;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PlacementResolverInterface;
-use Elemacy\Loop\Contracts\PublicContextPlacementResolverInterface;
 
 /** Contributed placement resolvers, tried in registration order. */
 final class PlacementResolverRegistry
@@ -36,30 +35,23 @@ final class PlacementResolverRegistry
     }
 
     /**
+     * The first matching contributed placement, with the request's host facts
+     * (HostFacts: `post_id`, `term_id`) merged in. Those two names belong to
+     * this registry, so a resolver can neither omit nor redefine them.
+     *
      * @param int $owner_id Owner document already passing PublicRenderPolicy::assert_owner().
-     * @return array{type: string, facts: array}|null The first matching contributed placement.
+     * @return array{type: string, facts: array}|null
      */
     public function resolve_current(int $owner_id): ?array
     {
-        return $this->resolve($owner_id, false);
-    }
-
-    /** Only call after reconstructing an authenticated, server-signed frontend context. */
-    public function resolve_public_context(int $owner_id): ?array
-    {
-        return $this->resolve($owner_id, true);
-    }
-
-    private function resolve(int $owner_id, bool $public_context): ?array
-    {
         foreach ($this->resolvers as $key => $resolver) {
-            $facts = $public_context && $resolver instanceof PublicContextPlacementResolverInterface
-                ? $resolver->resolve_public_context($owner_id)
-                : $resolver->resolve($owner_id);
+            $facts = $resolver->resolve($owner_id);
             if (null !== $facts) {
+                unset($facts[HostFacts::POST_ID], $facts[HostFacts::TERM_ID]);
+
                 return [
                     'type' => $key,
-                    'facts' => $facts,
+                    'facts' => $facts + HostFacts::current(),
                 ];
             }
         }

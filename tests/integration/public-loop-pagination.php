@@ -91,6 +91,72 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
     }
 
     /**
+     * Elementor stores nothing for a control left at its default, so page 2
+     * (which replays the raw saved widget) must still continue exactly where
+     * page 1 (which sees the defaults filled in) stopped.
+     */
+    public function testAWidgetSavedWithOnlyDefaultsContinuesOnPageTwoWithoutRepeatsOrGaps(): void
+    {
+        $fixtures = new ArchitectureCatalog();
+        $request = new \Elemacy\Tests\Integration\Fixtures\RequestSimulator();
+        $original_user = get_current_user_id();
+        $posts = [];
+
+        try {
+            $catalog = $fixtures->create();
+            // One minute apart, so the default date order has no ties.
+            for ($i = 0; $i < 8; ++$i) {
+                $posts[] = (int) wp_insert_post([
+                    'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Defaults page ' . $i,
+                    'post_date' => wp_date('Y-m-d H:i:s', time() - 3600 - $i * 60),
+                ]);
+            }
+            $owner = \Elementor\Plugin::instance()->documents->create('wp-page', [
+                'post_type' => 'page', 'post_title' => 'Defaults owner', 'post_status' => 'draft',
+            ]);
+            $owner_id = $owner->get_main_id();
+            $posts[] = $owner_id;
+            $saved = ['template_id' => $catalog['library']['published'], 'data_source' => 'posts', 'pagination_type' => 'ajax'];
+            self::assertTrue((bool) $owner->save(['elements' => ArchitectureCatalog::grid($saved), 'settings' => ['post_status' => 'publish']]));
+
+            $request->visit(get_permalink($owner_id));
+            wp_set_current_user(0);
+            $widget = \Elementor\Plugin::$instance->elements_manager->create_element_instance(ArchitectureCatalog::grid($saved)[0]['elements'][0]);
+            $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
+            $page_one = array_map(static function ($item): int {
+                return (int) $item->get_identity();
+            }, $policy->eligible_items($widget->get_settings_for_display(), $owner_id, 1)->items);
+
+            $definition = (new PublishedLoopDefinitionResolver($policy))->find($owner_id, $catalog['widget_id']);
+            $placement = \Elemacy\Loop\Placement\PlacementResolverRegistry::instance()->resolve_current($owner_id);
+            $context = (new PaginationContextSigner())->sign($owner_id, $catalog['widget_id'], $definition->fingerprint(), $placement['type'], $placement['facts']);
+            $body = \Elemacy\Tests\Integration\Fixtures\NativeAjaxRequest::loop((string) wp_json_encode([
+                'version' => 1, 'owner_id' => $owner_id, 'widget_id' => $catalog['widget_id'],
+                'page' => 2, 'fingerprint' => $definition->fingerprint(), 'context' => $context,
+            ]));
+            $response = json_decode($body, true);
+            self::assertTrue($response['success'] ?? false, 'Page 2 must succeed: ' . $body);
+            preg_match_all('/data-elemacy-item="(\d+)"/', $response['data']['items'], $matches);
+            $page_two = array_map('intval', $matches[1]);
+
+            // The Posts defaults: post type post, six per page, newest first.
+            $expected = array_map('intval', get_posts([
+                'post_type' => 'post', 'post_status' => 'publish', 'has_password' => false,
+                'orderby' => 'date', 'order' => 'DESC', 'posts_per_page' => 12, 'fields' => 'ids',
+            ]));
+            self::assertSame(array_slice($expected, 0, 6), $page_one, 'Page 1 shows the six newest posts.');
+            self::assertSame(array_slice($expected, 6, 6), $page_two, 'Page 2 is the next six, with no repeat or gap.');
+        } finally {
+            wp_set_current_user($original_user);
+            $request->restore();
+            foreach ($posts as $id) {
+                wp_delete_post($id, true);
+            }
+            $fixtures->cleanup();
+        }
+    }
+
+    /**
      * Task 1.7's own negative-authorization requirement: unlike an ordinary
      * page (owner_id publicly reachable on its own), a Loop Grid widget
      * authored inside a loop item template only exists because some

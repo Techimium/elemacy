@@ -13,8 +13,8 @@ interface LoopItemInterface
 {
     /**
      * A key unique to this item within one render, safe to use as a CSS
-     * class token. Does not need to correspond to a WordPress post — see
-     * .
+     * class token (see Support\LoopItemIdentity). Does not need to correspond
+     * to a WordPress post.
      *
      * @return string
      */

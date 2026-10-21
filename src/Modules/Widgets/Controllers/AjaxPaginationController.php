@@ -72,7 +72,7 @@ class AjaxPaginationController
         $result = $source->get_items($item_settings);
 
         if (empty($result->items)) {
-            wp_send_json_error(esc_html__('No posts found.', 'elemacy'));
+            wp_send_json_error(esc_html__('No items found.', 'elemacy'));
         }
 
         $template_id = $definition->template_id();

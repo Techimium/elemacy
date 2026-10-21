@@ -755,7 +755,9 @@
       "coverage": [
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor"
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:posts",
@@ -787,7 +789,8 @@
         "elemacy:runner:run-current-query-editor",
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor"
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:current_query",
@@ -817,7 +820,9 @@
         "elemacy:integration:query-pickers",
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor"
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:terms",
@@ -847,7 +852,8 @@
         "elemacy:integration:query-pickers",
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor"
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:users",
@@ -2804,7 +2810,8 @@
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
-        "elemacy:integration:query-pickers"
+        "elemacy:integration:query-pickers",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:template:loop",
@@ -3193,7 +3200,9 @@
       "source": "src/Modules/Widgets/Widgets/LoopCarousel.php",
       "implementation": "real",
       "prerequisites": [],
-      "coverage": [],
+      "coverage": [
+        "elemacy:integration:loop-control-defaults"
+      ],
       "journey": {
         "id": "elemacy:journey:widget:elemacy-loop-carousel",
         "status": "pending",
@@ -3221,7 +3230,9 @@
       "coverage": [
         "elemacy:integration:loop-load-more",
         "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor"
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:loop-control-defaults"
       ],
       "journey": {
         "id": "elemacy:journey:widget:elemacy-loop-grid",
@@ -3525,6 +3536,16 @@
       "id": "elemacy:integration:loop-renderer",
       "layer": "native-integration",
       "path": "tests/integration/loop-renderer.php"
+    },
+    {
+      "id": "elemacy:integration:loop-host-context",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-host-context.php"
+    },
+    {
+      "id": "elemacy:integration:loop-control-defaults",
+      "layer": "native-integration",
+      "path": "tests/integration/loop-control-defaults.php"
     },
     {
       "id": "elemacy:integration:loop-base-css-file-fallback",

@@ -28,6 +28,8 @@
             <file>loop-pagination-phase1-closeout.php</file>
             <file>loop-context.php</file>
             <file>loop-renderer.php</file>
+            <file>loop-host-context.php</file>
+            <file>loop-control-defaults.php</file>
             <file>loop-base-css-file-fallback.php</file>
             <file>public-loop-request.php</file>
             <file>published-loop-definition.php</file>

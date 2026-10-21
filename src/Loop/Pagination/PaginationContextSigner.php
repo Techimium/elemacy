@@ -5,6 +5,7 @@ namespace Elemacy\Loop\Pagination;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Placement\HostFacts;
 use JsonException;
 
 /**
@@ -78,9 +79,17 @@ final class PaginationContextSigner
         ) {
             throw self::unavailable();
         }
-        foreach (array_unique(array_merge($host ? [$host] : [], $lineage)) as $id) {
-            $post = get_post((int) $id);
-            if (!$post || $post->post_status !== 'publish' || post_password_required($post)) {
+        // The host facts were public when signed; anything that stopped being
+        // public since then must not be served from a still-valid token.
+        $post_fact = array_key_exists(HostFacts::POST_ID, $claims['facts']) ? [$claims['facts'][HostFacts::POST_ID]] : [];
+        foreach (array_unique(array_merge($host ? [$host] : [], $lineage, $post_fact)) as $id) {
+            if (!is_int($id) || !HostFacts::is_public_post(get_post($id))) {
+                throw self::unavailable();
+            }
+        }
+        if (array_key_exists(HostFacts::TERM_ID, $claims['facts'])) {
+            $term_id = $claims['facts'][HostFacts::TERM_ID];
+            if (!is_int($term_id) || !HostFacts::is_public_term(get_term($term_id))) {
                 throw self::unavailable();
             }
         }

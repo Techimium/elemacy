@@ -184,6 +184,8 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:loop-pagination-phase1-closeout` | native-integration | `tests/integration/loop-pagination-phase1-closeout.php` |
 | `elemacy:integration:loop-context` | native-integration | `tests/integration/loop-context.php` |
 | `elemacy:integration:loop-renderer` | native-integration | `tests/integration/loop-renderer.php` |
+| `elemacy:integration:loop-host-context` | native-integration | `tests/integration/loop-host-context.php` |
+| `elemacy:integration:loop-control-defaults` | native-integration | `tests/integration/loop-control-defaults.php` |
 | `elemacy:integration:loop-base-css-file-fallback` | native-integration | `tests/integration/loop-base-css-file-fallback.php` |
 | `elemacy:integration:public-loop-request` | native-integration | `tests/integration/public-loop-request.php` |
 | `elemacy:integration:published-loop-definition` | native-integration | `tests/integration/published-loop-definition.php` |

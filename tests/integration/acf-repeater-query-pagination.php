@@ -2,6 +2,9 @@
 
 namespace Elemacy\Tests\Integration;
 
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Integrations\Acf\AcfRowScope;
+use ElemacyPro\Extensions\LoopDataSources\Policies\AcfRepeaterPolicy;
 use ElemacyPro\Extensions\LoopDataSources\Query\AcfRepeaterQuery;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
@@ -144,6 +147,55 @@ final class AcfRepeaterQueryPaginationTest extends IntegrationTestCase
         ]);
 
         self::assertSame(['Row 3', 'Row 4'], self::labels($result->items));
+    }
+
+    /**
+     * A repeater inside another repeater's rows is not a loop source: the
+     * editor (which walks it inside an active parent row) and visitors (whose
+     * policy cannot find it by name) must both get nothing, while the parent
+     * repeater itself still loops.
+     */
+    public function testARepeaterInsideAnotherRepeatersRowYieldsNoItemsInTheEditorOrForVisitors(): void
+    {
+        $suffix = bin2hex(random_bytes(6));
+        $group = 'group_elemacy_nested_' . $suffix;
+        $parent_key = 'field_elemacy_parent_' . $suffix;
+        $parent = 'elemacy_parent_' . $suffix;
+        $child = 'elemacy_child_' . $suffix;
+        acf_add_local_field_group([
+            'key' => $group, 'title' => 'Elemacy nested rows',
+            'fields' => [[
+                'key' => $parent_key, 'name' => $parent, 'label' => 'Parent', 'type' => 'repeater',
+                'sub_fields' => [[
+                    'key' => 'field_elemacy_child_' . $suffix, 'name' => $child, 'label' => 'Child', 'type' => 'repeater',
+                    'sub_fields' => [['key' => 'field_elemacy_child_label_' . $suffix, 'name' => 'label', 'label' => 'Label', 'type' => 'text']],
+                ]],
+            ]],
+            'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'post']]],
+        ]);
+
+        try {
+            self::assertTrue((bool) update_field($parent_key, [[$child => [['label' => 'A'], ['label' => 'B']]]], $this->post_id));
+            $query = new AcfRepeaterQuery();
+            $settings = ['repeater_field' => $child, 'source_type' => 'specific_post', 'specific_post_id' => $this->post_id, 'rows_number' => 0, 'rows_offset' => 0];
+
+            $cursor = AcfRowScope::snapshot();
+            try {
+                self::assertTrue(have_rows($parent, $this->post_id));
+                the_row();
+                $inside_parent_row = $query->get_items($settings);
+            } finally {
+                AcfRowScope::restore($cursor);
+            }
+
+            self::assertSame([], $inside_parent_row->items, 'The editor must not list a sub-repeater\'s rows.');
+            self::assertCount(1, $query->get_items(['repeater_field' => $parent] + $settings)->items, 'The parent repeater still loops.');
+
+            $this->expectException(ValidationException::class);
+            (new AcfRepeaterPolicy())->get_public_settings($settings, [], 1);
+        } finally {
+            acf_remove_local_field_group($group);
+        }
     }
 
     /**

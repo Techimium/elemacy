@@ -154,11 +154,6 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         return $this->query->get_items($settings);
     }
 
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        return $this->query->sanitize_ajax_settings($raw_settings, $paged);
-    }
-
     /**
      * Same control SinglePostPreviewDocument registers for SingleDocument's
      * own (non-loop) preview — same key, label, placeholder, and default, so

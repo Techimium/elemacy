@@ -52,11 +52,6 @@ final class ObservedLoopSource implements LoopDataSourceInterface, PublicLoopSou
         return $this->source->get_public_settings($settings, $context, $page);
     }
 
-    public function sanitize_ajax_settings(array $settings, int $paged): array
-    {
-        return $this->source->sanitize_ajax_settings($settings, $paged);
-    }
-
     public function register_preview_controls(PreviewablePageBase $document): void
     {
         $this->source->register_preview_controls($document);

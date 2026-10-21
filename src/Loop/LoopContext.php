@@ -28,4 +28,10 @@ final class LoopContext
 
         return $count > 0 ? self::$stack[$count - 1] : null;
     }
+
+    /** @return LoopItemInterface[] Outermost first. */
+    public static function stack(): array
+    {
+        return self::$stack;
+    }
 }

@@ -8,6 +8,7 @@ use Elemacy\Integrations\Acf\AcfFieldReader;
 use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
 use Elemacy\Loop\Context\WordPressPostScope;
 use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\Contracts\NativePostItemInterface;
 use Elemacy\Loop\Support\LoopItemIdentity;
 use WP_Post;
 
@@ -18,7 +19,7 @@ use WP_Post;
  * and any third-party widget in the loop item template keeps resolving
  * correctly with no changes to any of them.
  */
-class PostLoopItem implements LoopItemInterface
+class PostLoopItem implements LoopItemInterface, NativePostItemInterface
 {
     protected WP_Post $post;
     protected FieldReaderInterface $acf;
@@ -33,6 +34,11 @@ class PostLoopItem implements LoopItemInterface
     public function get_identity(): string
     {
         return LoopItemIdentity::sanitize((string) $this->post->ID);
+    }
+
+    public function get_post(): WP_Post
+    {
+        return $this->post;
     }
 
     public function enter(): void

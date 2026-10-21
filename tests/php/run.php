@@ -91,6 +91,7 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\Contracts\NativePostItemInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\Items\TermLoopItem;
@@ -4860,6 +4861,20 @@ check('LoopContext push/pop tracks the innermost item, and unwinds to the outer 
         && $seen_outer_again === $outer && $seen_after_all_popped === null;
 });
 
+check('LoopContext::stack() lists active items outermost first and is empty again once every pair is popped', static function () {
+    $outer = new FixedLoopItem('outer');
+    $inner = new FixedLoopItem('inner');
+
+    LoopContext::push($outer);
+    LoopContext::push($inner);
+    $nested = LoopContext::stack();
+    LoopContext::pop();
+    $after_inner = LoopContext::stack();
+    LoopContext::pop();
+
+    return $nested === [$outer, $inner] && $after_inner === [$outer] && LoopContext::stack() === [];
+});
+
 /* ── Loop\LoopDataSourceRegistry ──────────────── */
 
 final class FixedLoopDataSource implements LoopDataSourceInterface
@@ -4888,11 +4903,6 @@ final class FixedLoopDataSource implements LoopDataSourceInterface
     public function get_items(array $settings): LoopResultDTO
     {
         return new LoopResultDTO();
-    }
-
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        return [];
     }
 
     public function register_preview_controls($document): void
@@ -4954,11 +4964,6 @@ final class ConflictingFixedLoopDataSource implements LoopDataSourceInterface
     public function get_items(array $settings): LoopResultDTO
     {
         return new LoopResultDTO();
-    }
-
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        return [];
     }
 
     public function register_preview_controls($document): void
@@ -5275,6 +5280,13 @@ check('PostLoopItem::get_identity() returns the sanitized post ID as a string', 
     $item = new PostLoopItem(new WP_Post(42));
 
     return $item->get_identity() === '42' && is_string($item->get_identity());
+});
+
+check('PostLoopItem exposes its own native post through NativePostItemInterface', static function () {
+    $post = new WP_Post(43);
+    $item = new PostLoopItem($post);
+
+    return $item instanceof NativePostItemInterface && $item->get_post() === $post;
 });
 
 check('PostLoopItem::get_field(\'ID\') returns the post ID', static function () {
@@ -5611,22 +5623,25 @@ check('Modules\DynamicTags\Services\{Taxonomy,User} source files import no concr
 
 /* ── Task 7.8: LoopGrid/LoopCarousel import canonical Loop/ contracts ── */
 
-check('LoopGrid.php/LoopCarousel.php obtain every loop collaborator from the shared Loop layer: no Widgets-module Services/Contracts/Support/DTO loop import remains', static function () {
-    $files = [
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopCarousel.php',
+check('LoopGrid.php/LoopCarousel.php (and their shared LoopWidget.php) obtain every loop collaborator from the shared Loop layer: no Widgets-module Services/Contracts/Support/DTO loop import remains', static function () {
+    $dir = dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/';
+    $required = [
+        'LoopGrid.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
+        'LoopCarousel.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
+        'LoopWidget.php' => ['use Elemacy\\Loop\\Contracts\\LoopDataSourceInterface;'],
     ];
 
-    foreach ($files as $file) {
-        $source = file_get_contents($file);
+    foreach ($required as $file => $imports) {
+        $source = file_get_contents($dir . $file);
 
         if (preg_match('/^use Elemacy\\\\Modules\\\\Widgets\\\\(Services|Contracts|Support|DTO)\\\\/m', $source)) {
             return false;
         }
 
-        if (false === strpos($source, 'use Elemacy\\Loop\\Contracts\\LoopDataSourceInterface;')
-            || false === strpos($source, 'use Elemacy\\Loop\\Rendering\\LoopRenderer;')) {
-            return false;
+        foreach ($imports as $import) {
+            if (false === strpos($source, $import)) {
+                return false;
+            }
         }
     }
 
@@ -5680,7 +5695,6 @@ check('LoopGrid.php no longer defines render_pagination_html(); LoopGrid.php/Aja
 final class FixtureSentinelPostsQuery extends PostsQuery
 {
     public array $get_items_calls = [];
-    public array $sanitize_calls = [];
 
     public function get_items(array $settings): LoopResultDTO
     {
@@ -5689,12 +5703,6 @@ final class FixtureSentinelPostsQuery extends PostsQuery
         return new LoopResultDTO([], 999, 1, true);
     }
 
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        $this->sanitize_calls[] = [$raw_settings, $paged];
-
-        return ['sentinel' => true];
-    }
 }
 
 final class FixtureSentinelPostsPolicy extends PostsPolicy
@@ -5740,19 +5748,16 @@ check('PostsDataSource with no injected collaborators defaults to real PostsQuer
         && $policy_query_ref->getValue($policy) === $query;
 });
 
-check('PostsDataSource::get_items()/sanitize_ajax_settings()/get_public_settings() genuinely delegate to the injected collaborators, not a reimplementation', static function () {
+check('PostsDataSource::get_items()/get_public_settings() genuinely delegate to the injected collaborators, not a reimplementation', static function () {
     $query = new FixtureSentinelPostsQuery();
     $policy = new FixtureSentinelPostsPolicy();
     $source = new PostsDataSource($query, $policy);
 
     $items_result = $source->get_items(['a' => 1]);
-    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
     $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
 
     return $items_result->total_items === 999
         && $query->get_items_calls === [['a' => 1]]
-        && $sanitized === ['sentinel' => true]
-        && $query->sanitize_calls === [[['raw' => 1], 2]]
         && $public === ['sentinel_public' => true]
         && $policy->calls === [[['s' => 1], ['c' => 1], 3]];
 });
@@ -5775,7 +5780,6 @@ check('Loop\Sources\PostsQuery and Loop\Pagination\Policies\PostsPolicy do not r
 final class FixtureSentinelTermsQuery extends TermsQuery
 {
     public array $get_items_calls = [];
-    public array $sanitize_calls = [];
     public int $queried_term_id = 0;
 
     public function get_items(array $settings): LoopResultDTO
@@ -5785,12 +5789,6 @@ final class FixtureSentinelTermsQuery extends TermsQuery
         return new LoopResultDTO([], 888, 1, true);
     }
 
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        $this->sanitize_calls[] = [$raw_settings, $paged];
-
-        return ['sentinel_terms' => true];
-    }
 
     public function get_current_queried_term_id(): int
     {
@@ -5826,7 +5824,6 @@ check('TaxonomyDataSource constructor stores injected TermsQuery/TermsPolicy, de
     }
 
     $items_result = $source->get_items(['a' => 1]);
-    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
     $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
 
     $default_source = new TaxonomyDataSource();
@@ -5836,7 +5833,6 @@ check('TaxonomyDataSource constructor stores injected TermsQuery/TermsPolicy, de
 
     return $items_result->total_items === 888
         && $query->get_items_calls === [['a' => 1]]
-        && $sanitized === ['sentinel_terms' => true]
         && $public === ['sentinel_terms_public' => true]
         && $policy->calls === [[['s' => 1], ['c' => 1], 3]]
         && $default_query_ref instanceof TermsQuery
@@ -5846,7 +5842,6 @@ check('TaxonomyDataSource constructor stores injected TermsQuery/TermsPolicy, de
 final class FixtureSentinelUsersQuery extends UsersQuery
 {
     public array $get_items_calls = [];
-    public array $sanitize_calls = [];
 
     public function get_items(array $settings): LoopResultDTO
     {
@@ -5855,12 +5850,6 @@ final class FixtureSentinelUsersQuery extends UsersQuery
         return new LoopResultDTO([], 777, 1, true);
     }
 
-    public function sanitize_ajax_settings(array $raw_settings, int $paged): array
-    {
-        $this->sanitize_calls[] = [$raw_settings, $paged];
-
-        return ['sentinel_users' => true];
-    }
 }
 
 final class FixtureSentinelUsersPolicy extends UsersPolicy
@@ -5890,7 +5879,6 @@ check('UsersDataSource constructor stores injected UsersQuery/UsersPolicy, defau
     }
 
     $items_result = $source->get_items(['a' => 1]);
-    $sanitized = $source->sanitize_ajax_settings(['raw' => 1], 2);
     $public = $source->get_public_settings(['s' => 1], ['c' => 1], 3);
 
     $default_source = new UsersDataSource();
@@ -5900,7 +5888,6 @@ check('UsersDataSource constructor stores injected UsersQuery/UsersPolicy, defau
 
     return $items_result->total_items === 777
         && $query->get_items_calls === [['a' => 1]]
-        && $sanitized === ['sentinel_users' => true]
         && $public === ['sentinel_users_public' => true]
         && $policy->calls === [[['s' => 1], ['c' => 1], 3]]
         && $default_query instanceof UsersQuery
@@ -6435,20 +6422,13 @@ check('Current Query treats a main query that has not run yet (null posts) as an
 check('CurrentQueryDataSource: own key and label, a public policy that carries no setting, never endpoint-served, no sanitiser', static function () {
     $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource();
 
-    $sanitise_refused = false;
-    try {
-        $source->sanitize_ajax_settings(['post_type' => 'post'], 1);
-    } catch (\Elemacy\Http\Exceptions\ValidationException $error) {
-        $sanitise_refused = true;
-    }
-
     return 'current_query' === $source->get_key()
         && 'Current Query' === $source->get_label()
         && $source instanceof \Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface
         && $source instanceof \Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface
         && [] === $source->get_public_settings(['posts_per_page' => 50, 'offset' => 4], [], 1)
         && [] === $source->get_public_settings(['posts_per_page' => 50], ['post_id' => 1], 3)
-        && $sanitise_refused;
+        && !method_exists($source, 'sanitize_ajax_settings');
 });
 
 check('CurrentQueryDataSource delegates get_items() and the preview item to its injected collaborators', static function () {
