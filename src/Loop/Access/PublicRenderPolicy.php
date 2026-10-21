@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Loop\Pagination;
+namespace Elemacy\Loop\Access;
 
 defined('ABSPATH') || exit;
 
@@ -11,7 +11,6 @@ use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;

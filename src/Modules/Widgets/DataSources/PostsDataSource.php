@@ -11,10 +11,11 @@ use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\PostsQuery;
+use Elemacy\Loop\Sources\Posts\PostsQuery;
+use Elemacy\Loop\Sources\Posts\PostsSettings;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\PostLoopItem;
-use Elemacy\Loop\Pagination\Policies\PostsPolicy;
+use Elemacy\Loop\Sources\Posts\PostsPolicy;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Support\PostTypes;
 use Elementor\Controls_Manager;
@@ -70,49 +71,49 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         $condition = ['data_source' => $this->get_key()];
 
         $widget->add_control(
-            'post_type',
+            PostsSettings::POST_TYPE,
             [
                 'label' => esc_html__('Post Type', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'options' => $this->get_public_post_types(),
-                'default' => 'post',
+                'default' => PostsSettings::DEFAULT_POST_TYPE,
                 'condition' => $condition,
             ]
         );
 
         // Loop Carousel has always called this "Posts Count"; Loop Grid
-        // "Posts Per Page" — both share the same `posts_per_page` setting.
+        // "Posts Per Page" — both share the same PostsSettings::PER_PAGE setting.
         $posts_per_page_label = 'elemacy-loop-carousel' === $widget->get_name()
             ? esc_html__('Posts Count', 'elemacy')
             : esc_html__('Posts Per Page', 'elemacy');
 
         $widget->add_control(
-            'posts_per_page',
+            PostsSettings::PER_PAGE,
             [
                 'label' => $posts_per_page_label,
                 'type' => Controls_Manager::NUMBER,
-                'default' => 6,
+                'default' => PostsSettings::DEFAULT_PER_PAGE,
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'offset',
+            PostsSettings::OFFSET,
             [
                 'label' => esc_html__('Offset', 'elemacy'),
                 'type' => Controls_Manager::NUMBER,
-                'default' => 0,
+                'default' => PostsSettings::DEFAULT_OFFSET,
                 'description' => esc_html__('Number of posts to skip. Note: Using an offset can break pagination.', 'elemacy'),
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'orderby',
+            PostsSettings::ORDER_BY,
             [
                 'label' => esc_html__('Order By', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'date',
+                'default' => PostsSettings::DEFAULT_ORDER_BY,
                 'options' => [
                     'date' => esc_html__('Date', 'elemacy'),
                     'title' => esc_html__('Title', 'elemacy'),
@@ -124,11 +125,11 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         );
 
         $widget->add_control(
-            'order',
+            PostsSettings::ORDER,
             [
                 'label' => esc_html__('Order', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'DESC',
+                'default' => PostsSettings::DEFAULT_ORDER,
                 'options' => [
                     'ASC' => esc_html__('ASC', 'elemacy'),
                     'DESC' => esc_html__('DESC', 'elemacy'),
@@ -138,12 +139,12 @@ class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         );
 
         $widget->add_control(
-            'exclude_current_post',
+            PostsSettings::EXCLUDE_CURRENT,
             [
                 'label' => esc_html__('Exclude Current Post', 'elemacy'),
                 'type' => Controls_Manager::SWITCHER,
                 'return_value' => 'yes',
-                'default' => 'yes',
+                'default' => PostsSettings::DEFAULT_EXCLUDE_CURRENT,
                 'condition' => $condition,
             ]
         );

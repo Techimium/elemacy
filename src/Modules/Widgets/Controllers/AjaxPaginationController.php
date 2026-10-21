@@ -5,12 +5,12 @@ namespace Elemacy\Modules\Widgets\Controllers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\SiteRequest as Request;
-use Elemacy\Loop\Pagination\PaginationContextSigner;
+use Elemacy\Loop\Access\PaginationContextSigner;
 use Elemacy\Loop\Pagination\PaginationRenderer;
-use Elemacy\Loop\Pagination\PublicRenderPolicy;
-use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\Access\PublicRenderPolicy;
+use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Rendering\LoopRenderer;
-use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
+use Elemacy\Loop\Access\PublicLoopRequest;
 
 /**
  * Resolves request → authored definition → policy → source query → render,

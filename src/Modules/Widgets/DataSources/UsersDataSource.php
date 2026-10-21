@@ -10,10 +10,11 @@ use Elemacy\Elementor\Controls\Query\Resolvers\UserResolver;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\UsersQuery;
+use Elemacy\Loop\Sources\Users\UsersQuery;
+use Elemacy\Loop\Sources\Users\UsersSettings;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\UserLoopItem;
-use Elemacy\Loop\Pagination\Policies\UsersPolicy;
+use Elemacy\Loop\Sources\Users\UsersPolicy;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elementor\Controls_Manager;
 use Elemacy\Elementor\Widgets\BaseWidget;
@@ -67,36 +68,36 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         $condition = ['data_source' => $this->get_key()];
 
         $widget->add_control(
-            'users_roles',
+            UsersSettings::ROLES,
             [
                 'label' => esc_html__('Roles', 'elemacy'),
                 'type' => Controls_Manager::SELECT2,
                 'multiple' => true,
                 'label_block' => true,
                 'options' => $this->get_roles(),
-                'default' => [],
+                'default' => UsersSettings::DEFAULT_ROLES,
                 'description' => esc_html__('Leave empty to include users of any role.', 'elemacy'),
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'users_number',
+            UsersSettings::NUMBER,
             [
                 'label' => esc_html__('Number of Users', 'elemacy'),
                 'type' => Controls_Manager::NUMBER,
-                'default' => 6,
+                'default' => UsersSettings::DEFAULT_NUMBER,
                 'description' => esc_html__('Leave empty to show all users.', 'elemacy'),
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'users_orderby',
+            UsersSettings::ORDER_BY,
             [
                 'label' => esc_html__('Order By', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'display_name',
+                'default' => UsersSettings::DEFAULT_ORDER_BY,
                 'options' => [
                     'display_name' => esc_html__('Display Name', 'elemacy'),
                     'registered' => esc_html__('Registration Date', 'elemacy'),
@@ -107,11 +108,11 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         );
 
         $widget->add_control(
-            'users_order',
+            UsersSettings::ORDER,
             [
                 'label' => esc_html__('Order', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'ASC',
+                'default' => UsersSettings::DEFAULT_ORDER,
                 'options' => [
                     'ASC' => esc_html__('ASC', 'elemacy'),
                     'DESC' => esc_html__('DESC', 'elemacy'),
@@ -121,12 +122,12 @@ class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicy
         );
 
         $widget->add_control(
-            'exclude_current_user',
+            UsersSettings::EXCLUDE_CURRENT,
             [
                 'label' => esc_html__('Exclude Current User', 'elemacy'),
                 'type' => Controls_Manager::SWITCHER,
                 'return_value' => 'yes',
-                'default' => '',
+                'default' => UsersSettings::DEFAULT_EXCLUDE_CURRENT,
                 'description' => esc_html__('When the visitor is logged in, exclude their own account from the results.', 'elemacy'),
                 'condition' => $condition,
             ]

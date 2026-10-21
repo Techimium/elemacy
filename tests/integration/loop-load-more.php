@@ -3,10 +3,10 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Loop\LoopDataSourceRegistry;
-use Elemacy\Loop\Pagination\PaginationContextSigner;
+use Elemacy\Loop\Access\PaginationContextSigner;
 use Elemacy\Loop\Pagination\PaginationRenderer;
-use Elemacy\Loop\Pagination\PublicRenderPolicy;
-use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\Access\PublicRenderPolicy;
+use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
 use Elemacy\Modules\Widgets\Widgets\LoopGrid;

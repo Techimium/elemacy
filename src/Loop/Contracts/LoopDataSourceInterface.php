@@ -5,7 +5,6 @@ namespace Elemacy\Loop\Contracts;
 defined('ABSPATH') || exit;
 
 use Elemacy\Elementor\Documents\PreviewablePageBase;
-use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Elementor\Widgets\BaseWidget;
 

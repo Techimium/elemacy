@@ -1,12 +1,12 @@
 <?php
 
-namespace Elemacy\Loop\Pagination\Policies;
+namespace Elemacy\Loop\Sources\Posts;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\PostsQuery;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Placement\HostFacts;
+use Elemacy\Loop\Access\PublicLoopLimits;
 
 /**
  * The Posts source's public-context policy, kept free of any Elementor
@@ -26,17 +26,13 @@ class PostsPolicy implements PublicLoopSourcePolicyInterface
     public function get_public_settings(array $settings, array $context, int $page): array
     {
         PublicLoopLimits::assert_page($page);
-        PublicLoopLimits::assert_scalars($settings, ['post_type', 'posts_per_page', 'offset', 'orderby', 'order', 'exclude_current_post']);
-        $saved = $settings + [
-            'post_type' => 'post',
-            'posts_per_page' => 6,
-            'exclude_current_post' => 'yes',
-        ];
-        $saved['posts_per_page'] = PublicLoopLimits::page_size($saved['posts_per_page']);
-        $saved['current_post_id'] = (int) ($context['post_id'] ?? 0);
+        PublicLoopLimits::assert_scalars($settings, array_keys(PostsSettings::defaults()));
+        $saved = $settings + PostsSettings::defaults();
+        $saved[PostsSettings::PER_PAGE] = PublicLoopLimits::page_size($saved[PostsSettings::PER_PAGE]);
+        $saved[PostsSettings::CURRENT_POST_ID] = (int) ($context[HostFacts::POST_ID] ?? 0);
 
         $public = $this->query->sanitize_ajax_settings($saved, $page);
-        $public['_elemacy_public_query'] = true;
+        $public[PostsSettings::PUBLIC_QUERY] = true;
         return $public;
     }
 }

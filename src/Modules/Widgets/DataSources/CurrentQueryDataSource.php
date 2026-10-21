@@ -11,7 +11,7 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
-use Elemacy\Loop\Sources\CurrentQueryQuery;
+use Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery;
 use Elementor\Controls_Manager;
 
 /**

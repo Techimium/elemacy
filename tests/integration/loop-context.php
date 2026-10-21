@@ -8,7 +8,7 @@ use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeaterRowLoopItem;
+use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterRowLoopItem;
 use RuntimeException;
 use WP_Post;
 use WP_User;

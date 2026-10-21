@@ -1,12 +1,12 @@
 <?php
 
-namespace Elemacy\Loop\Sources;
+namespace Elemacy\Loop\Sources\Users;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\UserLoopItem;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Access\PublicLoopLimits;
 use WP_User_Query;
 
 /**
@@ -18,7 +18,7 @@ class UsersQuery
 {
     public function get_items(array $settings): LoopResultDTO
     {
-        $settings = PublicLoopLimits::bound_ajax_page_size($settings, 'users_number');
+        $settings = PublicLoopLimits::bound_ajax_page_size($settings, UsersSettings::NUMBER);
         $query = new WP_User_Query($this->build_query_args($settings));
 
         $items = [];
@@ -26,7 +26,7 @@ class UsersQuery
             $items[] = new UserLoopItem($user);
         }
 
-        $number = (int) ($settings['users_number'] ?? 0);
+        $number = (int) ($settings[UsersSettings::NUMBER] ?? 0);
 
         // Unlike WP_Term_Query, WP_User_Query exposes a total directly from
         // the same query object when 'count_total' => true is passed — no
@@ -40,17 +40,17 @@ class UsersQuery
     protected function build_query_args(array $settings): array
     {
         $args = [
-            'orderby' => $settings['users_orderby'] ?? 'display_name',
-            'order' => $settings['users_order'] ?? 'ASC',
+            'orderby' => $settings[UsersSettings::ORDER_BY] ?? UsersSettings::DEFAULT_ORDER_BY,
+            'order' => $settings[UsersSettings::ORDER] ?? UsersSettings::DEFAULT_ORDER,
             'count_total' => true,
         ];
 
-        $roles = $settings['users_roles'] ?? [];
+        $roles = $settings[UsersSettings::ROLES] ?? UsersSettings::DEFAULT_ROLES;
         if (!empty($roles) && is_array($roles)) {
             $args['role__in'] = array_values($roles);
         }
 
-        $number = (int) ($settings['users_number'] ?? 0);
+        $number = (int) ($settings[UsersSettings::NUMBER] ?? 0);
 
         if ($number > 0) {
             $args['number'] = $number;
@@ -62,10 +62,10 @@ class UsersQuery
             }
         }
 
-        if ('yes' === ($settings['exclude_current_user'] ?? '')) {
-            if (array_key_exists('current_user_id', $settings)) {
-                if (!empty($settings['current_user_id'])) {
-                    $args['exclude'] = [(int) $settings['current_user_id']];
+        if ('yes' === ($settings[UsersSettings::EXCLUDE_CURRENT] ?? '')) {
+            if (array_key_exists(UsersSettings::CURRENT_USER_ID, $settings)) {
+                if (!empty($settings[UsersSettings::CURRENT_USER_ID])) {
+                    $args['exclude'] = [(int) $settings[UsersSettings::CURRENT_USER_ID]];
                 }
             } elseif (is_user_logged_in()) {
                 $args['exclude'] = [get_current_user_id()];
@@ -78,9 +78,9 @@ class UsersQuery
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
         $roles = [];
-        if (!empty($raw_settings['users_roles']) && is_array($raw_settings['users_roles'])) {
+        if (!empty($raw_settings[UsersSettings::ROLES]) && is_array($raw_settings[UsersSettings::ROLES])) {
             $registered_roles = array_keys(wp_roles()->get_names());
-            foreach ($raw_settings['users_roles'] as $role) {
+            foreach ($raw_settings[UsersSettings::ROLES] as $role) {
                 $role = sanitize_key((string) $role);
                 if (in_array($role, $registered_roles, true)) {
                     $roles[] = $role;
@@ -89,26 +89,26 @@ class UsersQuery
         }
 
         $allowed_orderby = ['display_name', 'registered', 'post_count'];
-        $orderby = isset($raw_settings['users_orderby']) ? sanitize_key((string) $raw_settings['users_orderby']) : 'display_name';
+        $orderby = isset($raw_settings[UsersSettings::ORDER_BY]) ? sanitize_key((string) $raw_settings[UsersSettings::ORDER_BY]) : UsersSettings::DEFAULT_ORDER_BY;
         if (!in_array($orderby, $allowed_orderby, true)) {
-            $orderby = 'display_name';
+            $orderby = UsersSettings::DEFAULT_ORDER_BY;
         }
 
-        $order = isset($raw_settings['users_order']) ? strtoupper(sanitize_text_field((string) $raw_settings['users_order'])) : 'ASC';
+        $order = isset($raw_settings[UsersSettings::ORDER]) ? strtoupper(sanitize_text_field((string) $raw_settings[UsersSettings::ORDER])) : UsersSettings::DEFAULT_ORDER;
         if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'ASC';
+            $order = UsersSettings::DEFAULT_ORDER;
         }
 
-        $number = isset($raw_settings['users_number']) ? (int) $raw_settings['users_number'] : 6;
+        $number = isset($raw_settings[UsersSettings::NUMBER]) ? (int) $raw_settings[UsersSettings::NUMBER] : UsersSettings::DEFAULT_NUMBER;
         $number = max(0, min(100, $number));
 
         return [
-            'users_roles' => $roles,
-            'users_number' => $number,
-            'users_orderby' => $orderby,
-            'users_order' => $order,
-            'exclude_current_user' => 'yes' === ($raw_settings['exclude_current_user'] ?? '') ? 'yes' : 'no',
-            'current_user_id' => !empty($raw_settings['current_user_id']) ? (int) $raw_settings['current_user_id'] : 0,
+            UsersSettings::ROLES => $roles,
+            UsersSettings::NUMBER => $number,
+            UsersSettings::ORDER_BY => $orderby,
+            UsersSettings::ORDER => $order,
+            UsersSettings::EXCLUDE_CURRENT => 'yes' === ($raw_settings[UsersSettings::EXCLUDE_CURRENT] ?? '') ? 'yes' : 'no',
+            UsersSettings::CURRENT_USER_ID => !empty($raw_settings[UsersSettings::CURRENT_USER_ID]) ? (int) $raw_settings[UsersSettings::CURRENT_USER_ID] : 0,
             'pagination_type' => 'ajax',
             'paged' => $paged,
         ];

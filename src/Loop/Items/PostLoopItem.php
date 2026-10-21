@@ -6,7 +6,6 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Integrations\Acf\AcfFieldReader;
 use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
-use Elemacy\Loop\Context\WordPressPostScope;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\NativePostItemInterface;
 use Elemacy\Loop\Support\LoopItemIdentity;

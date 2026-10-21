@@ -1,13 +1,13 @@
 <?php
 
-namespace Elemacy\Loop\Sources;
+namespace Elemacy\Loop\Sources\Terms;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\TermLoopItem;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Access\PublicLoopLimits;
 use WP_Term;
 use WP_Term_Query;
 
@@ -20,7 +20,7 @@ class TermsQuery
 {
     public function get_items(array $settings): LoopResultDTO
     {
-        $settings = PublicLoopLimits::bound_ajax_page_size($settings, 'terms_number');
+        $settings = PublicLoopLimits::bound_ajax_page_size($settings, TermsSettings::NUMBER);
         $args = $this->build_query_args($settings);
 
         $terms = (new WP_Term_Query($args))->get_terms();
@@ -30,7 +30,7 @@ class TermsQuery
             $items[] = new TermLoopItem($term);
         }
 
-        $number = (int) ($settings['terms_number'] ?? 0);
+        $number = (int) ($settings[TermsSettings::NUMBER] ?? 0);
         $total_items = count($items);
         $max_num_pages = 1;
 
@@ -53,13 +53,13 @@ class TermsQuery
     protected function build_query_args(array $settings): array
     {
         $args = [
-            'taxonomy' => $settings['taxonomy'] ?? 'category',
-            'orderby' => $settings['terms_orderby'] ?? 'name',
-            'order' => $settings['terms_order'] ?? 'ASC',
-            'hide_empty' => 'yes' === ($settings['hide_empty'] ?? 'yes'),
+            'taxonomy' => $settings[TermsSettings::TAXONOMY] ?? TermsSettings::DEFAULT_TAXONOMY,
+            'orderby' => $settings[TermsSettings::ORDER_BY] ?? TermsSettings::DEFAULT_ORDER_BY,
+            'order' => $settings[TermsSettings::ORDER] ?? TermsSettings::DEFAULT_ORDER,
+            'hide_empty' => 'yes' === ($settings[TermsSettings::HIDE_EMPTY] ?? TermsSettings::DEFAULT_HIDE_EMPTY),
         ];
 
-        $number = (int) ($settings['terms_number'] ?? 0);
+        $number = (int) ($settings[TermsSettings::NUMBER] ?? 0);
 
         if ($number > 0) {
             $args['number'] = $number;
@@ -71,10 +71,10 @@ class TermsQuery
             }
         }
 
-        if ('yes' === ($settings['exclude_current_term'] ?? '')) {
-            if (array_key_exists('current_term_id', $settings)) {
-                if (!empty($settings['current_term_id'])) {
-                    $args['exclude'] = [(int) $settings['current_term_id']];
+        if ('yes' === ($settings[TermsSettings::EXCLUDE_CURRENT] ?? '')) {
+            if (array_key_exists(TermsSettings::CURRENT_TERM_ID, $settings)) {
+                if (!empty($settings[TermsSettings::CURRENT_TERM_ID])) {
+                    $args['exclude'] = [(int) $settings[TermsSettings::CURRENT_TERM_ID]];
                 }
             } else {
                 $current_term_id = $this->get_current_queried_term_id();
@@ -90,7 +90,7 @@ class TermsQuery
 
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
-        $taxonomy = isset($raw_settings['taxonomy']) ? sanitize_key((string) $raw_settings['taxonomy']) : '';
+        $taxonomy = isset($raw_settings[TermsSettings::TAXONOMY]) ? sanitize_key((string) $raw_settings[TermsSettings::TAXONOMY]) : '';
         $allowed_taxonomies = get_taxonomies(['public' => true], 'names');
 
         if ($taxonomy === '' || !in_array($taxonomy, $allowed_taxonomies, true)) {
@@ -98,27 +98,27 @@ class TermsQuery
         }
 
         $allowed_orderby = ['name', 'count', 'term_id', 'slug'];
-        $orderby = isset($raw_settings['terms_orderby']) ? sanitize_key((string) $raw_settings['terms_orderby']) : 'name';
+        $orderby = isset($raw_settings[TermsSettings::ORDER_BY]) ? sanitize_key((string) $raw_settings[TermsSettings::ORDER_BY]) : TermsSettings::DEFAULT_ORDER_BY;
         if (!in_array($orderby, $allowed_orderby, true)) {
-            $orderby = 'name';
+            $orderby = TermsSettings::DEFAULT_ORDER_BY;
         }
 
-        $order = isset($raw_settings['terms_order']) ? strtoupper(sanitize_text_field((string) $raw_settings['terms_order'])) : 'ASC';
+        $order = isset($raw_settings[TermsSettings::ORDER]) ? strtoupper(sanitize_text_field((string) $raw_settings[TermsSettings::ORDER])) : TermsSettings::DEFAULT_ORDER;
         if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'ASC';
+            $order = TermsSettings::DEFAULT_ORDER;
         }
 
-        $number = isset($raw_settings['terms_number']) ? (int) $raw_settings['terms_number'] : 6;
+        $number = isset($raw_settings[TermsSettings::NUMBER]) ? (int) $raw_settings[TermsSettings::NUMBER] : TermsSettings::DEFAULT_NUMBER;
         $number = max(0, min(100, $number));
 
         return [
-            'taxonomy' => $taxonomy,
-            'terms_number' => $number,
-            'terms_orderby' => $orderby,
-            'terms_order' => $order,
-            'hide_empty' => 'yes' === ($raw_settings['hide_empty'] ?? '') ? 'yes' : 'no',
-            'exclude_current_term' => 'yes' === ($raw_settings['exclude_current_term'] ?? '') ? 'yes' : 'no',
-            'current_term_id' => !empty($raw_settings['current_term_id']) ? (int) $raw_settings['current_term_id'] : 0,
+            TermsSettings::TAXONOMY => $taxonomy,
+            TermsSettings::NUMBER => $number,
+            TermsSettings::ORDER_BY => $orderby,
+            TermsSettings::ORDER => $order,
+            TermsSettings::HIDE_EMPTY => 'yes' === ($raw_settings[TermsSettings::HIDE_EMPTY] ?? '') ? 'yes' : 'no',
+            TermsSettings::EXCLUDE_CURRENT => 'yes' === ($raw_settings[TermsSettings::EXCLUDE_CURRENT] ?? '') ? 'yes' : 'no',
+            TermsSettings::CURRENT_TERM_ID => !empty($raw_settings[TermsSettings::CURRENT_TERM_ID]) ? (int) $raw_settings[TermsSettings::CURRENT_TERM_ID] : 0,
             'pagination_type' => 'ajax',
             'paged' => $paged,
         ];

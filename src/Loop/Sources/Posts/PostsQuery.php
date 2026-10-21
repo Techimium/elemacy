@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Loop\Sources;
+namespace Elemacy\Loop\Sources\Posts;
 
 defined('ABSPATH') || exit;
 
@@ -8,7 +8,7 @@ use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\PostLoopItem;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Access\PublicLoopLimits;
 use WP_Query;
 
 /**
@@ -20,7 +20,7 @@ class PostsQuery
 {
     public function get_items(array $settings): LoopResultDTO
     {
-        $settings = PublicLoopLimits::bound_ajax_page_size($settings, 'posts_per_page');
+        $settings = PublicLoopLimits::bound_ajax_page_size($settings, PostsSettings::PER_PAGE);
         $query = new WP_Query($this->build_query_args($settings));
 
         $items = [];
@@ -34,11 +34,11 @@ class PostsQuery
         // Fix max_num_pages when a custom offset was in play for this AJAX
         // page: WP_Query computes it from found_posts alone, which
         // over-counts once an offset has already consumed some of those
-        // posts. `offset_override_base` (the original, uncompounded offset)
+        // posts. `PostsSettings::OFFSET_BASE` (the original, uncompounded offset)
         // is only ever set by sanitize_ajax_settings() below.
-        if (isset($settings['offset_override_base'])) {
-            $posts_per_page = max(1, (int) ($settings['posts_per_page'] ?? 1));
-            $remaining = max(0, (int) $query->found_posts - (int) $settings['offset_override_base']);
+        if (isset($settings[PostsSettings::OFFSET_BASE])) {
+            $posts_per_page = max(1, (int) ($settings[PostsSettings::PER_PAGE] ?? 1));
+            $remaining = max(0, (int) $query->found_posts - (int) $settings[PostsSettings::OFFSET_BASE]);
             $max_num_pages = (int) ceil($remaining / $posts_per_page);
         }
 
@@ -65,32 +65,32 @@ class PostsQuery
     protected function build_query_args(array $settings): array
     {
         $args = [
-            'post_type' => $settings['post_type'],
-            'posts_per_page' => $settings['posts_per_page'],
-            'orderby' => $settings['orderby'],
-            'order' => $settings['order'],
+            'post_type' => $settings[PostsSettings::POST_TYPE],
+            'posts_per_page' => $settings[PostsSettings::PER_PAGE],
+            'orderby' => $settings[PostsSettings::ORDER_BY],
+            'order' => $settings[PostsSettings::ORDER],
             'post_status' => PostStatus::PUBLISH,
         ];
 
-        if (!empty($settings['_elemacy_public_query'])) {
+        if (!empty($settings[PostsSettings::PUBLIC_QUERY])) {
             $args['has_password'] = false;
         }
 
-        if (!empty($settings['offset'])) {
-            $args['offset'] = $settings['offset'];
+        if (!empty($settings[PostsSettings::OFFSET])) {
+            $args['offset'] = $settings[PostsSettings::OFFSET];
         }
 
-        if ('yes' === $settings['exclude_current_post']) {
-            if (array_key_exists('current_post_id', $settings)) {
-                if (!empty($settings['current_post_id'])) {
-                    $args['post__not_in'] = [(int) $settings['current_post_id']];
+        if ('yes' === $settings[PostsSettings::EXCLUDE_CURRENT]) {
+            if (array_key_exists(PostsSettings::CURRENT_POST_ID, $settings)) {
+                if (!empty($settings[PostsSettings::CURRENT_POST_ID])) {
+                    $args['post__not_in'] = [(int) $settings[PostsSettings::CURRENT_POST_ID]];
                 }
             } elseif (is_singular()) {
                 $args['post__not_in'] = [get_the_ID()];
             }
         }
 
-        if (!empty($settings['pagination_type']) && empty($settings['offset'])) {
+        if (!empty($settings['pagination_type']) && empty($settings[PostsSettings::OFFSET])) {
             $paged = $settings['paged']
                 ?? (get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1));
             $args['paged'] = $paged;
@@ -106,7 +106,7 @@ class PostsQuery
      */
     public function sanitize_ajax_settings(array $raw_settings, int $paged): array
     {
-        $post_type = isset($raw_settings['post_type']) ? sanitize_key((string) $raw_settings['post_type']) : '';
+        $post_type = isset($raw_settings[PostsSettings::POST_TYPE]) ? sanitize_key((string) $raw_settings[PostsSettings::POST_TYPE]) : '';
         $allowed_post_types = get_post_types(['public' => true], 'names');
 
         if ($post_type === '' || !in_array($post_type, $allowed_post_types, true)) {
@@ -114,37 +114,37 @@ class PostsQuery
         }
 
         $allowed_orderby = ['date', 'title', 'menu_order', 'rand'];
-        $orderby = isset($raw_settings['orderby']) ? sanitize_key((string) $raw_settings['orderby']) : 'date';
+        $orderby = isset($raw_settings[PostsSettings::ORDER_BY]) ? sanitize_key((string) $raw_settings[PostsSettings::ORDER_BY]) : PostsSettings::DEFAULT_ORDER_BY;
         if (!in_array($orderby, $allowed_orderby, true)) {
-            $orderby = 'date';
+            $orderby = PostsSettings::DEFAULT_ORDER_BY;
         }
 
-        $order = isset($raw_settings['order']) ? strtoupper(sanitize_text_field((string) $raw_settings['order'])) : 'DESC';
+        $order = isset($raw_settings[PostsSettings::ORDER]) ? strtoupper(sanitize_text_field((string) $raw_settings[PostsSettings::ORDER])) : PostsSettings::DEFAULT_ORDER;
         if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'DESC';
+            $order = PostsSettings::DEFAULT_ORDER;
         }
 
-        $posts_per_page = isset($raw_settings['posts_per_page']) ? (int) $raw_settings['posts_per_page'] : 6;
+        $posts_per_page = isset($raw_settings[PostsSettings::PER_PAGE]) ? (int) $raw_settings[PostsSettings::PER_PAGE] : PostsSettings::DEFAULT_PER_PAGE;
         $posts_per_page = max(1, min(100, $posts_per_page));
 
         $item_settings = [
-            'post_type' => $post_type,
-            'posts_per_page' => $posts_per_page,
-            'orderby' => $orderby,
-            'order' => $order,
+            PostsSettings::POST_TYPE => $post_type,
+            PostsSettings::PER_PAGE => $posts_per_page,
+            PostsSettings::ORDER_BY => $orderby,
+            PostsSettings::ORDER => $order,
             'paged' => $paged,
             'pagination_type' => 'ajax', // any non-empty value: gates paged/offset handling in build_query_args.
-            'exclude_current_post' => 'yes' === ($raw_settings['exclude_current_post'] ?? '') ? 'yes' : 'no',
-            'current_post_id' => !empty($raw_settings['current_post_id']) ? (int) $raw_settings['current_post_id'] : 0,
+            PostsSettings::EXCLUDE_CURRENT => 'yes' === ($raw_settings[PostsSettings::EXCLUDE_CURRENT] ?? '') ? 'yes' : 'no',
+            PostsSettings::CURRENT_POST_ID => !empty($raw_settings[PostsSettings::CURRENT_POST_ID]) ? (int) $raw_settings[PostsSettings::CURRENT_POST_ID] : 0,
         ];
 
         // The first page has the plain offset. Subsequent pages need offset +
-        // previous pages' posts; offset_override_base carries the original,
+        // previous pages' posts; PostsSettings::OFFSET_BASE carries the original,
         // uncompounded offset through to get_items() so it can correct
         // max_num_pages (see get_items() above).
-        if (!empty($raw_settings['offset'])) {
-            $item_settings['offset_override_base'] = (int) $raw_settings['offset'];
-            $item_settings['offset'] = (int) $raw_settings['offset'] + (($paged - 1) * $posts_per_page);
+        if (!empty($raw_settings[PostsSettings::OFFSET])) {
+            $item_settings[PostsSettings::OFFSET_BASE] = (int) $raw_settings[PostsSettings::OFFSET];
+            $item_settings[PostsSettings::OFFSET] = (int) $raw_settings[PostsSettings::OFFSET] + (($paged - 1) * $posts_per_page);
         }
 
         return $item_settings;

@@ -6,7 +6,7 @@ use Elemacy\Core\Container;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\LoopDataSourceRegistry;
-use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Access\PublicRenderPolicy;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;

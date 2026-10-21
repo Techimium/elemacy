@@ -1,11 +1,11 @@
 <?php
 
-namespace Elemacy\Loop\Pagination;
+namespace Elemacy\Loop\Access;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
-use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
+use Elemacy\Loop\Pagination\PaginationType;
 
 /** Shared bounds for public source policies and their initial paginated output. */
 final class PublicLoopLimits

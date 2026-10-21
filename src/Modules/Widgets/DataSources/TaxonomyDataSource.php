@@ -9,10 +9,11 @@ use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\TermsQuery;
+use Elemacy\Loop\Sources\Terms\TermsQuery;
+use Elemacy\Loop\Sources\Terms\TermsSettings;
 use Elemacy\Loop\Items\TermLoopItem;
 use Elemacy\Loop\DTO\LoopResultDTO;
-use Elemacy\Loop\Pagination\Policies\TermsPolicy;
+use Elemacy\Loop\Sources\Terms\TermsPolicy;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elementor\Controls_Manager;
 use Elemacy\Elementor\Widgets\BaseWidget;
@@ -68,33 +69,33 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         $condition = ['data_source' => $this->get_key()];
 
         $widget->add_control(
-            'taxonomy',
+            TermsSettings::TAXONOMY,
             [
                 'label' => esc_html__('Taxonomy', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'options' => $this->get_public_taxonomies(),
-                'default' => 'category',
+                'default' => TermsSettings::DEFAULT_TAXONOMY,
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'terms_number',
+            TermsSettings::NUMBER,
             [
                 'label' => esc_html__('Number of Terms', 'elemacy'),
                 'type' => Controls_Manager::NUMBER,
-                'default' => 6,
+                'default' => TermsSettings::DEFAULT_NUMBER,
                 'description' => esc_html__('Leave empty to show all terms.', 'elemacy'),
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'terms_orderby',
+            TermsSettings::ORDER_BY,
             [
                 'label' => esc_html__('Order By', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'name',
+                'default' => TermsSettings::DEFAULT_ORDER_BY,
                 'options' => [
                     'name' => esc_html__('Name', 'elemacy'),
                     'count' => esc_html__('Count', 'elemacy'),
@@ -106,11 +107,11 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         );
 
         $widget->add_control(
-            'terms_order',
+            TermsSettings::ORDER,
             [
                 'label' => esc_html__('Order', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'ASC',
+                'default' => TermsSettings::DEFAULT_ORDER,
                 'options' => [
                     'ASC' => esc_html__('ASC', 'elemacy'),
                     'DESC' => esc_html__('DESC', 'elemacy'),
@@ -120,23 +121,23 @@ class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePol
         );
 
         $widget->add_control(
-            'hide_empty',
+            TermsSettings::HIDE_EMPTY,
             [
                 'label' => esc_html__('Hide Empty Terms', 'elemacy'),
                 'type' => Controls_Manager::SWITCHER,
                 'return_value' => 'yes',
-                'default' => 'yes',
+                'default' => TermsSettings::DEFAULT_HIDE_EMPTY,
                 'condition' => $condition,
             ]
         );
 
         $widget->add_control(
-            'exclude_current_term',
+            TermsSettings::EXCLUDE_CURRENT,
             [
                 'label' => esc_html__('Exclude Current Term', 'elemacy'),
                 'type' => Controls_Manager::SWITCHER,
                 'return_value' => 'yes',
-                'default' => 'yes',
+                'default' => TermsSettings::DEFAULT_EXCLUDE_CURRENT,
                 'description' => esc_html__('When viewing a term archive, exclude that term from the results.', 'elemacy'),
                 'condition' => $condition,
             ]

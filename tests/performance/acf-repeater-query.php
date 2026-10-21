@@ -2,7 +2,7 @@
 
 /**
  * Task 8.8 performance evidence: time/peak memory for
- * ElemacyPro\Extensions\LoopDataSources\Query\AcfRepeaterQuery::get_items()
+ * ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterQuery::get_items()
  * against a large repeater field, requesting one small page — distinguishing
  * ACF's own unavoidable whole-field load from this plugin's own (now
  * removed) avoidable per-row object materialization.
@@ -27,8 +27,8 @@
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 require_once __DIR__ . '/../integration/bootstrap.php';
 
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeaterRowLoopItem;
-use ElemacyPro\Extensions\LoopDataSources\Query\AcfRepeaterQuery;
+use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterRowLoopItem;
+use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterQuery;
 
 function elemacy_perf_arg(string $name, string $default): string
 {

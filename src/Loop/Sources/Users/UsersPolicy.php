@@ -1,12 +1,11 @@
 <?php
 
-namespace Elemacy\Loop\Pagination\Policies;
+namespace Elemacy\Loop\Sources\Users;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\UsersQuery;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Access\PublicLoopLimits;
 
 /**
  * The Users source's public-context policy, kept free of any Elementor
@@ -26,8 +25,8 @@ class UsersPolicy implements PublicLoopSourcePolicyInterface
     public function get_public_settings(array $settings, array $context, int $page): array
     {
         PublicLoopLimits::assert_page($page);
-        PublicLoopLimits::assert_scalars($settings, ['users_number', 'users_orderby', 'users_order', 'exclude_current_user']);
-        $roles = $settings['users_roles'] ?? [];
+        PublicLoopLimits::assert_scalars($settings, [UsersSettings::NUMBER, UsersSettings::ORDER_BY, UsersSettings::ORDER, UsersSettings::EXCLUDE_CURRENT]);
+        $roles = $settings[UsersSettings::ROLES] ?? UsersSettings::DEFAULT_ROLES;
         if (!is_array($roles)) {
             throw PublicLoopLimits::invalid_settings();
         }
@@ -38,10 +37,10 @@ class UsersPolicy implements PublicLoopSourcePolicyInterface
                 throw PublicLoopLimits::invalid_settings();
             }
         }
-        $saved = $settings;
-        $saved['users_roles'] = $roles;
-        $saved['users_number'] = PublicLoopLimits::page_size($settings['users_number'] ?? null);
-        $saved['current_user_id'] = get_current_user_id();
+        $saved = $settings + UsersSettings::defaults();
+        $saved[UsersSettings::ROLES] = $roles;
+        $saved[UsersSettings::NUMBER] = PublicLoopLimits::page_size($saved[UsersSettings::NUMBER]);
+        $saved[UsersSettings::CURRENT_USER_ID] = get_current_user_id();
         return $this->query->sanitize_ajax_settings($saved, $page);
     }
 }

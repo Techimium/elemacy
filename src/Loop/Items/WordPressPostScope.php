@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Loop\Context;
+namespace Elemacy\Loop\Items;
 
 defined('ABSPATH') || exit;
 

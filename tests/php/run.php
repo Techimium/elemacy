@@ -70,17 +70,17 @@ use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
 use Elemacy\Conditions\Resources\ConditionTypeResource;
 use Elemacy\Modules\Popups\Triggers\BaseTrigger;
 use Elemacy\Modules\Popups\Triggers\MockTrigger;
-use Elemacy\Loop\Context\WordPressPostScope;
+use Elemacy\Loop\Items\WordPressPostScope;
 use Elemacy\Loop\Rendering\LoopRenderContext;
 use Elemacy\Loop\Rendering\LoopRenderIdentity;
 use Elemacy\Loop\Rendering\TemplateRecursionException;
 use Elemacy\Loop\Rendering\TemplateRecursionGuard;
-use Elemacy\Loop\Sources\PostsQuery;
-use Elemacy\Loop\Sources\TermsQuery;
-use Elemacy\Loop\Sources\UsersQuery;
-use Elemacy\Loop\Pagination\Policies\PostsPolicy;
-use Elemacy\Loop\Pagination\Policies\TermsPolicy;
-use Elemacy\Loop\Pagination\Policies\UsersPolicy;
+use Elemacy\Loop\Sources\Posts\PostsQuery;
+use Elemacy\Loop\Sources\Terms\TermsQuery;
+use Elemacy\Loop\Sources\Users\UsersQuery;
+use Elemacy\Loop\Sources\Posts\PostsPolicy;
+use Elemacy\Loop\Sources\Terms\TermsPolicy;
+use Elemacy\Loop\Sources\Users\UsersPolicy;
 use Elemacy\Modules\DynamicTags\Services\Taxonomy;
 use Elemacy\Modules\DynamicTags\Services\User;
 use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
@@ -669,7 +669,7 @@ check('CoreServiceProvider::register() binds every shared registry to its ::inst
         }
     }
 
-    $policy = Container::instance()->make(\Elemacy\Loop\Pagination\PublicRenderPolicy::class);
+    $policy = Container::instance()->make(\Elemacy\Loop\Access\PublicRenderPolicy::class);
     $types = new ReflectionProperty($policy, 'types');
     $types->setAccessible(true);
     $placements = new ReflectionProperty($policy, 'placements');
@@ -5097,7 +5097,7 @@ check('LoopItemIdentity::sanitize() strips everything else', static function () 
     return LoopItemIdentity::sanitize('42<script>.foo bar/baz') === '42scriptfoobarbaz';
 });
 
-/* ── Loop\Context\WordPressPostScope ───────────────────────────────── */
+/* ── Loop\Items\WordPressPostScope ───────────────────────────────── */
 
 check('WordPressPostScope::exit() restores an outer acquisition\'s exact state after a nested inner one exits, not merely resetting the globals', static function () {
     $outer = new WordPressPostScope();
@@ -5762,7 +5762,7 @@ check('PostsDataSource::get_items()/get_public_settings() genuinely delegate to 
         && $policy->calls === [[['s' => 1], ['c' => 1], 3]];
 });
 
-check('Loop\Sources\PostsQuery and Loop\Pagination\Policies\PostsPolicy do not require an Elementor widget/document instance (no Widget_Base/PreviewablePageBase reference in either source file)', static function () {
+check('Loop\Sources\Posts\PostsQuery and PostsPolicy do not require an Elementor widget/document instance (no Widget_Base/PreviewablePageBase reference in either source file)', static function () {
     foreach ([PostsQuery::class, PostsPolicy::class] as $class) {
         $source = file_get_contents((new ReflectionClass($class))->getFileName());
 
@@ -5894,7 +5894,7 @@ check('UsersDataSource constructor stores injected UsersQuery/UsersPolicy, defau
         && $default_policy_query_ref->getValue($policy_ref->getValue($default_source)) === $default_query;
 });
 
-check('Loop\Sources\{TermsQuery,UsersQuery} and Loop\Pagination\Policies\{TermsPolicy,UsersPolicy} do not require an Elementor widget/document instance', static function () {
+check('Loop\Sources\{Terms,Users}\ queries and policies do not require an Elementor widget/document instance', static function () {
     foreach ([TermsQuery::class, UsersQuery::class, TermsPolicy::class, UsersPolicy::class] as $class) {
         $source = file_get_contents((new ReflectionClass($class))->getFileName());
 
@@ -6308,7 +6308,7 @@ check('Current Query lists the main query\'s own posts and its found/max pages, 
     $GLOBALS['__wp_query_args'] = [];
 
     try {
-        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+        $result = (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([]);
     } finally {
         $made_new_query = [] !== $GLOBALS['__wp_query_args'];
         unset($GLOBALS['wp_query']);
@@ -6327,7 +6327,7 @@ check('Current Query ignores every authored loop setting: nothing in the widget 
     $GLOBALS['__wp_query_args'] = [];
 
     try {
-        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([
+        $result = (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([
             'post_type' => 'page', 'posts_per_page' => 1, 'offset' => 50, 'orderby' => 'rand', 'meta_key' => 'x',
         ]);
     } finally {
@@ -6345,7 +6345,7 @@ check('Current Query runs a new WP_Query with the filtered vars only when an add
 
     $unchanged = static fn ($vars) => $vars;
     add_filter(Hooks::LOOP_CURRENT_QUERY_ARGS_FILTER, $unchanged);
-    (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([]);
     $reused = [] === $GLOBALS['__wp_query_args'];
 
     $GLOBALS['__wp_actions'] = [];
@@ -6354,7 +6354,7 @@ check('Current Query runs a new WP_Query with the filtered vars only when an add
 
         return $vars;
     });
-    (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([]);
     $filtered = end($GLOBALS['__wp_query_args']);
 
     $GLOBALS['__wp_actions'] = [];
@@ -6365,7 +6365,7 @@ check('Current Query runs a new WP_Query with the filtered vars only when an add
 
 check('Current Query with no main query yields an empty result instead of an error', static function () {
     unset($GLOBALS['wp_query']);
-    $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+    $result = (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([]);
 
     return [] === $result->items && 0 === $result->total_items;
 });
@@ -6382,7 +6382,7 @@ check('Load More and Infinite Scroll are the incremental pagination types; the l
 });
 
 check('A grid pages in place when its AJAX switch is on or its type is incremental, and not otherwise', static function () {
-    $limits = \Elemacy\Loop\Pagination\PublicLoopLimits::class;
+    $limits = \Elemacy\Loop\Access\PublicLoopLimits::class;
 
     return $limits::is_ajax_paginated(['pagination_ajax' => 'yes', 'pagination_type' => 'numbers'])
         && $limits::is_ajax_paginated(['pagination_ajax' => 'no', 'pagination_type' => 'load_more'])
@@ -6393,7 +6393,7 @@ check('A grid pages in place when its AJAX switch is on or its type is increment
 });
 
 check('An incremental grid\'s first page is bounded like an AJAX grid\'s, and a link-type grid without AJAX is left as authored', static function () {
-    $limits = \Elemacy\Loop\Pagination\PublicLoopLimits::class;
+    $limits = \Elemacy\Loop\Access\PublicLoopLimits::class;
 
     foreach (['load_more', 'infinite_scroll'] as $type) {
         $bounded = $limits::bound_ajax_page_size(['pagination_type' => $type, 'pagination_ajax' => 'no', 'posts_per_page' => 5000], 'posts_per_page');
@@ -6411,7 +6411,7 @@ check('Current Query treats a main query that has not run yet (null posts) as an
     $GLOBALS['wp_query'] = $query;
 
     try {
-        $result = (new \Elemacy\Loop\Sources\CurrentQueryQuery())->get_items([]);
+        $result = (new \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery())->get_items([]);
     } finally {
         unset($GLOBALS['wp_query']);
     }
@@ -6432,7 +6432,7 @@ check('CurrentQueryDataSource: own key and label, a public policy that carries n
 });
 
 check('CurrentQueryDataSource delegates get_items() and the preview item to its injected collaborators', static function () {
-    $query = new class extends \Elemacy\Loop\Sources\CurrentQueryQuery {
+    $query = new class extends \Elemacy\Loop\Sources\CurrentQuery\CurrentQueryQuery {
         public array $calls = [];
 
         public function get_items(array $settings): LoopResultDTO
@@ -6481,7 +6481,7 @@ check('Posts offers real public post types only: no Current Query entry', static
 check('Posts query, policy and source no longer mention current_query anywhere in their code', static function () {
     $root = dirname(__DIR__, 2) . '/src/';
 
-    foreach (['Loop/Sources/PostsQuery.php', 'Loop/Pagination/Policies/PostsPolicy.php', 'Modules/Widgets/DataSources/PostsDataSource.php'] as $file) {
+    foreach (['Loop/Sources/Posts/PostsQuery.php', 'Loop/Sources/Posts/PostsPolicy.php', 'Modules/Widgets/DataSources/PostsDataSource.php'] as $file) {
         if (false !== strpos(file_get_contents($root . $file), 'current_query')) {
             return false;
         }
@@ -6504,7 +6504,7 @@ check('PublicRenderPolicy::endpoint_source() refuses a page-URL-paginated source
     $sources = new LoopDataSourceRegistry();
     $sources->register(new PostsDataSource());
     $sources->register(new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource());
-    $policy = new \Elemacy\Loop\Pagination\PublicRenderPolicy(TypeRegistry::instance(), $sources, \Elemacy\Loop\Placement\PlacementResolverRegistry::instance());
+    $policy = new \Elemacy\Loop\Access\PublicRenderPolicy(TypeRegistry::instance(), $sources, \Elemacy\Loop\Placement\PlacementResolverRegistry::instance());
 
     $refused = false;
     try {

@@ -1,12 +1,12 @@
 <?php
 
-namespace Elemacy\Loop\Pagination\Policies;
+namespace Elemacy\Loop\Sources\Terms;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
-use Elemacy\Loop\Sources\TermsQuery;
-use Elemacy\Loop\Pagination\PublicLoopLimits;
+use Elemacy\Loop\Placement\HostFacts;
+use Elemacy\Loop\Access\PublicLoopLimits;
 
 /**
  * The Terms source's public-context policy, kept free of any Elementor
@@ -26,15 +26,10 @@ class TermsPolicy implements PublicLoopSourcePolicyInterface
     public function get_public_settings(array $settings, array $context, int $page): array
     {
         PublicLoopLimits::assert_page($page);
-        PublicLoopLimits::assert_scalars($settings, ['taxonomy', 'terms_number', 'terms_orderby', 'terms_order', 'hide_empty', 'exclude_current_term']);
-        $saved = $settings + [
-            'taxonomy' => 'category',
-            'terms_number' => 6,
-            'hide_empty' => 'yes',
-            'exclude_current_term' => 'yes',
-        ];
-        $saved['terms_number'] = PublicLoopLimits::page_size($saved['terms_number']);
-        $saved['current_term_id'] = (int) ($context['term_id'] ?? 0);
+        PublicLoopLimits::assert_scalars($settings, array_keys(TermsSettings::defaults()));
+        $saved = $settings + TermsSettings::defaults();
+        $saved[TermsSettings::NUMBER] = PublicLoopLimits::page_size($saved[TermsSettings::NUMBER]);
+        $saved[TermsSettings::CURRENT_TERM_ID] = (int) ($context[HostFacts::TERM_ID] ?? 0);
         return $this->query->sanitize_ajax_settings($saved, $page);
     }
 }

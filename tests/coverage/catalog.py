@@ -123,7 +123,8 @@ def declarations(root):
                       'src/Extensions/LoopDataSources')]
     for provider, directory in providers:
         for classname in re.findall(r'->register\(new\s+(\w+DataSource)\(', php(root / provider)):
-            path = root / directory / (classname + '.php')
+            # A source may sit in its own feature folder below the provider's directory.
+            path = next((root / directory).rglob(classname + '.php'))
             result.append(feature(root, 'loop-source', identifier(path, 'get_key'), str(path.relative_to(root))))
     if len({entry['id'] for entry in result}) != len(result):
         raise ValueError('Duplicate declared feature IDs in ' + root.name)

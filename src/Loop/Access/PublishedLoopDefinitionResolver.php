@@ -1,12 +1,10 @@
 <?php
 
-namespace Elemacy\Loop\Pagination;
+namespace Elemacy\Loop\Access;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
-use Elemacy\Loop\Pagination\DTO\PublishedLoopDefinition;
-use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
 use JsonException;
 
 /**

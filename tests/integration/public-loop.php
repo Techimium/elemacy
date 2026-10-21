@@ -5,7 +5,7 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeaterDataSource;
+use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterDataSource;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/ArchitectureCatalog.php';

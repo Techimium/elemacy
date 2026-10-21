@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Loop\Pagination\DTO;
+namespace Elemacy\Loop\Access;
 
 defined('ABSPATH') || exit;
 

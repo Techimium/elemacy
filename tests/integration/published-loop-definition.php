@@ -3,10 +3,10 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Http\Exceptions\ValidationException;
-use Elemacy\Loop\Pagination\DTO\PublicLoopRequest;
+use Elemacy\Loop\Access\PublicLoopRequest;
 use Elemacy\Loop\LoopDataSourceRegistry;
-use Elemacy\Loop\Pagination\PublishedLoopDefinitionResolver;
-use Elemacy\Loop\Pagination\PublicRenderPolicy;
+use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
+use Elemacy\Loop\Access\PublicRenderPolicy;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Loop\Sources;
+namespace Elemacy\Loop\Sources\CurrentQuery;
 
 defined('ABSPATH') || exit;
 

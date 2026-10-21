@@ -7,8 +7,6 @@ defined('ABSPATH') || exit;
 use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
-use Elemacy\Loop\Rendering\LoopItemStyles;
-use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
 use Throwable;
 
 /**
