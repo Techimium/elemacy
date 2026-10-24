@@ -1,0 +1,5 @@
+/*
+Theme Name: Elemacy BB Theme Fixture
+Version: 1.0.0
+Description: Replicates only the Beaver Builder Theme's public header/footer contract (fl_before_header, fl_header_enabled, fl_after_content, fl_footer_enabled) under its real slug, so CompatibilityManager selects the real BBThemeCompatibility adapter, which wraps the Header template in its own <header>.
+*/

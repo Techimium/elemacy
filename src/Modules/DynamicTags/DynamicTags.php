@@ -14,6 +14,11 @@ class DynamicTags extends Module
         return 'dynamic-tags';
     }
 
+    public function is_default_active(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Dynamic Tags', 'elemacy');
@@ -34,8 +39,8 @@ class DynamicTags extends Module
         return true;
     }
 
-    public function init(): void
+    public function boot(): void
     {
-        TagManager::init();
+        (new TagManager())->register_hooks();
     }
 }

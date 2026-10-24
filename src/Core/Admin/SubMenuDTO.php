@@ -1,0 +1,55 @@
+<?php
+
+namespace Elemacy\Core\Admin;
+
+defined('ABSPATH') || exit;
+
+use Elemacy\Http\DTO\DTO;
+
+class SubMenuDTO extends DTO
+{
+    /**
+     * @var string
+     */
+    public $parent_slug = 'elemacy';
+
+    /**
+     * @var string
+     */
+    public $page_title;
+
+    /**
+     * @var string
+     */
+    public $menu_title;
+
+    /**
+     * @var string
+     */
+    public $capability = 'manage_options';
+
+    /**
+     * @var string
+     */
+    public $menu_slug;
+
+    /**
+     * @var callable|null
+     */
+    public $callback = null;
+
+    /**
+     * @var string
+     */
+    public $icon_url = '';
+
+    /**
+     * @var int|null
+     */
+    public $position = null;
+
+    /**
+     * @var string
+     */
+    public $external_url = '';
+}

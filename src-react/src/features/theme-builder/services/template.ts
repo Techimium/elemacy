@@ -1,4 +1,5 @@
-import { TemplateSchema, type CreateTemplate, type Template, type TemplateType, type UpdateTemplate } from "@/features/theme-builder/schemas/template";
+import { z } from "zod";
+import { TemplateSchema, TemplateTypeSchema, type CreateTemplate, type Template, type TemplateType, type UpdateTemplate } from "@/features/theme-builder/schemas/template";
 import { apiClient, parseResponse } from "@/lib/api";
 import { parsePage } from "@/lib/pagination";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,7 +34,7 @@ export const useTemplates = (filters: TemplateFilters) => {
 
 const fetchTemplateTypes = async (): Promise<TemplateType[]> => {
     const response = await apiClient.get('theme-builder/template-types');
-    return response.data?.data;
+    return parseResponse(z.array(TemplateTypeSchema), response.data?.data);
 };
 
 export const useTemplateTypes = () => {
@@ -59,7 +60,7 @@ export const useCreateTemplateMutation = () => {
     });
 };
 
-const updateTemplate = async ({ id, ...template }: UpdateTemplate & { id: number }): Promise<Template> => {
+const updateTemplate = async ({ id, ...template }: Omit<UpdateTemplate, 'status'> & { id: number; status?: string }): Promise<Template> => {
     const response = await apiClient.put(`theme-builder/templates/${id}`, template);
     return parseResponse(TemplateSchema, response.data?.data);
 };

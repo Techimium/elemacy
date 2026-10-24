@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Popups\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
 class PopupListResource extends Resource
 {

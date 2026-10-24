@@ -1,6 +1,5 @@
 import { __ } from '@wordpress/i18n';
 import {
-    Sparkles,
     Target,
     MousePointerClick,
     SlidersHorizontal,
@@ -22,11 +21,6 @@ interface ProFeature {
 }
 
 const proFeatures: ProFeature[] = [
-    {
-        icon: Sparkles,
-        title: __('Animations', 'elemacy'),
-        description: __('Scroll, entrance and on-load animations for any element, powered by GSAP.', 'elemacy'),
-    },
     {
         icon: Target,
         title: __('Advanced Display Conditions', 'elemacy'),
@@ -64,7 +58,7 @@ const ProUpsell = () => (
                     </span>
                     <div className="text-3xl font-extrabold tracking-tight mb-2">{__('Do more with Elemacy Pro', 'elemacy')}</div>
                     <div className="text-indigo-100/80">
-                        {__('Unlock animations, advanced display conditions, smarter popups and analytics. Pro only adds capabilities — nothing in the free plugin is limited.', 'elemacy')}
+                        {__('Unlock advanced display conditions, smarter popups and analytics. Pro only adds capabilities — nothing in the free plugin is limited.', 'elemacy')}
                     </div>
                 </div>
                 <Button

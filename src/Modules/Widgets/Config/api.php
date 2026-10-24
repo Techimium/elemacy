@@ -3,8 +3,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Elemacy\Core\Middlewares\API\AdminMiddleware;
-use Elemacy\Core\Route;
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
 use Elemacy\Modules\Widgets\Controllers\WidgetsApiController;
 
 Route::get('/widgets', [WidgetsApiController::class, 'index'])->middleware(AdminMiddleware::class);

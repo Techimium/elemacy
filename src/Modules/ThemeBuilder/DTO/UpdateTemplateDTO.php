@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
+use Elemacy\Http\DTO\DTO;
 
 class UpdateTemplateDTO extends DTO
 {

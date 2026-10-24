@@ -1,9 +1,8 @@
 <?php
-
 /**
  * Plugin Name: Elemacy
  * Plugin URI: https://elemacy.com
- * Description: Elemacy is a WordPress plugin to extend elementor.
+ * Description: Build headers, popups, forms and dynamic content with one free Elementor addon. Includes Theme Builder, Loop Grid, ACF tools and Custom CSS.
  * Version: 1.0.0
  * Author: Techimium
  * Author URI: https://techimium.com
@@ -14,6 +13,11 @@
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Requires Plugins: elementor
+ *
+ * Requires Elementor 3.35.9 or higher (see Elemacy\Core\CompatibilityChecker::
+ * MIN_ELEMENTOR_VERSION and F/docs/ELEMENTOR-COMPATIBILITY.md) — the WordPress
+ * plugin header format has no native version-constrained equivalent of
+ * "Requires Plugins" above, so this is enforced at runtime instead.
  */
 
 use Elemacy\Core\Elemacy;

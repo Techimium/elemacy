@@ -4,7 +4,7 @@ namespace Elemacy\TemplateLibrary\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
+use Elemacy\Http\DTO\DTO;
 
 class BlockTemplateListFilterDTO extends DTO
 {

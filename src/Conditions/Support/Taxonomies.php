@@ -9,9 +9,7 @@ use WP_Taxonomy;
 
 /**
  * Public taxonomies used to fan out the per-taxonomy conditions — "In {Tax}"
- * (singular) and "{Tax} Archive". Both free (mock) and pro (real) registration
- * enumerate through this helper so the generated condition names line up and
- * pro's implementations override free's mocks by name. Mirrors {@see PostTypes}.
+ * (singular) and "{Tax} Archive".
  */
 class Taxonomies
 {

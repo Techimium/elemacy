@@ -4,7 +4,7 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elementor\Controls_Manager;
 
 /**
@@ -14,7 +14,7 @@ use Elementor\Controls_Manager;
  */
 class SearchDocument extends PreviewablePageBase
 {
-    const PREVIEW_TERM = 'elemacy_preview_search_term';
+    public const PREVIEW_TERM = 'elemacy_preview_search_term';
 
     public static function get_type()
     {

@@ -4,22 +4,32 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-
-class BlocksyCompatibility implements ThemeCompatibilityInterface
+use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
+/**
+ * Blocksy switches its header and footer builders off through its own
+ * filters, and the template renders where they would have started.
+ */
+class BlocksyCompatibility extends HookedThemeCompatibility
 {
-    public function register(ThemeBuilderManager $manager): void
+    protected function chrome_locations(): array
     {
-        if ($manager->get_header_id()) {
-            add_filter('blocksy:builder:header:enabled', '__return_false');
-            add_action('blocksy:header:before', [$manager, 'render_header'], 5);
-        }
+        return [
+            'header' => [
+                'hook'     => 'blocksy:header:before',
+                'priority' => 5,
+            ],
+            'footer' => [
+                'hook'     => 'blocksy:footer:before',
+                'priority' => 5,
+            ],
+        ];
+    }
 
-        if ($manager->get_footer_id()) {
-            add_filter('blocksy:builder:footer:enabled', '__return_false');
-            add_action('blocksy:footer:before', [$manager, 'render_footer'], 5);
-        }
+    protected function chrome_switches(): array
+    {
+        return [
+            'header' => ['blocksy:builder:header:enabled'],
+            'footer' => ['blocksy:builder:footer:enabled'],
+        ];
     }
 }
-

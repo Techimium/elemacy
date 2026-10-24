@@ -2,11 +2,9 @@
 
 namespace Elemacy\Modules\Widgets\Widgets;
 
-use Elemacy\Modules\Widgets\Services\LoopContext;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
-use Elemacy\Modules\Widgets\Services\LoopItemStyles;
-use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
-use Elemacy\TemplateLibrary\Services\BlockTemplateService;
+use Elemacy\Core\Container;
+use Elemacy\Loop\LoopDataSourceRegistry;
+use Elemacy\Loop\Rendering\LoopRenderer;
 use Elementor\Controls_Manager;
 use Elementor\Plugin;
 
@@ -14,7 +12,7 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-class LoopCarousel extends BaseWidget
+class LoopCarousel extends LoopWidget
 {
     public function get_name()
     {
@@ -52,35 +50,9 @@ class LoopCarousel extends BaseWidget
         $this->register_query_section();
         $this->register_carousel_settings_section();
         $this->register_carousel_style_section();
-        // Since pagination in carousel is handled by swiper, we add its styles
+        // Since pagination in carousel is handled by swiper, we add its styles.
         $this->register_navigation_style_section();
         $this->register_pagination_style_section();
-    }
-
-    private $loop_templates;
-
-    protected function get_loop_templates()
-    {
-        if ($this->loop_templates === null) {
-            $this->loop_templates = (new BlockTemplateService())->get_all_unbounded(
-                BlockTemplateListFilterDTO::from_array(['type' => 'loop'])
-            );
-        }
-
-        return $this->loop_templates;
-    }
-
-    protected function get_elementor_templates()
-    {
-        $options = [
-            '' => esc_html__('Select Template', 'elemacy'),
-        ];
-
-        foreach ($this->get_loop_templates() as $template) {
-            $options[$template->id] = $template->title;
-        }
-
-        return $options;
     }
 
     protected function register_layout_section()
@@ -171,43 +143,6 @@ class LoopCarousel extends BaseWidget
                 ],
             ]
         );
-
-        $this->end_controls_section();
-    }
-
-    protected function register_query_section()
-    {
-        $this->start_controls_section(
-            'section_query',
-            [
-                'label' => esc_html__('Query', 'elemacy'),
-                'tab' => Controls_Manager::TAB_CONTENT,
-            ]
-        );
-
-        $registry = LoopDataSourceRegistry::instance();
-
-        $options = [];
-        foreach ($registry->all() as $key => $source) {
-            $options[$key] = $source->get_label();
-        }
-
-        $this->add_control(
-            'data_source',
-            [
-                'label' => esc_html__('Data Source', 'elemacy'),
-                'type' => Controls_Manager::SELECT,
-                'options' => $options,
-                'default' => 'posts',
-            ]
-        );
-
-        // Every registered source's controls are always registered; each
-        // scopes its own visibility with a `data_source` condition, the
-        // same way `post_type!` conditions already worked before this.
-        foreach ($registry->all() as $source) {
-            $source->register_controls($this);
-        }
 
         $this->end_controls_section();
     }
@@ -505,7 +440,7 @@ class LoopCarousel extends BaseWidget
         $this->end_controls_section();
     }
 
-    protected function render()
+    protected function render_loop(): void
     {
         $settings = $this->get_settings_for_display();
 
@@ -525,12 +460,10 @@ class LoopCarousel extends BaseWidget
             return;
         }
 
-        $result = $source->get_items($settings);
+        $result = $this->items_for_display($settings, $source);
 
         if (empty($result->items)) {
-            if (Plugin::instance()->editor->is_edit_mode()) {
-                echo '<div class="elemacy-alert elemacy-alert-info">' . esc_html__('No posts found matching the current query.', 'elemacy') . '</div>';
-            }
+            $this->print_empty_notice();
             return;
         }
 
@@ -538,34 +471,18 @@ class LoopCarousel extends BaseWidget
         echo '<div class="swiper elemacy-loop-carousel">';
         echo '<div class="swiper-wrapper">';
 
-        $loop_item_styles = new LoopItemStyles();
-        $loop_item_styles->print_base_css($settings['template_id']);
-
-        foreach ($result->items as $item) {
-            LoopContext::push($item);
-
-            try {
-                $item->enter();
-
-                try {
-                    $loop_item_styles->print_item_css($settings['template_id'], $item->get_identity());
-
-                    echo '<div class="swiper-slide">';
-                    echo '<div class="elemacy-loop-item elemacy-loop-item-' . esc_attr($item->get_identity()) . '">';
-                    echo Plugin::instance()->frontend->get_builder_content_for_display($settings['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content_for_display() returns fully-rendered and escaped HTML
-                    echo '</div>';
-                    echo '</div>';
-                } finally {
-                    $item->exit();
-                }
-            } finally {
-                LoopContext::pop();
-            }
+        $renderer = Container::instance()->singleton(LoopRenderer::class);
+        $placement = $this->current_owner_id() . '-' . $this->get_id();
+        $data_source_key = $settings['data_source'] ?? 'posts';
+        foreach ($result->items as $occurrence => $item) {
+            echo '<div class="swiper-slide">';
+            $renderer->render_item((int) $settings['template_id'], $item, $placement, $data_source_key, $occurrence);
+            echo '</div>';
         }
 
-        echo '</div>'; // End swiper-wrapper
+        echo '</div>'; // End swiper-wrapper.
 
-        // Render Navigation Elements
+        // Render Navigation Elements.
         if (in_array($settings['navigation'], ['both', 'pagination'], true)) {
             echo '<div class="swiper-pagination"></div>';
         }
@@ -575,7 +492,7 @@ class LoopCarousel extends BaseWidget
             echo '<div class="elemacy-swiper-button elemacy-swiper-button-next swiper-button-next"><i class="eicon-chevron-right"></i></div>';
         }
 
-        echo '</div>'; // End swiper element
-        echo '</div>'; // End elemacy-loop-carousel-container
+        echo '</div>'; // End swiper element.
+        echo '</div>'; // End elemacy-loop-carousel-container.
     }
 }

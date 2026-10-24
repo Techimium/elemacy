@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Elemacy Elementor frontend lifecycle adapter harness</title>
+</head>
+<body>
+  <!-- Minimal markup shaped like Elementor's own output: one root wrapping
+       one `.elementor-element` (a "widget") the stubbed elementorFrontend
+       below can observe runReadyTrigger() being called for. -->
+  <div id="subtree-a" class="elementor elementor-101">
+    <div class="elementor-element" data-element_type="widget" data-widget_type="fixture.default"></div>
+  </div>
+  <div id="subtree-b" class="elementor elementor-102">
+    <div class="elementor-element" data-element_type="widget" data-widget_type="fixture.default"></div>
+  </div>
+
+  <script src="jquery.js"></script>
+  <script>
+    // Stands in for Elementor's own elementorFrontend.elementsHandler.
+    // runReadyTrigger records a call per invocation on the element itself,
+    // so a test can assert exactly how many times it ran for a given
+    // subtree — the whole point of "initialize each subtree once".
+    window.elementorFrontend = {
+      elementsHandler: {
+        runReadyTrigger: function ($element) {
+          var el = $element.get ? $element.get(0) : $element;
+          var count = parseInt(el.getAttribute('data-ready-trigger-count') || '0', 10);
+          el.setAttribute('data-ready-trigger-count', String(count + 1));
+        }
+      }
+    };
+  </script>
+  <script src="elementor-lifecycle.js"></script>
+</body>
+</html>

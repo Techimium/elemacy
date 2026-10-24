@@ -4,7 +4,9 @@ namespace Elemacy\Modules\Popups\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
+use Elemacy\Http\DTO\DTO;
+use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 
 /**
  * A single advanced display rule attached to a popup
@@ -47,6 +49,35 @@ class RuleDTO extends DTO
                 : static::from_array(is_array($rule) ? $rule : []),
             $rules
         ));
+    }
+
+    /**
+     * Like {@see collection()}, but for the write boundary: an entry that is
+     * neither a RuleDTO instance nor a plain array is unsupported input and
+     * must be rejected outright, not silently substituted with a blank/
+     * default rule the caller never actually asked for.
+     *
+     * @param array $rules
+     * @return self[]
+     * @throws ValidationException When an entry is not a valid rule.
+     */
+    public static function collection_or_fail(array $rules): array
+    {
+        return array_values(array_map(static function ($rule): self {
+            if ($rule instanceof static) {
+                $dto = $rule;
+            } elseif (is_array($rule)) {
+                $dto = static::from_array($rule);
+            } else {
+                throw ValidationException::with_errors([
+                    'rules' => [esc_html__('One or more rules has an unsupported shape.', 'elemacy')],
+                ]);
+            }
+
+            RuleTriggerParams::assert_valid('rules', is_array($dto->params) ? $dto->params : []);
+
+            return $dto;
+        }, $rules));
     }
 
     /**

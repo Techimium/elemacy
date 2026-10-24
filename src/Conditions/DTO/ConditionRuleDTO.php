@@ -4,14 +4,10 @@ namespace Elemacy\Conditions\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\DTO\DTO;
+use Elemacy\Http\DTO\DTO;
+use Elemacy\Http\Exceptions\ValidationException;
 
-/**
- * A single display-condition rule attached to a template.
- *
- * This is the canonical shape passed to {@see \Elemacy\Conditions\ConditionInterface::check()},
- * evaluated by the resolver, and persisted (as an array) by the ConditionService.
- */
+/** A single display-condition rule attached to a template. */
 class ConditionRuleDTO extends DTO
 {
     /** @var string */
@@ -34,6 +30,23 @@ class ConditionRuleDTO extends DTO
     public function is_include(): bool
     {
         return $this->operator === 'include';
+    }
+
+    /**
+     * Whether $rules name at least one place to display, as opposed to only
+     * places not to.
+     *
+     * @param self[] $rules
+     */
+    public static function any_include(array $rules): bool
+    {
+        foreach ($rules as $rule) {
+            if ($rule->is_include()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -61,6 +74,33 @@ class ConditionRuleDTO extends DTO
             static fn($rule): self => static::from_array(is_array($rule) ? $rule : []),
             $rules
         ));
+    }
+
+    /**
+     * Like {@see collection()}, but for the write boundary: an entry that is
+     * neither a ConditionRuleDTO instance nor a plain array is unsupported
+     * input and must be rejected outright, not silently substituted with a
+     * blank/default rule the caller never actually asked for.
+     *
+     * @param array $rules
+     * @return self[]
+     * @throws ValidationException When an entry is neither a ConditionRuleDTO nor an array.
+     */
+    public static function collection_or_fail(array $rules): array
+    {
+        return array_values(array_map(static function ($rule): self {
+            if ($rule instanceof static) {
+                return $rule;
+            }
+
+            if (is_array($rule)) {
+                return static::from_array($rule);
+            }
+
+            throw ValidationException::with_errors([
+                'conditions' => [esc_html__('One or more conditions has an unsupported shape.', 'elemacy')],
+            ]);
+        }, $rules));
     }
 
     /**

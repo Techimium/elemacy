@@ -25,7 +25,7 @@ class CustomCssManager
      * Register Custom CSS controls.
      *
      * @param \Elementor\Controls_Stack $element
-     * @param string $section_id
+     * @param string                    $section_id
      */
     public function register_controls($element, string $section_id): void
     {
@@ -40,7 +40,7 @@ class CustomCssManager
             return;
         }
 
-        // Avoid double registration if already added
+        // Avoid double registration if already added.
         if ($element->get_controls('elemacy_section_custom_css')) {
             return;
         }
@@ -74,7 +74,7 @@ class CustomCssManager
      * Add custom CSS to the post CSS file for a specific element.
      *
      * @param \Elementor\Core\Files\CSS\Post $post_css
-     * @param \Elementor\Element_Base $element
+     * @param \Elementor\Element_Base        $element
      */
     public function add_element_custom_css($post_css, $element): void
     {
@@ -94,10 +94,10 @@ class CustomCssManager
             return;
         }
 
-        // Replace "selector" with the actual element selector
+        // Replace "selector" with the actual element selector.
         $css = str_replace('selector', $post_css->get_element_unique_selector($element), $css);
 
-        // Add a css comment for better debugging in the generated CSS
+        // Add a css comment for better debugging in the generated CSS.
         $css = sprintf('/* Start Elemacy Custom CSS for %s */', $element->get_name()) . $css . '/* End Elemacy Custom CSS */';
 
         $post_css->get_stylesheet()->add_raw_css($this->sanitize_css($css));
@@ -131,7 +131,7 @@ class CustomCssManager
 
         $custom_css = str_replace('selector', $document->get_css_wrapper_selector(), $custom_css);
 
-        // Add a css comment
+        // Add a css comment.
         $custom_css = '/* Start Elemacy Page Custom CSS */' . $custom_css . '/* End Elemacy Page Custom CSS */';
 
         $post_css->get_stylesheet()->add_raw_css($this->sanitize_css($custom_css));

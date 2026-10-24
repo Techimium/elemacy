@@ -5,9 +5,12 @@ namespace Elemacy\Modules\Popups\Services;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Rendering\TemplateAssetsRegistrar;
+use Elemacy\Core\RequestState;
+use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
 use Elemacy\Modules\Popups\Resources\PopupConfigResource;
+use Elemacy\Modules\Popups\Support\StorageKeys;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
+use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\TemplateLibrary\Constants\MetaKeys;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
@@ -20,6 +23,13 @@ use Elementor\Plugin as ElementorPlugin;
  */
 class PopupManager
 {
+    /**
+     * TemplateAssetsRegistrar/TemplateRenderer preparation context for every
+     * popup document, shared with PopupRenderer so both agree on the same
+     * cache key without either hardcoding the other's string.
+     */
+    public const ASSET_CONTEXT = 'popup';
+
     protected static ?self $instance = null;
 
     /**
@@ -30,6 +40,29 @@ class PopupManager
     protected $matched = null;
 
     /**
+     * IDs of the top bars already printed this request, so a theme that fires
+     * wp_body_open more than once cannot print one twice, and the footer prints
+     * only the bars the body-open hook missed.
+     *
+     * @var array<int, true>
+     */
+    protected array $printed_top_bars = [];
+
+    protected TypeRegistry $types;
+    protected PopupDisplayResolver $display_resolver;
+    protected PopupRenderer $renderer;
+
+    public function __construct(
+        TypeRegistry $types,
+        PopupDisplayResolver $display_resolver,
+        PopupRenderer $renderer
+    ) {
+        $this->types = $types;
+        $this->display_resolver = $display_resolver;
+        $this->renderer = $renderer;
+    }
+
+    /**
      * Returns the shared PopupManager instance.
      *
      * @return self
@@ -37,10 +70,22 @@ class PopupManager
     public static function instance(): self
     {
         if (static::$instance === null) {
-            static::$instance = new static();
+            static::$instance = new static(TypeRegistry::instance(), PopupDisplayResolver::instance(), new PopupRenderer());
         }
 
         return static::$instance;
+    }
+
+    /**
+     * Drops this request's memoized matched-popups list —
+     * used when a popup's saved conditions/rules/triggers change within the
+     * same request, or the acting site changes mid-request, so a later call
+     * re-resolves instead of returning a stale or cross-site list.
+     */
+    public function reset(): void
+    {
+        $this->matched = null;
+        $this->printed_top_bars = [];
     }
 
     /**
@@ -50,6 +95,7 @@ class PopupManager
      */
     public function register_hooks(): void
     {
+        RequestState::register(self::class, [$this, 'reset']);
         add_action('wp_enqueue_scripts', [$this, 'maybe_enqueue'], 20);
         add_action('wp_body_open', [$this, 'render_top_bars'], 1);
         add_action('wp_footer', [$this, 'render_footer_popups'], 99);
@@ -58,8 +104,10 @@ class PopupManager
     }
 
     /**
-     * Informs the shared template-assets registrar about each matched popup,
-     * so its classic and atomic Elementor CSS is generated for this request.
+     * Prepares each matched popup document — bridging its classic/atomic
+     * Elementor CSS exactly as register() alone already did, and additionally
+     * rendering it once now so its widgets' script/style dependencies are
+     * queued before this request's head/footer output deadlines.
      *
      * @param TemplateAssetsRegistrar $registrar
      * @return void
@@ -67,7 +115,7 @@ class PopupManager
     public function register_template_assets(TemplateAssetsRegistrar $registrar): void
     {
         foreach ($this->get_matched_ids() as $id) {
-            $registrar->register($id);
+            $registrar->prepare($id, self::ASSET_CONTEXT, (string) $id);
         }
     }
 
@@ -84,15 +132,6 @@ class PopupManager
     /**
      * Render a singular popup through Elementor's Canvas template.
      *
-     * A popup is authored on a private CPT bound to a custom Elementor document
-     * type. When Elementor loads the editor preview it requests the popup on the
-     * frontend; if the active theme's single template does not call the_content()
-     * Elementor aborts with "You must call 'the_content' function…". Forcing the
-     * Canvas template (which calls the_content() via print_content()) guarantees
-     * the preview renders, with no theme header/footer — exactly what a popup
-     * canvas should be. Only affects direct singular popup requests, i.e. the
-     * editor preview; normal pages are untouched.
-     *
      * @param string $template The template path Elementor is about to load.
      * @return string
      */
@@ -106,7 +145,7 @@ class PopupManager
         // templates on the same CPT keep their own preview handling.
         $type = (string) get_post_meta((int) get_queried_object_id(), MetaKeys::TEMPLATE_TYPE, true);
 
-        if (!in_array($type, TypeRegistry::instance()->names_in_group('popup'), true)) {
+        if (!in_array($type, $this->types->names_in_group('popup'), true)) {
             return $template;
         }
 
@@ -123,9 +162,6 @@ class PopupManager
 
     /**
      * Resolve and memoize the popups matching the current request.
-     *
-     * Bails (empty) in the admin and inside the Elementor editor/preview so
-     * popups never interfere with the builder.
      *
      * @return \Elemacy\Modules\Popups\DTO\PopupDTO[]
      */
@@ -151,7 +187,7 @@ class PopupManager
             }
         }
 
-        $this->matched = PopupDisplayResolver::instance()->resolve_all();
+        $this->matched = $this->display_resolver->resolve_all();
 
         return $this->matched;
     }
@@ -164,7 +200,7 @@ class PopupManager
      */
     public function maybe_enqueue(): void
     {
-        $matched = $this->get_matched();
+        $matched = $this->get_deliverable();
 
         if (empty($matched)) {
             return;
@@ -173,12 +209,37 @@ class PopupManager
         wp_enqueue_script('elemacy-popups-engine');
         wp_enqueue_style('elemacy-popups');
 
-        wp_localize_script('elemacy-popups-engine', 'elemacyPopups', [
+        wp_localize_script('elemacy-popups-engine', 'elemacyPopupsConfig', [
             'popups' => PopupConfigResource::collection($matched),
+            // Start of every browser storage key on this site; Pro builds its
+            // visit-count keys from it.
+            'storage_prefix' => StorageKeys::prefix(),
             'i18n'   => [
                 'close' => __('Close', 'elemacy'),
             ],
+            // Lets the engine name, in the browser console, a popup it cannot
+            // start because an extension's trigger or rule handler is missing.
+            'debug'  => defined('WP_DEBUG') && WP_DEBUG,
         ]);
+    }
+
+    /**
+     * The matched popups that actually have something to show. A popup whose
+     * document renders nothing — an empty widget, or one that threw while
+     * rendering — is dropped from the markup and the browser config alike, so
+     * the visitor never gets an overlay with no content in it.
+     *
+     * Reads the fragments TemplateAssetsRegistrar prepared on
+     * wp_enqueue_scripts (priority 10), which is why callers run after it.
+     *
+     * @return \Elemacy\Modules\Popups\DTO\PopupDTO[]
+     */
+    public function get_deliverable(): array
+    {
+        return array_values(array_filter(
+            $this->get_matched(),
+            fn ($popup): bool => '' !== trim($this->renderer->prepared_content($popup))
+        ));
     }
 
     /**
@@ -187,28 +248,51 @@ class PopupManager
      */
     public function render_top_bars(): void
     {
-        $renderer = new PopupRenderer();
-
-        foreach ($this->get_matched() as $popup) {
-            if ($this->is_top_bar($popup)) {
-                $renderer->render($popup);
+        foreach ($this->get_deliverable() as $popup) {
+            if ($this->is_top_bar($popup) && !isset($this->printed_top_bars[(int) $popup->id])) {
+                $this->printed_top_bars[(int) $popup->id] = true;
+                $this->renderer->render($popup);
             }
         }
     }
 
     /**
      * Render the remaining popups (modals, floating, banners, bottom bars) in the
-     * footer; CSS positions each one. Top bars are handled by render_top_bars().
+     * footer; CSS positions each one. Top bars are handled by render_top_bars(),
+     * except on a theme that never fires wp_body_open: those are printed here,
+     * marked for the engine to move to the top of <body>.
      */
     public function render_footer_popups(): void
     {
-        $renderer = new PopupRenderer();
-
-        foreach ($this->get_matched() as $popup) {
+        foreach ($this->get_deliverable() as $popup) {
             if (!$this->is_top_bar($popup)) {
-                $renderer->render($popup);
+                $this->renderer->render($popup);
+            } elseif (!isset($this->printed_top_bars[(int) $popup->id])) {
+                $this->printed_top_bars[(int) $popup->id] = true;
+                $this->renderer->render($popup, true);
             }
         }
+    }
+
+    /**
+     * Available popup types for the admin app's type picker,
+     * mirroring ThemeBuilderManager::get_available_template_types() but also
+     * exposing availability so a registered-but-inactive extension type
+     * is distinguishable from a real, selectable one — no extension
+     * currently registers one, but the shape is ready for when one does.
+     *
+     * @return array<int, array{value: string, label: string, availability: array}>
+     */
+    public function get_available_popup_types(): array
+    {
+        return array_map(
+            fn ($definition): array => [
+                'value' => $definition->name,
+                'label' => $definition->label,
+                'availability' => $this->types->get_availability($definition->name)->to_array(),
+            ],
+            $this->types->by_group('popup')
+        );
     }
 
     /**
@@ -220,7 +304,7 @@ class PopupManager
      */
     protected function is_top_bar($popup): bool
     {
-        if ('topbar' !== $popup->type) {
+        if (PopupTypes::TOPBAR !== $popup->type) {
             return false;
         }
 

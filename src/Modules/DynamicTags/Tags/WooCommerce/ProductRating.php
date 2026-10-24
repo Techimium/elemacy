@@ -6,40 +6,39 @@ use Elementor\Modules\DynamicTags\Module;
 use Elemacy\Modules\DynamicTags\Services\Woo;
 
 if (!defined('ABSPATH')) {
-	exit;
+    exit;
 }
 
 class ProductRating extends Tag
 {
+    public function get_name()
+    {
+        return 'elemacy-product-rating';
+    }
 
-	public function get_name()
-	{
-		return 'elemacy-product-rating';
-	}
+    public function get_title()
+    {
+        return esc_html__('Product Rating', 'elemacy');
+    }
 
-	public function get_title()
-	{
-		return esc_html__('Product Rating', 'elemacy');
-	}
+    public function get_group()
+    {
+        return 'elemacy-woocommerce';
+    }
 
-	public function get_group()
-	{
-		return 'elemacy-woocommerce';
-	}
+    public function get_categories()
+    {
+        return [Module::TEXT_CATEGORY];
+    }
 
-	public function get_categories()
-	{
-		return [Module::TEXT_CATEGORY];
-	}
+    public function render()
+    {
+        $product = Woo::get_product();
 
-	public function render()
-	{
-		$product = Woo::get_product();
+        if (!$product) {
+            return;
+        }
 
-		if (!$product) {
-			return;
-		}
-
-		echo esc_html($product->get_average_rating());
-	}
+        echo esc_html($product->get_average_rating());
+    }
 }

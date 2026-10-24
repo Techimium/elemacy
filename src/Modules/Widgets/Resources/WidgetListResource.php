@@ -4,7 +4,7 @@ namespace Elemacy\Modules\Widgets\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
 class WidgetListResource extends Resource
 {

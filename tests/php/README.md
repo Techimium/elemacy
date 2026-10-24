@@ -8,6 +8,11 @@ classes (composer autoloader) with a minimal in-memory WordPress stub layer
 php tests/php/run.php
 ```
 
-Covers: ConditionEvaluator matching semantics (include-OR / exclude-veto /
-unknown-skip / mock fail-closed), Migrator ordering + version-range + stamping,
-and the Sanitizer's key rules including the object-injection guard.
+Covers release-critical server logic across the codebase: ConditionEvaluator
+matching semantics (include-OR / exclude-veto / unknown-skip / mock
+fail-closed), Migrator ordering + version-range + stamping + resumable
+`BatchCursor` batches, the Sanitizer's key rules including the
+object-injection guard, `Core\Container`/`ServiceProviderInterface`
+composition, loop render identity/placement resolvers, and the multisite
+`SiteBatchIterator`, among others. This is the fast, stub-backed suite —
+real WordPress/database/Elementor behavior is `tests/integration/`'s.

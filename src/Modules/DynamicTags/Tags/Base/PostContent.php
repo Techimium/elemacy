@@ -2,175 +2,185 @@
 
 namespace Elemacy\Modules\DynamicTags\Tags\Base;
 
-use Elemacy\Core\Rendering\AtomicStylesRenderer;
+use Elemacy\Elementor\Compatibility\Capabilities;
+use Elemacy\Elementor\Compatibility\SameDocumentContentRenderer;
+use Elemacy\Elementor\Rendering\AtomicStylesRenderer;
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Modules\DynamicTags\Module;
 
 if (!defined('ABSPATH')) {
-	exit; // Exit if accessed directly
+    exit; // Exit if accessed directly.
 }
 
 class PostContent extends Tag
 {
-	/**
-	 * @var array<int, true> Post IDs currently being rendered by this tag,
-	 *                        keyed by ID. Guards against recursion: Elementor's
-	 *                        own document-switching (switch_to_document() /
-	 *                        restore_document(), used internally by
-	 *                        get_builder_content()) has no cycle protection of
-	 *                        its own, so rendering a post's own content from
-	 *                        inside that same post's render (its own page, or a
-	 *                        Theme Builder template applied to it) would
-	 *                        otherwise recurse until the request crashes.
-	 */
-	protected static $rendering = [];
+    /**
+     * @var array<int, true> Post IDs currently being rendered by this tag,
+     *                        keyed by ID. Guards against recursion: Elementor's
+     *                        own document-switching (switch_to_document() /
+     *                        restore_document(), used internally by
+     *                        get_builder_content()) has no cycle protection of
+     *                        its own, so rendering a post's own content from
+     *                        inside that same post's render (its own page, or a
+     *                        Theme Builder template applied to it) would
+     *                        otherwise recurse until the request crashes.
+     */
+    protected static $rendering = [];
 
-	/**
-	 * @var int Nesting depth of the current render() call chain. $rendering is
-	 *          only cleared once this returns to 0, so a cycle is blocked while
-	 *          two separate, unrelated top-level uses of this tag targeting the
-	 *          same post on one page still both render - matching Elementor
-	 *          Pro's Skin_Content_Base::render_post_content() exactly.
-	 */
-	protected static $level = 0;
+    /**
+     * @var int Nesting depth of the current render() call chain. $rendering is
+     *          only cleared once this returns to 0, so a cycle is blocked while
+     *          two separate, unrelated top-level uses of this tag targeting the
+     *          same post on one page still both render - matching Elementor
+     *          Pro's Skin_Content_Base::render_post_content() exactly.
+     */
+    protected static $level = 0;
 
-	public function get_name()
-	{
-		return 'elemacy-post-content';
-	}
+    public function get_name()
+    {
+        return 'elemacy-post-content';
+    }
 
-	public function get_title()
-	{
-		return __('Post Content', 'elemacy');
-	}
+    public function get_title()
+    {
+        return __('Post Content', 'elemacy');
+    }
 
-	public function get_group()
-	{
-		return 'elemacy';
-	}
+    public function get_group()
+    {
+        return 'elemacy';
+    }
 
-	public function get_categories()
-	{
-		return [Module::TEXT_CATEGORY];
-	}
+    public function get_categories()
+    {
+        return [Module::TEXT_CATEGORY];
+    }
 
-	public function render()
-	{
-		$post_id = get_the_ID();
+    public function render()
+    {
+        $post_id = get_the_ID();
 
-		// Checked first, before the recursion guard or either render path,
-		// matching Elementor Pro's Skin_Content_Base::render_post_content():
-		// a password-protected post's real content (Elementor-built or
-		// classic) must never reach the output when the password hasn't been
-		// supplied - get_builder_content()'s return value is echoed directly
-		// here, never passed through the `the_content` filter, so it has no
-		// chance to be gated by anything else.
-		if (post_password_required($post_id)) {
-			echo get_the_password_form($post_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WP core template output, already safe.
+        // Checked first, before the recursion guard or either render path,
+        // matching Elementor Pro's Skin_Content_Base::render_post_content():
+        // a password-protected post's real content (Elementor-built or
+        // classic) must never reach the output when the password hasn't been
+        // supplied - get_builder_content()'s return value is echoed directly
+        // here, never passed through the `the_content` filter, so it has no
+        // chance to be gated by anything else.
+        if (post_password_required($post_id)) {
+            echo get_the_password_form($post_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WP core template output, already safe.
 
-			return;
-		}
+            return;
+        }
 
-		if (isset(self::$rendering[$post_id])) {
-			return;
-		}
+        if (isset(self::$rendering[$post_id])) {
+            return;
+        }
 
-		self::$level++;
-		self::$rendering[$post_id] = true;
+        ++self::$level;
+        self::$rendering[$post_id] = true;
 
-		$this->render_content($post_id);
+        try {
+            $this->render_content($post_id);
+        } finally {
+            // A thrown render must still release this post id and unwind the
+            // nesting depth - otherwise a single failed render would leave
+            // $rendering permanently stuck for the rest of the request,
+            // silently blocking every later legitimate use of this tag for
+            // the same post (: "protect... nested render
+            // counters ... with finally").
+            --self::$level;
 
-		self::$level--;
+            if (0 === self::$level) {
+                self::$rendering = [];
+            }
+        }
+    }
 
-		if (0 === self::$level) {
-			self::$rendering = [];
-		}
-	}
+    /**
+     * @param int $post_id
+     * @return void
+     */
+    protected function render_content($post_id)
+    {
+        if ($this->capabilities()->plugin_loaded() && !$this->is_own_document_already_rendering($post_id)) {
+            // SameDocumentContentRenderer owns get_builder_content($id, true)
+            // (the lower-level call with no same-post recursion guard of its
+            // own, matching what Elementor Pro's own equivalent widget uses
+            // for this exact case - get_builder_content_for_display() would
+            // refuse to render a post the same as get_the_ID(), which is
+            // always true for this tag) plus finally-based editor-mode and
+            // document-switch-stack restoration around it.
+            $content = $this->same_document_renderer()->render($post_id);
 
-	/**
-	 * @param int $post_id
-	 * @return void
-	 */
-	protected function render_content($post_id)
-	{
-		if (class_exists('\Elementor\Plugin') && !$this->is_own_document_already_rendering($post_id)) {
-			$editor = \Elementor\Plugin::instance()->editor;
-			$was_edit_mode = $editor->is_edit_mode();
-			$editor->set_edit_mode(false);
+            if (!empty($content)) {
+                // get_builder_content(..., true) already inlines classic CSS
+                // natively; it has no equivalent for atomic-widgets CSS, so
+                // that half is bridged the same way Loop widgets already do.
+                $atomic_css = $this->atomic_styles_renderer()->render_base($post_id);
 
-			// get_builder_content_for_display() is not used here: it refuses
-			// to render a post the same as the one currently being viewed
-			// (get_the_ID() === $post_id, which is always true for this tag),
-			// specifically to avoid this exact recursion - a guard this tag
-			// already provides itself above. get_builder_content($id, true)
-			// is the lower-level call with no such guard, matching what
-			// Elementor Pro's own equivalent widget uses for this exact case.
-			$content = \Elementor\Plugin::instance()->frontend->get_builder_content($post_id, true);
+                if ('' !== $atomic_css) {
+                    echo '<style id="' . esc_attr('elemacy-post-content-' . $post_id) . '">' . $atomic_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated by Elementor's own renderer, not user input.
+                }
 
-			$editor->set_edit_mode($was_edit_mode);
+                echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content() returns fully-rendered and escaped HTML.
 
-			if (!empty($content)) {
-				// get_builder_content(..., true) already inlines classic CSS
-				// natively; it has no equivalent for atomic-widgets CSS, so
-				// that half is bridged the same way Loop widgets already do.
-				$atomic_css = $this->atomic_styles_renderer()->render_base($post_id);
+                return;
+            }
+        }
 
-				if ('' !== $atomic_css) {
-					echo '<style id="' . esc_attr('elemacy-post-content-' . $post_id) . '">' . $atomic_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated by Elementor's own renderer, not user input.
-				}
+        $content = get_the_content();
 
-				echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_builder_content() returns fully-rendered and escaped HTML.
+        if (empty($content)) {
+            $content = $this->get_settings('fallback');
+        }
 
-				return;
-			}
-		}
+        $content = apply_filters('the_content', $content);
 
-		$content = get_the_content();
+        if (empty($content)) {
+            return;
+        }
 
-		if (empty($content)) {
-			$content = $this->get_settings('fallback');
-		}
+        echo wp_kses_post($content);
+    }
 
-		$content = apply_filters('the_content', $content);
+    /**
+     * @return AtomicStylesRenderer
+     */
+    protected function atomic_styles_renderer()
+    {
+        return new AtomicStylesRenderer();
+    }
 
-		if (empty($content)) {
-			return;
-		}
+    /**
+     * @return SameDocumentContentRenderer
+     */
+    protected function same_document_renderer()
+    {
+        return new SameDocumentContentRenderer();
+    }
 
-		echo wp_kses_post($content);
-	}
+    /**
+     * @return Capabilities
+     */
+    protected function capabilities()
+    {
+        return new Capabilities();
+    }
 
-	/**
-	 * @return AtomicStylesRenderer
-	 */
-	protected function atomic_styles_renderer()
-	{
-		return new AtomicStylesRenderer();
-	}
+    /**
+     * Whether $post_id's own document is the one Elementor is actively rendering
+     * right now - i.e. this tag is embedded directly in a post's own design and
+     * targets that same post (its natural, un-embedded render is already in
+     * progress).
+     *
+     * @param int $post_id
+     * @return bool
+     */
+    protected function is_own_document_already_rendering($post_id)
+    {
+        $current_document = \Elementor\Plugin::instance()->documents->get_current();
 
-	/**
-	 * Whether $post_id's own document is the one Elementor is actively
-	 * rendering right now - i.e. this tag is embedded directly in a post's
-	 * own design and targets that same post (its natural, un-embedded
-	 * render is already in progress). $rendering above cannot detect this on
-	 * its own: it only tracks re-entry into this tag's own render() calls,
-	 * not Elementor's own, separate rendering of the same document that
-	 * triggered the very first one. Embedding a document into itself here
-	 * would just print it a second time nested inside the first, so this
-	 * falls through to the classic-content path below instead - matching
-	 * get_builder_content_for_display()'s own "same as the currently viewed
-	 * post" guard, but checked against the actively-rendering document
-	 * rather than the coarser get_the_ID() proxy that guard uses (which
-	 * can't tell "this post's own natural render" apart from "a Theme
-	 * Builder template currently embedding this same post").
-	 *
-	 * @param int $post_id
-	 * @return bool
-	 */
-	protected function is_own_document_already_rendering($post_id)
-	{
-		$current_document = \Elementor\Plugin::instance()->documents->get_current();
-
-		return $current_document && $post_id === (int) $current_document->get_main_id();
-	}
+        return $current_document && $post_id === (int) $current_document->get_main_id();
+    }
 }

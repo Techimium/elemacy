@@ -21,6 +21,17 @@ use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
  */
 class PopupDocument extends PageBase
 {
+    /**
+     * Selector for the injected close button, shared by the Close Button
+     * toggle and every Close Button style control so they cannot drift apart.
+     *
+     * The element type is load-bearing: popups.css carries a fallback rule for
+     * the button at the same specificity a bare `{{WRAPPER}} .elemacy-popup__close`
+     * would have, and it loads after the popup's generated CSS on the frontend,
+     * so a tie silently hands the author's settings to the fallback.
+     */
+    protected const CLOSE_BUTTON_SELECTOR = '{{WRAPPER}} button.elemacy-popup__close';
+
     public static function get_type()
     {
         return 'elemacy_popup';
@@ -52,7 +63,9 @@ class PopupDocument extends PageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+    /**
+     * Forces Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -232,7 +245,7 @@ class PopupDocument extends PageBase
                     'label_on'     => esc_html__('Yes', 'elemacy'),
                     'label_off'    => esc_html__('No', 'elemacy'),
                     'return_value' => 'yes',
-                    'default'      => '',
+                    'default'      => !empty($defaults['sticky']) ? 'yes' : '',
                     'description'  => esc_html__('Keep the bar visible while scrolling.', 'elemacy'),
                     'condition'    => [
                         DisplayKeys::POSITION => 'top',
@@ -326,7 +339,7 @@ class PopupDocument extends PageBase
                 'default'      => $defaults['close']['button'] ? 'yes' : '',
                 'separator'    => 'before',
                 'selectors'    => [
-                    '{{WRAPPER}} .elemacy-popup__close' => 'display: flex;',
+                    self::CLOSE_BUTTON_SELECTOR => 'display: flex;',
                 ],
             ]
         );
@@ -452,7 +465,7 @@ class PopupDocument extends PageBase
 
     protected function register_close_style_controls()
     {
-        $btn = '{{WRAPPER}} .elemacy-popup__close';
+        $btn = self::CLOSE_BUTTON_SELECTOR;
 
         $this->start_controls_section(
             'elemacy_close_style_section',
@@ -512,20 +525,21 @@ class PopupDocument extends PageBase
         $this->add_responsive_control(
             'elemacy_close_offset',
             [
-                'label'      => esc_html__('Distance From Edge', 'elemacy'),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => ['px'],
-                'range'      => [
+                'label'       => esc_html__('Distance From Edge', 'elemacy'),
+                'description' => esc_html__('Negative values place the button outside the popup.', 'elemacy'),
+                'type'        => Controls_Manager::SLIDER,
+                'size_units'  => ['px'],
+                'range'       => [
                     'px' => [
-                        'min' => 0,
-                        'max' => 80,
+                        'min' => -100,
+                        'max' => 100,
                     ],
                 ],
-                'default'    => [
+                'default'     => [
                     'size' => 10,
                     'unit' => 'px',
                 ],
-                'selectors'  => [
+                'selectors'   => [
                     $btn => 'top: {{SIZE}}{{UNIT}}; right: {{SIZE}}{{UNIT}};',
                 ],
             ]

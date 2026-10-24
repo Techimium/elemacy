@@ -59,17 +59,37 @@
 	pointer-events: auto;
 }
 
-/* The popup box (the Elementor content wrapper, tagged by the engine). */
+/* The popup box (the Elementor content wrapper, tagged by the engine). It is a
+   plain frame: it must not scroll or clip, so the close button can sit outside
+   it. The author's content scrolls in .elemacy-popup__scroll instead, which
+   shrinks to the box's max-height. */
 .elemacy-popup__box {
 	position: relative;
 	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.elemacy-popup__scroll {
+	flex: 1 1 auto;
+	min-height: 0;
 	overflow: auto;
+	/* The close button is anchored to the box, over this element, so a classic
+	   scrollbar must be narrower than the button's default 10px inset or the
+	   button would sit on top of it. */
+	scrollbar-width: thin;
 }
 
 /* Generic close button helper (authors may also use their own). */
-.elemacy-popup .elemacy-close-popup,
-.elemacy-popup [data-elemacy-popup-close] {
+.elemacy-popup .elemacy-popup-close {
 	cursor: pointer;
+}
+
+/* While a modal popup is open (engine.js sets the class and the top modal's
+   z-index on <html>), Elementor's lightbox, opened from an image inside the
+   popup, shows above every open popup instead of behind it. */
+.elemacy-has-modal .elementor-lightbox {
+	z-index: calc(var(--elemacy-popup-top-z, 9999) + 1);
 }
 
 /* Close button. Structure lives here; size/colour/border/shadow and the
@@ -295,6 +315,10 @@
 
 /* ------------------------------------------------------------------ */
 /* Animations.                                                        */
+/* The engine adds .elemacy-popup--in-{name} while a popup opens and  */
+/* .elemacy-popup--out-{name} while it closes, so every Animation In  */
+/* and Animation Out choice combines with every other. Slide Down     */
+/* moves the popup downward and Slide Up upward, in both directions.  */
 /* ------------------------------------------------------------------ */
 .elemacy-popup.is-animating .elemacy-popup__box {
 	animation-duration: 0.35s;
@@ -302,20 +326,28 @@
 	animation-timing-function: ease;
 }
 
-.elemacy-popup--anim-fade.is-open .elemacy-popup__box {
+.elemacy-popup--in-fade .elemacy-popup__box {
 	animation-name: elemacy-popup-fade-in;
 }
 
-.elemacy-popup--anim-fade.is-closing .elemacy-popup__box {
+.elemacy-popup--in-slide-down .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-in-down;
+}
+
+.elemacy-popup--in-slide-up .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-in-up;
+}
+
+.elemacy-popup--out-fade .elemacy-popup__box {
 	animation-name: elemacy-popup-fade-out;
 }
 
-.elemacy-popup--anim-slide-down.is-open .elemacy-popup__box {
-	animation-name: elemacy-popup-slide-down;
+.elemacy-popup--out-slide-down .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-out-down;
 }
 
-.elemacy-popup--anim-slide-up.is-closing .elemacy-popup__box {
-	animation-name: elemacy-popup-slide-up;
+.elemacy-popup--out-slide-up .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-out-up;
 }
 
 @keyframes elemacy-popup-fade-in {
@@ -338,7 +370,8 @@
 	}
 }
 
-@keyframes elemacy-popup-slide-down {
+/* Enters moving downward, from above. */
+@keyframes elemacy-popup-slide-in-down {
 	from {
 		opacity: 0;
 		transform: translateY(-100%);
@@ -350,7 +383,34 @@
 	}
 }
 
-@keyframes elemacy-popup-slide-up {
+/* Enters moving upward, from below. */
+@keyframes elemacy-popup-slide-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Leaves moving downward. */
+@keyframes elemacy-popup-slide-out-down {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+}
+
+/* Leaves moving upward. */
+@keyframes elemacy-popup-slide-out-up {
 	from {
 		opacity: 1;
 		transform: translateY(0);

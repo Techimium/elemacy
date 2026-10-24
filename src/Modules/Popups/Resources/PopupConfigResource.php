@@ -5,7 +5,7 @@ namespace Elemacy\Modules\Popups\Resources;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
@@ -13,6 +13,7 @@ use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\Modules\Popups\Support\PopupTypes;
+use Elemacy\Modules\Popups\Support\StorageKeys;
 
 /**
  * Per-popup configuration contract handed to the frontend engine (engine.js)
@@ -35,7 +36,7 @@ class PopupConfigResource extends Resource
             'triggers'    => $this->normalize_triggers(is_array($popup->triggers) ? $popup->triggers : []),
             'rules'       => $this->normalize_rules(is_array($popup->rules) ? $popup->rules : []),
             'display'     => DocumentDisplay::for_popup((int) $popup->id),
-            'storage_key' => 'elemacy_popup_' . $popup->id,
+            'storage_key' => StorageKeys::popup((int) $popup->id),
         ];
 
         /**
@@ -48,9 +49,8 @@ class PopupConfigResource extends Resource
     }
 
     /**
-     * Normalize each stored trigger into the flat engine config ({type, ...params})
-     * via its registered handler. Unregistered triggers fall back to the same
-     * flat shape so the engine never sees two shapes for one trigger.
+     * Normalize each stored trigger into the flat engine config ({type,
+     * ...params}) via its registered handler.
      *
      * @param array $triggers
      * @return array<int, array<string, mixed>>
@@ -63,9 +63,11 @@ class PopupConfigResource extends Resource
         foreach (TriggerDTO::collection($triggers) as $dto) {
             $trigger = $manager->get($dto->type);
 
-            $out[] = $trigger
-                ? $trigger->to_js_config($dto)
-                : array_merge(['type' => $dto->type], (array) $dto->params);
+            if (!$trigger) {
+                continue;
+            }
+
+            $out[] = $trigger->to_js_config($dto);
         }
 
         return $out;
@@ -73,8 +75,9 @@ class PopupConfigResource extends Resource
 
     /**
      * Normalize each stored rule into the flat engine config ({type, ...params}).
-     * Server-evaluable rules are enforced server-side and therefore excluded from
-     * the client payload. Unregistered rules fall back to the same flat shape.
+     * Server-evaluable rules are enforced server-side and therefore excluded
+     * from the client payload. See normalize_triggers() for why an
+     * unregistered rule is omitted rather than forwarded.
      *
      * @param array $rules
      * @return array<int, array<string, mixed>>
@@ -87,13 +90,11 @@ class PopupConfigResource extends Resource
         foreach (RuleDTO::collection($rules) as $dto) {
             $rule = $manager->get($dto->type);
 
-            if ($rule && $rule->is_server_evaluable()) {
+            if (!$rule || $rule->is_server_evaluable()) {
                 continue;
             }
 
-            $out[] = $rule
-                ? $rule->to_js_config($dto)
-                : array_merge(['type' => $dto->type], (array) $dto->params);
+            $out[] = $rule->to_js_config($dto);
         }
 
         return $out;

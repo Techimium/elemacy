@@ -4,18 +4,21 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Compatibility\ThemeHookCleaner;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 class GenesisCompatibility implements ThemeCompatibilityInterface
 {
+    /** Genesis registers its header and footer markup up to priority 15; this adapter's own wrapper opens at 16. */
+    private const CHROME_MAX_PRIORITY = 15;
+
     public function register(ThemeBuilderManager $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
+            $manager->keep_theme_landmark('header');
             add_action('template_redirect', function () {
-                for ($priority = 0; $priority < 16; $priority++) {
-                    remove_all_actions('genesis_header', $priority);
-                }
+                ThemeHookCleaner::remove_theme_callbacks('genesis_header', self::CHROME_MAX_PRIORITY);
             }, 10);
 
             add_action('genesis_header', function () {
@@ -46,11 +49,10 @@ class GenesisCompatibility implements ThemeCompatibilityInterface
             }, 25);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
+            $manager->keep_theme_landmark('footer');
             add_action('template_redirect', function () {
-                for ($priority = 0; $priority < 16; $priority++) {
-                    remove_all_actions('genesis_footer', $priority);
-                }
+                ThemeHookCleaner::remove_theme_callbacks('genesis_footer', self::CHROME_MAX_PRIORITY);
             }, 10);
 
             add_action('genesis_footer', function () {
@@ -82,4 +84,3 @@ class GenesisCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

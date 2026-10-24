@@ -5,14 +5,12 @@ namespace Elemacy\TemplateLibrary;
 defined('ABSPATH') || exit;
 
 /**
- * The single CPT that backs every template-like item — theme templates, popups,
- * and anything modules add later. Registered by Core regardless of which modules
- * are active, so disabling a module never orphans its content and there is one
- * permalink structure to flush.
+ * The single CPT that backs every template-like item — theme templates,
+ * popups, and anything modules add later.
  */
 class LibraryPostType
 {
-    const POST_TYPE = 'elemacy_library';
+    public const POST_TYPE = 'elemacy_library';
 
     public static function register(): void
     {
@@ -72,7 +70,7 @@ class LibraryPostType
             'menu_position'      => null,
             'supports'           => ['title', 'editor', 'author', 'thumbnail', 'elementor'],
             // No core wp/v2/elemacy_library controller: the plugin's own
-            // /elemacy/library REST routes (Route::*) are registered
+            // /elemacy/v1/library REST routes (Route::*) are registered
             // independently and unaffected by this flag. Elementor's editor
             // reaches posts via post.php, not core REST, so nothing needs it.
             'show_in_rest'       => false,

@@ -4,20 +4,13 @@ namespace Elemacy\Modules\Widgets\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
-use Elemacy\Modules\Widgets\Contracts\LoopItemInterface;
-use Elemacy\Modules\Widgets\Services\LoopDataSourceRegistry;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
+use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\LoopDataSourceRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
 
-/**
- * Elementor document for Loop Item templates. A loop item is a bare card
- * rendered per item by the Loop Builder widget, so it edits on Canvas and
- * previews against one real item from whichever registered data source
- * (Posts, Terms, Users, ACF Repeater, …) is chosen in Preview Settings —
- * the same registry Loop Grid/Carousel use to render, so a newly registered
- * source gets standalone preview support automatically.
- */
+/** Elementor document for Loop Item templates. */
 class LoopDocument extends PreviewablePageBase
 {
     public static function get_type()
@@ -51,7 +44,9 @@ class LoopDocument extends PreviewablePageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+    /**
+     * Forces Canvas so a freshly-created loop item opens bare, before _wp_page_template persists.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -67,7 +62,10 @@ class LoopDocument extends PreviewablePageBase
         parent::__construct($data);
     }
 
-    const PREVIEW_DATA_SOURCE = 'preview_data_source';
+    public const PREVIEW_DATA_SOURCE = 'preview_data_source';
+
+    private ?LoopItemInterface $preview_item = null;
+    private ?string $preview_item_key = null;
 
     protected function register_preview_controls(): void
     {
@@ -97,16 +95,26 @@ class LoopDocument extends PreviewablePageBase
         }
     }
 
+    /**
+     * Resolved once per preview settings state: every dynamic tag and nested
+     * loop of one editor render asks for it.
+     */
     public function get_preview_item(): ?LoopItemInterface
     {
+        $settings = $this->get_settings();
+        $key = md5((string) wp_json_encode($settings));
+
+        if (null !== $this->preview_item_key && $key === $this->preview_item_key) {
+            return $this->preview_item;
+        }
+
         $source = LoopDataSourceRegistry::instance()->get(
             (string) $this->get_settings(self::PREVIEW_DATA_SOURCE)
         );
 
-        if (!$source) {
-            return null;
-        }
+        $this->preview_item = $source ? $source->resolve_preview_item($settings) : null;
+        $this->preview_item_key = $key;
 
-        return $source->resolve_preview_item($this->get_settings());
+        return $this->preview_item;
     }
 }
