@@ -106,7 +106,7 @@ From the first release after 1.0.0 on, the readme changelog names every user-vis
 
 ## 5. Deploy
 
-`.github/workflows/deploy-wordpress-plugin.yml` builds and verifies the archive on a tag, extracts it, and copies the extracted plugin (never the development tree) to the WordPress.org SVN trunk, with `.wordpress-org/` published as the listing assets. Pro is distributed through its own updater, not WordPress.org.
+`.github/workflows/deploy-wordpress-plugin.yml` builds and verifies the archive on a tag, extracts it, and copies the extracted plugin (never the development tree) to the WordPress.org SVN trunk, with `wp-assets/` published as the listing assets. Pro is distributed through its own updater, not WordPress.org.
 
 ## 6. Operator notes for 1.0.0
 
@@ -166,8 +166,8 @@ The `build/` directory is not committed. Rebuild with `npm run build:zip` from `
 1. Review `release/1.0.0` in both repositories. The Free branch is cut from `feat/template-condition`, the Pro branch from `feat/animation`.
 2. Merge each `release/1.0.0` into its current branch, then into `main` the usual way. Do not squash away the two commits; they separate the hardening from the cleanup.
 3. Confirm CI is green on the merge commit. The Free `package` job re-runs `verify-package.py` and Plugin Check and fails on any error-level finding.
-4. Replace the generated listing images in `.wordpress-org/` with the designed ones if they are ready; the sizes in section 4 are fixed. This is the only content change expected between hand-off and release.
-5. Tag the Free merge commit `v1.0.0` and push the tag. `deploy-wordpress-plugin.yml` triggers on `v*` tags, builds and verifies the archive again, and copies the extracted archive to WordPress.org trunk and `tags/1.0.0` with `.wordpress-org/` as the listing assets.
+4. Replace the generated listing images in `wp-assets/` with the designed ones if they are ready; the sizes in section 4 are fixed. This is the only content change expected between hand-off and release.
+5. Tag the Free merge commit `v1.0.0` and push the tag. `deploy-wordpress-plugin.yml` triggers on `v*` tags, builds and verifies the archive again, and copies the extracted archive to WordPress.org trunk and `tags/1.0.0` with `wp-assets/` as the listing assets.
 6. Confirm the WordPress.org listing shows 1.0.0 with the banner, icon and the 1.0.0 changelog, then install the listed plugin on a clean site and open one page of each builder.
 7. Pro is not on WordPress.org; ship `build/elemacy-pro-1.0.0.zip` through its own updater after the Free listing is live.
 8. Archive the OpenSpec change `clean-architecture-for-first-release` once merged (`/opsx:archive`).

@@ -1,6 +1,6 @@
-=== Elemacy — All-in-One Elementor Addon (Theme Builder, Popups, Forms, Loop Builder, Dynamic Tags) ===
+=== Elemacy – Theme Builder, Popups, Forms & Loops for Elementor ===
 Contributors: techimium, mdashraful
-Tags: elementor, elementor addons, theme builder, popup builder, dynamic tags
+Tags: elementor, theme builder, popup builder, form builder, loop builder
 Requires at least: 6.0
 Tested up to: 7.1
 Stable tag: 1.0.0
@@ -9,399 +9,263 @@ Requires Plugins: elementor
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-One free Elementor addon: Theme Builder, Display Conditions, Popups, Loop Builder, Forms, Dynamic Tags, Custom CSS and widgets.
+Build headers, popups, forms and dynamic content with one free Elementor addon. Includes Theme Builder, Loop Grid, ACF tools and Custom CSS.
 
 == Description ==
 
-**Elemacy is a powerful, all-in-one Elementor addon** that gives you a complete website-building suite — without installing a dozen separate plugins. Build custom headers, footers, single post layouts, and archive pages with the Theme Builder. Assign templates with display conditions. Create popups, banners, top bars, and floating elements. Build contact forms, dynamic post loops, navigation menus, and use real WordPress and ACF data anywhere with dynamic tags.
+**More building. Less plugin juggling.**
 
-Stop installing five different plugins to get five different features. Elemacy brings everything together in one lean, well-coded package. The core feature set is completely free; advanced capabilities are available in **Elemacy Pro**.
+You have a page you love. Now you need a header that matches, a contact form, and a way to show your latest work. Each next step seems to mean another plugin, another settings screen, and another design to keep consistent.
 
-> Works with the **free version of Elementor** — Elementor Pro is **not** required. Requires **Elementor 3.35.9 or higher**.
+**Elemacy brings those everyday building jobs into one Elementor addon.** Design the site around your pages, turn your content into reusable layouts, and give visitors an easy next step. Keep working in the Elementor editor you already know.
 
----
+**Start free with:**
 
-### 🏆 What's Included in the Free Version?
+* **Theme Builder** — create headers, footers, single post layouts, archives, search results and a custom 404 page.
+* **Popup Builder** — design popups, top or bottom bars, banners and floating elements, with page-load and click triggers.
+* **Form Builder** — build contact and inquiry forms with 14 field types and email notifications.
+* **Loop Grid and Loop Carousel** — design one card, then fill it with posts, categories or users. Add AJAX pagination, Load More or Infinite Scroll to grids.
+* **Dynamic Tags and ACF widgets** — connect designs to WordPress content and custom fields instead of retyping the same information.
+* **Navigation, search and finishing touches** — add a responsive nav menu, site logo, search form and Custom CSS.
 
-Elemacy gives you a genuinely powerful set of features at no cost. No credit card, no trial period — just install and build:
+**Works with the free version of Elementor. Elementor Pro is not required.** ACF tools need Advanced Custom Fields; repeater and gallery features need those field types, such as those provided by ACF Pro. Elemacy Pro is an optional, separate addon for advanced targeting, popup analytics and custom ACF repeater loops.
 
-- ✅ **Theme Builder** (Header, Footer, Single, Archive, 404, Search, Loop, CPT templates)
-- ✅ **Display Conditions** (assign templates to specific parts of your site)
-- ✅ **Popups & Floating Elements** (popups, top/bottom bars, banners, floating elements)
-- ✅ **Loop Builder** (dynamic Grid & Carousel with AJAX pagination)
-- ✅ **Form Builder** with email notifications
-- ✅ **Custom CSS** per widget / section / column / page
-- ✅ **Dynamic Tags** (Post, Site, Archive, Author, Utility, WooCommerce & ACF data)
-- ✅ **Widgets** — Nav Menu, Site Logo, Search, ACF Accordion, ACF Icon List, ACF Gallery
-- ✅ **Modular architecture** — enable only the features you need
+= Make the whole site feel like yours: Elementor Theme Builder =
 
----
+Start with the parts visitors see on every page. Build a header with your logo and navigation, create a useful footer, and carry the same design into your blog and other content.
 
-### 🎨 Theme Builder
+Elemacy's free Theme Builder includes:
 
-Take complete control of every part of your WordPress theme using Elementor's drag-and-drop editor. Elemacy hooks into the standard WordPress template system, so it works with virtually **any theme**.
+* Headers and footers.
+* Single post and page layouts, including custom post types.
+* Archive layouts for your blog and post types.
+* Search results templates.
+* Custom 404 pages.
+* Preview settings for single, archive and search templates, so you can design with real content.
 
-**Build custom templates for:**
+Use **display conditions** to choose where each template belongs. Free includes Entire Site, Singular Post Type, Post Type Archive and Search Results conditions, with include and exclude rules. A new template starts as a draft; the published 404 template applies to missing pages without a separate condition.
 
-* **Header** – Design a pixel-perfect header and replace your theme's default header entirely.
-* **Footer** – Create a custom footer with widgets, menus, social links, and anything Elementor supports.
-* **Single Post / Page** – Design a unique layout for individual posts, pages, or any custom post type.
-* **Archive Pages** – Build custom archive layouts for blog, categories, tags, products, or custom post type archives.
-* **Post Archive** – Dedicated template for your WordPress blog post listing page.
-* **404 Page** – Turn your error page into a branded, conversion-optimized experience.
-* **Search Results** – Customize how search results are presented to visitors.
-* **Loop Template** – Design the individual card/item template used by the Loop Builder widget.
-* **Custom Post Type Support** – Automatically detects all registered public custom post types and generates Single and Archive template options for each.
+The template list shows where designs apply and flags missing include rules or templates overridden by a newer design. Keep reusable sections and Loop Item templates in the **Template Library**, ready for the next layout.
 
-**Theme compatibility** is handled out of the box for popular themes including Astra, Blocksy, GeneratePress, Genesis, Kadence, Neve, OceanWP, Storefront, and the Beaver Builder Theme, with a sensible default for everything else.
+Classic and block themes are supported, with dedicated compatibility for Hello Elementor, Astra, Blocksy, GeneratePress, Kadence, Neve, OceanWP, Storefront, Genesis and Beaver Builder Theme.
 
----
+= Design one card. Let your content do the rest: Loop Builder =
 
-### 🎯 Display Conditions
+Your latest stories should appear without rebuilding a row of cards. Your team directory should use the same design for every person. Create a Loop Item template once, then choose what fills it.
 
-Assign your Theme Builder templates exactly where they belong. Each template can have one or more **Include** ("show on") and **Exclude** ("hide on") rules. A template with no conditions acts as a global fallback.
+**Free loop data sources:**
 
-**Conditions available in the free version:**
+* **Posts** — display posts, pages or public custom post types. Set the item count, order, offset and whether to exclude the current post.
+* **Current Query** — follow the content WordPress is already showing on an archive, search results, blog or shop page.
+* **Terms** — create grids of categories, tags or other public taxonomy terms, with ordering and an option to hide empty terms.
+* **Users** — build author or team directories, filter by role, set the order and optionally exclude the current user.
 
-* **Entire Site** – Apply a template everywhere.
-* **Singular Post Type** – Apply to all items of a specific post type (posts, pages, products, custom post types).
-* **Post Type Archive** – Apply to the archive of a specific post type.
+The **Loop Grid** gives you responsive columns and spacing. Choose page numbers, Previous/Next links, or both, with optional AJAX loading. Use a **Load More** button or **Infinite Scroll** when you want the next items to appear in the same grid.
 
-The conditions builder also previews the advanced conditions unlocked by **Elemacy Pro** (Front Page, Blog, 404, Search Results, By Author, Specific Post, Child Of, taxonomy term/archive conditions, date & author archives, and more).
+The **Loop Carousel** presents your loop design as a swipeable slider. Set slides per view, slides to scroll, equal height, autoplay, pause on hover, infinite looping, transition speed, arrows and pagination dots.
 
----
+Nested loops let a layout contain another loop. With **Elemacy Pro**, an ACF repeater can also supply the rows, using your own Loop Item design.
 
-### 💬 Popups & Floating Elements
+= A form that belongs in your design: Form Builder =
 
-Create high-converting popups, top/bottom bars, banners, and floating elements — all designed in Elementor and managed from the Elemacy dashboard. (This module is included free; enable it from the Modules page.)
+When someone is ready to get in touch, keep that conversation on your page. Drop in the Form Builder, choose the fields you need, and style the form alongside the rest of the design.
 
-**One module, four element types:**
+**Included field types:** Text, Email, Textarea, URL, Telephone, Number, Date, Time, Select, Radio, Checkbox, Acceptance, Hidden and HTML.
 
-* **Popup** – Classic centered modal with overlay.
-* **Top / Bottom Bar** – Site-wide notification bars.
-* **Banner** – A dismissible, fully positionable bar.
-* **Floating Element** – Pin any design to a corner or edge of the screen.
+Arrange fields, set column widths, add labels and placeholders where applicable, and mark fields as required. Use acceptance checkboxes for an agreement, hidden fields for extra context, and HTML fields for helpful text between inputs. Style the labels, inputs, submit button and response messages.
 
-**Design & behavior:**
+The built-in **Email** action sends submissions to your chosen recipients. Set the subject, sender, Reply-To and message. Use `[all-fields]` to include submitted values or `[field id="email"]` to insert one field by its ID.
 
-* Built on a **custom Elementor document type** — design the content and styling visually in the Elementor editor (size, position, overlay color & opacity, animation, close button styling, auto-close, prevent-scroll, z-index, and more), with a live framed preview.
-* **Display conditions** – Target popups using the same conditions engine as the Theme Builder.
-* **Triggers (free):** Page Load, Click.
-* **Rules (free):** Frequency Cap ("show up to X times"), Hide for Logged-in Users.
-* Lightweight, vanilla-JS frontend engine that loads **only when a popup actually matches the current page** — zero overhead otherwise.
+Forms include server-side field validation, a honeypot and submission rate limiting. Email delivery uses your WordPress mail configuration. **Submission storage, file uploads, payments and built-in CRM or email-marketing integrations are not included in this release.**
 
-> **⚡ Elemacy Pro** adds advanced triggers (Scroll, Exit Intent, Inactivity, Scroll to Element, On Popup Close), advanced rules (Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, Browser), plus popup analytics.
+= Give the right message its own moment: Popup Builder =
 
----
+A small announcement can be enough. A contact form might need more room. Use the same visual editor for both, then decide how the message appears.
 
-### 🔁 Loop Builder Widget
+Choose from four formats:
 
-Display any post type — including custom post types — in a dynamic, fully customizable grid or carousel. No coding required.
+* **Popup** — a modal with an overlay.
+* **Top / Bottom Bar** — a notice at the top or bottom of the screen.
+* **Banner** — a dismissible, positionable message.
+* **Floating Element** — a design pinned near an edge or corner.
 
-**Loop Grid features:**
+Adjust width, position, overlay color and opacity, background blur, entrance and exit animation, close button, auto-close and scroll behavior in the popup document settings.
 
-* Select any Elementor template as the loop item design
-* Choose any public post type as your data source (including custom post types)
-* Query builder: posts per page, offset, order by (date, title, menu order, random), and sort direction (ASC/DESC)
-* Exclude the current post from the loop automatically
-* Built-in **AJAX Pagination** — page through results without a full reload
-* Pagination styles: Numbers, Previous/Next, or Numbers + Previous/Next
-* Responsive column control (1–12 columns per breakpoint)
-* Responsive column gap and row gap controls
-* Full pagination styling: colors (normal/hover/active), typography, border, border-radius, padding
+**Free triggers:** open on page load, with a configurable delay, or from a click. **Free rules:** limit how many times a popup appears and hide it from logged-in visitors. Popup display conditions use the same free and Pro condition choices as theme templates.
 
-**Loop Carousel features:**
+To open a popup from a button, set its link to `#elemacy-popup-42`, replacing `42` with the popup ID. A link to `#elemacy-popup-close` closes it from inside the popup.
 
-* All the power of the Loop Grid in a smooth, swipeable carousel format
-* Ideal for testimonials, product showcases, team members, and more
+= Keep the content connected: Dynamic Tags and ACF =
 
----
+Write a post title once. Use it in the post layout, its archive card and other dynamic elements. When the content changes, the design reads the updated value.
 
-### 📋 Form Builder Widget
+Elemacy's free dynamic tags include:
 
-Build fully custom contact forms — or any kind of form — directly inside Elementor. No third-party form plugin needed.
+* **Post data:** title, content, excerpt, URL, date, featured image, custom fields, terms and comment count, plus Page Title.
+* **Site data:** site title, tagline, URL and logo.
+* **Archive and taxonomy data:** archive title, description and URL; term name, description, URL, count and custom fields.
+* **Author and user data:** names, biographies, profile links and avatars, plus user login, email and post count. User tags can read a Users loop item or the author archive being viewed.
+* **Useful values:** shortcodes, request parameters, current date/time and contact URLs.
+* **ACF data:** field values, images, galleries, colors, dates/times, numbers and URLs. These need ACF and the relevant field type.
+* **WooCommerce data:** product price, SKU, stock, rating, short description, gallery and add-to-cart URL when WooCommerce is active.
 
-**Supported field types:** Text, Email, Textarea, Telephone, Select (dropdown), Radio buttons, Checkbox.
+Three free **ACF widgets** turn existing fields into finished content:
 
-**Form configuration:**
+* **ACF Accordion** maps repeater questions and answers into an FAQ or other accordion, with an optional FAQ Schema setting.
+* **ACF Icon List** displays repeater text with a shared icon and consistent styling.
+* **ACF Gallery** displays images from a gallery field in a styled grid.
 
-* Drag-and-drop field ordering with a repeater control
-* Per-field label, placeholder, required status, and column width (20%–100%)
-* Show or hide field labels
-* Custom field IDs for use in email templates
-* Configurable option lists for Select, Radio, and Checkbox fields
+The widgets are included in Elemacy Free. Repeater and gallery fields are separate ACF capabilities, usually supplied by **ACF Pro**. An **Elemacy Pro** license does not include ACF Pro.
 
-**Actions after submit:**
+= Help people find their way: Navigation, search and site identity =
 
-* **Email Notification** – Send submissions to any address(es). Configure To, Subject, Message body (with the `[all-fields]` shortcode or specific `[field_id]` placeholders), From Name, From Email, and Reply-To.
+Use the **Elemacy Nav Menu** widget for horizontal, vertical or dropdown navigation. Choose pointers and hover animations, style submenus, and set the breakpoint for a responsive hamburger menu. Full-width dropdowns, custom toggle icons, dividers and normal/hover/active styling help the menu fit your design. Submenus support mouse, touch and keyboard interaction.
 
-**Full styling controls** for layout, labels, input fields, the submit button, and success/error messages.
+The **Search** widget offers Classic, Minimal and Full Screen layouts. Customize the placeholder, icon or button text and styling, and optionally limit searches to selected public post types.
 
-> **⚡ Coming Soon:** Form submission storage — save every submission to your database and view them in the admin dashboard.
+The **Site Logo** widget uses your Customizer logo or a custom image, with homepage, image-file, custom-URL or no-link options.
 
----
+For the last few details, add **Custom CSS** to supported Elementor widgets, containers, sections, columns or page settings. The `selector` keyword targets the current element. CSS knowledge is only needed when you choose to use this tool.
 
-### 🧩 Widgets
+= Keep the toolkit comfortable to work with =
 
-In addition to the Loop Builder and Form Builder, Elemacy ships a growing library of widgets:
+Enable the modules you need from the Elemacy dashboard and switch individual widgets on or off. Theme Builder, Widgets, Dynamic Tags, Custom CSS and Popups are managed together, so you have one place to shape your toolkit.
 
-* **Site Logo** – Output your site logo with a custom link target.
-* **Elemacy Nav Menu** – The Elementor Pro Nav Menu experience on Elementor (free): pointers, responsive dropdown, toggle (details below).
-* **Search** – A flexible search form widget.
-* **ACF Accordion** – Build accordions from an ACF repeater field. *(requires ACF)*
-* **ACF Icon List** – Render an icon list from an ACF repeater field. *(requires ACF)*
-* **ACF Gallery** – Display an ACF gallery field. *(requires ACF)*
+Popup runtime assets load when a popup matches the page. Widget assets are registered as dependencies of the widgets that use them. Your theme, content and other plugins still affect overall site performance.
 
----
+= When you need finer control: Elemacy Pro =
 
-### 🧭 Nav Menu Widget
+Elemacy Free includes the builders described above. **Elemacy Pro is a separate paid addon** that extends them with:
 
-A WordPress menu with the same controls, responsive dropdown and look as the Elementor Pro Nav Menu, built for Elementor (free). If you know Pro's widget you already know this one, and Paste Style works between the two.
+* **Advanced display conditions** — front page, blog, 404 targeting, search results by post type, specific posts, posts by author, child pages, taxonomy conditions, and date or author archives.
+* **Advanced popup triggers** — scroll percentage, exit intent, inactivity, reaching an element and closing another popup.
+* **Advanced popup rules** — repeat intervals, devices, scheduling, page views, sessions, referrer, user roles and browser targeting.
+* **Popup analytics** — review impression and conversion counts for your campaigns.
+* **ACF Repeater loops** — use repeater rows in Loop Grid and Loop Carousel with a custom Loop Item template. Read from the current post, a specific post/page, an ACF options page or a parent repeater row for nested layouts. ACF repeater support is required; options-page sources also require that ACF capability.
+* **Pro updates and priority support** with an active license. Pro features remain available when the Pro plugin is active; licensing controls access to updates and support.
 
-**Layout:** Horizontal, Vertical, or Dropdown, aligned Start, Center, End or Stretch, with a submenu indicator icon of your choice.
+Keep Elemacy Free installed and active when using Elemacy Pro. The free download does not include the Pro addon or its features. [Explore Elemacy Pro](https://elemacy.com).
 
-**Pointers:** Underline, Overline, Double Line, Framed, Background or Text, each with its own animations (Fade, Slide, Grow, Drop In/Out, Shrink, Draw, Corners, Sweeps, Shutters, Sink, Float, Skew, Rotate).
+= Start with one thing you want to improve =
 
-**Mobile dropdown:**
+Replace a header. Give a contact form some care. Make one card and let a loop fill the rest. You can enable more of the toolkit as your site grows.
 
-* Collapses at any of your Elementor breakpoints (Mobile, Mobile Extra, Tablet, Tablet Extra), custom breakpoint values included, or never
-* Hamburger toggle with your own normal and active icons, hover animation and alignment
-* Full-width option that stretches the dropdown across the screen
-* Works inside sticky headers
-
-**Submenus:** open on hover with a short delay, on tap (first tap opens, second follows the link) and from the keyboard (Space opens, Escape closes), and stay inside the screen. One-page anchor links highlight while their section is in view.
-
-**Styling controls:**
-
-* Main menu: typography, text and pointer colors (normal/hover/active), dividers, pointer width, item padding, space between, border radius
-* Dropdown: text and background colors (normal/hover/active), typography, border, border radius, box shadow, item padding, divider, distance
-* Toggle button: color and background (normal/hover), size, border width, border radius
-
----
-
-### 🏷️ Dynamic Tags
-
-Make your Elementor designs truly dynamic. Use real data from your WordPress site anywhere a dynamic field is supported.
-
-**Post dynamic tags:**
-
-* Post Title, Post URL, Post Content, Post Excerpt, Post Date (with format control), Post Featured Image, Post Custom Field, Post Terms, Comments Number, Page Title
-
-**Site dynamic tags:**
-
-* Site Title, Site Tagline, Site URL, Site Logo
-
-**Archive & Author dynamic tags:**
-
-* Archive Title, Archive Description, Archive URL
-* Author Name, Author Info, Author URL, Author Profile Picture
-
-**Utility dynamic tags:**
-
-* Shortcode, Request Parameter, Current Date/Time, Contact URL (mailto / tel)
-
-**WooCommerce dynamic tags** *(active when WooCommerce is installed):*
-
-* Product Price, Product SKU, Product Stock, Product Rating, Product Short Description, Product Gallery, Add-to-Cart URL
-
-**Advanced Custom Fields (ACF) dynamic tags** *(requires ACF):*
-
-* ACF Field (text), ACF Image, ACF Gallery, ACF Color, ACF Date/Time, ACF Number, ACF URL
-
-> **⚡ Coming Soon:** Even more dynamic tags, including user data.
-
----
-
-### 🎯 Custom CSS Control
-
-Write custom CSS for any Elementor widget, section, column, or page — right inside the Elementor panel. No child theme required.
-
-* Adds a **Custom CSS** tab to the Advanced panel of every Elementor element
-* Use the `selector` keyword to target the element's unique CSS class automatically
-* Also available at the **Page Settings** level for page-specific styles
-* CSS is compiled into Elementor's generated stylesheet — no render-blocking inline styles
-
----
-
-### ⚙️ Module Management
-
-Elemacy includes a modern admin dashboard where you can enable or disable individual feature modules. Only load what you need — keeping your site fast and bloat-free.
-
-**Available modules:**
-
-* Theme Builder (with Display Conditions)
-* Widgets (Nav Menu, Site Logo, Search, Loop Grid, Loop Carousel, Form Builder, ACF widgets)
-* Dynamic Tags
-* Custom CSS Controls
-* Popups & Floating Elements
-
----
-
-### ⭐ Elemacy Pro
-
-Elemacy Pro installs on top of the free plugin and unlocks advanced features. Nothing in the free plugin is crippled — Pro purely **adds** capabilities.
-
-* **Animations** – Add scroll, entrance, and on-load animations to any Elementor element with no code. Presets, configurable trigger (On View / On Page Load), duration, delay, easing, viewport threshold, and reduced-motion handling. Powered by GSAP.
-* **Advanced Display Conditions** – Front Page, Blog, 404, Search Results: Post Type, By Author, Specific Post, Child Of, In {Taxonomy}, {Taxonomy} Archive, Date Archive, and Author Archive.
-* **Advanced Popup Triggers** – Scroll, Exit Intent, Inactivity, Scroll to Element, and On Popup Close.
-* **Advanced Popup Rules** – Once Per period, Devices, Schedule, Page Views, Sessions, Referrer, User Roles, and Browser targeting.
-* **Popup Analytics** – Track impressions and conversions.
-* **License management** – In-dashboard license activation for updates and support.
-
-> 👉 Learn more and upgrade at [elemacy.com](https://elemacy.com).
-
----
-
-### 🔌 Compatibility
-
-* **WordPress** 6.0+
-* **Elementor** (Free) — 3.35.9 or higher; latest version recommended
-* **PHP** 7.4+
-* **Advanced Custom Fields (ACF)** — optional, required only for the ACF widgets and ACF dynamic tags
-* **WooCommerce** — Theme Builder detects the Shop page when resolving archive templates
-
----
-
-### 🗺️ Roadmap
-
-We're actively developing Elemacy. Here's what's coming:
-
-* 📥 **Form Submission Storage** – Save all form entries to your database and manage them from the admin
-* 🏷️ **More Dynamic Tags** – user & role data, and more
-* 🧩 **More Widgets** – New, powerful widgets added regularly
-* 🔗 **External Integrations** – Connect form submissions to email marketing tools and CRMs
-
----
-
-### 👥 Contributing
-
-Elemacy is open source and we welcome contributions from the WordPress and Elementor developer community.
-
-**GitHub Repository:** [https://github.com/Techimium/elemacy](https://github.com/Techimium/elemacy)
-
-Whether you want to submit a bug fix, add a new widget, propose a feature, or improve documentation — we'd love your help.
-
----
+**Install Elemacy, open its dashboard, and start with the part your site needs next.**
 
 == Installation ==
 
-**Automatic Installation (Recommended)**
+1. Install and activate **Elementor 3.35.9 or newer**.
+2. In WordPress, go to **Plugins → Add New**, search for **Elemacy**, then install and activate it. You can also upload the Elemacy plugin ZIP from **Plugins → Add New → Upload Plugin**.
+3. Open **Elemacy** in the admin menu and enable the modules and widgets you want to use.
+4. Edit a page with Elementor, or create a template from the Theme Builder or Template Library.
+5. For ACF features, activate Advanced Custom Fields and create the required fields. Repeater and gallery tools need the matching field-type support, such as ACF Pro.
 
-1. Log in to your WordPress admin dashboard.
-2. Navigate to **Plugins → Add New**.
-3. Search for **"Elemacy"**.
-4. Click **Install Now**, then **Activate**.
-
-**Manual Installation**
-
-1. Download the plugin ZIP file.
-2. Log in to your WordPress admin dashboard.
-3. Navigate to **Plugins → Add New → Upload Plugin**.
-4. Upload the ZIP file and click **Install Now**.
-5. Click **Activate Plugin**.
-
-**After Activation**
-
-1. Make sure **Elementor** is installed and activated.
-2. Navigate to **Elemacy** in your WordPress admin menu.
-3. Enable the modules you need from the Modules management page.
-4. Start building with Elementor — all Elemacy widgets and features will appear automatically.
+Requires WordPress 6.0+, PHP 7.4+ and Elementor 3.35.9+. Elementor Pro is optional. Elemacy Pro requires Elemacy Free 1.0.0 or newer.
 
 == Frequently Asked Questions ==
 
-= Does Elemacy require Elementor Pro? =
+= Do I need Elementor Pro? =
 
-No. Elemacy works with the **free version of Elementor**. You do not need Elementor Pro to use any of Elemacy's features. Elemacy requires Elementor 3.35.9 or higher.
+No. Elemacy's builders and widgets work with the free version of Elementor, version 3.35.9 or newer. ACF and WooCommerce features need those plugins and their relevant capabilities.
 
-= Is the free version really free? =
+= What is free, and what needs Elemacy Pro? =
 
-Yes. Every feature documented under the free version is available at no cost — no hidden limits, no trial periods. Elemacy is open source software released under the GPLv2 license.
+Free includes Theme Builder, the basic display conditions, Popup Builder with page-load/click triggers and the two free visibility rules, Form Builder, Loop Grid, Loop Carousel, all nine Elemacy widgets, Dynamic Tags, Custom CSS and the Template Library. Pro adds advanced conditions, popup triggers and rules, popup analytics, and ACF Repeater loop sources. The Pro addon is a separate purchase.
 
-= What's the difference between Elemacy and Elemacy Pro? =
+= Can I build a header and footer with free Elementor? =
 
-Elemacy (free) gives you the complete core toolkit: Theme Builder, basic display conditions, popups with the essential triggers and rules, the Loop and Form builders, dynamic tags, custom CSS, and the widget library. Elemacy Pro adds the Animations module, advanced display conditions, advanced popup triggers/rules, popup analytics, and license-based updates and support. Pro never replaces free code — it only adds to it.
+Yes. Create Header and Footer templates in Elemacy's Theme Builder, design them in Elementor, set their display conditions and publish them. Add Site Logo and Elemacy Nav Menu widgets to complete your header.
 
-= Does the Theme Builder work with any WordPress theme? =
+= How do I build a post grid or carousel? =
 
-Yes. The Theme Builder hooks into the standard WordPress template system to override headers, footers, and content templates theme-agnostically, with dedicated compatibility for many popular themes (Astra, Blocksy, GeneratePress, Genesis, Kadence, Neve, OceanWP, Storefront, Beaver Builder Theme).
+Create a Loop Item in the Template Library and design one card with dynamic tags. Add Loop Builder or Loop Carousel to a page, choose that template and select a data source. Posts, Current Query, Terms and Users are included free. ACF Repeater rows require Elemacy Pro and ACF repeater support.
 
 = How do display conditions work? =
 
-Each Theme Builder template can have Include ("show on") and Exclude ("hide on") rules, and displays only where an Include rule matches. A new template starts as a draft with its broadest rule already filled in (Entire Site for a header or footer), so nothing changes on your site until you publish it. The Theme Builder list shows where each template displays, and warns when a template has no Include rule or is overridden by a newer one. A 404 template needs no rules: once published it is used for every page that is not found. The free version covers Entire Site, Singular Post Type, Post Type Archive and Search Results. Elemacy Pro unlocks many more (Front Page, Blog, 404, taxonomy and author/date archives, specific posts, and more).
+Include rules choose where a template or popup appears; any matching exclude rule prevents it from appearing. Free includes Entire Site, Singular Post Type, Post Type Archive and Search Results. Other conditions shown as Pro options need Elemacy Pro. Theme templates normally need a matching include rule. The 404 template is a location-based exception: once published, it applies to missing pages without separate rules.
 
-= Does deleting Elemacy remove my templates? =
+= Does it work with my theme or alongside Elementor Pro? =
 
-No. Deleting the plugin keeps your templates, popups and settings, so reinstalling it brings everything back. To remove all Elemacy data when you delete the plugin, first add `define( 'ELEMACY_REMOVE_ALL_DATA', true );` to your `wp-config.php` file. Elemacy Pro follows the same rule: deleting it keeps your popups' impression and conversion counts (only its license and temporary data are removed), and the same line removes the counts too.
+Elemacy supports classic and block themes, with dedicated adapters for the themes listed above. Preview the result with your own theme before publishing. If an Elementor Pro Theme Builder template already applies to a header, footer, single or archive location, Elemacy leaves that location to Elementor Pro.
 
-= How do I open a popup from a button? =
+= Do the ACF widgets require ACF Pro or Elemacy Pro? =
 
-In Elementor, set the button's link to `#elemacy-popup-` followed by the popup's ID, for example `#elemacy-popup-42`. You can find the ID in the popup's address in the editor (`post=42`). Clicking the button opens the popup without changing the page address or scrolling. To close a popup from inside it, link a button or text to `#elemacy-popup-close`, or give it the CSS class `elemacy-popup-close`. Scripts can open one with `window.elemacyPopups.open(42)`.
+ACF Accordion, ACF Icon List and ACF Gallery are Elemacy Free widgets. They need ACF plus the relevant repeater or gallery field type; these field types are supplied by ACF Pro or compatible field-type support. Elemacy Pro is needed when you want a custom Loop Item template for ACF repeater rows. ACF Pro and Elemacy Pro are separate products.
 
-= Can I use Elemacy's Theme Builder together with Elementor Pro's? =
+= What form fields and actions are available? =
 
-Yes. On each page, a location (header, footer, single or archive) that one of Elementor Pro's Theme Builder templates applies to is left to Elementor Pro, and Elemacy's templates serve every other location, so a page never gets two headers.
+The current release includes Text, Email, Textarea, URL, Telephone, Number, Date, Time, Select, Radio, Checkbox, Acceptance, Hidden and HTML. The built-in action is Email. File uploads, payments, saved submission entries and built-in CRM or mailing-list integrations are not included.
 
-= Does the Loop Builder require any special setup? =
+= Why am I not receiving form emails? =
 
-To use the Loop Builder, first create a **Loop template** with the Theme Builder (select "Loop" as the template type). Then assign that template inside the Loop Builder widget. The Loop template designs each individual item (card) in your loop.
+Check the Email action's recipient and sender settings, then check your spam folder and your site's WordPress email delivery. Elemacy uses `wp_mail()`, so delivery depends on the site's mail configuration. An SMTP or transactional-mail plugin may help if your host does not deliver WordPress mail reliably.
 
-= Can I use the ACF widgets and ACF dynamic tags without ACF installed? =
+= Can I open a popup from a button or link? =
 
-No. The ACF widgets (ACF Accordion, ACF Icon List, ACF Gallery) and the ACF dynamic tags require the **Advanced Custom Fields** plugin (the free version from WordPress.org works fine). If ACF is not installed, those widgets and tags simply won't appear.
+Yes. Link the button to `#elemacy-popup-42`, replacing `42` with the popup's ID. Inside a popup, a link to `#elemacy-popup-close` or the CSS class `elemacy-popup-close` closes it. Developers can also open a popup with `window.elemacyPopups.open(42)`.
 
-= What field types does the Form Builder support? =
+= Can I use WooCommerce products in my designs? =
 
-Text, Email, Textarea, Telephone, Select (dropdown), Radio buttons, and Checkbox. More field types are planned.
+Yes. When WooCommerce is active, Elemacy provides the product dynamic tags listed above. The Theme Builder recognizes the shop archive, and loops can display public product posts or follow the shop's Current Query. This release does not include dedicated cart or checkout widgets.
 
-= Does the Form Builder store submissions? =
+= Do I need an Elemacy account for the free features? =
 
-The current version sends submissions via email. **Form submission storage** (saving entries to the database) is on the roadmap.
+No. The free toolkit runs on your WordPress site without an Elemacy account. Optional Elemacy Pro license and update checks connect to Elemacy's licensing service. Form emails use your site's configured mail service.
 
-= Will Elemacy slow down my website? =
+= What happens if I deactivate or delete the plugin? =
 
-Elemacy is built with performance in mind. It uses a modular architecture — disable any module you don't need — and assets such as the popup engine only load when they're actually required on a page.
+Deactivation keeps your saved content, but Elemacy templates and widgets need the plugin to render their functionality. Deleting Elemacy also keeps its templates, popups and settings by default. To remove owned data on deletion, first add `define( 'ELEMACY_REMOVE_ALL_DATA', true );` to `wp-config.php`. Pro follows the same opt-in rule for popup analytics and its remaining settings; its license and temporary data are removed on deletion.
 
-= Is Elemacy compatible with WooCommerce? =
+= Where can I get help or contribute? =
 
-Yes. When WooCommerce is active, Elemacy adds a set of WooCommerce **dynamic tags** (Product Price, SKU, Stock, Rating, Short Description, Gallery, Add-to-Cart URL), and the Theme Builder detects the WooCommerce Shop page when resolving archive templates. Dedicated WooCommerce widgets are planned for a future release.
-
-= Can I contribute to Elemacy? =
-
-Absolutely! Elemacy is open source. Visit our GitHub repository (link in the plugin description) to report issues, submit pull requests, or propose new features.
-
-= Where can I get support? =
-
-Use the official WordPress.org support forum for the free plugin. For bug reports and feature requests you can also open an issue on our GitHub repository. Elemacy Pro customers receive priority support through elemacy.com.
+Use the WordPress.org support forum for Elemacy Free. Report bugs or contribute at [GitHub](https://github.com/Techimium/elemacy). Elemacy Pro customers with an active license receive priority support through [elemacy.com](https://elemacy.com).
 
 == Screenshots ==
 
-1. **Elemacy Dashboard** – The clean, modern admin dashboard where you manage all modules.
-2. **Theme Builder** – Create and manage custom theme templates for every part of your site.
-3. **Display Conditions** – Assign templates to specific pages, post types, and archives.
-4. **Popups & Floating Elements** – Build popups, bars, banners, and floating elements with triggers and rules.
-5. **Loop Builder Widget** – Configure dynamic post queries and select your custom loop template.
-6. **Form Builder Widget** – Drag-and-drop form field configuration in the Elementor panel.
-7. **Dynamic Tags** – Use real WordPress and ACF data anywhere in your Elementor designs.
-8. **Custom CSS Control** – Write per-element custom CSS directly inside the Elementor Advanced tab.
-9. **Nav Menu Widget** – Pro-style navigation menu with pointers, submenus and a responsive mobile dropdown.
+1. Modules — enable the Theme Builder, Dynamic Tags, Widgets, Custom CSS, and Popups tools you need.
+2. Theme Builder — manage headers, footers, single posts, archives, search results, and other site templates.
+3. Display Conditions — assign theme templates using include and exclude rules. Advanced conditions are available with Elemacy Pro.
+4. Template Library — organize reusable page templates and loop item designs.
+5. Form Builder — design a studio contact form in Elementor with flexible fields, column widths, and email notifications.
+6. Popup Editor — design a newsletter popup and configure its width, position, overlay, animation, and close behavior in Elementor.
+7. Popup Formats — choose a popup, top or bottom bar, banner, or floating element.
+8. Popup Display Conditions — control where a popup appears. Advanced conditions are available with Elemacy Pro.
+9. Popup Triggers — configure when a popup appears. Page-load and click triggers are included free; advanced triggers require Elemacy Pro.
+10. Elemacy Nav Menu — style a WordPress menu with pointers, submenus, and responsive dropdown settings.
+11. Loop Builder — display WordPress posts in a responsive grid using your own loop item template.
+12. Loop Carousel — present dynamic content in a carousel with arrows, pagination, and behavior controls.
+13. Dynamic Tags — connect Elementor designs to WordPress post, site, archive, author, and ACF data.
+14. Custom CSS — add per-element styling with the selector keyword directly in the Elementor Advanced panel.
+15. Search — design a search form with a custom placeholder, button text, and layout.
+16. Site Logo — place a site logo or custom image in your Elementor layout.
+17. ACF Accordion — map repeater questions and answers to an accordion. Requires ACF repeater field support, such as ACF Pro.
+18. ACF Icon List — display repeater values with a consistent icon and styling. Requires ACF repeater field support, such as ACF Pro.
+19. ACF Gallery — display a styled image grid from an ACF gallery field. Requires gallery field support, such as ACF Pro.
+20. Widget Library — browse and enable Elemacy widgets, including navigation, forms, loops, search, and ACF widgets.
+21. Loop Pagination — choose AJAX page links, Load More, or Infinite Scroll for your content grid.
+22. Elemacy Pro: Advanced Popup Rules — refine campaign visibility with advanced visitor and timing rules.
+23. Elemacy Pro: Popup Analytics — review impressions and conversions for your campaigns. Counts shown are illustrative demo data.
+24. Elemacy Pro: ACF Repeater Loops — display repeater rows with a custom loop item template. Requires ACF repeater field support.
 
 == Changelog ==
 
 = 1.0.0 =
 * Initial release
-* Theme Builder: Header, Footer, Single, Archive, Post Archive, 404, Search Results, Loop, and Custom Post Type templates, working with classic and block themes
+* Theme Builder: Header, Footer, Single, Archive, 404 and Search Results templates for classic and block themes, with support for public custom post types and blog archives; reusable sections and Loop Items in the Template Library
 * Header and Footer templates edit on their own Elementor document types, showing only the settings that apply to site chrome
 * Display Conditions: Entire Site, Singular Post Type, Post Type Archive, and Search Results for Search templates (advanced conditions, including Search Results by post type, available in Elemacy Pro); when several templates match a page, the most specific one is used
 * Popups & Floating Elements: popups, top/bottom bars, banners, and floating elements designed in Elementor, with display conditions, Page Load/Click triggers, and Frequency Cap/Logged-in Users rules
 * Loop Builder Grid widget with AJAX pagination (up to 100 items per page), query builder, and responsive columns; a "Current Query" data source lists whatever the page itself queries (archives, search, shop, blog, single pages) and paginates through the page's own URLs, with AJAX updating the address bar and history; Loop Grid also offers Load More and Infinite Scroll pagination for every data source
 * The Archive Title dynamic tag shows "Search Results for: term" in a Search Results template; an Archive template can be previewed as a category, tag, taxonomy term, author or month, and the term, author and Loop Item preview pickers search as you type
+* Loop Grid and Loop Carousel data sources: Posts, Current Query, taxonomy Terms and Users; nested loops with context-aware dynamic tags
 * Loop Carousel widget
-* Form Builder widget with Text, Email, Textarea, Tel, Select, Radio, and Checkbox fields; Email action with full configuration
+* Form Builder widget with Text, Email, Textarea, URL, Tel, Number, Date, Time, Select, Radio, Checkbox, Acceptance, Hidden and HTML fields; Email action with [all-fields] and [field id="..."] placeholders, validation, honeypot and rate limiting
 * Nav Menu widget matching the Elementor Pro Nav Menu: horizontal, vertical and dropdown layouts, six pointers with their animations, breakpoint-based mobile dropdown with a hamburger toggle, full-width dropdown, dividers, and the same styling controls
 * Site Logo and Search widgets
 * ACF widgets: ACF Accordion, ACF Icon List, ACF Gallery (require ACF)
 * Custom CSS control added to the Advanced tab of all Elementor elements and to page settings
 * Dynamic Tags: Post Title, Post URL, Post Content, Post Excerpt, Post Date, Post Featured Image, Post Custom Field, Post Terms, Comments Number, Page Title, Site Title, Site Tagline, Site URL, Site Logo, Archive Title/Description/URL, Author Name/Info/URL/Profile Picture, Shortcode, Request Parameter, Current Date/Time, Contact URL
+* Dynamic Tags (Taxonomy): Term Name, Description, URL, Count and Custom Field; Dynamic Tags (User): Name, Description, Avatar, URL, Login, Email and Post Count
 * Dynamic Tags (WooCommerce, when active): Product Price, SKU, Stock, Rating, Short Description, Gallery, Add-to-Cart URL
 * Dynamic Tags (ACF): ACF Field, ACF Image, ACF Gallery, ACF Color, ACF DateTime, ACF Number, ACF URL
 * Module management admin page — enable or disable individual feature modules

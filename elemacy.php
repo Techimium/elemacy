@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Elemacy
  * Plugin URI: https://elemacy.com
- * Description: Elemacy is a WordPress plugin to extend elementor.
+ * Description: Build headers, popups, forms and dynamic content with one free Elementor addon. Includes Theme Builder, Loop Grid, ACF tools and Custom CSS.
  * Version: 1.0.0
  * Author: Techimium
  * Author URI: https://techimium.com

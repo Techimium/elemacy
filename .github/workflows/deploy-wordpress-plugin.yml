@@ -58,7 +58,7 @@ jobs:
           WPORG_USERNAME: ${{ secrets.WPORG_USERNAME }}
           WPORG_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
           SVN_URL: https://plugins.svn.wordpress.org/elemacy
-          ASSETS_DIR: .wordpress-org   # banner/icon/screenshots (SVN /assets), optional
+          ASSETS_DIR: wp-assets   # banner/icon/screenshots (SVN /assets), optional
           DRY_RUN: false               # set to true to test without committing
         run: |
           set -e
