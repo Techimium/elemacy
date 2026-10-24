@@ -16,20 +16,11 @@ use Elementor\Core\DynamicTags\Base_Tag;
  */
 class TagManager
 {
-    protected bool $hooked = false;
-
     /**
-     * Attaches this class's WordPress hooks. Idempotent: a second call does
-     * nothing.
+     * Attaches this class's WordPress hooks.
      */
     public function register_hooks(): void
     {
-        if ($this->hooked) {
-            return;
-        }
-
-        $this->hooked = true;
-
         add_action('elementor/dynamic_tags/register', [$this, 'register_tags']);
     }
 
