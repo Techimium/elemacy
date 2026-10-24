@@ -16,8 +16,9 @@ import hashlib
 import json
 import os
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,7 @@ parser.add_argument('archive', type=Path)
 parser.add_argument('--check-missing-tools', action='store_true')
 parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent.parent.parent, help='Plugin root for the source-level release checks.')
 parser.add_argument('--release-revision', help='Commit being released. Defaults to the root\'s HEAD.')
+parser.add_argument('--tag', help='Require this Git tag to match the stable plugin version (vX.Y.Z).')
 args = parser.parse_args()
 archive = args.archive.resolve()
 root = args.root.resolve()
@@ -43,12 +45,33 @@ LICENSE_HEADER = re.compile(rb'@license|Licensed under|MIT License|Copyright \(c
 
 with zipfile.ZipFile(archive) as package:
     names = package.namelist()
-    if len(names) != len(evidence['files']):
-        fail('Archive file count differs from manifest.')
+    expected = [slug + '/' + entry['path'] for entry in evidence['files']]
+    if len(set(names)) != len(names) or len(set(expected)) != len(expected):
+        fail('Archive or manifest contains duplicate paths.')
+    if sorted(names) != sorted(expected):
+        fail('Archive paths differ from manifest.')
     for entry in evidence['files']:
-        if hashlib.sha256(package.read(slug + '/' + entry['path'])).hexdigest() != entry['sha256']:
+        name = slug + '/' + entry['path']
+        if name not in names:
+            continue
+        if hashlib.sha256(package.read(name)).hexdigest() != entry['sha256']:
             fail('Checksum mismatch: ' + entry['path'])
+    rules = json.loads((root / 'src-react/scripts/package-manifest.json').read_text())
+    for required in rules['requiredFiles'] + rules['requiredRuntime'] + ['vendor/autoload.php', 'composer.json']:
+        if slug + '/' + required not in names:
+            fail('Required production file missing: ' + required)
     for name in names:
+        parts = PurePosixPath(name).parts
+        if not name.startswith(slug + '/') or '\\' in name or any(part in {'.', '..'} for part in name.split('/')) or any(part.startswith('.') for part in parts):
+            fail('Unsafe archive path: ' + name)
+        if stat.S_ISLNK(package.getinfo(name).external_attr >> 16):
+            fail('Symlink shipped: ' + name)
+        relative = name[len(slug) + 1:]
+        allowed = relative in rules['requiredFiles'] or relative == 'composer.json' or relative.startswith('vendor/')
+        for tree, extensions in rules['trees'].items():
+            allowed = allowed or (relative.startswith(tree + '/') and PurePosixPath(relative).suffix in extensions)
+        if not allowed or any(relative == excluded or relative.startswith(excluded) for excluded in rules['exclude']):
+            fail('File outside production allowlist: ' + name)
         if any(part in name for part in ['/Animations/', '/animations/', 'AnimationsPlaceholder', '/node_modules/', '/tests/', '/src-react/', '/.git/']):
             fail('Excluded path shipped: ' + name)
         if name.endswith('.map'):
@@ -87,6 +110,8 @@ if free:
     versions['readme Stable tag'] = (re.search(r'^Stable tag:\s*(\S+)', readme, re.M) or [None, None])[1]
 if len({v for v in versions.values()}) != 1 or None in versions.values():
     fail('Versions disagree: ' + ', '.join(f'{k}={v}' for k, v in versions.items()))
+if args.tag and (not re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', args.tag) or args.tag != 'v' + str(header_version)):
+    fail(f'Git tag {args.tag} does not match stable plugin version v{header_version}.')
 
 if free:
     # --- readme: tested up to, changelog ----------------------------------------
@@ -110,9 +135,19 @@ if free:
     deploy = (root / '.github/workflows/deploy-wordpress-plugin.yml').read_text() if (root / '.github/workflows/deploy-wordpress-plugin.yml').exists() else ''
     assets_dir = (re.search(r'ASSETS_DIR:\s*(\S+)', deploy) or [None, None])[1]
     if assets_dir:
+        listing = root / assets_dir
         for asset in ['banner-772x250.png', 'banner-1544x500.png', 'icon-128x128.png', 'icon-256x256.png']:
-            if not (root / assets_dir / asset).is_file():
+            if not (listing / asset).is_file():
                 fail(f'Listing asset missing: {assets_dir}/{asset}')
+        if listing.is_dir():
+            allowed_asset = re.compile(r'(banner-(772x250|1544x500)\.(png|jpg)|icon-(128x128|256x256)\.(png|jpg)|icon\.svg|screenshot-[1-9][0-9]*\.(png|jpg|jpeg|gif))')
+            for asset in listing.iterdir():
+                if asset.is_symlink() or not asset.is_file() or not allowed_asset.fullmatch(asset.name) or asset.stat().st_size == 0:
+                    fail(f'Unexpected or empty listing asset: {assets_dir}/{asset.name}')
+            screenshots = re.search(r'^== Screenshots ==\s*\n(.*?)(?=^== |\Z)', readme, re.M | re.S)
+            for number in re.findall(r'^(\d+)\.', screenshots[1] if screenshots else '', re.M):
+                if not any((listing / f'screenshot-{number}.{ext}').is_file() for ext in ('png', 'jpg', 'jpeg', 'gif')):
+                    fail(f'Listing screenshot missing: {assets_dir}/screenshot-{number}')
 
 # --- third-party inventory -------------------------------------------------------
 inventory_file = root / 'docs/THIRD-PARTY.md' if free else root.parent / 'elemacy' / 'docs/THIRD-PARTY.md'

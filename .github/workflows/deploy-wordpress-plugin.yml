@@ -1,112 +1,86 @@
 name: Deploy WordPress Plugin
 
-# Trigger only on new Git tags
 on:
   push:
-    tags:
-      - 'v*'  # e.g., v1.0.0
-  workflow_dispatch: # This adds the "Manual Run" button
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate and stage SVN changes without publishing (select a version tag)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# Serialize releases; never cancel a deployment while it is committing to SVN.
+concurrency:
+  group: wordpress-org-elemacy
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  deploy:
-    name: Deploy to WordPress.org SVN
+  preflight:
+    name: Require a stable version tag
     runs-on: ubuntu-latest
-
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # --- Build PHP autoloader (vendor/ is gitignored) ---
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-          tools: composer
-
-      - name: Install Composer dependencies (production only)
-        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-      # --- Build the React admin app (outputs to assets/admin/) ---
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src-react/package-lock.json
-
-      - name: Build admin app
-        working-directory: src-react
+      - name: Validate release ref
+        id: tag
         run: |
-          npm ci
-          npm run build:zip
-          python3 scripts/verify-package.py ../build/elemacy-*.zip
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" != tag || ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo '::error::Select or push a stable version tag such as v1.0.0.'
+            exit 1
+          fi
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Retain exact distribution evidence
-        uses: actions/upload-artifact@v4
+  verify:
+    name: Test the tagged revision and its production ZIP
+    needs: preflight
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy the tested production ZIP to WordPress.org
+    needs: [preflight, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLUGIN_VERSION: ${{ needs.preflight.outputs.version }}
+      ASSETS_DIR: wp-assets
+    steps:
+      - name: Checkout tagged source for release checks and listing assets
+        uses: actions/checkout@v4
         with:
-          name: elemacy-distribution-${{ github.sha }}
-          path: build/*.zip*
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-      - name: Extract verified distribution
-        run: unzip -q build/elemacy-*.zip -d build/distribution
+      - name: Download the exact ZIP tested by CI
+        uses: actions/download-artifact@v4
+        with:
+          name: elemacy-package-${{ github.sha }}
+          path: build
+
+      - name: Verify and extract the tested distribution
+        run: |
+          set -euo pipefail
+          archive="build/elemacy-${PLUGIN_VERSION}.zip"
+          python3 src-react/scripts/verify-package.py "$archive" --release-revision "$GITHUB_SHA" --tag "$GITHUB_REF_NAME"
+          mkdir -p build/distribution
+          unzip -q "$archive" -d build/distribution
 
       - name: Install SVN
         run: sudo apt-get update && sudo apt-get install -y subversion rsync
 
-      - name: Deploy to WordPress.org SVN
+      - name: Stage and publish one atomic SVN release
         env:
           WPORG_USERNAME: ${{ secrets.WPORG_USERNAME }}
           WPORG_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
-          SVN_URL: https://plugins.svn.wordpress.org/elemacy
-          ASSETS_DIR: wp-assets   # banner/icon/screenshots (SVN /assets), optional
-          DRY_RUN: false               # set to true to test without committing
-        run: |
-          set -e
-
-          echo "Deploying WordPress plugin to SVN..."
-
-          # Temporary directory
-          TMP_DIR=$(mktemp -d)
-          echo "Checking out SVN into $TMP_DIR"
-          svn checkout $SVN_URL $TMP_DIR --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive --trust-server-cert
-
-          # The verified ZIP is the same artifact retained for review; never copy the development tree.
-          rsync -av --delete build/distribution/elemacy/ "$TMP_DIR/trunk/"
-
-          # Update SVN assets folder (banner, icon, screenshots) if present
-          if [ -d "./$ASSETS_DIR" ]; then
-            echo "Updating assets folder from ./$ASSETS_DIR ..."
-            mkdir -p $TMP_DIR/assets
-            rsync -av --delete ./$ASSETS_DIR/ $TMP_DIR/assets/
-          elif [ -d "./wp-assets" ]; then
-            echo "Updating assets folder from ./wp-assets ..."
-            mkdir -p $TMP_DIR/assets
-            rsync -av --delete ./wp-assets/ $TMP_DIR/assets/
-          fi
-
-          # Determine plugin version from readme.txt stable tag
-          PLUGIN_VERSION=$(grep -i "^Stable tag:" readme.txt | awk '{print $3}')
-          echo "Plugin version detected: $PLUGIN_VERSION"
-
-          # Copy trunk to tag
-          if [ ! -z "$PLUGIN_VERSION" ]; then
-            echo "Creating tag $PLUGIN_VERSION..."
-            mkdir -p $TMP_DIR/tags/$PLUGIN_VERSION
-            rsync -av --delete $TMP_DIR/trunk/ $TMP_DIR/tags/$PLUGIN_VERSION/
-          fi
-
-          # Add new files and remove deleted files
-          cd $TMP_DIR
-          svn status | grep '^?' | sed 's/^?[[:space:]]*//' | while IFS= read -r path; do svn add "$path" --force; done || true
-          svn status | grep '^!' | sed 's/^![[:space:]]*//' | while IFS= read -r path; do svn delete "$path"; done || true
-
-          # Dry run mode
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "Dry run mode ON. No commit will be made."
-            svn status
-            exit 0
-          fi
-
-          # Commit changes
-          echo "Committing to WordPress SVN..."
-          svn commit -m "Deploy version $PLUGIN_VERSION" --username $WPORG_USERNAME --password $WPORG_PASSWORD --non-interactive
+          SVN_URL: ${{ secrets.WPORG_SVN_URL }}
+          DISTRIBUTION_DIR: build/distribution/elemacy
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+        run: bash .github/scripts/deploy-wordpress.sh

@@ -108,6 +108,10 @@ From the first release after 1.0.0 on, the readme changelog names every user-vis
 
 `.github/workflows/deploy-wordpress-plugin.yml` builds and verifies the archive on a tag, extracts it, and copies the extracted plugin (never the development tree) to the WordPress.org SVN trunk, with `wp-assets/` published as the listing assets. Pro is distributed through its own updater, not WordPress.org.
 
+Only stable `vX.Y.Z` tags can deploy. The workflow runs the complete reusable CI workflow for that revision, then downloads and re-verifies the exact ZIP that passed its installation, integration and Plugin Check jobs. The Git tag, plugin header, runtime constant, readme stable tag and archive version must agree. The archive is checked against the production file allowlist; listing images, development sources, tests, docs and source maps are excluded.
+
+Set repository secrets `WPORG_USERNAME` and `WPORG_PASSWORD` to the WordPress.org SVN credentials, and `WPORG_SVN_URL` to the repository root URL (for example, `https://plugins.svn.wordpress.org/elemacy`, without `/trunk`, `/tags` or `/assets`). Releases are serialized and committed atomically to `trunk`, a new `tags/X.Y.Z`, and the top-level SVN `assets` directory. Existing releases and version downgrades are rejected. Manual runs must select a version tag and default to a dry run with no SVN commit; uncheck `dry_run` to publish. Tag pushes publish automatically after all checks pass.
+
 ## 6. Operator notes for 1.0.0
 
 - The inline notice shown in place of a loop that visitors cannot see appears only for users who can edit the page. Full-page caches serve guests, so the notice never reaches a cached page.

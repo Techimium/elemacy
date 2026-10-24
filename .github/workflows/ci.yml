@@ -2,8 +2,12 @@ name: CI
 
 on:
   push:
-    branches: ['**']
-  pull_request:
+    branches: ['main']
+  workflow_call:
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   php:
@@ -46,8 +50,14 @@ jobs:
       - name: Architecture check
         run: php tests/architecture/check.php
 
-      - name: Release gate regressions (stale, dirty and manifest-less archives)
+      - name: Release gate regressions
         run: python3 tests/release/verify-package-test.py
+
+      - name: SVN deployment regressions against a temporary local repository
+        if: matrix.php == '8.3'
+        run: |
+          sudo apt-get update && sudo apt-get install -y subversion rsync
+          python3 tests/release/deploy-wordpress-test.py
 
   admin-app:
     name: Admin app — typecheck, lint, build
