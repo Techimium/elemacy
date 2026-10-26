@@ -1,0 +1,52 @@
+{
+  "slug": "elemacy",
+  "requiredFiles": [
+    "elemacy.php",
+    "uninstall.php",
+    "readme.txt"
+  ],
+  "trees": {
+    "src": [
+      ".php",
+      ".js",
+      ".css",
+      ".svg",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".webp",
+      ".woff",
+      ".woff2",
+      ".ttf",
+      ".eot"
+    ],
+    "assets": [
+      ".php",
+      ".js",
+      ".css",
+      ".svg",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".webp",
+      ".woff",
+      ".woff2",
+      ".ttf",
+      ".eot"
+    ],
+    "languages": [
+      ".mo",
+      ".po",
+      ".pot",
+      ".json"
+    ]
+  },
+  "exclude": [],
+  "requiredRuntime": [
+    "src/Core/Elemacy.php",
+    "assets/admin/scripts/admin.js",
+    "assets/admin/styles/admin.css"
+  ]
+}

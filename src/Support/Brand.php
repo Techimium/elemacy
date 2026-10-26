@@ -32,14 +32,13 @@ class Brand
     /** White badge; WordPress recolors the fill for its admin menu states. */
     public static function data_uri(): string
     {
-        return 'data:image/svg+xml;base64,' . base64_encode(self::svg_mark(20, 'white'));
+        return 'data:image/svg+xml;base64,' . base64_encode(self::svg_mark(20, 'white')); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- The admin menu icon must be a data URI of the plugin's own SVG.
     }
 
     /**
      * Inline brand mark for markup rendered as HTML — e.g. Elementor section
-     * labels, which print the label through an unescaped Mustache
-     * (`{{{ data.label }}}`), so SVG is safe there. `currentColor` keeps it aligned
-     * with the surrounding text color in both the light and dark editor themes.
+     * labels, which print the label through an unescaped Mustache (`{{{
+     * data.label }}}`), so SVG is safe there.
      */
     public static function inline_mark(int $size = 13): string
     {

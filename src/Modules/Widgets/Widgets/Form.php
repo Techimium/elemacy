@@ -8,13 +8,31 @@ use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Plugin;
 use Elementor\Repeater;
+use Elemacy\Core\Container;
+use Elemacy\Elementor\Widgets\BaseWidget;
+use Elemacy\Forms\Definition\FieldIdResolver;
+use Elemacy\Forms\FieldTypeRegistry;
+use Elemacy\Forms\FormActionRegistry;
+use Elemacy\Forms\FormsBootstrap;
+use Elemacy\Forms\Rendering\FormRenderer;
+use Elemacy\Modules\Widgets\Forms\ElementorFormDefinitions;
+use Elemacy\Modules\Widgets\Forms\ElementorSettingControls;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * The Elementor UI of the forms engine: field types, actions and their
+ * settings come from the engine's registries, and the markup from its
+ * FormRenderer. Every control ID below is saved with the widget, so none may
+ * be renamed, and a non-text default is stored behavior (see
+ * tests/architecture/persisted-identifiers.php).
+ */
 class Form extends BaseWidget
 {
+    private const COLUMNS = ['20', '25', '33', '40', '50', '60', '66', '75', '80', '100'];
+
     public function get_name()
     {
         return 'elemacy-form';
@@ -37,12 +55,19 @@ class Form extends BaseWidget
 
     public function get_style_depends()
     {
-        return ['elemacy-form'];
+        return [FormsBootstrap::ASSET_HANDLE];
     }
 
     public function get_script_depends()
     {
-        return ['elemacy-form'];
+        return [FormsBootstrap::ASSET_HANDLE];
+    }
+
+    protected function is_dynamic_content(): bool
+    {
+        // Rendered per request so each instance gets its own DOM IDs (a form in a
+        // repeated loop item or template must not share them).
+        return true;
     }
 
     protected function register_controls()
@@ -50,7 +75,7 @@ class Form extends BaseWidget
         $this->register_form_fields_section();
         $this->register_submit_button_section();
         $this->register_actions_after_submit_section();
-        $this->register_email_section();
+        $this->register_action_sections();
 
         $this->register_form_style_section();
         $this->register_field_style_section();
@@ -67,6 +92,13 @@ class Form extends BaseWidget
             ]
         );
 
+        $types = Container::instance()->make(FieldTypeRegistry::class)->all();
+        $type_options = [];
+
+        foreach ($types as $type) {
+            $type_options[$type->key()] = $type->label();
+        }
+
         $repeater = new Repeater();
 
         $repeater->add_control(
@@ -75,15 +107,10 @@ class Form extends BaseWidget
                 'label' => esc_html__('Type', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'default' => 'text',
-                'options' => [
-                    'text' => esc_html__('Text', 'elemacy'),
-                    'email' => esc_html__('Email', 'elemacy'),
-                    'textarea' => esc_html__('Textarea', 'elemacy'),
-                    'tel' => esc_html__('Tel', 'elemacy'),
-                    'select' => esc_html__('Select', 'elemacy'),
-                    'radio' => esc_html__('Radio', 'elemacy'),
-                    'checkbox' => esc_html__('Checkbox', 'elemacy'),
-                ],
+                // Stored even when it equals the default, so a saved field never
+                // changes type if the default ever does.
+                'save_default' => true,
+                'options' => $type_options,
             ]
         );
 
@@ -102,46 +129,19 @@ class Form extends BaseWidget
         $repeater->add_control(
             'custom_id',
             [
-                'label' => esc_html__('Custom ID', 'elemacy'),
+                'label' => esc_html__('ID', 'elemacy'),
                 'type' => Controls_Manager::TEXT,
-                'description' => esc_html__('Identify the field with a unique ID for use in emails.', 'elemacy'),
+                'description' => esc_html__('Letters, digits, "_" or "-". Use it in emails as [field id="your-id"]. Keep it unchanged once the form is live.', 'elemacy'),
             ]
         );
 
-        $repeater->add_control(
-            'placeholder',
-            [
-                'label' => esc_html__('Placeholder', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'default' => esc_html__('Placeholder', 'elemacy'),
+        foreach (ElementorSettingControls::field_settings($types) as $key => $entry) {
+            $repeater->add_control($key, ElementorSettingControls::control($entry['setting'], [
                 'condition' => [
-                    'type' => ['text', 'email', 'textarea', 'tel', 'select'],
+                    'type' => $entry['types'],
                 ],
-            ]
-        );
-
-        $repeater->add_control(
-            'required',
-            [
-                'label' => esc_html__('Required', 'elemacy'),
-                'type' => Controls_Manager::SWITCHER,
-                'return_value' => 'yes',
-                'default' => '',
-            ]
-        );
-
-        $repeater->add_control(
-            'options',
-            [
-                'label' => esc_html__('Options', 'elemacy'),
-                'type' => Controls_Manager::TEXTAREA,
-                'rows' => 10,
-                'description' => esc_html__('Enter each option in a separate line. To differentiate between label and value, separate them with a pipe char ("|"). For example: First Name|f_name', 'elemacy'),
-                'condition' => [
-                    'type' => ['select', 'checkbox', 'radio'],
-                ],
-            ]
-        );
+            ]));
+        }
 
         $repeater->add_control(
             'width',
@@ -149,18 +149,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Column Width', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'default' => '100',
-                'options' => [
-                    '20' => '20%',
-                    '25' => '25%',
-                    '33' => '33%',
-                    '40' => '40%',
-                    '50' => '50%',
-                    '60' => '60%',
-                    '66' => '66%',
-                    '75' => '75%',
-                    '80' => '80%',
-                    '100' => '100%',
-                ],
+                'options' => self::column_options(),
             ]
         );
 
@@ -255,7 +244,7 @@ class Form extends BaseWidget
                     ],
                 ],
                 'default' => 'stretch',
-                'prefix_class' => 'elemacy-button-align%s-',
+                'prefix_class' => 'elemacy-form-button-align%s-',
             ]
         );
 
@@ -265,18 +254,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Column Width', 'elemacy'),
                 'type' => Controls_Manager::SELECT,
                 'default' => '100',
-                'options' => [
-                    '20' => '20%',
-                    '25' => '25%',
-                    '33' => '33%',
-                    '40' => '40%',
-                    '50' => '50%',
-                    '60' => '60%',
-                    '66' => '66%',
-                    '75' => '75%',
-                    '80' => '80%',
-                    '100' => '100%',
-                ],
+                'options' => self::column_options(),
             ]
         );
 
@@ -292,94 +270,57 @@ class Form extends BaseWidget
             ]
         );
 
+        $options = [];
+
+        foreach (Container::instance()->make(FormActionRegistry::class)->all() as $action) {
+            $options[$action->key()] = $action->label();
+        }
+
         $this->add_control(
             'submit_actions',
             [
                 'label' => esc_html__('Add Action', 'elemacy'),
                 'type' => Controls_Manager::SELECT2,
                 'multiple' => true,
-                'options' => [
-                    'email' => esc_html__('Email', 'elemacy'),
-                ],
+                'options' => $options,
                 'default' => [
                     'email',
                 ],
+                // Stored even when it equals the default, so a saved form never
+                // starts or stops an action if the default ever changes.
+                'save_default' => true,
             ]
         );
 
         $this->end_controls_section();
     }
 
-    protected function register_email_section()
+    /** One section per registered action, shown while that action is selected. */
+    protected function register_action_sections()
     {
-        $this->start_controls_section(
-            'section_email',
-            [
-                'label' => esc_html__('Email', 'elemacy'),
-                'condition' => [
-                    'submit_actions' => 'email',
-                ],
-            ]
-        );
+        foreach (Container::instance()->make(FormActionRegistry::class)->all() as $action) {
+            $settings = $action->settings();
 
-        $this->add_control(
-            'email_to',
-            [
-                'label' => esc_html__('To', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'default' => get_option('admin_email'),
-                'placeholder' => get_option('admin_email'),
-                'description' => esc_html__('Separate emails with commas', 'elemacy'),
-            ]
-        );
+            if (!$settings) {
+                continue;
+            }
 
-        $this->add_control(
-            'email_subject',
-            [
-                'label' => esc_html__('Subject', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'default' => esc_html__('New message from ', 'elemacy') . get_bloginfo('name'),
-            ]
-        );
+            $this->start_controls_section(
+                'section_' . $action->key(),
+                [
+                    'label' => $action->label(),
+                    'condition' => [
+                        'submit_actions' => $action->key(),
+                    ],
+                ]
+            );
 
-        $this->add_control(
-            'email_content',
-            [
-                'label' => esc_html__('Message', 'elemacy'),
-                'type' => Controls_Manager::TEXTAREA,
-                'default' => '[all-fields]',
-                'description' => esc_html__('Use shortcode [all-fields] to see all fields, or use specific field ID like [field_id]', 'elemacy'),
-            ]
-        );
+            foreach ($settings as $setting) {
+                $this->add_control($setting->key(), ElementorSettingControls::control($setting));
+            }
 
-        $this->add_control(
-            'email_from_name',
-            [
-                'label' => esc_html__('From Name', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'default' => get_bloginfo('name'),
-            ]
-        );
-
-        $this->add_control(
-            'email_from',
-            [
-                'label' => esc_html__('From Email', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'default' => get_option('admin_email'),
-            ]
-        );
-
-        $this->add_control(
-            'email_reply_to',
-            [
-                'label' => esc_html__('Reply-To', 'elemacy'),
-                'type' => Controls_Manager::TEXT,
-                'placeholder' => esc_html__('Email Field', 'elemacy'),
-            ]
-        );
-
-        $this->end_controls_section();
+            $this->end_controls_section();
+        }
     }
 
     protected function register_form_style_section()
@@ -409,7 +350,7 @@ class Form extends BaseWidget
                 ],
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-form' => 'margin-left: calc(-{{SIZE}}{{UNIT}}/2); margin-right: calc(-{{SIZE}}{{UNIT}}/2);',
-                    '{{WRAPPER}} .elemacy-field-group' => 'padding-left: calc({{SIZE}}{{UNIT}}/2); padding-right: calc({{SIZE}}{{UNIT}}/2);',
+                    '{{WRAPPER}} .elemacy-form-field' => 'padding-left: calc({{SIZE}}{{UNIT}}/2); padding-right: calc({{SIZE}}{{UNIT}}/2);',
                 ],
             ]
         );
@@ -431,7 +372,7 @@ class Form extends BaseWidget
                 ],
                 'selectors' => [
                     '{{WRAPPER}} .elemacy-form' => 'margin-bottom: -{{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .elemacy-field-group' => 'padding-bottom: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-field' => 'padding-bottom: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -457,7 +398,7 @@ class Form extends BaseWidget
                     ],
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-label' => 'margin-bottom: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -468,7 +409,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Text Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-label' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-label' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -477,7 +418,7 @@ class Form extends BaseWidget
             Group_Control_Typography::get_type(),
             [
                 'name' => 'label_typography',
-                'selector' => '{{WRAPPER}} .elemacy-field-label',
+                'selector' => '{{WRAPPER}} .elemacy-form-label',
             ]
         );
 
@@ -500,18 +441,18 @@ class Form extends BaseWidget
                 'label' => esc_html__('Text Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-control' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-control' => 'color: {{VALUE}};',
                 ],
             ]
         );
-        
+
         $this->add_control(
             'field_placeholder_color',
             [
                 'label' => esc_html__('Placeholder Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-control::placeholder' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-control::placeholder' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -520,7 +461,7 @@ class Form extends BaseWidget
             Group_Control_Typography::get_type(),
             [
                 'name' => 'field_typography',
-                'selector' => '{{WRAPPER}} .elemacy-field-control',
+                'selector' => '{{WRAPPER}} .elemacy-form-control',
             ]
         );
 
@@ -530,7 +471,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Background Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-control' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-control' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -539,7 +480,7 @@ class Form extends BaseWidget
             Group_Control_Border::get_type(),
             [
                 'name' => 'field_border',
-                'selector' => '{{WRAPPER}} .elemacy-field-control',
+                'selector' => '{{WRAPPER}} .elemacy-form-control',
             ]
         );
 
@@ -550,7 +491,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-control' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-control' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -562,7 +503,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-field-control' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-control' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -584,7 +525,7 @@ class Form extends BaseWidget
             Group_Control_Typography::get_type(),
             [
                 'name' => 'button_typography',
-                'selector' => '{{WRAPPER}} .elemacy-button',
+                'selector' => '{{WRAPPER}} .elemacy-form-button',
             ]
         );
 
@@ -603,7 +544,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Text Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-button' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -614,7 +555,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Background Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-button' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -623,7 +564,7 @@ class Form extends BaseWidget
             Group_Control_Border::get_type(),
             [
                 'name' => 'button_border',
-                'selector' => '{{WRAPPER}} .elemacy-button',
+                'selector' => '{{WRAPPER}} .elemacy-form-button',
             ]
         );
 
@@ -642,7 +583,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Text Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button:hover' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-button:hover' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -653,7 +594,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Background Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button:hover' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-button:hover' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -664,7 +605,7 @@ class Form extends BaseWidget
                 'label' => esc_html__('Border Color', 'elemacy'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button:hover' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-button:hover' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -680,7 +621,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'separator' => 'before',
             ]
@@ -690,7 +631,7 @@ class Form extends BaseWidget
             Group_Control_Box_Shadow::get_type(),
             [
                 'name' => 'button_box_shadow',
-                'selector' => '{{WRAPPER}} .elemacy-button',
+                'selector' => '{{WRAPPER}} .elemacy-form-button',
             ]
         );
 
@@ -701,7 +642,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'separator' => 'before',
             ]
@@ -736,7 +677,7 @@ class Form extends BaseWidget
                     'size' => 0,
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-container' => 'margin-top: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-messages' => 'margin-top: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -745,39 +686,41 @@ class Form extends BaseWidget
             Group_Control_Typography::get_type(),
             [
                 'name' => 'message_typography',
-                'selector' => '{{WRAPPER}} .elemacy-message',
+                'selector' => '{{WRAPPER}} .elemacy-form-message',
             ]
         );
 
-        $this->add_control('message_border_type',
-        [
-			'label' => esc_html__( 'Border Type', 'elemacy' ),
-			'type' => Controls_Manager::SELECT,
-			'options' => [
-				'' => esc_html__( 'Default', 'elemacy' ),
-				'none' => esc_html__( 'None', 'elemacy' ),
-				'solid' => esc_html__( 'Solid', 'elemacy' ),
-				'double' => esc_html__( 'Double', 'elemacy' ),
-				'dotted' => esc_html__( 'Dotted', 'elemacy' ),
-				'dashed' => esc_html__( 'Dashed', 'elemacy' ),
-				'groove' => esc_html__( 'Groove', 'elemacy' ),
-			],
-			'selectors' => [
-				'{{SELECTOR}} .elemacy-message' => 'border-style: {{VALUE}};',
-			],
-		]);
+        $this->add_control(
+            'message_border_type',
+            [
+                'label' => esc_html__('Border Type', 'elemacy'),
+                'type' => Controls_Manager::SELECT,
+                'options' => [
+                    '' => esc_html__('Default', 'elemacy'),
+                    'none' => esc_html__('None', 'elemacy'),
+                    'solid' => esc_html__('Solid', 'elemacy'),
+                    'double' => esc_html__('Double', 'elemacy'),
+                    'dotted' => esc_html__('Dotted', 'elemacy'),
+                    'dashed' => esc_html__('Dashed', 'elemacy'),
+                    'groove' => esc_html__('Groove', 'elemacy'),
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .elemacy-form-message' => 'border-style: {{VALUE}};',
+                ],
+            ]
+        );
 
         $this->add_responsive_control(
             'message_border_width',
             [
-                'label' => esc_html__( 'Border Width', 'elemacy' ),
+                'label' => esc_html__('Border Width', 'elemacy'),
                 'type' => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', 'rem', 'vw', 'custom' ],
+                'size_units' => ['px', 'em', 'rem', 'vw', 'custom'],
                 'selectors' => [
-                    '{{SELECTOR}} .elemacy-message' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-message' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
                 'responsive' => true,
             ]
@@ -797,7 +740,7 @@ class Form extends BaseWidget
                     'unit' => 'px',
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-message' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -816,7 +759,7 @@ class Form extends BaseWidget
                     'unit' => 'px',
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .elemacy-form-message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -837,7 +780,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#155724',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-success' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-success' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -849,7 +792,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#d4edda',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-success' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-success' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -861,10 +804,10 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#c3e6cb',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-success' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-success' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -885,7 +828,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#721c24',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-danger' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-error' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -897,7 +840,7 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#f8d7da',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-danger' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-error' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -909,10 +852,10 @@ class Form extends BaseWidget
                 'type' => Controls_Manager::COLOR,
                 'default' => '#f5c6cb',
                 'selectors' => [
-                    '{{WRAPPER}} .elemacy-message-danger' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .elemacy-form-message-error' => 'border-color: {{VALUE}};',
                 ],
                 'condition' => [
-                    'message_border_type!' => [ '', 'none' ],
+                    'message_border_type!' => ['', 'none'],
                 ],
             ]
         );
@@ -926,135 +869,56 @@ class Form extends BaseWidget
     protected function render()
     {
         $settings = $this->get_settings_for_display();
-        $this->add_render_attribute('wrapper', 'class', 'elemacy-form-wrapper');
-        $this->add_render_attribute('form', [
-            'class' => 'elemacy-form',
-            'method' => 'post',
-            'data-id' => $this->get_id(),
+
+        // The submit handler looks the form up in the document that stores it.
+        // In a Theme Builder header/footer, popup or loop template that is the
+        // template Elementor has switched to, not the viewed page.
+        $document = Plugin::$instance->documents->get_current();
+        $owner = $document ? (int) $document->get_main_id() : (int) get_the_ID();
+        $form = ElementorFormDefinitions::from_settings($owner, $this->get_id(), $settings);
+
+        if (Plugin::$instance->editor && Plugin::$instance->editor->is_edit_mode()) {
+            $this->render_id_notice(is_array($settings['form_fields'] ?? null) ? $settings['form_fields'] : []);
+        }
+
+        $html = Container::instance()->make(FormRenderer::class)->render($form, [
+            'show_labels' => 'yes' === ($settings['labels_display'] ?? 'yes'),
+            'button_text' => (string) ($settings['button_text'] ?? ''),
+            'button_column' => (string) ($settings['button_width'] ?? '100'),
         ]);
 
-        // The submit handler looks the widget up inside the document that
-        // actually contains it. When the form lives in a Theme Builder
-        // header/footer, popup, or loop template, that is the template document
-        // Elementor has switched to — not the viewed page (get_the_ID()).
-        $document = Plugin::$instance->documents->get_current();
-        $document_id = $document ? $document->get_main_id() : get_the_ID();
-
-        ?>
-        <div <?php echo $this->get_render_attribute_string('wrapper'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-            <form <?php echo $this->get_render_attribute_string('form'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                <input type="hidden" name="action" value="elemacy_widgets_form_submit">
-                <input type="hidden" name="widget_id" value="<?php echo esc_attr($this->get_id()); ?>">
-                <input type="hidden" name="post_id" value="<?php echo esc_attr($document_id); ?>">
-                <?php /* Honeypot field for simple spam protection */ ?>
-                <div style="display:none !important;">
-                    <label>Do not fill this field</label>
-                    <input type="text" name="elemacy_honeypot" autocomplete="off" tabindex="-1">
-                </div>
-                <?php wp_nonce_field('elemacy_widgets_form_submit', '_wpnonce'); ?>
-
-                <?php foreach ($settings['form_fields'] as $index => $field) :
-                    $field_id = 'field_' . $index;
-                    $this->add_render_attribute('field_wrapper_' . $index, [
-                        'class' => [
-                            'elemacy-field-group',
-                            'elemacy-column',
-                            'elemacy-column-' . $field['width'],
-                        ],
-                    ]);
-
-                    $this->add_render_attribute('input_' . $index, [
-                        'name' => 'form_field[' . $index . ']',
-                        'id' => $field_id,
-                        'class' => 'elemacy-field-control',
-                        'placeholder' => $field['placeholder'],
-                    ]);
-
-                    if ($field['required']) {
-                        $this->add_render_attribute('input_' . $index, 'required', 'required');
-                        $this->add_render_attribute('input_' . $index, 'aria-required', 'true');
-                    }
-                    ?>
-                    <div <?php echo $this->get_render_attribute_string('field_wrapper_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                        <?php if ($settings['labels_display'] === 'yes' && !empty($field['label'])) : ?>
-                            <label class="elemacy-field-label" for="<?php echo esc_attr($field_id); ?>">
-                                <?php echo esc_html($field['label']); ?>
-                            </label>
-                        <?php endif; ?>
-
-                        <?php
-                        switch ($field['type']) {
-                            case 'textarea':
-                                ?>
-                                <textarea <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?> rows="5"></textarea>
-                                <?php
-                                break;
-                            case 'select':
-                                $options = explode("\n", $field['options']);
-                                ?>
-                                <select <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                                    <?php foreach ($options as $option) :
-                                        $option_parts = explode('|', $option);
-                                        $label = $option_parts[0];
-                                        $value = isset($option_parts[1]) ? $option_parts[1] : $label;
-                                        ?>
-                                        <option value="<?php echo esc_attr(trim($value)); ?>">
-                                            <?php echo esc_html(trim($label)); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <?php
-                                break;
-                            case 'radio':
-                            case 'checkbox':
-                                $options = explode("\n", $field['options']);
-                                $type = $field['type'];
-                                ?>
-                                <div class="elemacy-field-subgroup">
-                                    <?php foreach ($options as $opt_index => $option) :
-                                        $option_parts = explode('|', $option);
-                                        $label = $option_parts[0];
-                                        $value = isset($option_parts[1]) ? $option_parts[1] : $label;
-                                        $sub_id = $field_id . '_' . $opt_index;
-                                        ?>
-                                        <div class="elemacy-field-option">
-                                            <input 
-                                                type="<?php echo esc_attr($type); ?>" 
-                                                name="form_field[<?php echo esc_attr($index); ?>]<?php echo 'checkbox' === $type ? '[]' : ''; ?>" 
-                                                id="<?php echo esc_attr($sub_id); ?>" 
-                                                value="<?php echo esc_attr(trim($value)); ?>"
-                                                <?php echo esc_attr( $field['required'] ? 'required' : '' ); ?>
-                                            >
-                                            <label for="<?php echo esc_attr($sub_id); ?>"><?php echo esc_html(trim($label)); ?></label>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                                <?php
-                                break;
-                            default:
-                                ?>
-                                <input type="<?php echo esc_attr($field['type']); ?>" <?php echo $this->get_render_attribute_string('input_' . $index); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor's get_render_attribute_string() returns pre-sanitized HTML attributes ?>>
-                                <?php
-                                break;
-                        }
-                        ?>
-                    </div>
-                <?php endforeach; ?>
-
-                <div class="elemacy-field-group elemacy-column elemacy-column-<?php echo esc_attr($settings['button_width']); ?> elemacy-field-type-submit">
-                    <button type="submit" class="elemacy-button">
-                        <span class="elemacy-button-text"><?php echo esc_html($settings['button_text']); ?></span>
-                    </button>
-                </div>
-
-                <div class="elemacy-message-container elemacy-field-group elemacy-column elemacy-column-100"></div>
-            </form>
-        </div>
-        <?php
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- FormRenderer escapes every attribute and text it writes.
     }
 
-    protected function content_template()
+    /** Editor only: which field IDs could not be used as typed. */
+    private function render_id_notice(array $rows): void
     {
-        // For editor live preview if needed
+        $result = FieldIdResolver::resolve($rows);
+        $problems = [];
+
+        foreach ($result['invalid'] as $id) {
+            /* translators: %s: the field ID the author typed. */
+            $problems[] = sprintf(__('"%s" is not a valid field ID: use letters, digits, "_" or "-".', 'elemacy'), $id);
+        }
+
+        foreach ($result['duplicate'] as $id) {
+            /* translators: %s: the field ID the author typed. */
+            $problems[] = sprintf(__('The field ID "%s" is used more than once; only the first field keeps it.', 'elemacy'), $id);
+        }
+
+        if ($problems) {
+            echo '<div class="elemacy-alert elemacy-alert-warning">' . implode('<br>', array_map('esc_html', $problems)) . '</div>';
+        }
+    }
+
+    private static function column_options(): array
+    {
+        $options = [];
+
+        foreach (self::COLUMNS as $column) {
+            $options[$column] = $column . '%';
+        }
+
+        return $options;
     }
 }

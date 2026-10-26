@@ -6,22 +6,16 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
 
-/**
- * Runs the lookups behind a condition's `search` value input.
- *
- * Conditions declare what to search via {@see \Elemacy\Conditions\ConditionInterface::get_search_config()};
- * this service turns that config into a WordPress query and returns a flat list
- * of `[{value, label}]` options for the admin combobox.
- */
+/** Runs the lookups behind a condition's `search` value input. */
 class ConditionSearchService
 {
     protected const LIMIT = 20;
 
     /**
-     * @param array    $config   The condition's search config (entity + scope).
-     * @param string   $query    Free-text query typed in the combobox.
-     * @param int[]    $includes Specific IDs to resolve (used to hydrate saved values).
-     * @return array<int, array{value: string, label: string}>
+     * @param array  $config   The condition's search config (entity + scope).
+     * @param string $query    Free-text query typed in the combobox.
+     * @param int[]  $includes Specific IDs to resolve (used to hydrate saved values).
+     * @return array<int, array{value: string, label: string, unavailable?: bool}>
      */
     public function search(array $config, string $query, array $includes = []): array
     {
@@ -29,14 +23,46 @@ class ConditionSearchService
 
         switch ($entity) {
             case 'post':
-                return $this->search_posts($config, $query, $includes);
+                $found = $this->search_posts($config, $query, $includes);
+                break;
             case 'term':
-                return $this->search_terms($config, $query, $includes);
+                $found = $this->search_terms($config, $query, $includes);
+                break;
             case 'user':
-                return $this->search_users($query, $includes);
+                $found = $this->search_users($query, $includes);
+                break;
             default:
                 return [];
         }
+
+        return $includes === [] ? $found : $this->with_missing($found, $includes);
+    }
+
+    /**
+     * Saved values resolve whatever became of their item: one that no longer
+     * exists is still returned, marked unavailable, so the editor shows it
+     * for repair instead of waiting on a label that never comes.
+     *
+     * @param array<int, array{value: string, label: string}> $found
+     * @param int[]                                           $includes
+     * @return array<int, array{value: string, label: string, unavailable?: bool}>
+     */
+    protected function with_missing(array $found, array $includes): array
+    {
+        $listed = array_flip(array_column($found, 'value'));
+
+        foreach ($includes as $id) {
+            if (!isset($listed[(string) $id])) {
+                $found[] = [
+                    'value'       => (string) $id,
+                    /* translators: %d: ID of a post, term or user that no longer exists. */
+                    'label'       => sprintf(__('#%d (unavailable)', 'elemacy'), $id),
+                    'unavailable' => true,
+                ];
+            }
+        }
+
+        return $found;
     }
 
     /**
@@ -46,7 +72,9 @@ class ConditionSearchService
     {
         $args = [
             'post_type'        => $config['post_type'] ?? 'any',
-            'post_status'      => PostStatus::PUBLISH,
+            // A saved value names its post whatever its status since; a
+            // search offers only published content to choose from.
+            'post_status'      => !empty($includes) ? array_values(array_diff(get_post_stati(), ['auto-draft'])) : PostStatus::PUBLISH,
             'posts_per_page'   => self::LIMIT,
             'orderby'          => 'title',
             'order'            => 'ASC',

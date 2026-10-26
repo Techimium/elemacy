@@ -9,8 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EllipsisIcon } from "lucide-react";
-import type { Template } from "@/features/theme-builder/schemas/template";
+import { statusLabel, type Template } from "@/features/theme-builder/schemas/template";
 import { useTemplateTypes } from "@/features/theme-builder/services/template";
+import { TemplateDisplay } from "./template-display";
 
 interface TemplateCardProps {
   template: Template;
@@ -27,8 +28,12 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithEleme
       <div className="px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className={`h-2 w-2 rounded-full ${template.status === 'publish' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+            <span
+              className={`h-2 w-2 rounded-full ${template.status === 'publish' ? 'bg-green-500' : 'bg-gray-400'}`}
+              aria-hidden="true"
+            ></span>
             <span className="font-semibold text-gray-900">{template.title}</span>
+            <span className="text-xs text-gray-500">({statusLabel(template.status)})</span>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger aria-label={__('Actions', 'elemacy')}><EllipsisIcon size={16} aria-hidden="true" /></DropdownMenuTrigger>
@@ -47,6 +52,9 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onEditWithEleme
         </div>
         <div className="text-xs text-gray-500">
           {templateTypes.find((t) => t.value === template.type)?.label || __('Unknown', 'elemacy')}
+        </div>
+        <div className="mt-2">
+          <TemplateDisplay display={template.display} />
         </div>
       </div>
     </Card>

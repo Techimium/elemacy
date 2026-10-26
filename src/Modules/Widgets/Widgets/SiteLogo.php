@@ -15,6 +15,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Plugin;
 use Elemacy\Modules\Widgets\Services\LogoResolver;
+use Elemacy\Elementor\Widgets\BaseWidget;
 
 class SiteLogo extends BaseWidget
 {
@@ -57,8 +58,6 @@ class SiteLogo extends BaseWidget
         $this->register_image_style_section();
         $this->register_caption_style_section();
     }
-
-    // ─── Content Controls ────────────────────────────────────────────────────
 
     private function register_logo_section(): void
     {
@@ -156,8 +155,6 @@ class SiteLogo extends BaseWidget
         $this->end_controls_section();
     }
 
-    // ─── Style Controls ───────────────────────────────────────────────────────
-
     private function register_image_style_section(): void
     {
         $this->start_controls_section('section_style_image', [
@@ -171,15 +168,15 @@ class SiteLogo extends BaseWidget
             'options'              => [
                 'start'  => [
                     'title' => esc_html__('Start', 'elemacy'),
-                    'icon' => 'eicon-text-align-left'
+                    'icon' => 'eicon-text-align-left',
                 ],
                 'center' => [
                     'title' => esc_html__('Center', 'elemacy'),
-                    'icon' => 'eicon-text-align-center'
+                    'icon' => 'eicon-text-align-center',
                 ],
                 'end'    => [
                     'title' => esc_html__('End', 'elemacy'),
-                    'icon' => 'eicon-text-align-right'
+                    'icon' => 'eicon-text-align-right',
                 ],
             ],
             'classes'              => 'elementor-control-start-end',
@@ -202,15 +199,15 @@ class SiteLogo extends BaseWidget
             'range'          => [
                 '%'  => [
                     'min' => 1,
-                    'max' => 100
+                    'max' => 100,
                 ],
                 'px' => [
                     'min' => 1,
-                    'max' => 1000
+                    'max' => 1000,
                 ],
                 'vw' => [
                     'min' => 1,
-                    'max' => 100
+                    'max' => 100,
                 ],
             ],
             'selectors'      => [
@@ -228,15 +225,15 @@ class SiteLogo extends BaseWidget
             'range'          => [
                 '%'  => [
                     'min' => 1,
-                    'max' => 100
+                    'max' => 100,
                 ],
                 'px' => [
                     'min' => 1,
-                    'max' => 1000
+                    'max' => 1000,
                 ],
                 'vw' => [
                     'min' => 1,
-                    'max' => 100
+                    'max' => 100,
                 ],
             ],
             'selectors'      => [
@@ -251,11 +248,11 @@ class SiteLogo extends BaseWidget
             'range'      => [
                 'px' => [
                     'min' => 1,
-                    'max' => 500
+                    'max' => 500,
                 ],
                 'vh' => [
                     'min' => 1,
-                    'max' => 100
+                    'max' => 100,
                 ],
             ],
             'selectors'  => [
@@ -320,7 +317,7 @@ class SiteLogo extends BaseWidget
                 'px' => [
                     'max' => 1,
                     'min' => 0.10,
-                    'step' => 0.01
+                    'step' => 0.01,
                 ],
             ],
             'selectors' => ['{{WRAPPER}} img' => 'opacity: {{SIZE}};'],
@@ -342,7 +339,7 @@ class SiteLogo extends BaseWidget
                 'px' => [
                     'max' => 1,
                     'min' => 0.10,
-                    'step' => 0.01
+                    'step' => 0.01,
                 ],
             ],
             'selectors' => ['{{WRAPPER}}:hover img' => 'opacity: {{SIZE}};'],
@@ -360,7 +357,7 @@ class SiteLogo extends BaseWidget
                 'px' => [
                     'min' => 0,
                     'max' => 3,
-                    'step' => 0.1
+                    'step' => 0.1,
                 ],
             ],
             'selectors' => ['{{WRAPPER}} img' => 'transition-duration: {{SIZE}}s'],
@@ -412,19 +409,19 @@ class SiteLogo extends BaseWidget
             'options'              => [
                 'start'   => [
                     'title' => esc_html__('Start', 'elemacy'),
-                    'icon' => 'eicon-text-align-left'
+                    'icon' => 'eicon-text-align-left',
                 ],
                 'center'  => [
                     'title' => esc_html__('Center', 'elemacy'),
-                    'icon' => 'eicon-text-align-center'
+                    'icon' => 'eicon-text-align-center',
                 ],
                 'end'     => [
                     'title' => esc_html__('End', 'elemacy'),
-                    'icon' => 'eicon-text-align-right'
+                    'icon' => 'eicon-text-align-right',
                 ],
                 'justify' => [
                     'title' => esc_html__('Justified', 'elemacy'),
-                    'icon' => 'eicon-text-align-justify'
+                    'icon' => 'eicon-text-align-justify',
                 ],
             ],
             'classes'              => 'elementor-control-start-end',
@@ -474,11 +471,11 @@ class SiteLogo extends BaseWidget
                 'px'  => ['max' => 100],
                 'em'  => [
                     'min' => 0,
-                    'max' => 10
+                    'max' => 10,
                 ],
                 'rem' => [
                     'min' => 0,
-                    'max' => 10
+                    'max' => 10,
                 ],
             ],
             'selectors'  => [
@@ -488,8 +485,6 @@ class SiteLogo extends BaseWidget
 
         $this->end_controls_section();
     }
-
-    // ─── Rendering ───────────────────────────────────────────────────────────
 
     protected function render(): void
     {
@@ -585,8 +580,6 @@ class SiteLogo extends BaseWidget
         <?php
     }
 
-    // ─── Private Helpers ─────────────────────────────────────────────────────
-
     /**
      * @return string|array
      */
@@ -605,6 +598,7 @@ class SiteLogo extends BaseWidget
     }
 
     /**
+     * @param int          $attachment_id
      * @param string|array $size
      */
     private function get_attachment_image_html(int $attachment_id, $size, array $settings): string

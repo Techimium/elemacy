@@ -4,29 +4,40 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-
-class GeneratePressCompatibility implements ThemeCompatibilityInterface
+use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
+/**
+ * GeneratePress prints its header on `generate_header` and its footer (with
+ * the footer widgets) on `generate_footer`. Its top bar and its navigation,
+ * when positioned above or below the header rather than inside it, hang on
+ * `generate_before_header`/`generate_after_header`, which also carry page
+ * content (the page hero), so those are named one by one.
+ */
+class GeneratePressCompatibility extends HookedThemeCompatibility
 {
-    public function register(ThemeBuilderManager $manager): void
+    protected function chrome_locations(): array
     {
-        if ($manager->get_header_id()) {
-            add_action('template_redirect', function () {
-                remove_action('generate_header', 'generate_construct_header');
-            }, 10);
+        return [
+            'header' => ['hook' => 'generate_header'],
+            'footer' => ['hook' => 'generate_footer'],
+        ];
+    }
 
-            add_action('generate_header', [$manager, 'render_header'], 10);
-        }
+    protected function chrome_hooks(): array
+    {
+        return [
+            'header' => ['generate_header' => PHP_INT_MAX],
+            'footer' => ['generate_footer' => PHP_INT_MAX],
+        ];
+    }
 
-        if ($manager->get_footer_id()) {
-            add_action('template_redirect', function () {
-                remove_action('generate_footer', 'generate_construct_footer_widgets', 5);
-                remove_action('generate_footer', 'generate_construct_footer');
-            }, 10);
-
-            add_action('generate_footer', [$manager, 'render_footer'], 10);
-        }
+    protected function chrome_callbacks(): array
+    {
+        return [
+            'header' => [
+                ['generate_before_header', 'generate_top_bar', 5],
+                ['generate_before_header', 'generate_add_navigation_before_header', 5],
+                ['generate_after_header', 'generate_add_navigation_after_header', 5],
+            ],
+        ];
     }
 }
-

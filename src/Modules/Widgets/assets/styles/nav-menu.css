@@ -1,710 +1,806 @@
-/**
- * Elemacy Nav Menu - Frontend Styles
- */
-
-/* ── CSS Custom Properties ────────────────────────────────────────────────── */
-
-.elemacy-nav {
-    --elemacy-pointer-color: currentColor;
-    --elemacy-pointer-height: 2px;
-    --elemacy-pointer-duration: 300ms;
-    --elemacy-overlay-panel-width: 320px;
-    --elemacy-overlay-bg: rgba(0, 0, 0, 0.7);
-    --elemacy-overlay-items-align: center;
-    --elemacy-overlay-menu-valign: center;
-    --elemacy-close-top: 10px;
-    --elemacy-close-right: 10px;
-    width: 100%;
-}
-
-/* Slide panels default to white background, no blur, left-aligned items */
-.elemacy-nav--overlay-slide-right,
-.elemacy-nav--overlay-slide-left {
-    --elemacy-overlay-bg: #ffffff;
-    --elemacy-overlay-items-align: flex-start;
-}
-
-/* ── Base structure ───────────────────────────────────────────────────────── */
-
-.elemacy-nav__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.elemacy-nav__menu {
-    width: 100%;
-}
-
-.elemacy-nav__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1.25rem;
-}
-
-.elemacy-nav__item {
-    position: relative;
-}
-
-.elemacy-nav__link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    line-height: 1.4;
-    transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.elemacy-nav__link:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-}
-
-.elemacy-nav__link.elemacy-is-active {
-    font-weight: 600;
-}
-
-/* ── Dropdown chevron ─────────────────────────────────────────────────────── */
-
-.elemacy-nav__item--has-children > .elemacy-nav__link::after {
-    content: '';
-    display: inline-block;
-    width: 0.35em;
-    height: 0.35em;
-    border-right: 0.12em solid currentColor;
-    border-bottom: 0.12em solid currentColor;
-    transform: rotate(45deg);
-    margin-left: 0.45em;
-    vertical-align: middle;
-    transition: transform 0.2s ease;
-    flex-shrink: 0;
-}
-
-.elemacy-nav__item--has-children:hover > .elemacy-nav__link::after {
-    transform: rotate(-135deg);
-}
-
-/* Nested submenu: chevron points right → */
-.elemacy-nav__submenu .elemacy-nav__item--has-children > .elemacy-nav__link::after {
-    transform: rotate(-45deg);
-}
-
-.elemacy-nav__submenu .elemacy-nav__item--has-children:hover > .elemacy-nav__link::after {
-    transform: rotate(-45deg);
-}
-
-/* ── Submenus (desktop dropdown) ─────────────────────────────────────────── */
 /*
- * display:none is the only hidden state that fully removes the element from
- * layout and scroll-height calculation.
- * @keyframes handles entrance because CSS transitions don't work across
- * display:none → display:flex changes.
+ * Elemacy Nav Menu (elemacy_nav_menu).
+ *
+ * Reproduces the Elementor Pro Nav Menu's built-in look value for value, under
+ * Elemacy's own classes so neither widget's styles reach the other. Rule order
+ * and specificity follow the reference so control selectors win the same way.
+ * Breakpoint rules depend on the site's Elementor breakpoints and are added
+ * inline by BreakpointStyles.
  */
-.elemacy-nav__submenu {
-    display: none;
-    flex-direction: column;
-    list-style: none;
-    margin: 0;
-    padding: 0.5rem 0;
+
+/* Pointers: shared pseudo-element base and state. */
+.elemacy-nav-menu__item:after,
+.elemacy-nav-menu__item:before {
+    display: block;
     position: absolute;
+    transition: .3s;
+    transition-timing-function: cubic-bezier(.58,.3,.005,1);
+}
+
+.elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    opacity: 0;
+}
+
+.elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__item:hover:before {
+    transform: scale(1);
+}
+
+/* Line pointers: Underline, Overline, Double Line. */
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:before {
+    background-color: #3f444b;
+    height: 3px;
     left: 0;
-    top: 100%;
-    width: max-content;
-    z-index: 1000;
-    background-color: inherit;
+    width: 100%;
+    z-index: 2;
 }
 
-.elemacy-nav__item:hover > .elemacy-nav__submenu,
-.elemacy-nav__item.elemacy-submenu-open > .elemacy-nav__submenu {
-    display: flex;
-    animation: elemacy-submenu-in 0.22s ease forwards;
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    height: 0;
+    left: 50%;
+    width: 0;
 }
 
-@keyframes elemacy-submenu-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0);   }
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: 10px;
 }
 
-/* Drop-up */
-.elemacy-nav__submenu.elemacy-is-drop-up {
-    top: auto;
-    bottom: 100%;
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    bottom: 10px;
 }
 
-.elemacy-nav__item:hover > .elemacy-nav__submenu.elemacy-is-drop-up,
-.elemacy-nav__item.elemacy-submenu-open > .elemacy-nav__submenu.elemacy-is-drop-up {
-    animation-name: elemacy-submenu-in-up;
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: -10px;
 }
 
-@keyframes elemacy-submenu-in-up {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0);    }
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    bottom: -10px;
 }
 
-/* Nested: fly out right */
-.elemacy-nav__submenu .elemacy-nav__submenu {
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:hover,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:hover,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:before {
+    content: "";
     top: 0;
-    left: 100%;
-    bottom: auto;
 }
 
-.elemacy-nav__submenu.elemacy-is-drop-up .elemacy-nav__submenu {
-    top: auto;
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: -20px;
+    width: 10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:after {
     bottom: 0;
+    content: "";
 }
 
-/* Overflow: flip left */
-.elemacy-nav__submenu.elemacy-is-drop-left {
-    left: auto;
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    inset-inline-start: 100%;
+    width: 10px;
+}
+
+/* Framed pointer. */
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:before {
+    background: transparent;
+    border: 3px solid #3f444b;
+    bottom: 0;
+    left: 0;
     right: 0;
+    top: 0;
 }
 
-.elemacy-nav__submenu .elemacy-nav__submenu.elemacy-is-drop-left {
-    left: auto;
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:before {
+    content: "";
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(.75);
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(1.25);
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:before {
+    transition: opacity .2s,transform .4s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:before {
+    height: 3px;
+    width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:before {
+    border-block-end-width: 3px;
+    border-block-start-width: 0;
+    border-inline-end-width: 0;
+    border-inline-start-width: 3px;
+    transition: width .1s .2s,height .1s .3s,opacity .12s .22s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:after {
+    border-block-end-width: 0;
+    border-block-start-width: 3px;
+    border-inline-end-width: 3px;
+    border-inline-start-width: 0;
+    content: "";
+    inset-block-end: 0;
+    inset-block-start: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    transition: width .1s,height .1s .1s,opacity .02s .18s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:before {
+    height: 100%;
+    width: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:before {
+    transition: opacity .02s,height .1s,width .1s .1s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:after {
+    transition: opacity .02s .2s,height .1s .2s,width .1s .3s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:before {
+    height: 3px;
+    width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:before {
+    border-block-end-width: 0;
+    border-block-start-width: 3px;
+    border-inline-end-width: 0;
+    border-inline-start-width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:after {
+    border-block-end-width: 3px;
+    border-block-start-width: 0;
+    border-inline-end-width: 3px;
+    border-inline-start-width: 0;
+    content: "";
+    inset-block-end: 0;
+    inset-block-start: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:hover:before {
+    height: 100%;
+    transition: opacity 2ms,width .4s,height .4s;
+    width: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+/* Background pointer. */
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:before {
+    content: "";
+    transition: .3s;
+}
+
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:before {
+    background: #3f444b;
+    inset: 0;
+    z-index: -1;
+}
+
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__link--active,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:hover {
+    color: #fff;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:before {
+    transform: scale(.5);
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:hover:before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(1.2);
+    transition: .3s;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:hover:before {
+    transition: opacity .15s,transform .4s;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-left .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-right .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
     right: 100%;
 }
 
-.elemacy-nav__submenu .elemacy-nav__link {
-    width: 100%;
-    justify-content: flex-start;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-up .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: 100%;
 }
 
-/* ── Layout modifiers ─────────────────────────────────────────────────────── */
-
-.elemacy-nav--layout-vertical .elemacy-nav__list,
-.elemacy-nav--layout-stacked .elemacy-nav__list {
-    flex-direction: column;
-    align-items: stretch;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-down .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    bottom: 100%;
 }
 
-.elemacy-nav--layout-stacked .elemacy-nav__menu {
-    width: 100%;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-out-vertical .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    bottom: 50%;
+    top: 50%;
 }
 
-.elemacy-nav--layout-stacked .elemacy-nav__link {
-    width: 100%;
-    justify-content: flex-start;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-out-horizontal .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: 50%;
+    right: 50%;
 }
 
-/* ── Pointer indicators (desktop only — suppressed inside overlay) ────────── */
-/*
- * All pointer rules scope to :not(.is-open) so they have zero effect
- * inside the mobile overlay. They also target only top-level items via
- * .elemacy-nav__list > .elemacy-nav__item to avoid polluting dropdowns.
- * ::before is used (::after is reserved for the dropdown chevron).
- */
-
-/* Shared ::before setup for underline + overline */
-.elemacy-nav--pointer-underline:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link,
-.elemacy-nav--pointer-overline:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link {
-    position: relative;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:after {
+    background: #3f444b;
+    inset: 0;
+    z-index: -1;
 }
 
-.elemacy-nav--pointer-underline:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    height: var(--elemacy-pointer-height);
-    background-color: var(--elemacy-pointer-color);
-}
-
-.elemacy-nav--pointer-underline:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
-    bottom: 0;
-}
-
-.elemacy-nav--pointer-overline:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:before {
+    bottom: 100%;
     top: 0;
 }
 
-/* Slide animation (default) */
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-slide:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-slide:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
-    width: 0;
-    transition: width var(--elemacy-pointer-duration) ease;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:after {
+    bottom: 0;
+    top: 100%;
 }
 
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-slide:not(.is-open) .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-slide:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-slide:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-slide:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before {
-    width: 100%;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:hover:before {
+    bottom: 50%;
 }
 
-/* Grow animation (expands from center) */
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-grow:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-grow:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:hover:after {
+    top: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:before {
+    left: 100%;
+    right: 0;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:after {
+    left: 0;
+    right: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:hover:before {
     left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    transition: width var(--elemacy-pointer-duration) ease;
 }
 
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-grow:not(.is-open) .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-grow:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-grow:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-grow:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before {
-    width: 100%;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:hover:after {
+    right: 50%;
 }
 
-/* Fade animation */
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-fade:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-fade:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link::before {
-    width: 100%;
-    opacity: 0;
-    transition: opacity var(--elemacy-pointer-duration) ease;
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
 }
 
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-fade:not(.is-open) .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-underline.elemacy-nav--pointer-anim-fade:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-fade:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link::before,
-.elemacy-nav--pointer-overline.elemacy-nav--pointer-anim-fade:not(.is-open)  .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active::before {
-    opacity: 1;
+/* Text pointer. */
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-skew .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-skew .elemacy-nav-menu__item:hover {
+    transform: skew(-8deg);
 }
 
-/* Double line (top + bottom via box-shadow) */
-.elemacy-nav--pointer-double:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link {
-    transition: box-shadow var(--elemacy-pointer-duration) ease, color 0.2s ease, background-color 0.2s ease;
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:hover {
+    transform: scale(1.2);
 }
 
-.elemacy-nav--pointer-double:not(.is-open) .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link,
-.elemacy-nav--pointer-double:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active {
-    box-shadow:
-        0 calc(-1 * var(--elemacy-pointer-height)) 0 0 var(--elemacy-pointer-color),
-        0 var(--elemacy-pointer-height)             0 0 var(--elemacy-pointer-color);
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:hover {
+    transform: scale(.8);
 }
 
-/* Framed (inset border on hover) */
-.elemacy-nav--pointer-framed:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link {
-    transition: box-shadow var(--elemacy-pointer-duration) ease, color 0.2s ease, background-color 0.2s ease;
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-float .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-float .elemacy-nav-menu__item:hover {
+    transform: translateY(-8px);
 }
 
-.elemacy-nav--pointer-framed:not(.is-open) .elemacy-nav__list > .elemacy-nav__item:hover > .elemacy-nav__link,
-.elemacy-nav--pointer-framed:not(.is-open) .elemacy-nav__list > .elemacy-nav__item > .elemacy-nav__link.elemacy-is-active {
-    box-shadow: inset 0 0 0 var(--elemacy-pointer-height) var(--elemacy-pointer-color);
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-sink .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-sink .elemacy-nav-menu__item:hover {
+    transform: translateY(8px);
 }
 
-/* ── Toggle (hamburger) ───────────────────────────────────────────────────── */
-
-.elemacy-nav__toggle {
-    display: none;
-    align-items: center;
-    gap: 0.5rem;
-    background: transparent;
-    border: none;
-    padding: 0.25rem 0.5rem;
-    cursor: pointer;
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-rotate .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-rotate .elemacy-nav-menu__item:hover {
+    transform: rotate(6deg);
 }
 
-.elemacy-nav__toggle:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
 }
 
-.elemacy-nav__toggle-icon {
-    display: inline-flex;
-    flex-direction: column;
+/* Desktop menu. */
+.elemacy-nav-menu__main .elemacy-nav-menu__list a {
+    transition: .4s;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__list a,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a:focus,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a:hover {
+    padding: 13px 20px;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__list ul {
+    border-style: solid;
+    border-width: 0;
+    padding: 0;
+    position: absolute;
+    width: auto;
+    min-width: 10em;
+    max-width: 1000px;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator .e-font-icon-svg,
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator i {
+    transform: rotate(calc(-90deg * var(--direction-multiplier, 1)));
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator .e-font-icon-svg {
+    fill: currentColor;
+    height: 1em;
+    width: 1em;
+}
+
+/* Horizontal layout and dividers. */
+.elemacy-nav-menu__main--horizontal {
+    display: flex;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list a {
+    flex-grow: 1;
+    white-space: nowrap;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li {
+    display: flex;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li ul {
+    top: 100%!important;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:first-child)>a {
+    margin-inline-start: var(--elemacy-nav-menu-item-margin);
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:first-child)>ul {
+    inset-inline-start: var(--elemacy-nav-menu-item-margin)!important;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:last-child)>a {
+    margin-inline-end: var(--elemacy-nav-menu-item-margin);
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:last-child):after {
+    align-self: center;
+    border-color: var(--elemacy-nav-menu-divider-color,#000);
+    border-left-style: var(--elemacy-nav-menu-divider-style,solid);
+    border-left-width: var(--elemacy-nav-menu-divider-width,2px);
+    content: var(--elemacy-nav-menu-divider-content,none);
+    height: var(--elemacy-nav-menu-divider-height,35%);
+}
+
+/* Alignment (wrapper classes from the Alignment control). */
+.elemacy-nav-menu--align-start .elemacy-nav-menu__list {
+    justify-content: flex-start;
+    margin-inline-end: auto;
+}
+
+.elemacy-nav-menu--align-start .elemacy-nav-menu__main--vertical>ul>li>a {
+    justify-content: flex-start;
+}
+
+.elemacy-nav-menu--align-end .elemacy-nav-menu__list {
+    justify-content: flex-end;
+    margin-inline-start: auto;
+}
+
+.elemacy-nav-menu--align-end .elemacy-nav-menu__main--vertical>ul>li>a {
+    justify-content: flex-end;
+}
+
+.elemacy-nav-menu--align-center .elemacy-nav-menu__list {
+    justify-content: center;
+    margin-inline-end: auto;
+    margin-inline-start: auto;
+}
+
+.elemacy-nav-menu--align-center .elemacy-nav-menu__main--vertical>ul>li>a {
     justify-content: center;
 }
 
-.elemacy-nav__toggle-label {
-    font-size: 0.875rem;
-}
-
-.elemacy-nav__toggle-close {
-    display: none;
-}
-
-/* ── Backdrop (for slide panel overlays) ─────────────────────────────────── */
-
-.elemacy-nav__backdrop {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list {
     width: 100%;
-    height: 100%;
-    z-index: 8;
-    cursor: pointer;
 }
 
-/* ── Tablet breakpoint (≤ 1024px) ────────────────────────────────────────── */
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li {
+    flex-grow: 1;
+}
 
-@media (max-width: 1024px) {
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li>a {
+    justify-content: center;
+}
 
-    /* Show toggle button */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__toggle {
-        display: inline-flex;
+/* Widget wrapper. */
+.elementor-widget-elemacy_nav_menu:not(.elemacy-nav-menu--toggle) .elemacy-nav-menu__toggle {
+    display: none;
+}
+
+.elementor-widget-elemacy_nav_menu .elementor-widget-container,
+.elementor-widget-elemacy_nav_menu:not(:has(.elementor-widget-container)):not([class*=elementor-hidden-]) {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Menu trees: base list, links, nested indents and submenu indicator. */
+.elemacy-nav-menu__list {
+    position: relative;
+    z-index: 2;
+}
+
+.elemacy-nav-menu__list:after {
+    clear: both;
+    content: " ";
+    display: block;
+    font: 0/0 serif;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.elemacy-nav-menu__list,
+.elemacy-nav-menu__list li,
+.elemacy-nav-menu__list ul {
+    display: block;
+    line-height: normal;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.elemacy-nav-menu__list ul {
+    display: none;
+}
+
+.elemacy-nav-menu__list ul ul a,
+.elemacy-nav-menu__list ul ul a:active,
+.elemacy-nav-menu__list ul ul a:focus,
+.elemacy-nav-menu__list ul ul a:hover {
+    border-left: 16px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul a,
+.elemacy-nav-menu__list ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul a:hover {
+    border-left: 24px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul ul a,
+.elemacy-nav-menu__list ul ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul ul a:hover {
+    border-left: 32px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul ul ul a,
+.elemacy-nav-menu__list ul ul ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul ul ul a:hover {
+    border-left: 40px solid transparent;
+}
+
+.elemacy-nav-menu__list a,
+.elemacy-nav-menu__list li {
+    position: relative;
+}
+
+.elemacy-nav-menu__list li {
+    border-width: 0;
+}
+
+.elemacy-nav-menu__list a {
+    align-items: center;
+    display: flex;
+}
+
+.elemacy-nav-menu__list a,
+.elemacy-nav-menu__list a:focus,
+.elemacy-nav-menu__list a:hover {
+    line-height: 20px;
+    padding: 10px 20px;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator {
+    align-items: center;
+    display: flex;
+    line-height: 1;
+    margin-block-end: -10px;
+    margin-block-start: -10px;
+    padding: 10px;
+    padding-inline-end: 0;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator i {
+    pointer-events: none;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .fa.fa-chevron-down,
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .fas.fa-chevron-down {
+    font-size: .7em;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .e-font-icon-svg {
+    height: 1em;
+    width: 1em;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .e-font-icon-svg.elemacy-nav-menu__indicator-chevron {
+    height: .7em;
+    width: .7em;
+}
+
+/* Dropdown (desktop submenus and the mobile dropdown) item states. */
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item.elemacy-nav-menu__link--active,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__sub-item.elemacy-nav-menu__link--active,
+.elemacy-nav-menu__sub-item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__sub-item:focus,
+.elemacy-nav-menu__sub-item:hover {
+    background-color: #3f444b;
+    color: #fff;
+}
+
+/* Toggle button. */
+.elemacy-nav-menu__toggle {
+    align-items: center;
+    background-color: rgba(0,0,0,.05);
+    border: 0 solid;
+    border-radius: 3px;
+    color: #33373d;
+    cursor: pointer;
+    display: flex;
+    font-size: var(--elemacy-nav-menu-toggle-size,22px);
+    justify-content: center;
+    padding: .25em;
+}
+
+.elemacy-nav-menu__toggle.elemacy-nav-menu__toggle--active .elemacy-nav-menu__toggle-icon--open,
+.elemacy-nav-menu__toggle:not(.elemacy-nav-menu__toggle--active) .elemacy-nav-menu__toggle-icon--close {
+    display: none;
+}
+
+.elemacy-nav-menu__toggle .e-font-icon-svg {
+    fill: #33373d;
+    height: 1em;
+    width: 1em;
+}
+
+.elemacy-nav-menu__toggle svg {
+    fill: var(--elemacy-nav-menu-toggle-color,currentColor);
+    height: auto;
+    width: 1em;
+}
+
+span.elemacy-nav-menu__toggle-icon--close,
+span.elemacy-nav-menu__toggle-icon--open {
+    line-height: 1;
+}
+
+/* Dropdown box, the mobile dropdown container and its open/closed states. */
+.elemacy-nav-menu__dropdown {
+    background-color: #fff;
+    font-size: 13px;
+}
+
+.elemacy-nav-menu--breakpoint-none .elemacy-nav-menu__toggle,
+.elemacy-nav-menu--breakpoint-none .elemacy-nav-menu__dropdown {
+    display: none;
+}
+
+.elemacy-nav-menu__dropdown.elemacy-nav-menu__container {
+    margin-top: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform-origin: top;
+    transition: max-height .3s,transform .3s;
+}
+
+.elemacy-nav-menu__dropdown.elemacy-nav-menu__container .elemacy-nav-menu__sub-item {
+    font-size: .85em;
+}
+
+.elemacy-nav-menu__dropdown a {
+    color: #33373d;
+}
+
+ul.elemacy-nav-menu__dropdown a,
+ul.elemacy-nav-menu__dropdown a:focus,
+ul.elemacy-nav-menu__dropdown a:hover {
+    border-inline-start: 8px solid transparent;
+    text-shadow: none;
+}
+
+.elemacy-nav-menu--text-align-center .elemacy-nav-menu__dropdown .elemacy-nav-menu__list a {
+    justify-content: center;
+}
+
+.elemacy-nav-menu--toggle {
+    --elemacy-nav-menu-height: 100vh;
+}
+
+.elemacy-nav-menu--toggle .elemacy-nav-menu__toggle:not(.elemacy-nav-menu__toggle--active)+.elemacy-nav-menu__container {
+    max-height: 0;
+    overflow: hidden;
+    transform: scaleY(0);
+}
+
+.elemacy-nav-menu--toggle .elemacy-nav-menu__toggle.elemacy-nav-menu__toggle--active+.elemacy-nav-menu__container {
+    animation: elemacy-nav-menu-hide-scroll .3s backwards;
+    max-height: var(--elemacy-nav-menu-height);
+    transform: scaleY(1);
+}
+
+.elemacy-nav-menu--stretch .elemacy-nav-menu__container.elemacy-nav-menu__dropdown {
+    position: absolute;
+    z-index: 9997;
+}
+
+@keyframes elemacy-nav-menu-hide-scroll {
+    0%, to {
+        overflow: hidden;
     }
-
-    /* Shared overlay base: hide until .is-open, allow vertical scroll */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 9;
-        opacity: 0;
-        visibility: hidden;
-        display: flex;
-        overflow-y: auto;
-    }
-
-    /* ── Fullscreen overlay ── */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-fullscreen .elemacy-nav__menu {
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: var(--elemacy-overlay-menu-valign, center);
-        background-color: var(--elemacy-overlay-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-fullscreen.is-open .elemacy-nav__menu {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-fullscreen .elemacy-nav__menu {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* ── Slide from Right ── */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right .elemacy-nav__menu {
-        left: auto;
-        right: 0;
-        width: var(--elemacy-overlay-panel-width, 320px);
-        height: 100%;
-        justify-content: flex-start;
-        align-items: flex-start;
-        background-color: var(--elemacy-overlay-bg);
-        transform: translateX(101%); /* 101% avoids sub-pixel gap */
-        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right.is-open .elemacy-nav__menu {
-        transform: translateX(0);
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right .elemacy-nav__menu {
-        transform: translateX(101%);
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* Backdrop for slide-right */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right.is-open .elemacy-nav__backdrop {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right .elemacy-nav__backdrop {
-        display: none;
-    }
-
-    /* ── Slide from Left ── */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left .elemacy-nav__menu {
-        left: 0;
-        right: auto;
-        width: var(--elemacy-overlay-panel-width, 320px);
-        height: 100%;
-        justify-content: flex-start;
-        align-items: flex-start;
-        background-color: var(--elemacy-overlay-bg);
-        transform: translateX(-101%);
-        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left.is-open .elemacy-nav__menu {
-        transform: translateX(0);
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left .elemacy-nav__menu {
-        transform: translateX(-101%);
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* Backdrop for slide-left */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left.is-open .elemacy-nav__backdrop {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left .elemacy-nav__backdrop {
-        display: none;
-    }
-
-    /* ── Close button (shown when overlay is open) ── */
-    /*
-     * The button lives inside the <nav> which is position:fixed, so
-     * position:absolute here is contained by the panel itself — works
-     * correctly for both fullscreen and slide panel overlay types.
-     */
-    .elemacy-nav.is-open.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__toggle-close {
-        display: inline-flex;
-        position: absolute;
-        top: var(--elemacy-close-top);
-        right: var(--elemacy-close-right);
-        z-index: 10;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__toggle-close {
-        display: none;
-    }
-
-    /* ── Item layout inside overlay (all types) ── */
-    /*
-     * Every flex-column container in the overlay reads --elemacy-overlay-items-align
-     * so the user's control (which sets that variable) propagates uniformly to the
-     * top-level list, every submenu, and the has-children wrapper.
-     * width: 100% is mandatory — without it the list shrinks to content width and
-     * align-items centers relative to that tiny box, not the full panel/viewport.
-     */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__list {
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-        flex-wrap: nowrap;
-        width: 100%;
-        gap: 10px;
-        padding: 15px;
-    }
-
-    /* Submenu: stacked inline, full width, follows the same alignment variable */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__submenu {
-        display: flex;
-        animation: none;
-        position: relative;
-        top: 0;
-        left: 0;
-        bottom: auto;
-        min-width: 0;
-        width: 100%;
-        z-index: auto;
-        padding: 0;
-        gap: 10px;
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__item.elemacy-nav__item--has-children {
-        display: flex;
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-        width: 100%;
-        gap: 10px;
-    }
-
-    /* Links fill the column width so justify-content actually aligns the text */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link {
-        width: 100%;
-        justify-content: var(--elemacy-overlay-items-align);
-        font-size: 1.8em;
-        transition: none;
-    }
-
-    /* Hide chevrons inside overlay (submenus are always expanded) */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet .elemacy-nav__item--has-children > .elemacy-nav__link::after {
-        display: none;
-    }
-
-    /* Slide panels use a smaller font size than fullscreen */
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-right .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link,
-    .elemacy-nav.elemacy-nav--breakpoint-tablet.elemacy-nav--overlay-slide-left  .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link {
-        font-size: 1rem;
-    }
-
-
-} /* end @media tablet */
-
-/* ── Mobile breakpoint (≤ 767px) ─────────────────────────────────────────── */
-
-@media (max-width: 767px) {
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__toggle {
-        display: inline-flex;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 9;
-        opacity: 0;
-        visibility: hidden;
-        display: flex;
-        overflow-y: auto;
-    }
-
-    /* ── Fullscreen overlay ── */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-fullscreen .elemacy-nav__menu {
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: var(--elemacy-overlay-menu-valign, center);
-        background-color: var(--elemacy-overlay-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-fullscreen.is-open .elemacy-nav__menu {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-fullscreen .elemacy-nav__menu {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* ── Slide from Right ── */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right .elemacy-nav__menu {
-        left: auto;
-        right: 0;
-        width: var(--elemacy-overlay-panel-width, 320px);
-        height: 100%;
-        justify-content: flex-start;
-        align-items: flex-start;
-        background-color: #ffffff;
-        transform: translateX(101%);
-        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right.is-open .elemacy-nav__menu {
-        transform: translateX(0);
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right .elemacy-nav__menu {
-        transform: translateX(101%);
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right.is-open .elemacy-nav__backdrop {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right .elemacy-nav__backdrop {
-        display: none;
-    }
-
-    /* ── Slide from Left ── */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left .elemacy-nav__menu {
-        left: 0;
-        right: auto;
-        width: var(--elemacy-overlay-panel-width, 320px);
-        height: 100%;
-        justify-content: flex-start;
-        align-items: flex-start;
-        background-color: var(--elemacy-overlay-bg);
-        transform: translateX(-101%);
-        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left.is-open .elemacy-nav__menu {
-        transform: translateX(0);
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left .elemacy-nav__menu {
-        transform: translateX(-101%);
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left.is-open .elemacy-nav__backdrop {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left .elemacy-nav__backdrop {
-        display: none;
-    }
-
-    /* ── Close button ── */
-    .elemacy-nav.is-open.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__toggle-close {
-        display: inline-flex;
-        position: absolute;
-        top: var(--elemacy-close-top);
-        right: var(--elemacy-close-right);
-        z-index: 10;
-    }
-
-    .elemacy-nav.is-open.elemacy-nav--closing.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__toggle-close {
-        display: none;
-    }
-
-    /* ── Item layout inside overlay ── */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__list {
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-        flex-wrap: nowrap;
-        width: 100%;
-        gap: 10px;
-        padding: 15px;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__submenu {
-        display: flex;
-        animation: none;
-        position: relative;
-        top: 0;
-        left: 0;
-        bottom: auto;
-        min-width: 0;
-        width: 100%;
-        z-index: auto;
-        padding: 0;
-        gap: 10px;
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__item.elemacy-nav__item--has-children {
-        display: flex;
-        flex-direction: column;
-        align-items: var(--elemacy-overlay-items-align);
-        width: 100%;
-        gap: 10px;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link {
-        width: 100%;
-        justify-content: var(--elemacy-overlay-items-align);
-        font-size: 1.8em;
-        transition: none;
-    }
-
-    .elemacy-nav.elemacy-nav--breakpoint-mobile .elemacy-nav__item--has-children > .elemacy-nav__link::after {
-        display: none;
-    }
-
-    /* Slide panels use a smaller font size than fullscreen */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link,
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left  .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__link {
-        font-size: 1rem;
-    }
-
-    /* Slide panels indent sub-items */
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-right .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__submenu,
-    .elemacy-nav.elemacy-nav--breakpoint-mobile.elemacy-nav--overlay-slide-left  .elemacy-nav__menu .elemacy-nav__item .elemacy-nav__submenu {
-        padding-left: 1rem;
-    }
-
-} /* end @media mobile */
+}

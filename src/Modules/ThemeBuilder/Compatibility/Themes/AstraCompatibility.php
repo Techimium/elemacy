@@ -4,40 +4,26 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-
-class AstraCompatibility implements ThemeCompatibilityInterface
+use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
+/**
+ * Astra prints its header and footer, classic or from its header/footer
+ * builder, from callbacks on `astra_header` and `astra_footer`.
+ */
+class AstraCompatibility extends HookedThemeCompatibility
 {
-    public function register(ThemeBuilderManager $manager): void
+    protected function chrome_locations(): array
     {
-        if ($manager->get_header_id()) {
-            add_action('template_redirect', function () {
-                remove_action('astra_header', 'astra_header_markup');
+        return [
+            'header' => ['hook' => 'astra_header'],
+            'footer' => ['hook' => 'astra_footer'],
+        ];
+    }
 
-                if (class_exists('Astra_Builder_Helper') && !empty(\Astra_Builder_Helper::$is_header_footer_builder_active)) {
-                    if (class_exists('Astra_Builder_Header') && method_exists('Astra_Builder_Header', 'get_instance')) {
-                        remove_action('astra_header', [\Astra_Builder_Header::get_instance(), 'prepare_header_builder_markup']);
-                    }
-                }
-            }, 10);
-
-            add_action('astra_header', [$manager, 'render_header'], 10);
-        }
-
-        if ($manager->get_footer_id()) {
-            add_action('template_redirect', function () {
-                remove_action('astra_footer', 'astra_footer_markup');
-
-                if (class_exists('Astra_Builder_Helper') && !empty(\Astra_Builder_Helper::$is_header_footer_builder_active)) {
-                    if (class_exists('Astra_Builder_Footer') && method_exists('Astra_Builder_Footer', 'get_instance')) {
-                        remove_action('astra_footer', [\Astra_Builder_Footer::get_instance(), 'footer_markup']);
-                    }
-                }
-            }, 10);
-
-            add_action('astra_footer', [$manager, 'render_footer'], 10);
-        }
+    protected function chrome_hooks(): array
+    {
+        return [
+            'header' => ['astra_header' => PHP_INT_MAX],
+            'footer' => ['astra_footer' => PHP_INT_MAX],
+        ];
     }
 }
-

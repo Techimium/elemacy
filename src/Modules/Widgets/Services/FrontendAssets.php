@@ -2,6 +2,7 @@
 
 namespace Elemacy\Modules\Widgets\Services;
 
+use Elemacy\Modules\Widgets\Widgets\NavMenu\BreakpointStyles;
 use Elemacy\Support\Utils;
 
 if (!defined('ABSPATH')) {
@@ -22,16 +23,21 @@ class FrontendAssets
     public function register_assets(): void
     {
         $this->register_style('nav-menu');
+        // Breakpoint rules depend on the site's Elementor breakpoints, so they
+        // are generated rather than shipped in the stylesheet.
+        wp_add_inline_style('elemacy-nav-menu', BreakpointStyles::css());
         $this->register_script('nav-menu');
 
         $this->register_style('loop-grid');
-        $this->register_script('loop-grid');
+        // AJAX-loaded pagination content re-initializes Elementor widgets
+        // through the shared lifecycle adapter
+        // instead of duplicating that logic inline.
+        $this->register_script('loop-grid', ['elemacy-elementor-lifecycle']);
+        // Load More / Infinite Scroll append pages through the same adapter.
+        $this->register_script('loop-incremental', ['elemacy-elementor-lifecycle']);
 
         $this->register_style('loop-carousel');
         $this->register_script('loop-carousel');
-
-        $this->register_style('form');
-        $this->register_script('form');
 
         $this->register_style('search');
         $this->register_script('search');
@@ -39,12 +45,12 @@ class FrontendAssets
         $this->register_script('acf-accordion');
     }
 
-    protected function register_script($file_name)
+    protected function register_script($file_name, array $extra_deps = [])
     {
         wp_register_script(
             'elemacy-' . $file_name,
             Utils::get_plugin_url('src/Modules/Widgets/assets/scripts/' . $file_name . '.js'),
-            ['jquery', 'elemacy-frontend'],
+            array_merge(['jquery', 'elemacy-frontend'], $extra_deps),
             ELEMACY_VERSION,
             true
         );
@@ -60,4 +66,3 @@ class FrontendAssets
         );
     }
 }
-

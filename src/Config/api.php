@@ -4,9 +4,9 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Conditions\Controllers\ConditionController;
-use Elemacy\Core\Middlewares\API\AdminMiddleware;
-use Elemacy\Core\Route;
-use Elemacy\Core\Controllers\ModuleController;
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
+use Elemacy\Core\Admin\ModuleController;
 use Elemacy\TemplateLibrary\Controllers\LibraryController;
 
 Route::get('/modules', [ModuleController::class, 'index'])->middleware(AdminMiddleware::class);

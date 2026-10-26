@@ -6,11 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Support\Utils;
 
-/**
- * Registers (but does not enqueue) the popup frontend engine script/style.
- *
- * The PopupManager decides whether to actually enqueue them on a given request.
- */
+/** Registers (but does not enqueue) the popup frontend engine script/style. */
 class PopupFrontendAssets
 {
     public function __construct()
@@ -23,7 +19,7 @@ class PopupFrontendAssets
         wp_register_script(
             'elemacy-popups-engine',
             Utils::get_plugin_url('src/Modules/Popups/assets/scripts/engine.js'),
-            ['jquery', 'elemacy-frontend'],
+            ['jquery', 'elemacy-frontend', 'elemacy-elementor-lifecycle'],
             ELEMACY_VERSION,
             true
         );

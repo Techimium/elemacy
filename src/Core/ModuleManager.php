@@ -5,11 +5,13 @@ namespace Elemacy\Core;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\OptionKeys;
-use Elemacy\Core\Exceptions\ModuleNotFoundException;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Exceptions\ModuleNotFoundException;
+use Elemacy\Http\Response;
 
 class ModuleManager
 {
+    protected bool $initialized = false;
+
     protected array $modules = [];
     protected array $active_modules = [];
 
@@ -93,30 +95,42 @@ class ModuleManager
     }
 
     /**
-     * Determines the active module set from the stored option (plus any
-     * always-active modules) and initializes each one.
+     * Determines the active module set from the stored preferences (plus any
+     * always-active modules), then runs every active module's register
+     * before any module's boot. Runs once per request.
      *
      * @return void
      */
     public function init_modules(): void
     {
-        $stored = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
+        if ($this->initialized) {
+            return;
+        }
+
+        $this->initialized = true;
+        $choices = $this->stored_choices();
 
         foreach ($this->modules as $name => $module) {
-            if ($module->is_always_active() || in_array($name, $stored, true)) {
+            if ($this->resolves_active($module, $choices)) {
                 $this->active_modules[$name] = $module;
             }
         }
 
+        $container = Container::instance();
+
         foreach ($this->active_modules as $module) {
-            $module->init();
+            $module->register($container);
+        }
+
+        foreach ($this->active_modules as $module) {
+            $module->boot();
             $module->register_routes();
             $module->register_assets();
         }
     }
 
     /**
-     * Activates a module and persists it to the active-modules option.
+     * Records an administrator's choice to activate a module.
      *
      * @param string $name The module slug.
      * @return void
@@ -124,30 +138,29 @@ class ModuleManager
      */
     public function enable_module(string $name): void
     {
-        if (!isset($this->modules[$name])) {
-            /* translators: %s: module slug. */
-            $message = sprintf(__('Module %s not found.', 'elemacy'), $name);
-
-            throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
-        }
-
-        $active = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
-
-        if (!in_array($name, $active, true)) {
-            $active[] = $name;
-            update_option(OptionKeys::ACTIVE_MODULES, $active);
-            $this->modules[$name]->on_enable();
-        }
+        $this->record_choice($name, true);
     }
 
     /**
-     * Deactivates a module and persists it to the active-modules option.
+     * Records an administrator's choice to deactivate a module.
      *
      * @param string $name The module slug.
      * @return void
      * @throws ModuleNotFoundException If no module matches `$name`.
      */
     public function disable_module(string $name): void
+    {
+        $this->record_choice($name, false);
+    }
+
+    /**
+     * Stores the choice even when it equals the module's default, so a later
+     * release changing that default never overrides it. The lifecycle hooks
+     * fire only when the module's effective state actually changes.
+     *
+     * @throws ModuleNotFoundException If no module matches `$name`.
+     */
+    protected function record_choice(string $name, bool $enabled): void
     {
         if (!isset($this->modules[$name])) {
             /* translators: %s: module slug. */
@@ -156,15 +169,77 @@ class ModuleManager
             throw new ModuleNotFoundException(esc_html($message), Response::NOT_FOUND); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- second arg is an HTTP status code, not output.
         }
 
-        $stored = (array) get_option(OptionKeys::ACTIVE_MODULES, []);
+        $module = $this->modules[$name];
+        $choices = $this->stored_choices();
+        $was_active = $this->resolves_active($module, $choices);
 
-        if (!in_array($name, $stored, true)) {
-            return;
+        $choices[$name] = $enabled;
+        update_option(OptionKeys::ACTIVE_MODULES, $choices);
+
+        $is_active = $this->resolves_active($module, $choices);
+
+        if ($is_active && !$was_active) {
+            $module->on_enable();
+        } elseif ($was_active && !$is_active) {
+            $module->on_disable();
+        }
+    }
+
+    /**
+     * A module with no recorded choice follows its own declared default, so a
+     * default-active module added by a later release reaches existing sites.
+     *
+     * @param Module              $module
+     * @param array<string, bool> $choices
+     */
+    protected function resolves_active(Module $module, array $choices): bool
+    {
+        if ($module->is_always_active()) {
+            return true;
         }
 
-        $active = array_values(array_diff($stored, [$name]));
+        $name = $module->get_name();
 
-        update_option(OptionKeys::ACTIVE_MODULES, $active);
-        $this->modules[$name]->on_disable();
+        return array_key_exists($name, $choices) ? $choices[$name] : $module->is_default_active();
+    }
+
+    /**
+     * The stored `slug => bool` choices. A list of slugs is the earlier shape,
+     * where every module it did not name was off: it reads as that same set,
+     * every listed slug on and every other registered module off.
+     *
+     * @return array<string, bool>
+     */
+    protected function stored_choices(): array
+    {
+        $stored = get_option(OptionKeys::ACTIVE_MODULES, []);
+
+        if (!is_array($stored) || [] === $stored) {
+            return [];
+        }
+
+        if (array_keys($stored) !== range(0, count($stored) - 1)) {
+            return array_filter(
+                $stored,
+                static fn($enabled, $name): bool => is_string($name) && is_bool($enabled),
+                ARRAY_FILTER_USE_BOTH
+            );
+        }
+
+        $choices = [];
+
+        foreach ($this->modules as $name => $module) {
+            if (!$module->is_always_active()) {
+                $choices[$name] = false;
+            }
+        }
+
+        foreach ($stored as $name) {
+            if (is_string($name)) {
+                $choices[$name] = true;
+            }
+        }
+
+        return $choices;
     }
 }

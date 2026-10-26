@@ -3,12 +3,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Elemacy\Core\Middlewares\API\AdminMiddleware;
-use Elemacy\Core\Route;
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
 use Elemacy\Modules\Popups\Controllers\PopupController;
 use Elemacy\Modules\Popups\Controllers\PopupSettingsController;
 
 // Static routes first so they are not swallowed by the `{id}` catch-all.
+Route::get('/popups/types', [PopupSettingsController::class, 'types'])->middleware(AdminMiddleware::class);
 Route::get('/popups/triggers', [PopupSettingsController::class, 'triggers'])->middleware(AdminMiddleware::class);
 Route::get('/popups/rules', [PopupSettingsController::class, 'rules'])->middleware(AdminMiddleware::class);
 Route::get('/popups', [PopupController::class, 'index'])->middleware(AdminMiddleware::class);

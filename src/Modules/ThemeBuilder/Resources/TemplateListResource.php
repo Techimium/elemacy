@@ -4,22 +4,10 @@ namespace Elemacy\Modules\ThemeBuilder\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Conditions\DTO\ConditionRuleDTO;
-use Elemacy\Core\Resource;
-
-class TemplateListResource extends Resource
+/**
+ * A template as the list endpoint returns it: the same shape as a single
+ * template, so the admin list and the edit form read one contract.
+ */
+class TemplateListResource extends TemplateResource
 {
-    public function to_array()
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'type' => $this->type,
-            'status' => $this->status,
-            'author' => $this->author,
-            'date' => $this->date,
-            'edit_with_elementor' => admin_url('post.php?post=' . $this->id . '&action=elementor'),
-            'conditions' => ConditionRuleDTO::to_arrays($this->conditions ?? []),
-        ];
-    }
 }

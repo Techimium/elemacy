@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,9 +22,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConditionsField } from '@/components/conditions/conditions-field';
 import { CreatePopupSchema, type CreatePopup, type UpdatePopup } from '@/features/popups/schemas/popup';
-import { STATUS_OPTIONS, type PopupType } from '@/features/popups/constants/popups';
+import { STATUS_OPTIONS } from '@/features/popups/constants/popups';
+import type { Availability } from '@/schemas/availability';
 import { TypeField } from './type-field';
 import { TriggersField } from './triggers/triggers-field';
+import { useTriggerTypes } from '@/features/popups/services/triggers';
+import { generateEntryId, seedParams } from '@/features/popups/lib/seed-params';
 import { RulesField } from './rules/rules-field';
 
 interface PopupFormProps {
@@ -40,6 +43,12 @@ interface PopupFormProps {
     saveAndEditLabel?: string;
     /** Whether to show the publish/draft status select (Edit modal only). */
     showStatus?: boolean;
+    /**
+     * The currently saved popup's own type availability —
+     * presentational only, not part of the submitted form values, so it is a
+     * separate prop rather than a `defaultValues` field.
+     */
+    typeAvailability?: Availability;
 }
 
 export function PopupForm({
@@ -49,6 +58,7 @@ export function PopupForm({
     submitLabel,
     saveAndEditLabel,
     showStatus = false,
+    typeAvailability,
 }: PopupFormProps) {
     const displaySubmitLabel = submitLabel || __('Create Popup', 'elemacy');
     const displaySaveAndEditLabel =
@@ -66,10 +76,26 @@ export function PopupForm({
             type: 'popup',
             status: 'draft',
             conditions: [],
-            triggers: [],
+            // A new popup opens on page load until its author says otherwise.
+            triggers: [{ id: generateEntryId('trig'), type: 'page_load', params: {} }],
             rules: [],
         },
     });
+
+    // The Page Load entry of a new popup takes its parameters from the trigger
+    // type's schema once the types have loaded, unless the author has already
+    // changed the triggers.
+    const { data: triggerTypes } = useTriggerTypes();
+    const pageLoad = triggerTypes?.find((type) => type.value === 'page_load');
+    useEffect(() => {
+        if (defaultValues || !pageLoad || form.getFieldState('triggers').isDirty) {
+            return;
+        }
+        const [entry] = form.getValues('triggers');
+        if (entry?.type === 'page_load') {
+            form.resetField('triggers', { defaultValue: [{ ...entry, params: seedParams(pageLoad.params_schema) }] });
+        }
+    }, [defaultValues, pageLoad, form]);
 
     const runSave = form.handleSubmit(async (values) => {
         setPending('save');
@@ -152,7 +178,11 @@ export function PopupForm({
                             control={form.control}
                             name="type"
                             render={({ field }) => (
-                                <TypeField value={field.value as PopupType} onChange={field.onChange} />
+                                <TypeField
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    availability={typeAvailability}
+                                />
                             )}
                         />
                         <p className="mt-4 text-sm text-muted-foreground">
@@ -168,11 +198,14 @@ export function PopupForm({
                             control={form.control}
                             name="conditions"
                             render={({ field }) => (
-                                <ConditionsField
-                                    value={field.value ?? []}
-                                    onChange={field.onChange}
-                                    context="popup"
-                                />
+                                <FormItem>
+                                    <ConditionsField
+                                        value={field.value ?? []}
+                                        onChange={field.onChange}
+                                        context="popup"
+                                    />
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
                     </TabsContent>

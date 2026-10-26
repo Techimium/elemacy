@@ -21,14 +21,7 @@ interface ConditionInterface
      */
     public function check(ConditionRuleDTO $rule): bool;
 
-    /**
-     * How the condition's value is picked in the UI:
-     *
-     *  - `none`   → no value input (e.g. "Entire Site").
-     *  - `select` → a dropdown populated from {@see get_sub_values()}.
-     *  - `search` → a debounced async combobox backed by the conditions/search
-     *               endpoint, configured by {@see get_search_config()}.
-     */
+    /** How the condition's value is picked in the UI: */
     public function get_value_type(): string;
 
     /**
@@ -37,13 +30,7 @@ interface ConditionInterface
      */
     public function get_sub_values(): array;
 
-    /**
-     * Search configuration for conditions whose value type is `search`.
-     *
-     * Shape: ['entity' => 'post'|'term'|'user', ...scope] — e.g.
-     * ['entity' => 'post', 'post_type' => 'page'] or
-     * ['entity' => 'term', 'taxonomy' => 'category'].
-     */
+    /** Search configuration for conditions whose value type is `search`. */
     public function get_search_config(): array;
 
     /**
@@ -59,6 +46,19 @@ interface ConditionInterface
      * Honours the ['*'] wildcard from {@see get_applicable_template_types()}.
      */
     public function applies_to(string $context): bool;
+
+    /**
+     * How narrowly this condition targets the request, as one of the
+     * {@see Specificity} levels. Takes the stored rule because a condition's
+     * reach usually depends on its value: a taxonomy archive condition with no
+     * term targets a whole taxonomy, the same condition with a term targets one
+     * archive.
+     *
+     * Only ever consulted for a condition that actually matched, and only for
+     * an inclusion. Resolution compares these to decide which of several
+     * matching templates of one type is the most specific.
+     */
+    public function get_specificity(ConditionRuleDTO $rule): int;
 
     /**
      * Whether this is a mock stand-in shown in the UI but not functional.

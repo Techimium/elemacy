@@ -4,8 +4,8 @@ namespace Elemacy\Modules\ThemeBuilder\Requests;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Sanitizer;
+use Elemacy\Http\Request;
+use Elemacy\Http\Sanitizer;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
 class UpdateTemplateRequest extends Request
@@ -15,8 +15,9 @@ class UpdateTemplateRequest extends Request
         return [
             'id' => 'required|integer',
             'title' => 'required|string',
-            'type' => 'required|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('theme')),
-            'status' => 'nullable|string|in:publish,draft,trash',
+            'type' => 'nullable|string|in:' . implode(',', TypeRegistry::instance()->names_in_group('theme')),
+            // Left out, a stored status (private, pending, scheduled) is kept.
+            'status' => 'nullable|string|in:publish,draft',
             'conditions' => 'nullable|array',
             'conditions.*.id' => 'string',
             'conditions.*.type' => 'string',

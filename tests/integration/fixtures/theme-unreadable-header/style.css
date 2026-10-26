@@ -1,0 +1,5 @@
+/*
+Theme Name: Elemacy Unreadable Header Fixture
+Version: 1.0.0
+Description: A classic theme whose header.php ends inside a tag, so the generic adapter cannot read the wrappers it leaves open and must print none.
+*/

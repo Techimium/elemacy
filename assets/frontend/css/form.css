@@ -1,0 +1,189 @@
+.elemacy-form {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.elemacy-form-field {
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.elemacy-form-column-20 {
+    width: 20%;
+}
+
+.elemacy-form-column-25 {
+    width: 25%;
+}
+
+.elemacy-form-column-33 {
+    width: 33.3333%;
+}
+
+.elemacy-form-column-40 {
+    width: 40%;
+}
+
+.elemacy-form-column-50 {
+    width: 50%;
+}
+
+.elemacy-form-column-60 {
+    width: 60%;
+}
+
+.elemacy-form-column-66 {
+    width: 66.6666%;
+}
+
+.elemacy-form-column-75 {
+    width: 75%;
+}
+
+.elemacy-form-column-80 {
+    width: 80%;
+}
+
+.elemacy-form-column-100 {
+    width: 100%;
+}
+
+.elemacy-form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+/* Hidden labels stay readable by assistive technology. */
+.elemacy-form .elemacy-screen-reader-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.elemacy-form-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.elemacy-form-group > legend {
+    padding: 0;
+}
+
+.elemacy-form-control {
+    width: 100%;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.elemacy-form-control:focus {
+    outline: none;
+    border-color: #0073aa;
+}
+
+textarea.elemacy-form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.elemacy-form-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #0073aa;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    text-align: center;
+}
+
+.elemacy-form-button:hover {
+    background-color: #005177;
+}
+
+.elemacy-form-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Alignment */
+.elemacy-form-button-align-start .elemacy-form-button {
+    align-self: flex-start;
+}
+
+.elemacy-form-button-align-center .elemacy-form-button {
+    align-self: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.elemacy-form-button-align-end .elemacy-form-button {
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.elemacy-form-button-align-stretch .elemacy-form-button {
+    width: 100%;
+}
+
+.elemacy-form-field-submit {
+    display: flex;
+}
+
+.elemacy-form div.elemacy-form-messages {
+    padding: 0;
+    margin: 0;
+}
+
+.elemacy-form-message {
+    width: 100%;
+}
+
+.elemacy-form-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.elemacy-form-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.elemacy-form-option input {
+    margin: 0;
+}
+
+.elemacy-form-option label {
+    margin: 0;
+    cursor: pointer;
+}
+
+.elemacy-form-field-invalid .elemacy-form-control {
+    border-color: #dc3545;
+}
+
+.elemacy-form-error {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #dc3545;
+}
+
+.elemacy-form-error[hidden] {
+    display: none;
+}

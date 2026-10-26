@@ -21,6 +21,17 @@ use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
  */
 class PopupDocument extends PageBase
 {
+    /**
+     * Selector for the injected close button, shared by the Close Button
+     * toggle and every Close Button style control so they cannot drift apart.
+     *
+     * The element type is load-bearing: popups.css carries a fallback rule for
+     * the button at the same specificity a bare `{{WRAPPER}} .elemacy-popup__close`
+     * would have, and it loads after the popup's generated CSS on the frontend,
+     * so a tie silently hands the author's settings to the fallback.
+     */
+    protected const CLOSE_BUTTON_SELECTOR = '{{WRAPPER}} button.elemacy-popup__close';
+
     public static function get_type()
     {
         return 'elemacy_popup';
@@ -52,7 +63,9 @@ class PopupDocument extends PageBase
         return $properties;
     }
 
-    // Force Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+    /**
+     * Forces Canvas so a freshly-created popup opens blank before _wp_page_template is persisted.
+     */
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -232,7 +245,7 @@ class PopupDocument extends PageBase
                     'label_on'     => esc_html__('Yes', 'elemacy'),
                     'label_off'    => esc_html__('No', 'elemacy'),
                     'return_value' => 'yes',
-                    'default'      => '',
+                    'default'      => !empty($defaults['sticky']) ? 'yes' : '',
                     'description'  => esc_html__('Keep the bar visible while scrolling.', 'elemacy'),
                     'condition'    => [
                         DisplayKeys::POSITION => 'top',
@@ -270,6 +283,77 @@ class PopupDocument extends PageBase
                 ],
             ]
         );
+
+        // A top bar is attached to the screen edge by design, so it has no gap.
+        // The gap lives on the popup's root, which document CSS can only reach
+        // through the box ({{WRAPPER}}): Elementor never replaces {{ID}} in
+        // document settings. `body` carries the editor-preview copy only.
+        if (PopupTypes::TOPBAR !== $type) {
+            $this->add_responsive_control(
+                DisplayKeys::SCREEN_GAP,
+                [
+                    'label'       => esc_html__('Screen Gap', 'elemacy'),
+                    'type'        => Controls_Manager::SLIDER,
+                    'size_units'  => ['px', 'em', 'rem', 'vw', 'vh'],
+                    'range'       => [
+                        'px'  => [
+                            'min' => 0,
+                            'max' => 200,
+                        ],
+                        'em'  => [
+                            'min'  => 0,
+                            'max'  => 10,
+                            'step' => 0.1,
+                        ],
+                        'rem' => [
+                            'min'  => 0,
+                            'max'  => 10,
+                            'step' => 0.1,
+                        ],
+                        'vw'  => [
+                            'min' => 0,
+                            'max' => 20,
+                        ],
+                        'vh'  => [
+                            'min' => 0,
+                            'max' => 20,
+                        ],
+                    ],
+                    'default'     => [
+                        'size' => 20,
+                        'unit' => 'px',
+                    ],
+                    'description' => $is_modal
+                        ? esc_html__('Space between the popup and the screen edges. Set 0, Width 100% and a container Min Height of 100dvh for a full-screen popup. A close button placed outside the popup may need its offset adjusted.', 'elemacy')
+                        : esc_html__('Distance from the screen edges the popup is positioned against. Custom position ignores it.', 'elemacy'),
+                    'selectors'   => [
+                        '.elemacy-popup:has(> {{WRAPPER}})' => '--elemacy-popup-gap: {{SIZE}}{{UNIT}};',
+                        'body'                              => '--elemacy-gap: {{SIZE}}{{UNIT}};',
+                    ],
+                ]
+            );
+        }
+
+        // Only a modal has a height cap, so only there does content scroll;
+        // other types keep the default and can still set the variable in CSS.
+        if ($is_modal) {
+            $this->add_control(
+                DisplayKeys::CONTENT_OVERFLOW,
+                [
+                    'label'     => esc_html__('Content Overflow', 'elemacy'),
+                    'type'      => Controls_Manager::SELECT,
+                    'default'   => 'auto',
+                    'options'   => [
+                        'auto'    => esc_html__('Auto', 'elemacy'),
+                        'hidden'  => esc_html__('Hidden', 'elemacy'),
+                        'visible' => esc_html__('Visible', 'elemacy'),
+                    ],
+                    'selectors' => [
+                        '{{WRAPPER}}' => '--elemacy-popup-overflow: {{VALUE}};',
+                    ],
+                ]
+            );
+        }
 
         $this->add_control(
             DisplayKeys::Z_INDEX,
@@ -326,7 +410,7 @@ class PopupDocument extends PageBase
                 'default'      => $defaults['close']['button'] ? 'yes' : '',
                 'separator'    => 'before',
                 'selectors'    => [
-                    '{{WRAPPER}} .elemacy-popup__close' => 'display: flex;',
+                    self::CLOSE_BUTTON_SELECTOR => 'display: flex;',
                 ],
             ]
         );
@@ -452,7 +536,7 @@ class PopupDocument extends PageBase
 
     protected function register_close_style_controls()
     {
-        $btn = '{{WRAPPER}} .elemacy-popup__close';
+        $btn = self::CLOSE_BUTTON_SELECTOR;
 
         $this->start_controls_section(
             'elemacy_close_style_section',
@@ -512,20 +596,21 @@ class PopupDocument extends PageBase
         $this->add_responsive_control(
             'elemacy_close_offset',
             [
-                'label'      => esc_html__('Distance From Edge', 'elemacy'),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => ['px'],
-                'range'      => [
+                'label'       => esc_html__('Distance From Edge', 'elemacy'),
+                'description' => esc_html__('Negative values place the button outside the popup.', 'elemacy'),
+                'type'        => Controls_Manager::SLIDER,
+                'size_units'  => ['px'],
+                'range'       => [
                     'px' => [
-                        'min' => 0,
-                        'max' => 80,
+                        'min' => -100,
+                        'max' => 100,
                     ],
                 ],
-                'default'    => [
+                'default'     => [
                     'size' => 10,
                     'unit' => 'px',
                 ],
-                'selectors'  => [
+                'selectors'   => [
                     $btn => 'top: {{SIZE}}{{UNIT}}; right: {{SIZE}}{{UNIT}};',
                 ],
             ]

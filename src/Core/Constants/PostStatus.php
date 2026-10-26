@@ -11,12 +11,12 @@ defined('ABSPATH') || exit;
  */
 class PostStatus
 {
-    const PUBLISH = 'publish';
-    const DRAFT   = 'draft';
+    public const PUBLISH = 'publish';
+    public const DRAFT   = 'draft';
 
     /**
      * WP_Query pseudo-status meaning "every status except trash/auto-draft".
      * Valid only as a query argument, never as a stored post status.
      */
-    const ANY = 'any';
+    public const ANY = 'any';
 }

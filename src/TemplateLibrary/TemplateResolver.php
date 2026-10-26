@@ -19,6 +19,8 @@ class TemplateResolver
     protected ResolverCache $cache;
 
     /**
+     * Per-type results for this request, keyed by acting site and type.
+     *
      * @var array<string, int|null>
      */
     protected static array $resolved = [];
@@ -37,33 +39,69 @@ class TemplateResolver
         $this->cache = $cache ?? new ResolverCache();
     }
 
+    /** Drops the per-type evaluation memo. */
+    public static function reset(): void
+    {
+        static::$resolved = [];
+    }
+
     /**
-     * The single item of $type that applies: the first whose conditions match,
-     * else the first with no conditions (global fallback). Returns its post id.
+     * The single item of $type that applies, or null. Returns its post id.
+     *
+     * A type targeting its whole location takes the newest item. Otherwise an
+     * item applies only through an inclusion condition that matches — rules
+     * that only exclude name nowhere to display — and of those, the one that
+     * matched most specifically wins. Every candidate is evaluated rather
+     * than stopping at the first match, because a broad template appearing
+     * earlier in the index must not beat a narrow one appearing later. See
+     * docs/ARCHITECTURE.md § Template precedence.
      */
     public function resolve(string $type): ?int
     {
-        if (array_key_exists($type, static::$resolved)) {
-            return static::$resolved[$type];
+        $key = get_current_blog_id() . ':' . $type;
+
+        if (array_key_exists($key, static::$resolved)) {
+            return static::$resolved[$key];
         }
 
         $candidates = $this->cache->get_index()[$type] ?? [];
-        $fallback   = null;
-        $match      = null;
+        $definition = TypeRegistry::instance()->get($type);
+
+        if ($definition !== null && $definition->targets_location()) {
+            $newest = reset($candidates);
+            static::$resolved[$key] = false !== $newest ? (int) $newest['id'] : null;
+
+            return static::$resolved[$key];
+        }
+
+        $match = null;
+        $best  = null;
 
         foreach ($candidates as $entry) {
-            if (empty($entry['conditions'])) {
-                $fallback = $fallback ?? (int) $entry['id'];
+            $rules = ConditionRuleDTO::collection($entry['conditions'] ?? []);
+
+            if (!ConditionRuleDTO::any_include($rules)) {
                 continue;
             }
 
-            if ($this->conditions_match($entry['conditions'])) {
+            $specificity = ConditionEvaluator::instance()->match($rules);
+
+            if ($specificity === null) {
+                continue;
+            }
+
+            // Strictly greater: the first candidate to reach a level keeps it,
+            // and the index is already ordered newest-first, so that ordering
+            // is the tie-break within one level.
+            if ($best === null || $specificity > $best) {
+                $best  = $specificity;
                 $match = (int) $entry['id'];
-                break;
             }
         }
 
-        return static::$resolved[$type] = ($match ?? $fallback);
+        static::$resolved[$key] = $match;
+
+        return static::$resolved[$key];
     }
 
     /**
