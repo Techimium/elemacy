@@ -102,6 +102,80 @@ for (const entry of custom) {
   }
 }
 
+// Screen Gap: a modal set to gap 0 and width 100% reaches the screen edges; a per-device gap applies per device.
+// (The full-height case, a container at 100dvh, is geometry only and is checked in run-popups.mjs.)
+for (const perDevice of [false, true]) {
+  test(`elemacy:journey:popup-type:popup-full-screen${perDevice ? '-per-device' : ''} @popups`, async ({ page, author, browser }) => {
+    const id = await createPopup(page, { title: `Full screen ${author.user}`, type: 'Popup' });
+    await addHeadingThenSettings(page, `Full screen content ${author.user}`);
+    await choose(page, 'Position', 'top');
+    await setUnit(page, 'elemacy_width', '%');
+    await setNumber(page, 'Width', 100);
+    await setNumber(page, 'Screen Gap', perDevice ? 40 : 0);
+    if (perDevice) {
+      await switchDevice(page, 'elemacy_screen_gap', 'mobile');
+      await setNumber(page, 'Screen Gap', 0);
+      await switchDevice(page, 'elemacy_screen_gap_mobile', 'desktop');
+    }
+    await choose(page, 'Content Overflow', 'hidden');
+    await publish(page);
+    await page.reload();
+    await openPopupSettings(page);
+    await expect(page.getByRole('spinbutton', { name: 'Screen Gap', exact: true })).toHaveValue(perDevice ? '40' : '0');
+    await expect(page.getByRole('combobox', { name: 'Content Overflow', exact: true })).toHaveValue('hidden');
+
+    for (const mobile of [false, true]) {
+      const gap = perDevice && !mobile ? 40 : 0;
+      const guest = await visitor(browser, { viewport: mobile ? { width: 390, height: 800 } : { width: 1440, height: 1000 } });
+      try {
+        await guest.page.goto(new URL('/', page.url()).href);
+        const g = await geometry(guest.page, id);
+        expect(near(g.x, gap) && near(g.y, gap) && near(g.width, g.viewport.width - 2 * gap), `${mobile ? 'Mobile' : 'Desktop'}: the box sits ${gap}px from the edges: ${JSON.stringify(g)}`).toBe(true);
+        const overflow = await popupRoot(guest.page, id).locator('.elemacy-popup__scroll').evaluate(el => getComputedStyle(el).overflowY);
+        expect(overflow, 'Content Overflow reaches the content').toBe('hidden');
+      } finally { await guest.context.close(); }
+    }
+  });
+}
+
+test('elemacy:journey:popup-type:banner-flush @popups', async ({ page, author, browser }) => {
+  const id = await createPopup(page, { title: `Flush banner ${author.user}`, type: 'Banner' });
+  await addHeadingThenSettings(page, `Flush banner content ${author.user}`);
+  await choose(page, 'Position', 'bottom');
+  await setUnit(page, 'elemacy_width', '%');
+  await setNumber(page, 'Width', 100);
+  await setNumber(page, 'Screen Gap', 0);
+  await publish(page);
+  await page.reload();
+  await openPopupSettings(page);
+  await expect(page.getByRole('spinbutton', { name: 'Screen Gap', exact: true })).toHaveValue('0');
+  await expect(page.getByRole('spinbutton', { name: 'Width', exact: true })).toHaveValue('100');
+  await expect(page.getByRole('combobox', { name: 'Content Overflow', exact: true }), 'Content Overflow is a modal-only setting').toHaveCount(0);
+
+  const guest = await visitor(browser);
+  try {
+    await guest.page.goto(new URL('/', page.url()).href);
+    const g = await geometry(guest.page, id);
+    // A percentage Width measures the screen, as in the editor, not the banner's own content.
+    expect(near(g.bottom, g.viewport.height) && near(g.x, 0) && near(g.width, g.viewport.width), `The banner spans the bottom edge: ${JSON.stringify(g)}`).toBe(true);
+  } finally { await guest.context.close(); }
+});
+
+/** Picks a slider's unit through its unit switcher. */
+async function setUnit(page, control, unit) {
+  await page.locator(`.elementor-control-${control} .e-units-switcher`).click();
+  await page.locator(`.elementor-control-${control} .elementor-units-choices-label[data-choose="${unit}"]`).click();
+}
+
+/** Switches the editor to another device through a responsive control's own switcher. */
+async function switchDevice(page, control, device) {
+  const switchers = page.locator(`.elementor-control-${control} .elementor-control-responsive-switchers`);
+  // Collapsed, the switcher shows only the current device's button; clicking it opens the list.
+  await switchers.locator('.elementor-responsive-switcher').filter({ visible: true }).first().click();
+  await switchers.locator(`.elementor-responsive-switcher-${device}`).click();
+  await expect(page.locator('body')).toHaveClass(new RegExp(`elementor-device-${device}`));
+}
+
 async function addHeadingThenSettings(page, text) {
   await authorAndPublish(page, text);
 }

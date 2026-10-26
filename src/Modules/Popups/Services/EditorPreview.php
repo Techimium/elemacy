@@ -100,11 +100,12 @@ class EditorPreview
 
     /**
      * Centered/positioned box (popup + floating). Alignment comes from the
-     * Position control via the --elemacy-align / --elemacy-justify variables.
+     * Position control via the --elemacy-align / --elemacy-justify variables,
+     * and the frame's padding from the Screen Gap control's --elemacy-gap.
      */
     protected function frame_css(string $wrap): string
     {
-        $css  = 'body{margin:0;min-height:100vh;box-sizing:border-box;display:flex;padding:30px;'
+        $css  = 'body{margin:0;min-height:100vh;box-sizing:border-box;display:flex;padding:var(--elemacy-gap,30px);'
             . 'align-items:var(--elemacy-align,center);justify-content:var(--elemacy-justify,center);}';
         $css .= $wrap . '{position:relative;z-index:1;max-width:100%;}';
 

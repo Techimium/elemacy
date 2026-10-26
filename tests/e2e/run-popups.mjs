@@ -915,6 +915,80 @@ await check('no modal-open class is left on <html> once every modal has closed',
   layers.evaluate(() => !document.documentElement.classList.contains('elemacy-has-modal')));
 await layers.close();
 
+/* ── Sizing: Screen Gap, the modal height cap and Content Overflow ── */
+const sizing = await ctx.newPage();
+sizing.on('pageerror', (e) => errors.push(String(e)));
+await sizing.goto(base + '/popups-sizing.html');
+const geo = (id) => sizing.evaluate((pid) => {
+  const box = document.querySelector(`.elementor-${pid}`);
+  const scroller = box.querySelector(':scope > .elemacy-popup__scroll');
+  const r = box.getBoundingClientRect();
+  return {
+    left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height,
+    vw: document.documentElement.clientWidth, vh: window.innerHeight,
+    overflow: getComputedStyle(scroller).overflowY,
+    scrolls: scroller.scrollHeight > scroller.clientHeight,
+  };
+}, id);
+const near = (a, b) => Math.abs(a - b) <= 1;
+
+await check('sizing: a default modal keeps 20px from the screen and caps its height there', async () => {
+  const g = await geo(901);
+  return near(g.top, 20) && near(g.bottom, g.vh - 20) && near(g.height, g.vh - 40) && g.overflow === 'auto' && g.scrolls;
+});
+await check('sizing: a modal at gap 0 with width 100% and a full-height container covers the screen', async () => {
+  const g = await geo(902);
+  return near(g.left, 0) && near(g.top, 0) && near(g.width, g.vw) && near(g.height, g.vh);
+});
+await check('sizing: author CSS can cap a modal at 300px through --elemacy-popup-max-height', async () => {
+  const g = await geo(903);
+  return near(g.height, 300) && g.scrolls;
+});
+await check('sizing: Content Overflow hidden / visible reach the content scroller', async () =>
+  (await geo(904)).overflow === 'hidden' && (await geo(905)).overflow === 'visible');
+await check('sizing: default floating and banner keep 20px from their edges', async () => {
+  const f = await geo(911);
+  const b = await geo(912);
+  return near(f.right, f.vw - 20) && near(f.bottom, f.vh - 20) && near(b.bottom, b.vh - 20);
+});
+await check('sizing: at gap 0 a floating element and a banner touch their edges', async () => {
+  const f = await geo(913);
+  const b = await geo(914);
+  return near(f.right, f.vw) && near(f.bottom, f.vh) && near(b.bottom, b.vh);
+});
+await check('sizing: at gap 8px a floating element sits 8px from its corner', async () => {
+  const g = await geo(915);
+  return near(g.left, 8) && near(g.top, 8);
+});
+await check('sizing: a floating element is never wider than the screen minus twice the gap', async () => {
+  const g = await geo(916);
+  return near(g.width, g.vw - 16) && near(g.right, g.vw - 8);
+});
+await check('sizing: Custom position ignores the gap and uses only its offsets', async () => {
+  const g = await geo(917);
+  return near(g.left, 24) && near(g.top, 36);
+});
+await check('sizing: a banner at Width 100% and gap 0 spans the whole screen width', async () => {
+  const g = await geo(918);
+  return near(g.left, 0) && near(g.width, g.vw) && near(g.bottom, g.vh);
+});
+await check('sizing: a floating Width of 50% measures the screen minus the gap, as in the editor', async () => {
+  const g = await geo(919);
+  return near(g.left, 20) && near(g.width, (g.vw - 40) / 2) && near(g.bottom, g.vh - 20);
+});
+await sizing.goto(base + '/popups-sizing.html?non-modal');
+await check('sizing: page content behind open floating elements and banners stays clickable', async () => {
+  const hit = await sizing.evaluate(() => document.elementFromPoint(640, 400)?.id);
+  await sizing.mouse.click(640, 400);
+  return hit === 'behind' && (await sizing.evaluate(() => window.__behindClicks)) === 1;
+});
+await check('sizing: ...while the floating box itself still takes the click', async () =>
+  sizing.evaluate(() => {
+    const r = document.querySelector('.elementor-919').getBoundingClientRect();
+    return !!document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('.elementor-919');
+  }));
+await sizing.close();
+
 await check('no page errors across all loads', async () => errors.length === 0);
 
 console.log(results.join('\n'));

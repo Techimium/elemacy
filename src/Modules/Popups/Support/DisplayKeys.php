@@ -17,6 +17,8 @@ final class DisplayKeys
     public const Z_INDEX         = 'elemacy_z_index';
     public const OFFSET_X        = 'elemacy_offset_x';
     public const OFFSET_Y        = 'elemacy_offset_y';
+    public const SCREEN_GAP      = 'elemacy_screen_gap';
+    public const CONTENT_OVERFLOW = 'elemacy_content_overflow';
 
     public const OVERLAY_COLOR   = 'elemacy_overlay_color';
     public const OVERLAY_OPACITY = 'elemacy_overlay_opacity';

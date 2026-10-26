@@ -284,6 +284,77 @@ class PopupDocument extends PageBase
             ]
         );
 
+        // A top bar is attached to the screen edge by design, so it has no gap.
+        // The gap lives on the popup's root, which document CSS can only reach
+        // through the box ({{WRAPPER}}): Elementor never replaces {{ID}} in
+        // document settings. `body` carries the editor-preview copy only.
+        if (PopupTypes::TOPBAR !== $type) {
+            $this->add_responsive_control(
+                DisplayKeys::SCREEN_GAP,
+                [
+                    'label'       => esc_html__('Screen Gap', 'elemacy'),
+                    'type'        => Controls_Manager::SLIDER,
+                    'size_units'  => ['px', 'em', 'rem', 'vw', 'vh'],
+                    'range'       => [
+                        'px'  => [
+                            'min' => 0,
+                            'max' => 200,
+                        ],
+                        'em'  => [
+                            'min'  => 0,
+                            'max'  => 10,
+                            'step' => 0.1,
+                        ],
+                        'rem' => [
+                            'min'  => 0,
+                            'max'  => 10,
+                            'step' => 0.1,
+                        ],
+                        'vw'  => [
+                            'min' => 0,
+                            'max' => 20,
+                        ],
+                        'vh'  => [
+                            'min' => 0,
+                            'max' => 20,
+                        ],
+                    ],
+                    'default'     => [
+                        'size' => 20,
+                        'unit' => 'px',
+                    ],
+                    'description' => $is_modal
+                        ? esc_html__('Space between the popup and the screen edges. Set 0, Width 100% and a container Min Height of 100dvh for a full-screen popup. A close button placed outside the popup may need its offset adjusted.', 'elemacy')
+                        : esc_html__('Distance from the screen edges the popup is positioned against. Custom position ignores it.', 'elemacy'),
+                    'selectors'   => [
+                        '.elemacy-popup:has(> {{WRAPPER}})' => '--elemacy-popup-gap: {{SIZE}}{{UNIT}};',
+                        'body'                              => '--elemacy-gap: {{SIZE}}{{UNIT}};',
+                    ],
+                ]
+            );
+        }
+
+        // Only a modal has a height cap, so only there does content scroll;
+        // other types keep the default and can still set the variable in CSS.
+        if ($is_modal) {
+            $this->add_control(
+                DisplayKeys::CONTENT_OVERFLOW,
+                [
+                    'label'     => esc_html__('Content Overflow', 'elemacy'),
+                    'type'      => Controls_Manager::SELECT,
+                    'default'   => 'auto',
+                    'options'   => [
+                        'auto'    => esc_html__('Auto', 'elemacy'),
+                        'hidden'  => esc_html__('Hidden', 'elemacy'),
+                        'visible' => esc_html__('Visible', 'elemacy'),
+                    ],
+                    'selectors' => [
+                        '{{WRAPPER}}' => '--elemacy-popup-overflow: {{VALUE}};',
+                    ],
+                ]
+            );
+        }
+
         $this->add_control(
             DisplayKeys::Z_INDEX,
             [

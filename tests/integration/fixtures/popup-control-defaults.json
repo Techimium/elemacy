@@ -145,6 +145,10 @@
             "type": "section",
             "default": null
         },
+        "elemacy_content_overflow": {
+            "type": "select",
+            "default": "auto"
+        },
         "elemacy_offset_x": {
             "type": "slider",
             "default": {
@@ -196,6 +200,14 @@
         "elemacy_prevent_scroll": {
             "type": "switcher",
             "default": "yes"
+        },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
         },
         "elemacy_width": {
             "type": "slider",
@@ -539,6 +551,14 @@
             "type": "alert",
             "default": null
         },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
         "elemacy_width": {
             "type": "slider",
             "default": {
@@ -717,6 +737,14 @@
         "elemacy_position_custom_notice": {
             "type": "alert",
             "default": null
+        },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
         },
         "elemacy_width": {
             "type": "slider",

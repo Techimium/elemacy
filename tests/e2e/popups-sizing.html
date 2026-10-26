@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elemacy popups — sizing</title>
+<!-- Popup sizing (Screen Gap, height cap, Content Overflow) is CSS only, so
+     this page loads popups.css without the engine. Every popup is printed
+     open, in the structure the engine hydrates. The <style> below stands in
+     for each popup document's generated CSS, in the exact selector shapes
+     PopupDocument's controls produce. -->
+<link rel="stylesheet" href="popups.css">
+<style>
+	body { margin: 0; }
+	.tall { height: 2000px; }
+	.full { min-height: 100dvh; }
+
+	/* Width control: {{WRAPPER}} { width } */
+	.elementor-901, .elementor-903, .elementor-904, .elementor-905 { width: 600px; }
+	.elementor-902 { width: 100%; }
+	.elementor-911, .elementor-912, .elementor-913, .elementor-914, .elementor-915, .elementor-917 { width: 300px; }
+	.elementor-916 { width: 2000px; }
+	.elementor-918 { width: 100%; }
+	.elementor-919 { width: 50%; }
+
+	/* Screen Gap control: .elemacy-popup:has(> {{WRAPPER}}) { --elemacy-popup-gap } */
+	.elemacy-popup:has(> .elementor-902) { --elemacy-popup-gap: 0px; }
+	.elemacy-popup:has(> .elementor-913) { --elemacy-popup-gap: 0px; }
+	.elemacy-popup:has(> .elementor-914) { --elemacy-popup-gap: 0px; }
+	.elemacy-popup:has(> .elementor-915) { --elemacy-popup-gap: 8px; }
+	.elemacy-popup:has(> .elementor-916) { --elemacy-popup-gap: 8px; }
+	.elemacy-popup:has(> .elementor-917) { --elemacy-popup-gap: 50px; }
+	.elemacy-popup:has(> .elementor-918) { --elemacy-popup-gap: 0px; }
+
+	/* Author custom CSS overriding the height cap. */
+	.elementor-903 { --elemacy-popup-max-height: 300px; }
+
+	/* Content Overflow control: {{WRAPPER}} { --elemacy-popup-overflow } */
+	.elementor-904 { --elemacy-popup-overflow: hidden; }
+	.elementor-905 { --elemacy-popup-overflow: visible; }
+
+	/* Offset X/Y controls: {{WRAPPER}} { left / top } */
+	.elementor-917 { left: 24px; top: 36px; }
+
+	/* Page content behind the non-modal layers. */
+	#behind { position: fixed; left: 600px; top: 380px; width: 80px; height: 40px; }
+</style>
+</head>
+<body>
+
+<button id="behind" type="button" onclick="window.__behindClicks = (window.__behindClicks || 0) + 1">Behind</button>
+<script>
+	// ?non-modal drops the modal fixtures, whose layers rightly cover the page.
+	if (location.search.indexOf('non-modal') !== -1) {
+		document.addEventListener('DOMContentLoaded', function () {
+			document.querySelectorAll('.elemacy-popup--popup').forEach(function (el) { el.remove(); });
+		});
+	}
+</script>
+
+<!-- 901: modal, defaults, content taller than the screen -->
+<div class="elemacy-popup elemacy-popup-901 elemacy-popup--popup is-open elemacy-popup--pos-center" data-elemacy-popup-id="901">
+	<div class="elementor elementor-901 elemacy-popup__box"><div class="elemacy-popup__scroll"><div class="tall"></div></div></div>
+</div>
+
+<!-- 902: modal, gap 0, width 100%, full-height container -->
+<div class="elemacy-popup elemacy-popup-902 elemacy-popup--popup is-open elemacy-popup--pos-center" data-elemacy-popup-id="902">
+	<div class="elementor elementor-902 elemacy-popup__box"><div class="elemacy-popup__scroll"><div class="full"></div></div></div>
+</div>
+
+<!-- 903: modal, author caps the height at 300px -->
+<div class="elemacy-popup elemacy-popup-903 elemacy-popup--popup is-open elemacy-popup--pos-center" data-elemacy-popup-id="903">
+	<div class="elementor elementor-903 elemacy-popup__box"><div class="elemacy-popup__scroll"><div class="tall"></div></div></div>
+</div>
+
+<!-- 904 / 905: modal, Content Overflow hidden / visible -->
+<div class="elemacy-popup elemacy-popup-904 elemacy-popup--popup is-open elemacy-popup--pos-center" data-elemacy-popup-id="904">
+	<div class="elementor elementor-904 elemacy-popup__box"><div class="elemacy-popup__scroll"><div class="tall"></div></div></div>
+</div>
+<div class="elemacy-popup elemacy-popup-905 elemacy-popup--popup is-open elemacy-popup--pos-center" data-elemacy-popup-id="905">
+	<div class="elementor elementor-905 elemacy-popup__box"><div class="elemacy-popup__scroll"><div class="tall"></div></div></div>
+</div>
+
+<!-- 911 / 912: floating bottom-right and banner bottom, defaults -->
+<div class="elemacy-popup elemacy-popup-911 elemacy-popup--floating is-open elemacy-popup--pos-bottom-right" data-elemacy-popup-id="911">
+	<div class="elementor elementor-911 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Floating</p></div></div>
+</div>
+<div class="elemacy-popup elemacy-popup-912 elemacy-popup--banner is-open elemacy-popup--pos-bottom" data-elemacy-popup-id="912">
+	<div class="elementor elementor-912 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Banner</p></div></div>
+</div>
+
+<!-- 913 / 914: the same two at gap 0 -->
+<div class="elemacy-popup elemacy-popup-913 elemacy-popup--floating is-open elemacy-popup--pos-bottom-right" data-elemacy-popup-id="913">
+	<div class="elementor elementor-913 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Floating flush</p></div></div>
+</div>
+<div class="elemacy-popup elemacy-popup-914 elemacy-popup--banner is-open elemacy-popup--pos-bottom" data-elemacy-popup-id="914">
+	<div class="elementor elementor-914 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Banner flush</p></div></div>
+</div>
+
+<!-- 915: floating top-left at gap 8px; 916: floating wider than the screen at gap 8px -->
+<div class="elemacy-popup elemacy-popup-915 elemacy-popup--floating is-open elemacy-popup--pos-top-left" data-elemacy-popup-id="915">
+	<div class="elementor elementor-915 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Floating 8px</p></div></div>
+</div>
+<div class="elemacy-popup elemacy-popup-916 elemacy-popup--floating is-open elemacy-popup--pos-top-right" data-elemacy-popup-id="916">
+	<div class="elementor elementor-916 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Floating wide</p></div></div>
+</div>
+
+<!-- 917: floating, Custom position with offsets 24/36, gap 50px (ignored) -->
+<div class="elemacy-popup elemacy-popup-917 elemacy-popup--floating is-open elemacy-popup--pos-custom" data-elemacy-popup-id="917">
+	<div class="elementor elementor-917 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Floating custom</p></div></div>
+</div>
+
+<!-- 918: banner, Width 100%, gap 0; 919: floating, Width 50%, default gap -->
+<div class="elemacy-popup elemacy-popup-918 elemacy-popup--banner is-open elemacy-popup--pos-bottom" data-elemacy-popup-id="918">
+	<div class="elementor elementor-918 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Full-width banner</p></div></div>
+</div>
+<div class="elemacy-popup elemacy-popup-919 elemacy-popup--floating is-open elemacy-popup--pos-bottom-left" data-elemacy-popup-id="919">
+	<div class="elementor elementor-919 elemacy-popup__box"><div class="elemacy-popup__scroll"><p>Half-width floating</p></div></div>
+</div>
+
+</body>
+</html>

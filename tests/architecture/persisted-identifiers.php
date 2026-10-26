@@ -233,6 +233,8 @@ return [
     $display_key('elemacy_z_index', 'Z_INDEX'),
     $display_key('elemacy_offset_x', 'OFFSET_X'),
     $display_key('elemacy_offset_y', 'OFFSET_Y'),
+    $display_key('elemacy_screen_gap', 'SCREEN_GAP'),
+    $display_key('elemacy_content_overflow', 'CONTENT_OVERFLOW'),
     $display_key('elemacy_overlay_color', 'OVERLAY_COLOR'),
     $display_key('elemacy_overlay_opacity', 'OVERLAY_OPACITY'),
     $display_key('elemacy_overlay_blur', 'OVERLAY_BLUR'),
