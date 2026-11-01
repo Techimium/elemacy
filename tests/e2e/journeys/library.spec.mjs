@@ -104,19 +104,27 @@ test('elemacy:journey:library:content-copy @library', async ({ page, author, bro
   let frame = await readyEditor(page);
   await expect(frame.getByText(text, { exact: true })).toBeVisible();
   await checkpoint('library-content-reopened');
+  // A library item's own URL is for the people who edit it (core/library-visibility): a guest gets
+  // WordPress's not-found response without the content, while its author sees the rendered item.
+  const itemUrl = itemId => new URL('/?post_type=elemacy_library&p=' + itemId, page.url()).href;
   const guest = await browser.newContext();
+  const authorView = await page.context().newPage();
   try {
     const visitor = await guest.newPage();
-    const publicResponse = await visitor.goto(new URL('/?post_type=elemacy_library&p=' + id, page.url()).href);
-    expect(publicResponse.status()).toBe(200);
-    await expect(visitor.getByText(text, { exact: true })).toBeVisible();
-    await checkpoint('library-visitor-output', visitor);
+    const publicResponse = await visitor.goto(itemUrl(id));
+    expect(publicResponse.status()).toBe(404);
+    await expect(visitor.getByText(text, { exact: true })).toHaveCount(0);
+    await checkpoint('library-item-not-public', visitor);
+    const authorResponse = await authorView.goto(itemUrl(id));
+    expect(authorResponse.status()).toBe(200);
+    await expect(authorView.getByText(text, { exact: true })).toBeVisible();
+    await checkpoint('library-author-output', authorView);
     await page.goto(libraryUrl);
     await templateCard(page, title).getByRole('button', { name: 'Actions', exact: true }).click();
     const duplicated = page.waitForResponse(response => response.url().endsWith('/duplicate'));
     await page.getByRole('menuitem', { name: 'Duplicate', exact: true }).click();
     const copyId = (await (await duplicated).json()).data.id;
-    const draftResponse = await visitor.goto(new URL('/?post_type=elemacy_library&p=' + copyId, page.url()).href);
+    const draftResponse = await visitor.goto(itemUrl(copyId));
     expect(draftResponse.status()).toBe(404);
     await expect(visitor.getByText(text, { exact: true })).toHaveCount(0);
     const dialog = await openTemplateSettings(page, title + ' (Copy)');
@@ -127,11 +135,17 @@ test('elemacy:journey:library:content-copy @library', async ({ page, author, bro
     await frame.locator('.elementor-widget-heading').click();
     await page.locator('[data-setting="title"]').fill('Independent copy ' + author.user);
     await saveEditor(page);
-    await visitor.goto(new URL('/?post_type=elemacy_library&p=' + copyId, page.url()).href);
-    await expect(visitor.getByText('Independent copy ' + author.user, { exact: true })).toBeVisible();
-    await visitor.goto(new URL('/?post_type=elemacy_library&p=' + id, page.url()).href);
-    await expect(visitor.getByText(text, { exact: true })).toBeVisible();
+    const copyResponse = await visitor.goto(itemUrl(copyId));
+    expect(copyResponse.status()).toBe(404);
     await expect(visitor.getByText('Independent copy ' + author.user, { exact: true })).toHaveCount(0);
-    await checkpoint('source-unaffected-by-copy', visitor);
-  } finally { await guest.close(); }
+    await authorView.goto(itemUrl(copyId));
+    await expect(authorView.getByText('Independent copy ' + author.user, { exact: true })).toBeVisible();
+    await authorView.goto(itemUrl(id));
+    await expect(authorView.getByText(text, { exact: true })).toBeVisible();
+    await expect(authorView.getByText('Independent copy ' + author.user, { exact: true })).toHaveCount(0);
+    await checkpoint('source-unaffected-by-copy', authorView);
+  } finally {
+    await authorView.close();
+    await guest.close();
+  }
 });

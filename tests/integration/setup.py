@@ -251,6 +251,13 @@ require_once ABSPATH . 'wp-settings.php';
         wp("plugin", "activate", "elemacy-pro")
     if args.elementor_pro_plugin:
         wp("plugin", "activate", "elementor-pro")
+    # A fresh site shows Elementor's own first-visit screens once: activation
+    # sends the next admin request (within a minute) to its onboarding wizard
+    # instead of the page asked for, and the editor auto-opens its Angie guide
+    # over the panel. Neither is Elemacy's; provision a site past both, so a
+    # browser test opening the editor right after setup gets the editor.
+    wp("transient", "delete", "elementor_activation_redirect")
+    wp("option", "update", "elementor_angie_guide_auto_shown", "yes")
     print("ELEMACY_TEST_ENV=" + str(manifest))
     print("Disposable schema: " + database)
     print("No development tables or configuration were imported.")

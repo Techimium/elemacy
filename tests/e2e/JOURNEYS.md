@@ -56,7 +56,7 @@ npm run test:journeys --prefix tests/e2e -- --list
 npm run test:journeys --prefix tests/e2e -- --grep @modules --screenshots=all --video=all --trace=all
 
 # One stable case ID; use a unique output directory for each run.
-npm run test:journeys --prefix tests/e2e -- --grep 'elemacy:journey:module:widgets' --output=/tmp/elemacy-widget-module-run
+npm run test:journeys --prefix tests/e2e -- --grep 'elemacy:journey:module:loop-builder' --output=/tmp/elemacy-loop-builder-module-run
 
 # No optional media; assertions and failure status are unchanged.
 npm run test:journeys --prefix tests/e2e -- --grep @modules --screenshots=off --video=off --trace=off
