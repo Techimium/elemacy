@@ -164,15 +164,16 @@ Each profile ran on a fresh disposable site (`tests/integration/setup.py --priva
 | Native journeys (Playwright) | free + Pro: 66/66; free-only (`--grep-invert @pro`): 47 passed, 1 skipped by profile |
 | `verify-package.py` | F 585 files, P 98 files, all checks pass |
 | Plugin Check on `build/elemacy-1.0.0.zip` | 0 errors, 95 warnings, all accepted in section 7; report at `build/plugin-check.txt` |
+| Installed archive pair (both ZIPs installed, Pro + ACF Pro) | admin contract 7, popup assets 13, loop pagination 11, form submissions 35 |
 
 Archive checksums (`build/*.sha256`, produced by the package job):
 
 ```
-b5844680db0922384ce671216e0ad4a55380ff22f7f4aa3b313089e4e84b3a54  elemacy-1.0.0.zip
-cee23de6e2de7123a091ce4d77d6c8e76adf513341283079373fc5e919857de8  elemacy-pro-1.0.0.zip
+676cc0bae4c67d9f9aa942d0caa489ed45f33603ae8da7156ef3ab7b484b3614  elemacy-1.0.0.zip
+a6ea040dc4440e9d1ed19c47e9b1603389a2904958b8e7da4cff04dd123b7438  elemacy-pro-1.0.0.zip
 ```
 
-The build is reproducible (fixed timestamps, sorted entries written one at a time), and `build/`, `docs/`, `.github/` and tests are not shipped, so these checksums hold for the branch head. Rebuild with `npm run build:zip` from `src-react/` and compare; a different checksum means a shipped file changed after the hand-off and the gate must run again.
+The build is reproducible (fixed timestamps, sorted entries written one at a time, no commit hash in the Composer metadata), and `build/`, `docs/`, `.github/` and tests are not shipped, so these checksums hold for the branch head. Rebuild with `npm run build:zip` from `src-react/` and compare; a different checksum means a shipped file changed after the hand-off and the gate must run again.
 
 ### Owner steps
 
