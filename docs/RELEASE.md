@@ -125,7 +125,7 @@ Set repository secrets `WPORG_USERNAME` and `WPORG_PASSWORD` to the WordPress.or
 
 ## 7. Accepted Plugin Check warnings
 
-Plugin Check run on the built archive (report kept beside the archive as `build/plugin-check.txt`): **0 errors, 95 warnings**, all in the groups below. Every group is accepted with a reason; a new warning outside these groups is fixed before release.
+Plugin Check run on the built archive (report kept beside the archive as `build/plugin-check.txt`): **0 errors, 99 warnings**, all in the groups below. Every group is accepted with a reason; a new warning outside these groups is fixed before release.
 
 | Check | Where | Why it is accepted |
 | --- | --- | --- |
@@ -149,7 +149,7 @@ Each profile ran on a fresh disposable site (`tests/integration/setup.py --priva
 
 | Check | Result |
 | --- | --- |
-| Fast harness | F 494/494, P 84/84 |
+| Fast harness | F 494/494, P 88/88 |
 | phpcs | 0 errors in both repositories; the existing reserved-keyword and `Resource` class-name warnings only |
 | Architecture check (rules 1–9, Pro beside Free) | 0 violations |
 | Coverage inventory | `tests/coverage/check.py` passes; roadmaps current |
@@ -163,13 +163,14 @@ Each profile ran on a fresh disposable site (`tests/integration/setup.py --priva
 | Browser runners, free-only | every free runner passes; Pro- and ACF-Pro-only runners skip by profile |
 | Native journeys (Playwright) | free + Pro: 66/66; free-only (`--grep-invert @pro`): 47 passed, 1 skipped by profile |
 | `verify-package.py` | F 585 files, P 98 files, all checks pass |
-| Plugin Check on `build/elemacy-1.0.0.zip` | 0 errors, 95 warnings, all accepted in section 7; report at `build/plugin-check.txt` |
+| Plugin Check on `build/elemacy-1.0.0.zip` | 0 errors, 99 warnings, all accepted in section 7; report at `build/plugin-check.txt` |
 | Installed archive pair (both ZIPs installed, Pro + ACF Pro) | admin contract 7, popup assets 13, loop pagination 11, form submissions 35 |
+| Storage-contract follow-up (Free `uninstall.php` only) | uninstall fixtures pass on fresh sites: single site `free`, `free-retain`, `pro`, `pro-retain` (free + Pro) and `free`, `free-retain` (free-only); 105-site network `free-retain`, `pro-retain` and opted-in removal with injected failure and retry; the new `free-retain` assertions fail against the previous `uninstall.php`. Free archive rebuilt, `verify-package.py` and Plugin Check rerun (the 4 new warnings are `DirectDatabaseQuery` in `uninstall.php`). No other shipped file changed and Pro's archive is unchanged, so the other rows stand. |
 
 Archive checksums (`build/*.sha256`, produced by the package job):
 
 ```
-676cc0bae4c67d9f9aa942d0caa489ed45f33603ae8da7156ef3ab7b484b3614  elemacy-1.0.0.zip
+4971b2690446173a9f60e506f0464df0fc5897d54c47daf9d6a58a234bb4511f  elemacy-1.0.0.zip
 a6ea040dc4440e9d1ed19c47e9b1603389a2904958b8e7da4cff04dd123b7438  elemacy-pro-1.0.0.zip
 ```
 
