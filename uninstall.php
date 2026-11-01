@@ -1,27 +1,38 @@
 <?php
 /**
- * Native, bounded cleanup of elemacy-owned data, run only when the site opts
- * in. Deactivation and a plain uninstall both keep the data.
+ * Native, bounded cleanup of elemacy-owned data. Every uninstall removes the
+ * temporary form rate-limit rows; everything else is removed only when the
+ * site opts in. Deactivation keeps all data.
  */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-/*
- * Deleting the plugin keeps the site's templates, popups and settings, as
- * Elementor does, so removing and reinstalling it (for instance to recover
- * from a failed update) loses nothing. To remove everything, add this to
- * wp-config.php before deleting the plugin:
- *
- *     define('ELEMACY_REMOVE_ALL_DATA', true);
- */
-if (!defined('ELEMACY_REMOVE_ALL_DATA') || true !== ELEMACY_REMOVE_ALL_DATA) {
-    return;
-}
-
 // Uninstall must work without either plugin's bootstrap or Composer autoloader.
 require_once __DIR__ . '/src/Core/Multisite/SiteBatchIterator.php';
+
+/**
+ * The form rate-limit rows (elemacy_form_limit_<HMAC>): short-lived and useless
+ * without the plugin, so they go on every uninstall, opt-in or not.
+ */
+function elemacy_uninstall_temporary_data(): void
+{
+    global $wpdb;
+    do {
+        $names = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_name ASC LIMIT 100", $wpdb->esc_like('elemacy_form_limit_') . '%'));
+        if ($wpdb->last_error) {
+            throw new RuntimeException('Could not read temporary option cleanup batch.');
+        }
+        foreach ($names as $name) {
+            delete_option($name);
+            if ($wpdb->get_var($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name = %s", $name)) !== null) {
+                throw new RuntimeException('Temporary option deletion failed.');
+            }
+        }
+        $batch_full = count($names) === 100;
+    } while ($batch_full);
+}
 
 function elemacy_uninstall_current_site(): void
 {
@@ -100,19 +111,22 @@ function elemacy_uninstall_current_site(): void
     } while ($batch_full);
 }
 
-function elemacy_uninstall_all_sites(): void
+/**
+ * @param callable(): void $cleanup Run once on every site of the network.
+ */
+function elemacy_uninstall_all_sites(callable $cleanup): void
 {
     if (!is_multisite()) {
-        elemacy_uninstall_current_site();
+        $cleanup();
         return;
     }
     $iterator = new \Elemacy\Core\Multisite\SiteBatchIterator();
     $offset = 0;
     $failures = 0;
     do {
-        $batch = $iterator->process_batch(static function () use (&$failures): void {
+        $batch = $iterator->process_batch(static function () use ($cleanup, &$failures): void {
             try {
-                elemacy_uninstall_current_site();
+                $cleanup();
             } catch (Throwable $error) {
                 // Continue the network sweep; report failure after context is restored.
                 ++$failures;
@@ -120,10 +134,24 @@ function elemacy_uninstall_all_sites(): void
         }, $offset, 100);
         $offset += $batch['processed'];
     } while ($batch['has_more']);
-    delete_site_option('elemacy_network_seed_offset');
     if ($failures) {
         throw new RuntimeException('elemacy cleanup failed on ' . $failures . ' site(s); rerun cleanup before removal.'); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- The only interpolated value is a local integer count.
     }
 }
 
-elemacy_uninstall_all_sites();
+elemacy_uninstall_all_sites('elemacy_uninstall_temporary_data');
+
+/*
+ * Deleting the plugin keeps the site's templates, popups and settings, as
+ * Elementor does, so removing and reinstalling it (for instance to recover
+ * from a failed update) loses nothing. To remove everything, add this to
+ * wp-config.php before deleting the plugin:
+ *
+ *     define('ELEMACY_REMOVE_ALL_DATA', true);
+ */
+if (!defined('ELEMACY_REMOVE_ALL_DATA') || true !== ELEMACY_REMOVE_ALL_DATA) {
+    return;
+}
+
+elemacy_uninstall_all_sites('elemacy_uninstall_current_site');
+delete_site_option('elemacy_network_seed_offset');

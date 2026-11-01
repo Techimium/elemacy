@@ -45,11 +45,12 @@ The same holds for a module's `Module::is_default_active()`: `elemacy_active_mod
 | `elemacy_schema_version` | `src/Core/Constants/OptionKeys.php`; completed Free data migrations, advanced only by `Core\Migrator` |
 | `elemacy_library_index` | `src/TemplateLibrary/ResolverCache.php`; rebuildable published candidate index, **non-autoloaded in code**, stored as `{shape, index}`; any `shape` other than `ResolverCache::SHAPE` is a miss and is rebuilt |
 | `elemacy_widgets` | `src/Widgets/Services/WidgetSettings.php`; widget status map, built through `Utils::with_prefix('widgets')` |
-| `elemacy_pro_license_key` | Pro `Core/License/LicenseManager.php`; stored license key; never include its value in fixtures/logs |
-| `elemacy_pro_license_status` | Same owner; `{valid, expires, plan}` with defaults supplied on read |
+| `elemacy_pro_license` | Pro license SDK `Core/License/Sdk/Store.php` (`option_name()`, prefix from `License::SLUG`); the whole license record `{format, key, state, reason, site, verified_at, checked_at, info}`, defaults supplied on read; never include its key in fixtures/logs |
 | `elemacy_form_limit_*` | `src/Modules/FormBuilder/Services/SubmissionRateLimiter.php`; form submission rate-limit rows (options, non-autoloaded), `elemacy_form_limit_<HMAC of the client IP>` holding `<window end>:<count>` |
-| `elemacy_pro_update` | Pro updater transient/cache identifier |
-| `elemacy_pro_license_revalidate` | Pro license cron hook; existing daily revalidation |
+| `elemacy_pro_schema_version` | Pro `Core/Migrator.php` (`option_key()`); completed Pro data migrations |
+| `elemacy_pro_track_limit_*`, `elemacy_pro_counter_lock_*` | Pro `Extensions/Popups/Services/TrackingRateLimiter.php`, `CounterLock.php`; temporary tracking rate-limit and counter-lease rows |
+| `elemacy_pro_license_update` | Pro license SDK `Store::update_name()`; update-check site transient |
+| `elemacy_pro_license_check` | Pro license SDK `Store::check_hook()`; daily verification cron hook |
 
 Elementor authoring metadata is also a compatibility boundary: `_elementor_data`, `_elementor_edit_mode`, `_elementor_template_type`, `_elementor_page_settings`, plus Elementor-owned generated asset metadata such as `_elementor_css`. Native `_wp_page_template` also participates in document behavior. `DocumentDuplicator` copies authoring values only, never Elementor's generated runtime state or Pro's counters.
 

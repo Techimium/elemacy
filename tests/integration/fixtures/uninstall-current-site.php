@@ -5,7 +5,8 @@
  * `free` and `pro` uninstall with removal opted in; `free-retain` uninstalls
  * Free without it and checks that everything is kept; `pro-retain` uninstalls
  * Pro without it and checks that the analytics counters and options are kept
- * while the licence and temporary data are gone.
+ * while the licence and temporary data are gone. Every Free mode checks that
+ * the form rate-limit rows are gone; Pro never touches them.
  */
 require_once dirname(__DIR__) . '/environment.php';
 $environment = elemacy_test_environment((string) getenv('ELEMACY_TEST_ENV'));
@@ -54,6 +55,8 @@ for ($i = 0; $i < 104; ++$i) {
 add_option('unrelated_uninstall_fixture', 'keep', '', true);
 add_option($pro ? 'elemacy_uninstall_sibling' : 'elemacy_pro_uninstall_sibling', 'keep', '', true);
 set_transient($prefix . '_uninstall_fixture', 'owned', 60);
+// Free's temporary data: removed on every Free uninstall, opt-in or not.
+add_option('elemacy_form_limit_fixture', (time() + 60) . ':1', '', false);
 if ($pro) {
     // What Pro keeps and what it always removes: the licence, rate-limit windows,
     // counter leases and the licence check's scheduled event.
@@ -84,7 +87,7 @@ try {
         $check(get_option('elemacy_pro_counter_lock_999', false) === false, 'A counter lease survived Pro uninstall.');
         $check(get_transient('elemacy_pro_uninstall_fixture') === false, 'A transient survived Pro uninstall.');
         $check(false === wp_next_scheduled('elemacy_pro_license_check'), 'The licence check stayed scheduled after Pro uninstall.');
-        $check(get_post($doc) && get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Pro uninstall touched Free-owned data.');
+        $check(get_post($doc) && get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'] && get_option('elemacy_form_limit_fixture') !== false, 'Pro uninstall touched Free-owned data.');
         for ($i = 0; $i < 104; ++$i) {
             delete_option($prefix . '_uninstall_fixture_' . $i);
         }
@@ -97,6 +100,7 @@ try {
         $check(get_post_meta($unrelated, '_elemacy_conditions', true) === ['owned'], 'Uninstall without the opt-in removed metadata.');
         $check(get_option($prefix . '_uninstall_fixture_103') === 'owned' && get_transient($prefix . '_uninstall_fixture') === 'owned', 'Uninstall without the opt-in removed options.');
         $check(file_exists($css) && $deleted === [], 'Uninstall without the opt-in deleted something.');
+        $check(get_option('elemacy_form_limit_fixture', false) === false, 'A form rate-limit record survived uninstall without the opt-in.');
         for ($i = 0; $i < 104; ++$i) {
             delete_option($prefix . '_uninstall_fixture_' . $i);
         }
@@ -121,6 +125,7 @@ try {
         $check(get_comment_meta($comment, 'fixture', true) === '', 'Comment metadata survived.');
         $check(in_array($doc, $deleted, true) && in_array((int) $revision, $deleted, true), 'Native deletion hooks did not run.');
         $check(!file_exists($css), 'Generated document CSS survived.');
+        $check(get_option('elemacy_form_limit_fixture', false) === false, 'A form rate-limit record survived opted-in removal.');
         $check((int) get_term($term_id, 'uninstall_fixture')->count === 1, 'Native term count/cache was not updated.');
         $check(get_post_meta($unrelated, '_elemacy_conditions', true) === '', 'Free-owned orphan metadata survived.');
         $check(get_post_meta($unrelated, '_elemacy_popup_impressions', true) === '7', 'Free deleted Pro metadata on unrelated content.');
@@ -135,6 +140,7 @@ try {
     }
     wp_delete_term($term_id, 'uninstall_fixture');
     delete_option('unrelated_uninstall_fixture');
+    delete_option('elemacy_form_limit_fixture');
     delete_option($pro ? 'elemacy_uninstall_sibling' : 'elemacy_pro_uninstall_sibling');
     if ($pro) {
         delete_option('elemacy_pro_license');

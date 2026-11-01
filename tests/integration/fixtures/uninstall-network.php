@@ -4,9 +4,12 @@
  * Real network lifecycle fixture; run with WP-CLI --skip-plugins --skip-themes.
  * With the argument `pro-retain` it only uninstalls Pro without
  * ELEMACY_REMOVE_ALL_DATA and checks that every site keeps its analytics
- * counters and options while its temporary data is removed.
+ * counters and options while its temporary data is removed. With `free-retain`
+ * it only uninstalls Free without it and checks that every site keeps its
+ * library and options while its form rate-limit rows are removed.
  */
 $retain_pro = ($args[0] ?? '') === 'pro-retain';
+$retain_free = ($args[0] ?? '') === 'free-retain';
 require_once dirname(__DIR__) . '/environment.php';
 $environment = elemacy_test_environment((string) getenv('ELEMACY_TEST_ENV'));
 if (empty($environment['multisite']) || !is_multisite() || realpath(ABSPATH) !== $environment['root']
@@ -38,6 +41,7 @@ try {
             add_option('elemacy_pro_uninstall_network_owned', 'pro', '', false);
             add_option('unrelated_uninstall_network', 'keep', '', true);
             add_option('elemacy_pro_track_limit_fixture', (time() + 60) . ':1', '', false);
+            add_option('elemacy_form_limit_fixture', (time() + 60) . ':1', '', false);
             $document = wp_insert_post(['post_type' => 'elemacy_library', 'post_status' => 'publish', 'post_title' => 'Network cleanup document']);
             update_post_meta($document, '_elemacy_popup_impressions', '5');
         } finally {
@@ -53,6 +57,7 @@ try {
         foreach ($sites as $site) {
             $check(get_blog_option($site, 'elemacy_pro_uninstall_network_owned') === 'pro', 'Pro uninstall without the opt-in removed an option on site ' . $site . '.');
             $check(get_blog_option($site, 'elemacy_pro_track_limit_fixture', false) === false, 'A rate-limit record survived Pro uninstall on site ' . $site . '.');
+            $check(get_blog_option($site, 'elemacy_form_limit_fixture', false) !== false, 'Pro uninstall removed a Free rate-limit record on site ' . $site . '.');
             switch_to_blog($site);
             try {
                 global $wpdb;
@@ -62,6 +67,24 @@ try {
             }
         }
         echo "elemacy-pro: passed 105-site uninstall without the opt-in (counters and options kept, temporary data removed).\n";
+
+        return;
+    }
+    if ($retain_free) {
+        define('WP_UNINSTALL_PLUGIN', 'elemacy/elemacy.php');
+        require $root . '/uninstall.php';
+        foreach ($sites as $site) {
+            $check(get_blog_option($site, 'elemacy_form_limit_fixture', false) === false, 'A form rate-limit record survived Free uninstall on site ' . $site . '.');
+            $check(get_blog_option($site, 'elemacy_uninstall_network_owned') === 'free', 'Free uninstall without the opt-in removed an option on site ' . $site . '.');
+            switch_to_blog($site);
+            try {
+                global $wpdb;
+                $check(1 === (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'elemacy_library'"), 'Free uninstall without the opt-in removed a library document on site ' . $site . '.');
+            } finally {
+                restore_current_blog();
+            }
+        }
+        echo "elemacy: passed 105-site uninstall without the opt-in (library and options kept, rate-limit records removed).\n";
 
         return;
     }
@@ -88,9 +111,14 @@ try {
         $check(get_current_blog_id() === $original_blog && ($GLOBALS['_wp_switched_stack'] ?? []) === $original_stack, 'Failure leaked blog context.');
         $check(get_blog_option(end($sites), $key, false) === false, 'Cleanup stopped before the final site.');
         $check(get_blog_option($failing_site, $key) !== false, 'Failure fixture unexpectedly disappeared.');
-        call_user_func($prefix . '_uninstall_all_sites');
+        if ($plugin === 'elemacy') {
+            elemacy_uninstall_all_sites('elemacy_uninstall_current_site');
+        } else {
+            elemacy_pro_uninstall_all_sites();
+        }
         foreach ($sites as $site) {
             $check(get_blog_option($site, $key, false) === false, 'Owned site option survived retry.');
+            $check($plugin !== 'elemacy' || get_blog_option($site, 'elemacy_form_limit_fixture', false) === false, 'A form rate-limit record survived opted-in removal on site ' . $site . '.');
             $check(get_blog_option($site, 'unrelated_uninstall_network') === 'keep', 'Unrelated site data was removed.');
         }
         $check(get_current_blog_id() === $original_blog && ($GLOBALS['_wp_switched_stack'] ?? []) === $original_stack, 'Successful cleanup leaked blog context.');
