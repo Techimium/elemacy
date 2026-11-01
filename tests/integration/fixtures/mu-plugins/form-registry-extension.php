@@ -12,7 +12,7 @@ defined('ELEMACY_INTEGRATION_TOKEN') || exit;
 // Literal hook names: mu-plugins load before the plugin autoloader is registered.
 add_action('elemacy/action/forms/field_types/register', static function ($registry): void {
     if (!class_exists('Elemacy_Fixture_Color_Field')) {
-        class Elemacy_Fixture_Color_Field extends \Elemacy\Forms\Fields\AbstractFieldType
+        class Elemacy_Fixture_Color_Field extends \Elemacy\Modules\FormBuilder\Fields\AbstractFieldType
         {
             public function key(): string
             {
@@ -26,17 +26,17 @@ add_action('elemacy/action/forms/field_types/register', static function ($regist
 
             public function settings(): array
             {
-                return [\Elemacy\Forms\Settings\Setting::standard('required'), \Elemacy\Forms\Settings\Setting::text('fixture_shade', 'Shade')];
+                return [\Elemacy\Modules\FormBuilder\Settings\Setting::standard('required'), \Elemacy\Modules\FormBuilder\Settings\Setting::text('fixture_shade', 'Shade')];
             }
 
-            protected function check(\Elemacy\Forms\Definition\Field $field, string $value): \Elemacy\Forms\Submission\FieldResult
+            protected function check(\Elemacy\Modules\FormBuilder\Definition\Field $field, string $value): \Elemacy\Modules\FormBuilder\Submission\FieldResult
             {
                 return in_array($value, ['red', 'blue'], true)
-                    ? \Elemacy\Forms\Submission\FieldResult::valid($value)
-                    : \Elemacy\Forms\Submission\FieldResult::invalid('Pick red or blue.');
+                    ? \Elemacy\Modules\FormBuilder\Submission\FieldResult::valid($value)
+                    : \Elemacy\Modules\FormBuilder\Submission\FieldResult::invalid('Pick red or blue.');
             }
 
-            protected function input_attributes(\Elemacy\Forms\Definition\Field $field): array
+            protected function input_attributes(\Elemacy\Modules\FormBuilder\Definition\Field $field): array
             {
                 return ['data-fixture-color' => 'yes'];
             }
@@ -48,7 +48,7 @@ add_action('elemacy/action/forms/field_types/register', static function ($regist
 
 add_action('elemacy/action/forms/actions/register', static function ($registry): void {
     if (!class_exists('Elemacy_Fixture_Log_Action')) {
-        class Elemacy_Fixture_Log_Action implements \Elemacy\Forms\Contracts\FormActionInterface
+        class Elemacy_Fixture_Log_Action implements \Elemacy\Modules\FormBuilder\Contracts\FormActionInterface
         {
             public function key(): string
             {
@@ -62,10 +62,10 @@ add_action('elemacy/action/forms/actions/register', static function ($registry):
 
             public function settings(): array
             {
-                return [\Elemacy\Forms\Settings\Setting::text('fixture_log_note', 'Note')];
+                return [\Elemacy\Modules\FormBuilder\Settings\Setting::text('fixture_log_note', 'Note')];
             }
 
-            public function run(\Elemacy\Forms\Submission\Submission $submission): \Elemacy\Forms\Submission\ActionResult
+            public function run(\Elemacy\Modules\FormBuilder\Submission\Submission $submission): \Elemacy\Modules\FormBuilder\Submission\ActionResult
             {
                 $GLOBALS['elemacy_fixture_form_log'][] = [
                     'values' => $submission->values(),
@@ -74,8 +74,8 @@ add_action('elemacy/action/forms/actions/register', static function ($registry):
                 ];
 
                 return 'fail' === $submission->value('outcome')
-                    ? \Elemacy\Forms\Submission\ActionResult::failure('Could not reach the CRM')
-                    : \Elemacy\Forms\Submission\ActionResult::success(['logged' => true]);
+                    ? \Elemacy\Modules\FormBuilder\Submission\ActionResult::failure('Could not reach the CRM')
+                    : \Elemacy\Modules\FormBuilder\Submission\ActionResult::success(['logged' => true]);
             }
         }
     }

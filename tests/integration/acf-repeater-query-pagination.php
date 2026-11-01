@@ -4,8 +4,8 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Integrations\Acf\AcfCursor;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterPolicy;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterQuery;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterPolicy;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterQuery;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 

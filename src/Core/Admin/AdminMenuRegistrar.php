@@ -5,6 +5,7 @@ namespace Elemacy\Core\Admin;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Contracts\AdminMenuRegistrarInterface;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 
 /**
  * The published face of AdminMenu's request-wide submenu list.

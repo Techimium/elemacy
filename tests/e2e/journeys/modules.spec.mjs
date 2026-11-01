@@ -3,7 +3,8 @@ import { test, expect } from '../shared/fixtures.mjs';
 const modules = [
   ['theme-builder', 'Theme Builder'],
   ['dynamic-tags', 'Dynamic Tags'],
-  ['widgets', 'Widgets'],
+  ['loop-builder', 'Loop Builder'],
+  ['form-builder', 'Form Builder'],
   ['custom-css', 'Custom CSS'],
   ['popups', 'Popups & Floating Elements'],
 ];
@@ -22,7 +23,7 @@ for (const [name, title] of modules) {
     await page.reload();
     await expect(toggle).not.toBeChecked();
     await checkpoint('disabled-and-reopened');
-    if (['theme-builder', 'widgets', 'popups'].includes(name)) {
+    if (['theme-builder', 'popups'].includes(name)) {
       await page.goto(`/wp-admin/admin.php?page=elemacy#/${name}`, { waitUntil: 'domcontentloaded' });
       await expect(page.getByText('Module is inactive', { exact: true })).toBeVisible();
       await page.goto('/wp-admin/admin.php?page=elemacy#/modules', { waitUntil: 'domcontentloaded' });

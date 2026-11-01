@@ -6,7 +6,7 @@ use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
-use Elemacy\Elementor\Widgets\BaseWidget;
+use Elemacy\Widgets\BaseWidget;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Http\Exceptions\ValidationException;

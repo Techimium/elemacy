@@ -5,7 +5,7 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\Contracts\ConditionRegistrarInterface;
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Admin\SubMenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 use Elemacy\Core\Container;
 use Elemacy\Core\Contracts\AdminMenuRegistrarInterface;
 use Elemacy\Core\Contracts\ContainerInterface;
@@ -17,12 +17,12 @@ use Elemacy\Elementor\Contracts\QueryResolverRegistrarInterface;
 use Elemacy\Elementor\Contracts\TemplateAssetsRegistrarInterface;
 use Elemacy\Elementor\Controls\Query\QueryResolverRegistry;
 use Elemacy\Elementor\Rendering\TemplateAssetsRegistrar;
-use Elemacy\Forms\Contracts\FieldTypeRegistrarInterface;
-use Elemacy\Forms\Contracts\FormActionRegistrarInterface;
-use Elemacy\Forms\Contracts\FormSourceRegistrarInterface;
-use Elemacy\Forms\FieldTypeRegistry;
-use Elemacy\Forms\FormActionRegistry;
-use Elemacy\Forms\FormSourceRegistry;
+use Elemacy\Modules\FormBuilder\Contracts\FieldTypeRegistrarInterface;
+use Elemacy\Modules\FormBuilder\Contracts\FormActionRegistrarInterface;
+use Elemacy\Modules\FormBuilder\Contracts\FormSourceRegistrarInterface;
+use Elemacy\Modules\FormBuilder\Services\FieldTypeRegistry;
+use Elemacy\Modules\FormBuilder\Services\FormActionRegistry;
+use Elemacy\Modules\FormBuilder\Services\FormSourceRegistry;
 use Elemacy\Integrations\Acf\AcfCursor;
 use Elemacy\Integrations\Acf\Contracts\AcfRowCursorInterface;
 use Elemacy\Loop\Address\AddressStep;
@@ -74,7 +74,7 @@ final class PhpExtensionContractTest extends IntegrationTestCase
         $this->container = Container::instance();
         $modules = Elemacy::get_instance()->get_module_manager();
 
-        foreach (['popups', 'theme-builder', 'widgets'] as $module) {
+        foreach (['popups', 'theme-builder', 'form-builder'] as $module) {
             self::assertTrue($modules->is_active($module), "The $module module must be active: its contracts are bound by it.");
         }
     }

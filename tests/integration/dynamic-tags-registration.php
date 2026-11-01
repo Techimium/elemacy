@@ -116,7 +116,7 @@ final class DynamicTagsRegistrationTest extends IntegrationTestCase
 
     public function testADisabledModuleOffersNoTagsAndFiresNoAction(): void
     {
-        $result = $this->build_tags(['modules' => ['theme-builder', 'widgets', 'custom-css', 'popups'], 'extension' => true]);
+        $result = $this->build_tags(['modules' => ['theme-builder', 'loop-builder', 'form-builder', 'custom-css', 'popups'], 'extension' => true]);
 
         self::assertSame([], $result['groups']);
         self::assertSame([], $result['tags']);

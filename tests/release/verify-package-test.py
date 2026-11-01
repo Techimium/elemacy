@@ -46,9 +46,9 @@ cases = [
     ('an artifact built from an older revision is rejected as stale', shipped, parent, False, 'Archive is stale'),
     ('an artifact built from a dirty tree is rejected', shipped, head, True, 'uncommitted changes'),
     ('vendor/ without composer.json is rejected', {name: content for name, content in shipped.items() if name != 'composer.json'}, head, False, 'without the composer.json'),
-    ('an incomplete production build is rejected', {name: content for name, content in shipped.items() if name != 'assets/admin/scripts/admin.js'}, head, False, 'Required production file missing'),
+    ('an incomplete production build is rejected', {name: content for name, content in shipped.items() if name != 'assets/admin/js/admin.js'}, head, False, 'Required production file missing'),
 ]
-for unwanted in ['wp-assets/icon.svg', '.wordpress-org/icon.png', 'docs/RELEASE.md', '.env', 'src-react/package.json', 'tests/test.php', 'assets/admin/scripts/admin.js.map', 'src/../secret.php', '/tmp/secret.php']:
+for unwanted in ['wp-assets/icon.svg', '.wordpress-org/icon.png', 'docs/RELEASE.md', '.env', 'src-react/package.json', 'tests/test.php', 'assets/admin/js/admin.js.map', 'src/../secret.php', '/tmp/secret.php']:
     cases.append((f'{unwanted} is rejected', {**shipped, unwanted: 'unneeded'}, head, False,
                   'Unsafe archive path' if '..' in unwanted or unwanted.startswith('.') else 'production allowlist'))
 

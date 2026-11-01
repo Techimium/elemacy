@@ -5,14 +5,13 @@ namespace Elemacy\Conditions;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\Contracts\ConditionInterface;
-use Elemacy\Conditions\ConditionManager;
 use Elemacy\Core\Hooks;
 use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
 
 /**
  * Registers the display conditions free ships, listed in
- * src/Config/conditions.php. The list includes mock conditions that elemacy-
+ * src/Conditions/Config/conditions.php. The list includes placeholder conditions that elemacy-
  * pro overrides (by name) with real implementations when active.
  *
  * @internal
@@ -40,7 +39,7 @@ class ConditionsBootstrap
     {
         $manager = ConditionManager::instance();
 
-        foreach (ConfigList::instances(Utils::get_plugin_path('src/Config/conditions.php'), ConditionInterface::class) as $condition) {
+        foreach (ConfigList::instances(Utils::get_plugin_path('src/Conditions/Config/conditions.php'), ConditionInterface::class) as $condition) {
             $manager->register($condition);
         }
 

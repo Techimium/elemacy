@@ -89,16 +89,16 @@ function TypeSelect({
                                 <SelectItem
                                     key={c.value}
                                     value={c.value}
-                                    disabled={c.is_mock}
+                                    disabled={c.is_placeholder}
                                     title={
-                                        c.is_mock
+                                        c.is_placeholder
                                             ? __('Provided by an extension that is not active', 'elemacy')
                                             : undefined
                                     }
                                 >
                                     <span className="flex items-center gap-2">
                                         {c.label}
-                                        {c.is_mock && <ProBadge />}
+                                        {c.is_placeholder && <ProBadge />}
                                     </span>
                                 </SelectItem>
                             ))}

@@ -6,6 +6,8 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Support\Brand;
 use Elemacy\Support\Utils;
+use Elemacy\Core\Admin\DTO\MenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 
 /**
  * The plugin's own top-level menu and its Core submenus. Modules add their

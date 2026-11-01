@@ -4,7 +4,7 @@ namespace Elemacy\Core\Contracts;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Admin\SubMenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 
 /**
  * Adds a page under Free's admin menu. Call it before `admin_menu` runs.

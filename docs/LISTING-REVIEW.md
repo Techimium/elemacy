@@ -25,21 +25,21 @@ Paths below are relative to the Free plugin root unless marked Pro.
 | Listing area | Source checked |
 | --- | --- |
 | Requirements | `elemacy.php`, `src/Core/CompatibilityChecker.php`, `docs/ELEMENTOR-COMPATIBILITY.md` |
-| Modules and widgets | `src/Config/modules.php`, `src/Modules/Widgets/Config/widgets.php` |
+| Modules and widgets | `src/Config/modules.php`, `src/Widgets/Config/widgets.php`, `src/Modules/*/Config/widgets.php` |
 | Theme templates and preview | `src/Modules/ThemeBuilder/Config/documents.php`, `src/Modules/ThemeBuilder/ThemeBuilder.php`, `src/Modules/ThemeBuilder/Documents/` |
 | Theme compatibility | `src/Modules/ThemeBuilder/Compatibility/CompatibilityManager.php`, `ElementorProLocations.php` in the same folder |
-| Free and Pro conditions | `src/Config/conditions.php`; Pro: `src/Extensions/Conditions/Config/conditions.php` |
-| Template Library / Loop Item ownership | `src/TemplateLibrary/`, `src/Modules/Widgets/Widgets.php` |
-| Loop data and controls | `src/Modules/Widgets/Widgets.php`, `DataSources/` and `Widgets/LoopGrid.php`, `LoopCarousel.php`, `LoopWidget.php` within that module |
+| Free and Pro conditions | `src/Conditions/Conditions/Config/conditions.php`; Pro: `src/Extensions/Conditions/Conditions/Config/conditions.php` |
+| Template Library / Loop Item ownership | `src/TemplateLibrary/`, `src/Modules/LoopBuilder/LoopBuilder.php` |
+| Loop data and controls | `src/Modules/LoopBuilder/LoopBuilder.php`, `DataSources/` and `Widgets/LoopGrid/`, `Widgets/LoopCarousel/`, `Widgets/LoopWidget.php` within that module |
 | Nested loops | `src/Loop/Placement/NestedLoopPlacementResolver.php`, `src/Loop/Rendering/TemplateRecursionGuard.php` |
-| Form fields and actions | `src/Config/form_field_types.php`, `src/Config/form_actions.php`, `src/Forms/Actions/EmailAction.php`, `src/Forms/Services/EmailTemplate.php` |
-| Form validation, spam controls and storage | `src/Forms/Http/SubmissionController.php`, `src/Forms/Services/SubmissionService.php`, `SubmissionValidator.php`, `docs/STORAGE.md` |
+| Form fields and actions | `src/Modules/FormBuilder/Config/field_types.php`, `src/Modules/FormBuilder/Config/actions.php`, `src/Modules/FormBuilder/Actions/EmailAction.php`, `src/Modules/FormBuilder/Services/EmailTemplate.php` |
+| Form validation, spam controls and storage | `src/Modules/FormBuilder/Controllers/SubmissionController.php`, `src/Modules/FormBuilder/Services/SubmissionService.php`, `SubmissionValidator.php`, `docs/STORAGE.md` |
 | Popup formats, document controls, triggers and rules | `src/Modules/Popups/Support/PopupTypes.php`, `Documents/PopupDocument.php`, `Config/triggers.php`, `Config/rules.php`, frontend engine |
 | Dynamic Tags | `src/Modules/DynamicTags/Config/tags.php`, `Services/User.php`, tag implementations |
-| ACF widgets | `src/Modules/Widgets/Widgets/Acf/`, `src/Integrations/Acf/AcfRepeaterResolver.php` |
-| Search, navigation and logo | `src/Modules/Widgets/Widgets/Search.php`, `NavMenu/Controls/`, `SiteLogo.php` |
+| ACF widgets | `src/Widgets/AcfAccordion/`, `src/Widgets/AcfIconList/`, `src/Widgets/AcfGallery/`, `src/Integrations/Acf/AcfRepeaterResolver.php` |
+| Search, navigation and logo | `src/Widgets/Search/Search.php`, `NavMenu/Controls/`, `SiteLogo.php` |
 | Custom CSS | `src/Modules/CustomCss/Services/CustomCssManager.php` |
-| Pro feature scope | Pro: `src/Config/modules.php`, `src/Config/extensions.php`, `src/Extensions/Popups/`, `src/Extensions/LoopDataSources/`, `src/Extensions/Conditions/` |
+| Pro feature scope | Pro: `src/Config/extensions.php`, `src/Extensions/Popups/`, `src/Extensions/LoopBuilder/`, `src/Extensions/Conditions/` |
 | Pro licensing and data retention | Pro: `DEVELOPER.md`, `src/Core/ElemacyPro.php`, `src/Core/License/LicenseBootstrap.php`, `uninstall.php`; Free: `uninstall.php` |
 
 ## Copy and search decisions

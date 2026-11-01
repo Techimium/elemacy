@@ -38,7 +38,7 @@ export function TriggerRow({ entry, types, onChange, onRemove }: TriggerRowProps
                     </SelectTrigger>
                     <SelectContent>
                         {types.map((type) => {
-                            const locked = type.is_mock;
+                            const locked = type.is_placeholder;
                             return (
                                 <SelectItem
                                     key={type.value}

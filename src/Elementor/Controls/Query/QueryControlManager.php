@@ -22,7 +22,7 @@ class QueryControlManager
     public const TITLES_ACTION       = 'elemacy_query_titles';
 
     public const SCRIPT_HANDLE = 'elemacy-query-control';
-    public const RELATIVE_PATH = 'assets/editor/query-control.js';
+    public const RELATIVE_PATH = 'assets/editor/js/query-control.js';
 
     protected QueryService $service;
     protected bool $registered = false;

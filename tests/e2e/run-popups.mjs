@@ -27,8 +27,8 @@ import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(dir, '..', '..');
-copyFileSync(path.join(repo, 'src/Modules/Popups/assets/scripts/engine.js'), path.join(dir, 'engine.js'));
-copyFileSync(path.join(repo, 'src/Modules/Popups/assets/styles/popups.css'), path.join(dir, 'popups.css'));
+copyFileSync(path.join(repo, 'src/Modules/Popups/assets/js/engine.js'), path.join(dir, 'engine.js'));
+copyFileSync(path.join(repo, 'src/Modules/Popups/assets/css/popups.css'), path.join(dir, 'popups.css'));
 
 const server = createServer((req, res) => {
   const file = req.url === '/' ? '/popups.html' : req.url.split('?')[0];

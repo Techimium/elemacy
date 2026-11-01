@@ -38,7 +38,7 @@ export function RuleRow({ entry, types, onChange, onRemove }: RuleRowProps) {
                     </SelectTrigger>
                     <SelectContent>
                         {types.map((type) => {
-                            const locked = type.is_mock;
+                            const locked = type.is_placeholder;
                             return (
                                 <SelectItem
                                     key={type.value}

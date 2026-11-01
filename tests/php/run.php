@@ -13,7 +13,7 @@ use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionEvaluator;
 use Elemacy\Conditions\ConditionsBootstrap;
-use Elemacy\Conditions\MockCondition;
+use Elemacy\Conditions\Placeholders\PlaceholderCondition;
 use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Core\Admin\AdminScripts;
@@ -55,7 +55,7 @@ use Elemacy\Modules\DynamicTags\Tags\Base\PostExcerpt;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 use Elemacy\Modules\Popups\Rules\BaseRule;
-use Elemacy\Modules\Popups\Rules\MockRule;
+use Elemacy\Modules\Popups\Rules\Placeholders\PlaceholderRule;
 use Elemacy\Modules\Popups\Services\EditorPreview;
 use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
@@ -69,11 +69,11 @@ use Elemacy\Modules\Popups\Resources\RuleTypeResource;
 use Elemacy\Modules\Popups\Resources\TriggerTypeResource;
 use Elemacy\Conditions\Resources\ConditionTypeResource;
 use Elemacy\Modules\Popups\Triggers\BaseTrigger;
-use Elemacy\Modules\Popups\Triggers\MockTrigger;
+use Elemacy\Modules\Popups\Triggers\Placeholders\PlaceholderTrigger;
 use Elemacy\Loop\Items\WordPressPostScope;
 use Elemacy\Loop\Rendering\LoopRenderContext;
 use Elemacy\Loop\Rendering\LoopRenderIdentity;
-use Elemacy\Loop\Rendering\TemplateRecursionException;
+use Elemacy\Loop\Exceptions\TemplateRecursionException;
 use Elemacy\Loop\Rendering\TemplateRecursionGuard;
 use Elemacy\Loop\Sources\Posts\PostsQuery;
 use Elemacy\Loop\Sources\Terms\TermsQuery;
@@ -83,9 +83,9 @@ use Elemacy\Loop\Sources\Terms\TermsPolicy;
 use Elemacy\Loop\Sources\Users\UsersPolicy;
 use Elemacy\Modules\DynamicTags\Services\Taxonomy;
 use Elemacy\Modules\DynamicTags\Services\User;
-use Elemacy\Modules\Widgets\DataSources\PostsDataSource;
-use Elemacy\Modules\Widgets\DataSources\TaxonomyDataSource;
-use Elemacy\Modules\Widgets\DataSources\UsersDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\PostsDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\TaxonomyDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\UsersDataSource;
 use Elemacy\Modules\ThemeBuilder\ThemeBuilder;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\ClassicThemeCompatibility;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
@@ -139,7 +139,7 @@ final class FixedCondition extends BaseCondition
     }
 }
 
-final class FixedMockCondition extends MockCondition
+final class FixedMockCondition extends PlaceholderCondition
 {
     public function get_name(): string
     {
@@ -170,7 +170,7 @@ final class FixedRule extends BaseRule
     }
 }
 
-final class FixedMockRule extends MockRule
+final class FixedMockRule extends PlaceholderRule
 {
     public function get_name(): string
     {
@@ -196,7 +196,7 @@ final class FixedTrigger extends BaseTrigger
     }
 }
 
-final class FixedMockTrigger extends MockTrigger
+final class FixedMockTrigger extends PlaceholderTrigger
 {
     public function get_name(): string
     {
@@ -408,7 +408,7 @@ check('popup preview hides the close button while the popup document is empty', 
 
 check('popup frontend wrapper adds no visual decoration', static function () {
     $css = file_get_contents(
-        dirname(__DIR__, 2) . '/src/Modules/Popups/assets/styles/popups.css'
+        dirname(__DIR__, 2) . '/src/Modules/Popups/assets/css/popups.css'
     );
 
     $box_rules = [];
@@ -423,7 +423,7 @@ check('popup frontend wrapper adds no visual decoration', static function () {
 check('close button controls outrank the popups.css fallback rule for the button', static function () {
     $root = dirname(__DIR__, 2);
     $php  = file_get_contents($root . '/src/Modules/Popups/Documents/PopupDocument.php');
-    $css  = file_get_contents($root . '/src/Modules/Popups/assets/styles/popups.css');
+    $css  = file_get_contents($root . '/src/Modules/Popups/assets/css/popups.css');
 
     if (!preg_match('/CLOSE_BUTTON_SELECTOR = \'([^\']+)\';/', $php, $control)
         || !preg_match('/^(\.elemacy-popup \.elemacy-popup__close)\s*\{/m', $css, $base)) {
@@ -1057,7 +1057,7 @@ final class FixtureChoiceModule extends Module
         return $this->always_active;
     }
 
-    public function is_mock(): bool
+    public function is_placeholder(): bool
     {
         return $this->mock;
     }
@@ -1204,7 +1204,7 @@ check('Module preferences: toggling an unknown module, or a mock through the adm
 
     $mock_refused = false;
     try {
-        (new \Elemacy\Core\Admin\ModuleController())->toggle($request, 'fixture-locked-mock');
+        (new \Elemacy\Core\Admin\Controllers\ModuleController())->toggle($request, 'fixture-locked-mock');
     } catch (\Elemacy\Http\Exceptions\HttpException $refused) {
         $mock_refused = true;
     } finally {
@@ -3263,19 +3263,19 @@ check('every Free mock condition declares the same level its real Pro counterpar
     $value = ConditionRuleDTO::from_array(['value' => '7']);
 
     $expected = [
-        ['Mock\Blog',           $empty, Specificity::TYPE],
-        ['Mock\NotFound',       $empty, Specificity::TYPE],
-        ['Mock\SearchPostType', $empty, Specificity::TYPE],
-        ['Mock\SearchPostType', $value, Specificity::OBJECT],
-        ['Mock\DateArchive',    $empty, Specificity::TYPE],
-        ['Mock\FrontPage',      $empty, Specificity::OBJECT],
-        ['Mock\ChildOf',        $value, Specificity::OBJECT],
-        ['Mock\AuthorArchive',  $empty, Specificity::TYPE],
-        ['Mock\AuthorArchive',  $value, Specificity::OBJECT],
-        ['Mock\SpecificPost',   $empty, Specificity::SECTION],
-        ['Mock\SpecificPost',   $value, Specificity::OBJECT],
-        ['Mock\ByAuthor',       $empty, Specificity::SECTION],
-        ['Mock\ByAuthor',       $value, Specificity::OBJECT],
+        ['Placeholders\Blog',           $empty, Specificity::TYPE],
+        ['Placeholders\NotFound',       $empty, Specificity::TYPE],
+        ['Placeholders\SearchPostType', $empty, Specificity::TYPE],
+        ['Placeholders\SearchPostType', $value, Specificity::OBJECT],
+        ['Placeholders\DateArchive',    $empty, Specificity::TYPE],
+        ['Placeholders\FrontPage',      $empty, Specificity::OBJECT],
+        ['Placeholders\ChildOf',        $value, Specificity::OBJECT],
+        ['Placeholders\AuthorArchive',  $empty, Specificity::TYPE],
+        ['Placeholders\AuthorArchive',  $value, Specificity::OBJECT],
+        ['Placeholders\SpecificPost',   $empty, Specificity::SECTION],
+        ['Placeholders\SpecificPost',   $value, Specificity::OBJECT],
+        ['Placeholders\ByAuthor',       $empty, Specificity::SECTION],
+        ['Placeholders\ByAuthor',       $value, Specificity::OBJECT],
     ];
 
     foreach ($expected as [$class, $rule_dto, $level]) {
@@ -3287,10 +3287,10 @@ check('every Free mock condition declares the same level its real Pro counterpar
     }
 
     // The two taxonomy-scoped mocks take the taxonomy in their constructor.
-    return (new \Elemacy\Conditions\Mock\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
-        && (new \Elemacy\Conditions\Mock\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT
-        && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
-        && (new \Elemacy\Conditions\Mock\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT;
+    return (new \Elemacy\Conditions\Placeholders\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
+        && (new \Elemacy\Conditions\Placeholders\TaxonomyArchive(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT
+        && (new \Elemacy\Conditions\Placeholders\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($empty) === Specificity::TYPE
+        && (new \Elemacy\Conditions\Placeholders\InTaxonomy(new WP_Taxonomy('category', 'Category')))->get_specificity($value) === Specificity::OBJECT;
 });
 
 /* ── Search Results template conditions ──────────────────────────── */
@@ -3305,7 +3305,7 @@ check('Free\'s Search Results condition matches exactly a search request and ran
     $elsewhere = $all->check($rule);
 
     return 'search/all' === $all->get_name()
-        && !$all->is_mock()
+        && !$all->is_placeholder()
         && true === $on_search
         && false === $elsewhere
         && Specificity::TYPE === $all->get_specificity($rule);
@@ -3313,7 +3313,7 @@ check('Free\'s Search Results condition matches exactly a search request and ran
 
 check('Free\'s Search Results applies to Search, Header and Footer templates; the post type variant to Search templates only; no other type gains either', static function () {
     $all  = new \Elemacy\Conditions\Search\AllResults();
-    $post = new \Elemacy\Conditions\Mock\SearchPostType();
+    $post = new \Elemacy\Conditions\Placeholders\SearchPostType();
 
     foreach (['search', 'header', 'footer'] as $context) {
         if (!$all->applies_to($context)) {
@@ -3331,7 +3331,7 @@ check('Free\'s Search Results applies to Search, Header and Footer templates; th
 });
 
 check('Free\'s Search Results post type condition is a locked placeholder that never matches and carries the level Pro\'s real one declares', static function () {
-    $mock = new \Elemacy\Conditions\Mock\SearchPostType();
+    $mock = new \Elemacy\Conditions\Placeholders\SearchPostType();
     $empty = ConditionRuleDTO::from_array(['type' => 'search/post_type', 'value' => '']);
     $value = ConditionRuleDTO::from_array(['type' => 'search/post_type', 'value' => 'product']);
 
@@ -3340,7 +3340,7 @@ check('Free\'s Search Results post type condition is a locked placeholder that n
     $GLOBALS['__wp_is_search'] = false;
 
     return 'search/post_type' === $mock->get_name()
-        && $mock->is_mock()
+        && $mock->is_placeholder()
         && false === $matches
         && Specificity::TYPE === $mock->get_specificity($empty)
         && Specificity::OBJECT === $mock->get_specificity($value);
@@ -3349,7 +3349,7 @@ check('Free\'s Search Results post type condition is a locked placeholder that n
 check('a Search template offers the global condition as available and the post type condition as unavailable without Pro', static function () {
     $manager = new ConditionManager();
     $manager->register(new \Elemacy\Conditions\Search\AllResults());
-    $manager->register(new \Elemacy\Conditions\Mock\SearchPostType());
+    $manager->register(new \Elemacy\Conditions\Placeholders\SearchPostType());
 
     return $manager->get_availability('search/all')->is_available()
         && $manager->get_availability('search/post_type')->is_unavailable();
@@ -3358,7 +3358,7 @@ check('a Search template offers the global condition as available and the post t
 check('a Search template whose only rule is the post type placeholder is suspended, not broadened, without Pro', static function () {
     $manager = new ConditionManager();
     $manager->register(new \Elemacy\Conditions\Search\AllResults());
-    $manager->register(new \Elemacy\Conditions\Mock\SearchPostType());
+    $manager->register(new \Elemacy\Conditions\Placeholders\SearchPostType());
     $evaluator = new ConditionEvaluator($manager);
 
     $GLOBALS['__wp_is_search'] = true;
@@ -4683,10 +4683,10 @@ check('ModuleCatalog reads the module config with require, not require_once, so 
         && count(array_filter($second, static fn ($m) => $m instanceof Module)) === count($second);
 });
 
-check('The built-in modules declaring themselves default-active are exactly the five released ones (a released default is frozen: flipping it changes every site without a recorded choice)', static function () {
+check('The built-in modules declaring themselves default-active are exactly the six released ones (a released default is frozen: flipping it changes every site without a recorded choice)', static function () {
     $default_active = array_filter((new ModuleCatalog())->all(), static fn (Module $module): bool => $module->is_default_active());
     $slugs = array_values(array_map(static fn (Module $module): string => $module->get_name(), $default_active));
-    $expected = ['theme-builder', 'widgets', 'custom-css', 'dynamic-tags', 'popups'];
+    $expected = ['theme-builder', 'loop-builder', 'form-builder', 'custom-css', 'dynamic-tags', 'popups'];
     sort($slugs);
     sort($expected);
 
@@ -5633,17 +5633,17 @@ check('Modules\DynamicTags\Services\{Taxonomy,User} source files import no concr
 /* ── Task 7.8: LoopGrid/LoopCarousel import canonical Loop/ contracts ── */
 
 check('LoopGrid.php/LoopCarousel.php (and their shared LoopWidget.php) obtain every loop collaborator from the shared Loop layer: no Widgets-module Services/Contracts/Support/DTO loop import remains', static function () {
-    $dir = dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/';
+    $dir = dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/';
     $required = [
-        'LoopGrid.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
-        'LoopCarousel.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
+        'LoopGrid/LoopGrid.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
+        'LoopCarousel/LoopCarousel.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
         'LoopWidget.php' => ['use Elemacy\\Loop\\Contracts\\LoopDataSourceInterface;'],
     ];
 
     foreach ($required as $file => $imports) {
         $source = file_get_contents($dir . $file);
 
-        if (preg_match('/^use Elemacy\\\\Modules\\\\Widgets\\\\(Services|Contracts|Support|DTO)\\\\/m', $source)) {
+        if (preg_match('/^use Elemacy\\\\Modules\\\\LoopBuilder\\\\(Services|Contracts|Support|DTO)\\\\/m', $source)) {
             return false;
         }
 
@@ -5659,9 +5659,9 @@ check('LoopGrid.php/LoopCarousel.php (and their shared LoopWidget.php) obtain ev
 
 check('LoopGrid.php/LoopCarousel.php/AjaxPaginationController.php delegate per-item rendering to Loop\\Rendering\\LoopRenderer, not an inline render loop', static function () {
     $files = [
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopCarousel.php',
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Controllers/AjaxPaginationController.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopCarousel/LoopCarousel.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Controllers/AjaxPaginationController.php',
     ];
 
     foreach ($files as $file) {
@@ -5678,15 +5678,15 @@ check('LoopGrid.php/LoopCarousel.php/AjaxPaginationController.php delegate per-i
 });
 
 check('LoopGrid.php no longer defines render_pagination_html(); LoopGrid.php/AjaxPaginationController.php both delegate to Loop\\Pagination\\PaginationRenderer', static function () {
-    $loop_grid = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php');
+    $loop_grid = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php');
 
     if (false !== strpos($loop_grid, 'function render_pagination_html')) {
         return false;
     }
 
     foreach ([
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Widgets/LoopGrid.php',
-        dirname(__DIR__, 2) . '/src/Modules/Widgets/Controllers/AjaxPaginationController.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Controllers/AjaxPaginationController.php',
     ] as $file) {
         $source = file_get_contents($file);
 
@@ -6429,7 +6429,7 @@ check('Current Query treats a main query that has not run yet (null posts) as an
 });
 
 check('CurrentQueryDataSource: own key and label, a public policy that carries no setting, never endpoint-served, no sanitiser', static function () {
-    $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource();
+    $source = new \Elemacy\Modules\LoopBuilder\DataSources\CurrentQueryDataSource();
 
     return 'current_query' === $source->get_key()
         && 'Current Query' === $source->get_label()
@@ -6452,7 +6452,7 @@ check('CurrentQueryDataSource delegates get_items() and the preview item to its 
         }
     };
     $preview_item = new \Elemacy\Loop\Items\PostLoopItem(new WP_Post(77));
-    $preview = new class($preview_item) extends \Elemacy\Modules\Widgets\DataSources\PostsDataSource {
+    $preview = new class($preview_item) extends \Elemacy\Modules\LoopBuilder\DataSources\PostsDataSource {
         public array $received = [];
         private $item;
 
@@ -6469,7 +6469,7 @@ check('CurrentQueryDataSource delegates get_items() and the preview item to its 
             return $this->item;
         }
     };
-    $source = new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource($query, $preview);
+    $source = new \Elemacy\Modules\LoopBuilder\DataSources\CurrentQueryDataSource($query, $preview);
 
     $result = $source->get_items(['a' => 1]);
 
@@ -6490,7 +6490,7 @@ check('Posts offers real public post types only: no Current Query entry', static
 check('Posts query, policy and source no longer mention current_query anywhere in their code', static function () {
     $root = dirname(__DIR__, 2) . '/src/';
 
-    foreach (['Loop/Sources/Posts/PostsQuery.php', 'Loop/Sources/Posts/PostsPolicy.php', 'Modules/Widgets/DataSources/PostsDataSource.php'] as $file) {
+    foreach (['Loop/Sources/Posts/PostsQuery.php', 'Loop/Sources/Posts/PostsPolicy.php', 'Modules/LoopBuilder/DataSources/PostsDataSource.php'] as $file) {
         if (false !== strpos(file_get_contents($root . $file), 'current_query')) {
             return false;
         }
@@ -6512,7 +6512,7 @@ check('PostsQuery rejects post_type=current_query as an invalid post type', stat
 check('PublicRenderPolicy::endpoint_source() refuses a page-URL-paginated source but still returns the others', static function () {
     $sources = new LoopDataSourceRegistry();
     $sources->register(new PostsDataSource());
-    $sources->register(new \Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource());
+    $sources->register(new \Elemacy\Modules\LoopBuilder\DataSources\CurrentQueryDataSource());
     $policy = new \Elemacy\Loop\Access\PublicRenderPolicy(TypeRegistry::instance(), $sources, \Elemacy\Loop\Placement\PlacementResolverRegistry::instance());
 
     $refused = false;
@@ -6643,5 +6643,6 @@ require __DIR__ . '/theme-builder.php';
 require __DIR__ . '/popup-markup.php';
 require __DIR__ . '/forms.php';
 require __DIR__ . '/nested-loops.php';
+require __DIR__ . '/widget-platform.php';
 
 conclude();

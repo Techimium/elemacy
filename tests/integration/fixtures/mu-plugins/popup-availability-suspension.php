@@ -1,12 +1,12 @@
 <?php
 
 /**
- * A uniquely-named mock rule and mock trigger, registered the same way
- * elemacy-pro overrides Free's own Mock\* rules/triggers by name — except
+ * A uniquely-named placeholder rule and placeholder trigger, registered the same way
+ * elemacy-pro overrides Free's own Placeholders\* rules/triggers by name — except
  * these names are never overridden by anything, so they stay unavailable
  * ("inactive extension") regardless of whether the sibling Pro plugin is
  * active in this environment. Proves D5's suspend-on-unavailable behavior
- * for the "registered mock" reason distinctly from "unknown identifier"
+ * for the "registered placeholder" reason distinctly from "unknown identifier"
  * (an entirely unregistered type string), which needs no fixture at all.
  */
 defined('ELEMACY_INTEGRATION_TOKEN') || exit;
@@ -17,7 +17,7 @@ defined('ELEMACY_INTEGRATION_TOKEN') || exit;
 // request, unlike a callback body (deferred until the hook actually fires).
 add_action('elemacy/action/popups/rules/register', static function ($manager): void {
     if (!class_exists('Elemacy_Fixture_Mock_Rule')) {
-        class Elemacy_Fixture_Mock_Rule extends \Elemacy\Modules\Popups\Rules\MockRule
+        class Elemacy_Fixture_Mock_Rule extends \Elemacy\Modules\Popups\Rules\Placeholders\PlaceholderRule
         {
             public function get_name(): string
             {
@@ -37,7 +37,7 @@ add_action('elemacy/action/popups/rules/register', static function ($manager): v
 // Literal hook name; see the rules registration above for why.
 add_action('elemacy/action/popups/triggers/register', static function ($manager): void {
     if (!class_exists('Elemacy_Fixture_Mock_Trigger')) {
-        class Elemacy_Fixture_Mock_Trigger extends \Elemacy\Modules\Popups\Triggers\MockTrigger
+        class Elemacy_Fixture_Mock_Trigger extends \Elemacy\Modules\Popups\Triggers\Placeholders\PlaceholderTrigger
         {
             public function get_name(): string
             {

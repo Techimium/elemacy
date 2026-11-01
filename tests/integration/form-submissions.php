@@ -4,9 +4,9 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
-use Elemacy\Forms\Services\SubmissionRateLimiter;
-use Elemacy\Forms\Services\SubmissionService;
-use Elemacy\Forms\Submission\SubmissionMeta;
+use Elemacy\Modules\FormBuilder\Services\SubmissionRateLimiter;
+use Elemacy\Modules\FormBuilder\Services\SubmissionService;
+use Elemacy\Modules\FormBuilder\Submission\SubmissionMeta;
 use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
@@ -479,7 +479,7 @@ final class FormSubmissionsTest extends IntegrationTestCase
 
     public function testAnActionKeyCanBeRegisteredOnlyOnce(): void
     {
-        $registry = Container::instance()->make(\Elemacy\Forms\FormActionRegistry::class);
+        $registry = Container::instance()->make(\Elemacy\Modules\FormBuilder\Services\FormActionRegistry::class);
         $fixture = $registry->get('fixture_log');
         $reported = [];
         $record = static function ($function_name, $message) use (&$reported) {
@@ -494,7 +494,7 @@ final class FormSubmissionsTest extends IntegrationTestCase
             remove_filter('doing_it_wrong_trigger_error', '__return_false');
         }
         self::assertSame($fixture, $registry->get('fixture_log'));
-        self::assertSame(['Elemacy\Forms\FormActionRegistry::register: &quot;fixture_log&quot; is already registered.'], $reported);
+        self::assertSame(['Elemacy\Modules\FormBuilder\Services\FormActionRegistry::register: &quot;fixture_log&quot; is already registered.'], $reported);
     }
 
     /* ── Markup ──────────────────────────────────────────────────────────── */

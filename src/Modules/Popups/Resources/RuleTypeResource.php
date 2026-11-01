@@ -19,15 +19,15 @@ class RuleTypeResource extends Resource
         return [
             'value'               => $this->get_name(),
             'label'               => $this->get_label(),
-            'is_mock'             => $this->is_mock(),
+            'is_placeholder'             => $this->is_placeholder(),
             'is_server_evaluable' => $this->is_server_evaluable(),
             'params_schema'       => $this->get_config_schema(),
             // Every entry here came from RuleManager::get_all(), so it is by
             // definition registered — "unknown" cannot occur; only whether
-            // it is a real implementation or a non-functional Mock stand-in.
+            // it is a real implementation or a non-functional Pro placeholder.
             // Type-list resources expose availability too, not just the
             // per-saved-instance resources.
-            'availability'        => ($this->is_mock()
+            'availability'        => ($this->is_placeholder()
                 ? FeatureAvailability::inactive_extension($this->get_name())
                 : FeatureAvailability::available())->to_array(),
         ];

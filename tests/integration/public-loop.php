@@ -5,7 +5,7 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\ObservedLoopSource;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterDataSource;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterDataSource;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/ArchitectureCatalog.php';
@@ -92,11 +92,11 @@ final class PublicLoopTest extends IntegrationTestCase
             self::assertFalse(is_user_logged_in());
             $_GET = [];
             $_POST = wp_slash([
-                'action' => 'elemacy_widgets_loop_grid_pagination',
+                'action' => 'elemacy_loop_builder_pagination',
                 'settings' => wp_json_encode($settings),
                 'paged' => '1',
             ]);
-            self::assertNotFalse(has_action('wp_ajax_nopriv_elemacy_widgets_loop_grid_pagination'));
+            self::assertNotFalse(has_action('wp_ajax_nopriv_elemacy_loop_builder_pagination'));
             add_filter('wp_die_handler', $stop);
             add_filter('wp_die_ajax_handler', $stop);
             add_filter('wp_doing_ajax', $doing_ajax);
@@ -104,7 +104,7 @@ final class PublicLoopTest extends IntegrationTestCase
             $buffer_level = ob_get_level();
             ob_start();
             try {
-                do_action('wp_ajax_nopriv_elemacy_widgets_loop_grid_pagination');
+                do_action('wp_ajax_nopriv_elemacy_loop_builder_pagination');
             } catch (AjaxResponseFinished $finished) {
                 // Preserve the actual wp_send_json response for assertions.
             } finally {

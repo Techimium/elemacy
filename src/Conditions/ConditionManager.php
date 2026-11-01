@@ -51,7 +51,7 @@ class ConditionManager implements ConditionRegistrarInterface
      * Whether a stored condition identifier can actually run right now,
      * distinguishing an unregistered identifier (e.g. an extension that
      * used to provide it is gone) from one that only resolves to a
-     * non-functional mock stand-in (e.g. the extension is present but
+     * non-functional Pro placeholder (e.g. the extension is present but
      * inactive) from a real, available condition.
      */
     public function get_availability(string $name): FeatureAvailability
@@ -62,7 +62,7 @@ class ConditionManager implements ConditionRegistrarInterface
             return FeatureAvailability::unknown_identifier($name);
         }
 
-        if ($condition->is_mock()) {
+        if ($condition->is_placeholder()) {
             return FeatureAvailability::inactive_extension($name);
         }
 

@@ -32,7 +32,7 @@ export const ConditionTypeSchema = z.object({
     value_type: ConditionValueType,
     sub_values: z.array(ConditionSubValueSchema),
     search: z.record(z.string(), z.unknown()).optional(),
-    is_mock: z.boolean(),
+    is_placeholder: z.boolean(),
     requires_value: z.boolean().optional(),
 });
 

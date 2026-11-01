@@ -51,13 +51,13 @@ class AdminScripts
     {
         wp_enqueue_style(
             'elemacy-admin-global',
-            ELEMACY_URL . 'assets/admin/styles/admin-global.css',
+            ELEMACY_URL . 'assets/admin/css/admin-global.css',
             [],
             ELEMACY_VERSION
         );
         wp_enqueue_script(
             'elemacy-admin-global',
-            ELEMACY_URL . 'assets/admin/scripts/admin-global.js',
+            ELEMACY_URL . 'assets/admin/js/admin-global.js',
             [],
             ELEMACY_VERSION,
             true
@@ -93,7 +93,7 @@ class AdminScripts
     {
         wp_register_script(
             'elemacy-admin-sidebar-sync',
-            ELEMACY_URL . 'assets/admin/scripts/sidebar-sync.js',
+            ELEMACY_URL . 'assets/admin/js/sidebar-sync.js',
             [],
             ELEMACY_VERSION,
             true
@@ -103,10 +103,10 @@ class AdminScripts
 
     public function enqueue_production_scripts()
     {
-        wp_register_style('elemacy-admin-app', ELEMACY_URL . 'assets/admin/styles/admin.css', [], ELEMACY_VERSION);
+        wp_register_style('elemacy-admin-app', ELEMACY_URL . 'assets/admin/css/admin.css', [], ELEMACY_VERSION);
         wp_enqueue_style('elemacy-admin-app');
 
-        wp_register_script('elemacy-admin-app', ELEMACY_URL . 'assets/admin/scripts/admin.js', ['wp-i18n'], ELEMACY_VERSION, true);
+        wp_register_script('elemacy-admin-app', ELEMACY_URL . 'assets/admin/js/admin.js', ['wp-i18n'], ELEMACY_VERSION, true);
         wp_enqueue_script('elemacy-admin-app');
         wp_set_script_translations('elemacy-admin-app', 'elemacy', ELEMACY_PATH . 'languages');
     }

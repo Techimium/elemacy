@@ -44,7 +44,7 @@ class EditorPreview
             return;
         }
 
-        $rel  = 'src/Modules/Popups/assets/scripts/preview.js';
+        $rel  = 'src/Modules/Popups/assets/js/preview.js';
         $file = Utils::get_plugin_path($rel);
         $ver  = is_readable($file) && filemtime($file) ? (string) filemtime($file) : ELEMACY_VERSION;
 

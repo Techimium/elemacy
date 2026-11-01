@@ -3,14 +3,16 @@
 /**
  * Architecture check.
  *
- * 1. Shared layers (Core, Http, Elementor, Loop, Conditions, Forms, TemplateLibrary,
- *    Integrations, Support) never import a feature module, and a feature
+ * 1. Shared layers (Core, Http, Elementor, Widgets, Loop, Conditions,
+ *    TemplateLibrary, Integrations, Support) never import a feature module, and a feature
  *    module never imports another module's classes; modules cooperate only
  *    through the shared layers' contracts and the hooks in Core\Hooks.
  *    Config/ is the composition root's declaration of which modules exist and
  *    may name them.
- * 2. Only src/Elementor/ and the Elementor-instantiated classes inside
- *    src/Modules/ reference Elementor's own PHP namespace.
+ * 2. Only src/Elementor/, src/Widgets/ and the Elementor-instantiated classes
+ *    inside src/Modules/ reference Elementor's own PHP namespace. In
+ *    Modules/FormBuilder only Widgets/ and Elementor/ may: the forms engine
+ *    there stays builder-neutral.
  * 3. Production source and shipped assets never reference planning
  *    artifacts (design documents, task numbers, change names).
  * 4. Every persisted identifier in persisted-identifiers.php is still
@@ -37,6 +39,16 @@
  *    ends in `Interface`; no `@api` interface's signature names an
  *    `@internal` Free class; and Pro's shipped source references only `@api`
  *    Free symbols (checked when Pro's checkout sits beside this one).
+ * 9. One layout for Free and Pro (docs/ARCHITECTURE.md § Where files go):
+ *    canonical role folders and no synonyms (Mock, Locked, views, Helpers,
+ *    Utils, scripts, styles...); PascalCase folders of PHP and fixed asset
+ *    folders (assets, js, css, images); a class suffix (Interface, DTO,
+ *    Controller, Middleware, Exception) decides its folder and the folder
+ *    demands the suffix; every widget is <Name>/<Name>.php and keeps its own
+ *    scripts and styles; every script and stylesheet sits in assets/js or
+ *    assets/css; src/Config holds only the composition root; and each Pro
+ *    extension folder names the Free area it extends, with a listed
+ *    Pro<Area> entry point.
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -44,7 +56,10 @@
  */
 
 $plugin_root = dirname(__DIR__, 2) . '/';
-$shared_layers = ['Core', 'Http', 'Elementor', 'Loop', 'Conditions', 'Forms', 'TemplateLibrary', 'Integrations', 'Support'];
+$shared_layers = ['Core', 'Http', 'Elementor', 'Widgets', 'Loop', 'Conditions', 'TemplateLibrary', 'Integrations', 'Support'];
+// Inside these modules only the named folders may reach Elementor: the rest is
+// a builder-neutral engine.
+$builder_neutral_modules = ['FormBuilder' => ['Widgets', 'Elementor']];
 $violations = [];
 
 $php_files = new RecursiveIteratorIterator(
@@ -60,7 +75,8 @@ foreach ($php_files as $file_info) {
     $segments = explode('/', substr($relative_path, strlen('src/')));
     $layer = $segments[0];
     $module = 'Modules' === $layer ? ($segments[1] ?? '') : null;
-    $may_use_elementor = 'Elementor' === $layer || null !== $module;
+    $may_use_elementor = in_array($layer, ['Elementor', 'Widgets'], true)
+        || (null !== $module && (!isset($builder_neutral_modules[$module]) || in_array($segments[2] ?? '', $builder_neutral_modules[$module], true)));
 
     foreach (file($file_info->getPathname()) as $number => $line) {
         $trimmed = trim($line);
@@ -74,7 +90,7 @@ foreach ($php_files as $file_info) {
         }
 
         if (!$may_use_elementor && preg_match('/(?<![A-Za-z\\\\])\\\\?Elementor\\\\/', $line)) {
-            $violations[] = sprintf('[Elementor API outside src/Elementor and src/Modules] %s:%d: %s', $relative_path, $number + 1, $trimmed);
+            $violations[] = sprintf('[Elementor API outside src/Elementor, src/Widgets and the Elementor-facing module folders] %s:%d: %s', $relative_path, $number + 1, $trimmed);
         }
     }
 }
@@ -119,6 +135,7 @@ $retired_names = [
     '/\bElemacyElementorLifecycle\b/' => 'ElemacyElementorLifecycle (the global is elemacyElementorLifecycle)',
     '/\belemacy_widgets_form_submit\b/' => 'elemacy_widgets_form_submit (the form endpoint is elemacy_form_submit)',
     '/\belemacy_form_context\b/' => 'elemacy_form_context (forms carry no placement token)',
+    '/\belemacy_widgets_loop_grid_pagination\b/' => 'elemacy_widgets_loop_grid_pagination (the loop pagination action is elemacy_loop_builder_pagination)',
 ];
 // REST namespaces, URLs and route literals that leave out the version.
 $unversioned_rest = [
@@ -249,15 +266,24 @@ foreach ($php8_tokens ? $shipped_php : [] as $path) {
     }
 }
 
-$widget_catalog = (string) file_get_contents($plugin_root . 'src/Modules/Widgets/Config/widgets.php');
-preg_match_all("/'name'\\s*=>\\s*'([^']+)'/", $widget_catalog, $widget_names);
-if (!$widget_names[1]) {
-    $violations[] = '[widget type naming] no widget type could be read from src/Modules/Widgets/Config/widgets.php';
-}
-foreach ($widget_names[1] as $widget_name) {
-    if (!preg_match('/^elemacy(-[a-z0-9]+)+$/', $widget_name)) {
-        $violations[] = sprintf("[widget type naming] '%s' in src/Modules/Widgets/Config/widgets.php must be elemacy- plus lowercase words joined by hyphens", $widget_name);
+// Every widget catalog: the platform's own and each module's Config/widgets.php.
+$widget_catalogs = array_merge(
+    [$plugin_root . 'src/Widgets/Config/widgets.php'],
+    glob($plugin_root . 'src/Modules/*/Config/widgets.php') ?: []
+);
+$widget_names_seen = 0;
+foreach ($widget_catalogs as $catalog_path) {
+    $catalog = ltrim(str_replace($plugin_root, '', $catalog_path), '/');
+    preg_match_all("/'name'\\s*=>\\s*'([^']+)'/", (string) file_get_contents($catalog_path), $widget_names);
+    $widget_names_seen += count($widget_names[1]);
+    foreach ($widget_names[1] as $widget_name) {
+        if (!preg_match('/^elemacy(-[a-z0-9]+)+$/', $widget_name)) {
+            $violations[] = sprintf("[widget type naming] '%s' in %s must be elemacy- plus lowercase words joined by hyphens", $widget_name, $catalog);
+        }
     }
+}
+if (0 === $widget_names_seen) {
+    $violations[] = '[widget type naming] no widget type could be read from src/Widgets/Config/widgets.php or any src/Modules/*/Config/widgets.php';
 }
 
 /**
@@ -394,6 +420,150 @@ if (is_dir(dirname($plugin_root) . '/elemacy-pro/src')) {
     }
 }
 
+// 9. One layout for both plugins (docs/ARCHITECTURE.md § Where files go).
+$layout_roots = ['Free' => $plugin_root];
+if (is_dir(dirname($plugin_root) . '/elemacy-pro/src')) {
+    $layout_roots['Pro'] = dirname($plugin_root) . '/elemacy-pro/';
+}
+$role_synonyms = [
+    'Mock' => 'Placeholders', 'Locked' => 'Placeholders', 'views' => 'Views', 'Helpers' => 'Support',
+    'Utils' => 'Support', 'Utilities' => 'Support', 'Interfaces' => 'Contracts', 'Dtos' => 'DTO',
+    'scripts' => 'js', 'styles' => 'css',
+];
+$suffix_folders = ['Interface' => 'Contracts', 'DTO' => 'DTO', 'Controller' => 'Controllers', 'Middleware' => 'Middlewares', 'Exception' => 'Exceptions'];
+$asset_folders = ['assets', 'js', 'css', 'images'];
+$composition_root = ['Free' => ['modules.php', 'api.php', 'index.php'], 'Pro' => ['extensions.php', 'index.php']];
+$namespace_roots = ['Free' => 'Elemacy\\', 'Pro' => 'ElemacyPro\\'];
+// Paths (plugin-relative) excused from rule 9. Empty for 1.0: an entry is a decision to record here.
+$layout_exceptions = [];
+$widget_bases = '(?:BaseWidget|LoopWidget|Widget_Base|Widget_[A-Z][A-Za-z_]*)';
+
+foreach ($layout_roots as $plugin => $root) {
+    $label = 'Free' === $plugin ? '' : 'elemacy-pro/';
+    $asset_files = [];
+    $widget_dirs = [];
+    $tree = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . 'src', FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST);
+
+    foreach ($tree as $info) {
+        $relative = ltrim(str_replace($root, '', $info->getPathname()), '/');
+        if (in_array($relative, $layout_exceptions, true)) {
+            continue;
+        }
+
+        $parts = explode('/', $relative);
+        $name = $info->getFilename();
+
+        // 9a/9b. Folder names: canonical role folders, PascalCase PHP folders, fixed asset folders.
+        if ($info->isDir()) {
+            $in_assets = in_array('assets', $parts, true);
+
+            if (isset($role_synonyms[$name]) || ('Http' === $name && count($parts) > 2)) {
+                $violations[] = sprintf('[layout: role folder] %s%s/ is a synonym; use %s/', $label, $relative, $role_synonyms[$name] ?? 'Controllers');
+            } elseif ($in_assets ? !in_array($name, $asset_folders, true) : !preg_match('/^[A-Z][A-Za-z0-9]*$/', $name)) {
+                $violations[] = sprintf('[layout: folder case] %s%s/: folders of PHP are PascalCase; asset folders are assets, js, css or images', $label, $relative);
+            }
+            continue;
+        }
+
+        $extension = $info->getExtension();
+
+        // 9d. Scripts and stylesheets live in an assets/js or assets/css folder.
+        if (in_array($extension, ['js', 'css'], true)) {
+            $asset_files[] = $relative;
+            if (!preg_match('#(^|/)assets/(js|css)/[^/]+$#', $relative)) {
+                $violations[] = sprintf('[layout: asset folder] %s%s is outside an assets/js or assets/css folder', $label, $relative);
+            }
+            continue;
+        }
+
+        if ('php' !== $extension) {
+            continue;
+        }
+
+        // 9c. A class suffix decides its folder, and a role folder's classes carry its suffix.
+        $stem = $info->getBasename('.php');
+        $folder = basename(dirname($info->getPathname()));
+        foreach ($suffix_folders as $suffix => $role_folder) {
+            $has_suffix = substr($stem, -strlen($suffix)) === $suffix;
+            if ($has_suffix && $folder !== $role_folder) {
+                $violations[] = sprintf('[layout: suffix] %s%s ends in %s and belongs in a %s/ folder', $label, $relative, $suffix, $role_folder);
+            } elseif (!$has_suffix && $folder === $role_folder && 'index' !== $stem) {
+                $violations[] = sprintf('[layout: suffix] %s%s is in %s/ and its name must end in %s', $label, $relative, $role_folder, $suffix);
+            }
+        }
+
+        // 9d. A concrete widget class is <Name>/<Name>.php.
+        $code = (string) file_get_contents($info->getPathname());
+        if (preg_match('/^(?!abstract)(?:final\s+)?class\s+(\w+)\s+extends\s+\\\\?(?:Elementor\\\\)?' . $widget_bases . '\b/m', $code, $match)) {
+            if (basename(dirname($info->getPathname())) !== $match[1]) {
+                $violations[] = sprintf('[layout: widget folder] %s%s: widget %s lives at %s/%s.php', $label, $relative, $match[1], $match[1], $match[1]);
+            } else {
+                $widget_dirs[] = dirname($relative);
+            }
+        }
+    }
+
+    // 9d. Every class a widget catalog lists is a widget folder too.
+    foreach (array_merge(glob($root . 'src/*/Config/widgets.php') ?: [], glob($root . 'src/Modules/*/Config/widgets.php') ?: []) as $catalog) {
+        preg_match_all('/^use\s+([\w\\\\]+);/m', (string) file_get_contents($catalog), $listed);
+        foreach ($listed[1] as $class) {
+            $path = 'src/' . str_replace('\\', '/', substr($class, strlen($namespace_roots[$plugin]))) . '.php';
+            if (basename(dirname($path)) !== basename($path, '.php')) {
+                $violations[] = sprintf('[layout: widget folder] %s%s lists %s, which is not at <Name>/<Name>.php', $label, ltrim(str_replace($root, '', $catalog), '/'), $class);
+            }
+        }
+    }
+
+    // 9d. A widget's own script or stylesheet (named after the widget) stays in its folder,
+    // or in the assets/ of the module that owns it.
+    foreach ($widget_dirs as $widget_dir) {
+        $handle = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', basename($widget_dir)));
+        $module_assets = preg_match('#^(src/Modules/[^/]+)/#', $widget_dir, $module) ? $module[1] . '/assets/' : null;
+        foreach ($asset_files as $asset) {
+            if (pathinfo($asset, PATHINFO_FILENAME) === $handle && 0 !== strpos($asset, $widget_dir . '/') && (null === $module_assets || 0 !== strpos($asset, $module_assets))) {
+                $violations[] = sprintf('[layout: widget assets] %s%s belongs in %s/assets/', $label, $asset, $widget_dir);
+            }
+        }
+    }
+
+    // Shared assets: the root assets/<surface>/{js,css,images}/.
+    if (is_dir($root . 'assets')) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . 'assets', FilesystemIterator::SKIP_DOTS)) as $info) {
+            $relative = ltrim(str_replace($root, '', $info->getPathname()), '/');
+            if (in_array($info->getExtension(), ['js', 'css'], true) && !preg_match('#^assets/[a-z-]+/(js|css)/[^/]+$#', $relative)) {
+                $violations[] = sprintf('[layout: asset folder] %s%s is outside an assets/<surface>/js or /css folder', $label, $relative);
+            }
+        }
+    }
+
+    // 9e. The plugin-wide Config/ holds only the composition root.
+    foreach (glob($root . 'src/Config/*') ?: [] as $config) {
+        if (!in_array(basename($config), $composition_root[$plugin], true)) {
+            $violations[] = sprintf('[layout: composition root] %ssrc/Config/%s belongs in its owner\'s Config/ folder', $label, basename($config));
+        }
+    }
+}
+
+// 9f. Each Pro extension folder names the Free area it extends and has one listed entry point.
+if (isset($layout_roots['Pro'])) {
+    $pro_root = $layout_roots['Pro'];
+    $free_areas = array_map('basename', array_merge(glob($plugin_root . 'src/*', GLOB_ONLYDIR) ?: [], glob($plugin_root . 'src/Modules/*', GLOB_ONLYDIR) ?: []));
+    $extension_list = (string) @file_get_contents($pro_root . 'src/Config/extensions.php');
+
+    foreach (glob($pro_root . 'src/Extensions/*', GLOB_ONLYDIR) ?: [] as $extension_dir) {
+        $area = basename($extension_dir);
+        $entry = $extension_dir . '/Pro' . $area . '.php';
+
+        if (!in_array($area, $free_areas, true)) {
+            $violations[] = sprintf('[layout: Pro extension] elemacy-pro/src/Extensions/%s/ names no Free shared layer or module', $area);
+        } elseif (!is_file($entry) || !preg_match('/class\s+Pro' . $area . '\s+implements\s+ExtensionInterface\b/', (string) file_get_contents($entry))) {
+            $violations[] = sprintf('[layout: Pro extension] elemacy-pro/src/Extensions/%s/ needs Pro%s.php implementing ExtensionInterface', $area, $area);
+        } elseif (!preg_match('/\bPro' . $area . '::class\b/', $extension_list)) {
+            $violations[] = sprintf('[layout: Pro extension] Pro%s is not listed in elemacy-pro/src/Config/extensions.php', $area);
+        }
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -401,9 +571,9 @@ if ($violations) {
         fwrite(STDERR, '  - ' . $violation . "\n");
     }
 
-    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, version every REST route, and tag every Free symbol @api or @internal, with Pro using only @api ones. There is no allowlist.\n");
+    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, version every REST route, tag every Free symbol @api or @internal with Pro using only @api ones, and put each file where docs/ARCHITECTURE.md § Where files go says. There is no allowlist.\n");
 
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor and PHP-extension-contract rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor, PHP-extension-contract and layout rules all pass.\n";

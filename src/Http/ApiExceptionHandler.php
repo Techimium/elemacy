@@ -4,7 +4,6 @@ namespace Elemacy\Http;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Response;
 use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\Http\Exceptions\ValidationException;
 use Throwable;

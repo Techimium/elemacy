@@ -33,7 +33,7 @@ export function ConditionBuilder({ value, onChange, context, templateType, empty
     // Drop rules whose `type` is no longer offered for the current context /
     // template type (e.g. user changed a Header → Single, archive rules don't
     // apply anymore). A rule the server reports as unavailable (unknown, or a
-    // non-functional mock stand-in) is never auto-removed here even when it
+    // non-functional Pro placeholder) is never auto-removed here even when it
     // isn't in this context's list: D5 requires preserving it for repair,
     // not converting it into an empty/match-all definition just because this
     // screen loaded or an unrelated field was edited.

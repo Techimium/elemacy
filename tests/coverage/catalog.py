@@ -76,12 +76,17 @@ def feature(root, kind, name, source, implementation='real'):
 
 def declarations(root):
     result = []
-    configs = [('module', 'src/Config/modules.php')]
+    # Pro ships no modules of its own; it extends Free's (src/Extensions/<Area>/).
+    configs = []
     if root == FREE:
+        configs += [('module', 'src/Config/modules.php')]
+        # Widgets: the platform's own catalog, then every module's Config/widgets.php.
+        configs += [('widget', 'src/Widgets/Config/widgets.php')]
+        configs += [('widget', str(path.relative_to(root)))
+                    for path in sorted((root / 'src/Modules').glob('*/Config/widgets.php'))]
         configs += [
-            ('widget', 'src/Modules/Widgets/Config/widgets.php'),
             ('tag', 'src/Modules/DynamicTags/Config/tags.php'),
-            ('condition', 'src/Config/conditions.php'),
+            ('condition', 'src/Conditions/Config/conditions.php'),
             ('trigger', 'src/Modules/Popups/Config/triggers.php'),
             ('rule', 'src/Modules/Popups/Config/rules.php'),
         ]
@@ -95,7 +100,7 @@ def declarations(root):
         for classname in configured_classes(root, config):
             path = class_file(root, classname)
             result.append(feature(root, kind, identifier(path), str(path.relative_to(root)),
-                                  'placeholder' if '\\Mock\\' in classname else 'real'))
+                                  'placeholder' if '\\Placeholders\\' in classname else 'real'))
     if root == FREE:
         for config, field in [
             ('src/Modules/ThemeBuilder/ThemeBuilder.php', 'types'),
@@ -106,21 +111,21 @@ def declarations(root):
                 raise ValueError('Cannot read template types from ' + config)
             for name in re.findall(r"'([^']+)'\s*=>", array[1]):
                 result.append(feature(root, 'template', name, config))
-        for path in ['src/TemplateLibrary/LibraryBootstrap.php', 'src/Modules/Widgets/Widgets.php']:
+        for path in ['src/TemplateLibrary/LibraryBootstrap.php', 'src/Modules/LoopBuilder/LoopBuilder.php']:
             for name in re.findall(r"new TypeDefinition\(\s*'([^']+)'", php(root / path)):
                 result.append(feature(root, 'template', name, path))
         types = 'src/Modules/Popups/Support/PopupTypes.php'
         for name in re.findall(r"public const \w+\s*=\s*'([^']+)'", php(root / types)):
             result.append(feature(root, 'popup-type', name, types))
-        for kind, config in [('form-field', 'src/Config/form_field_types.php'),
-                             ('form-action', 'src/Config/form_actions.php')]:
+        for kind, config in [('form-field', 'src/Modules/FormBuilder/Config/field_types.php'),
+                             ('form-action', 'src/Modules/FormBuilder/Config/actions.php')]:
             for classname in configured_classes(root, config):
                 path = class_file(root, classname)
                 result.append(feature(root, kind, identifier(path, 'key'), str(path.relative_to(root))))
-        providers = [('src/Modules/Widgets/Widgets.php', 'src/Modules/Widgets/DataSources')]
+        providers = [('src/Modules/LoopBuilder/LoopBuilder.php', 'src/Modules/LoopBuilder/DataSources')]
     else:
-        providers = [('src/Extensions/LoopDataSources/ProLoopDataSources.php',
-                      'src/Extensions/LoopDataSources')]
+        providers = [('src/Extensions/LoopBuilder/ProLoopBuilder.php',
+                      'src/Extensions/LoopBuilder/DataSources')]
     for provider, directory in providers:
         for classname in re.findall(r'->register\(new\s+(\w+DataSource)\(', php(root / provider)):
             # A source may sit in its own feature folder below the provider's directory.

@@ -6,7 +6,7 @@ use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Access\PaginationContextSigner;
 use Elemacy\Loop\Access\PublicRenderPolicy;
-use Elemacy\Modules\Widgets\DataSources\CurrentQueryDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\CurrentQueryDataSource;
 use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
 use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
@@ -236,7 +236,7 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
 
     public function testTheQuerySectionKeepsPostsControlsToPostsAndGivesCurrentQueryNoQueryControls(): void
     {
-        $recorder = new class([], null) extends \Elemacy\Elementor\Widgets\BaseWidget {
+        $recorder = new class([], null) extends \Elemacy\Widgets\BaseWidget {
             public array $recorded = [];
 
             public function get_name()

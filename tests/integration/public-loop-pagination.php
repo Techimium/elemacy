@@ -66,7 +66,7 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             self::assertFalse(is_user_logged_in());
             $_GET = [];
             $_POST = wp_slash([
-                'action' => 'elemacy_widgets_loop_grid_pagination',
+                'action' => 'elemacy_loop_builder_pagination',
                 'request' => $payload,
                 'paginate_base' => home_url('/page/%#%/'),
             ]);
@@ -212,11 +212,11 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             self::assertFalse(is_user_logged_in());
             $_GET = [];
             $_POST = wp_slash([
-                'action' => 'elemacy_widgets_loop_grid_pagination',
+                'action' => 'elemacy_loop_builder_pagination',
                 'request' => $payload,
                 'paginate_base' => '',
             ]);
-            self::assertNotFalse(has_action('wp_ajax_nopriv_elemacy_widgets_loop_grid_pagination'));
+            self::assertNotFalse(has_action('wp_ajax_nopriv_elemacy_loop_builder_pagination'));
             add_filter('wp_die_handler', $stop);
             add_filter('wp_die_ajax_handler', $stop);
             add_filter('wp_doing_ajax', $doing_ajax);
@@ -224,7 +224,7 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             $buffer_level = ob_get_level();
             ob_start();
             try {
-                do_action('wp_ajax_nopriv_elemacy_widgets_loop_grid_pagination');
+                do_action('wp_ajax_nopriv_elemacy_loop_builder_pagination');
             } catch (NewProtocolAjaxResponseFinished $finished) {
                 // Preserve the actual wp_send_json response for assertions.
             } finally {

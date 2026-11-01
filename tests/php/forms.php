@@ -8,18 +8,18 @@
  * tests/e2e/run-form-submissions.mjs.
  */
 
-use Elemacy\Forms\Contracts\FieldTypeInterface;
-use Elemacy\Forms\Contracts\FormActionInterface;
-use Elemacy\Forms\Definition\Field;
-use Elemacy\Forms\Definition\FieldIdResolver;
-use Elemacy\Forms\Definition\FormDefinition;
-use Elemacy\Forms\FieldTypeRegistry;
-use Elemacy\Forms\Fields\AbstractFieldType;
-use Elemacy\Forms\FormActionRegistry;
-use Elemacy\Forms\Rendering\FormRenderer;
-use Elemacy\Forms\Settings\Setting;
-use Elemacy\Forms\Submission\ActionResult;
-use Elemacy\Forms\Submission\Submission;
+use Elemacy\Modules\FormBuilder\Contracts\FieldTypeInterface;
+use Elemacy\Modules\FormBuilder\Contracts\FormActionInterface;
+use Elemacy\Modules\FormBuilder\Definition\Field;
+use Elemacy\Modules\FormBuilder\Definition\FieldIdResolver;
+use Elemacy\Modules\FormBuilder\Definition\FormDefinition;
+use Elemacy\Modules\FormBuilder\Services\FieldTypeRegistry;
+use Elemacy\Modules\FormBuilder\Fields\AbstractFieldType;
+use Elemacy\Modules\FormBuilder\Services\FormActionRegistry;
+use Elemacy\Modules\FormBuilder\Rendering\FormRenderer;
+use Elemacy\Modules\FormBuilder\Settings\Setting;
+use Elemacy\Modules\FormBuilder\Submission\ActionResult;
+use Elemacy\Modules\FormBuilder\Submission\Submission;
 
 if (!function_exists('_doing_it_wrong')) {
     function _doing_it_wrong($function_name, $message, $version)
@@ -147,7 +147,7 @@ function forms_types(array $types): FieldTypeRegistry
     });
 }
 
-/** The real registry from src/Config/form_field_types.php. */
+/** The real registry from src/Modules/FormBuilder/Config/field_types.php. */
 function forms_builtin_types(): FieldTypeRegistry
 {
     return FieldTypeRegistry::from_config(\Elemacy\Core\Container::instance());
@@ -503,11 +503,11 @@ check('Builder-neutral settings of a fixture field type and action become the ex
         Setting::textarea('crm_tags', 'Tags'),
     ]);
 
-    $fields = \Elemacy\Modules\Widgets\Forms\ElementorSettingControls::field_settings([$kinds, $other]);
+    $fields = \Elemacy\Modules\FormBuilder\Elementor\ElementorSettingControls::field_settings([$kinds, $other]);
     $control = static function (string $key) use ($fields): array {
-        return \Elemacy\Modules\Widgets\Forms\ElementorSettingControls::control($fields[$key]['setting'], ['condition' => ['type' => $fields[$key]['types']]]);
+        return \Elemacy\Modules\FormBuilder\Elementor\ElementorSettingControls::control($fields[$key]['setting'], ['condition' => ['type' => $fields[$key]['types']]]);
     };
-    $action_controls = array_map([\Elemacy\Modules\Widgets\Forms\ElementorSettingControls::class, 'control'], $action->settings());
+    $action_controls = array_map([\Elemacy\Modules\FormBuilder\Elementor\ElementorSettingControls::class, 'control'], $action->settings());
 
     return ['placeholder', 'fixture_scale', 'fixture_shape', 'fixture_loud'] === array_keys($fields)
         && ['label' => 'Placeholder', 'type' => 'text', 'condition' => ['type' => ['fixture_rating', 'fixture_note']]] === $control('placeholder')
@@ -530,7 +530,7 @@ check('ElementorFormDefinitions keys saved repeater rows by stable field ID and 
         'submit_actions' => ['crm', 'email', 'crm'],
         'email_to' => 'team@example.invalid',
     ];
-    $form = \Elemacy\Modules\Widgets\Forms\ElementorFormDefinitions::from_settings(42, 'f00d123', $settings);
+    $form = \Elemacy\Modules\FormBuilder\Elementor\ElementorFormDefinitions::from_settings(42, 'f00d123', $settings);
     $types = array_map(static function (Field $field): string {
         return $field->type();
     }, $form->fields());
@@ -539,6 +539,6 @@ check('ElementorFormDefinitions keys saved repeater rows by stable field ID and 
         && ['email' => 'email', 'aaa1111' => 'text', 'ccc3333' => 'text'] === $types
         && ['crm', 'email'] === $form->actions()
         && 'team@example.invalid' === $form->setting('email_to')
-        && ['email'] === \Elemacy\Modules\Widgets\Forms\ElementorFormDefinitions::from_settings(1, 'x', ['submit_actions' => 'email'])->actions()
-        && [] === \Elemacy\Modules\Widgets\Forms\ElementorFormDefinitions::from_settings(1, 'x', ['form_fields' => 'junk'])->fields();
+        && ['email'] === \Elemacy\Modules\FormBuilder\Elementor\ElementorFormDefinitions::from_settings(1, 'x', ['submit_actions' => 'email'])->actions()
+        && [] === \Elemacy\Modules\FormBuilder\Elementor\ElementorFormDefinitions::from_settings(1, 'x', ['form_fields' => 'junk'])->fields();
 });

@@ -7,8 +7,8 @@ $input = json_decode(stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR)
 wp_set_current_user(0);
 $_GET = [];
 $_POST = wp_slash([
-    'action' => 'elemacy_widgets_loop_grid_pagination',
+    'action' => 'elemacy_loop_builder_pagination',
     'request' => $input['request'],
     'paginate_base' => $input['paginate_base'] ?? '',
 ]);
-do_action('wp_ajax_nopriv_elemacy_widgets_loop_grid_pagination');
+do_action('wp_ajax_nopriv_elemacy_loop_builder_pagination');

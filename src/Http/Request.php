@@ -8,7 +8,6 @@ use Elemacy\Http\Validation\Validator;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Contracts\RequestInterface;
-use Elemacy\Http\Sanitizer;
 use WP_REST_Request;
 
 /**

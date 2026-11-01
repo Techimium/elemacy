@@ -44,7 +44,7 @@ class ModuleManager implements ModuleRegistrarInterface, ModuleStatusInterface
     /**
      * Returns every registered module as a plain array, for the REST API.
      *
-     * @return array<int, array{name:string,title:string,icon:string,description:string,is_active:bool,is_headless:bool,is_mock:bool,badge:?string,url:?string}>
+     * @return array<int, array{name:string,title:string,icon:string,description:string,is_active:bool,is_headless:bool,is_placeholder:bool,badge:?string,url:?string}>
      */
     public function to_array(): array
     {
@@ -58,7 +58,7 @@ class ModuleManager implements ModuleRegistrarInterface, ModuleStatusInterface
                 'description' => $module->get_description(),
                 'is_active'   => $this->is_active($module->get_name()),
                 'is_headless' => $module->is_headless(),
-                'is_mock'     => $module->is_mock(),
+                'is_placeholder'     => $module->is_placeholder(),
                 'badge'       => $module->get_badge(),
                 'url'         => $module->get_url(),
             ];

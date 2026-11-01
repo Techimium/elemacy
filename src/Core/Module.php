@@ -43,6 +43,19 @@ abstract class Module implements ServiceProviderInterface
     public function register_assets() {
     }
 
+    /**
+     * The widgets this module ships, in the shape of a `Config/widgets.php`
+     * entry (`name`, `title`, `icon`, `class`, optional `requires`). The widget
+     * platform registers them only while this module is active. None by
+     * default; a module with widgets returns its own `Config/widgets.php`.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function get_widgets(): array
+    {
+        return [];
+    }
+
     public function on_enable(): void {
     }
 
@@ -82,7 +95,7 @@ abstract class Module implements ServiceProviderInterface
         return null;
     }
 
-    public function is_mock(): bool
+    public function is_placeholder(): bool
     {
         return false;
     }

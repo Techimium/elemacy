@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Admin\SubMenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;

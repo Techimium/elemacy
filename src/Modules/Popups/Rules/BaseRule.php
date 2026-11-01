@@ -39,7 +39,7 @@ abstract class BaseRule implements RuleInterface
         return false;
     }
 
-    public function is_mock(): bool
+    public function is_placeholder(): bool
     {
         return false;
     }

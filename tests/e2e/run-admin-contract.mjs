@@ -92,7 +92,7 @@ try {
       });
       assert.equal(await page.getByText('Pro features unlocked', { exact: true }).count(), count);
       // Re-executing the loader must not execute the Pro application again.
-      await page.addScriptTag({ url: new URL('/wp-content/plugins/elemacy-pro/assets/admin/scripts/elemacy-pro-loader.js', base).href });
+      await page.addScriptTag({ url: new URL('/wp-content/plugins/elemacy-pro/assets/admin/js/elemacy-pro-loader.js', base).href });
       await page.goto(new URL('/wp-admin/admin.php?page=elemacy#/license', base).href);
       await page.getByText('Elemacy Pro License', { exact: true }).waitFor();
       const input = page.getByPlaceholder('Enter your license key');

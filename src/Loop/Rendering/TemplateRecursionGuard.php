@@ -5,6 +5,7 @@ namespace Elemacy\Loop\Rendering;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Support\LoopLimits;
+use Elemacy\Loop\Exceptions\TemplateRecursionException;
 
 /**
  * Refuses an *active* recursive template cycle — direct or indirect — and caps

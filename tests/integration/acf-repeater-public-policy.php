@@ -4,7 +4,7 @@ namespace Elemacy\Tests\Integration;
 
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterDataSource;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterDataSource;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/ArchitectureCatalog.php';

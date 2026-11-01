@@ -54,7 +54,7 @@ class TypeRegistry implements LibraryTypeRegistrarInterface
 
     /**
      * Whether a stored library type identifier is still registered by any
-     * module. No mock-stand-in concept exists for this registry today, so
+     * module. No Pro-placeholder concept exists for this registry today, so
      * this only distinguishes a live registration from an unregistered one.
      */
     public function get_availability(string $name): FeatureAvailability

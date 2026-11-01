@@ -64,9 +64,9 @@ interface ConditionInterface
     public function get_specificity(ConditionRuleDTO $rule): int;
 
     /**
-     * Whether this is a mock stand-in shown in the UI but not functional.
-     * A mock is registered by free and overridden by an extension (e.g. pro)
+     * Whether this is a Pro placeholder shown in the UI but not functional.
+     * A placeholder is registered by free and overridden by an extension (e.g. pro)
      * that provides the real implementation under the same name.
      */
-    public function is_mock(): bool;
+    public function is_placeholder(): bool;
 }

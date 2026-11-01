@@ -19,7 +19,7 @@ require_once __DIR__ . '/IntegrationTestCase.php';
 
 /**
  * design.md D5/task 4.4: an unavailable saved condition/rule/trigger
- * (unknown, or a non-functional mock stand-in) must round-trip
+ * (unknown, or a non-functional Pro placeholder) must round-trip
  * byte-equivalently through an edit that never touches it — a title-only
  * popup update, or any ConditionRepository save/get cycle used by both
  * Popups and Theme Builder — and the resource that serves it back to the
@@ -52,7 +52,7 @@ final class AvailabilityRepairRoundTripTest extends IntegrationTestCase
         return $id;
     }
 
-    public function testConditionRepositorySaveGetRoundTripsUnknownAndMockConditionsUnchanged(): void
+    public function testConditionRepositorySaveGetRoundTripsUnknownAndPlaceholderConditionsUnchanged(): void
     {
         $host = $this->create_host('Availability round-trip host');
         $repository = new ConditionRepository();

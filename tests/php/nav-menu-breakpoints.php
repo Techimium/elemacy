@@ -7,7 +7,7 @@
  * rendered widget are covered in tests/integration/nav-menu.php.
  */
 
-use Elemacy\Modules\Widgets\Widgets\NavMenu\BreakpointStyles;
+use Elemacy\Widgets\NavMenu\BreakpointStyles;
 
 /** A stand-in for Elementor's Core\Breakpoints\Breakpoint. */
 final class NavMenuTestBreakpoint

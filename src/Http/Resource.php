@@ -4,8 +4,8 @@ namespace Elemacy\Http;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Support\ArrayableInterface;
-use Elemacy\Http\Contracts\Support\JsonableInterface;
+use Elemacy\Http\Contracts\ArrayableInterface;
+use Elemacy\Http\Contracts\JsonableInterface;
 
 // phpcs:ignore PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.resourceFound -- soft-reserved only; never hard-reserved through PHP 8.x.
 /**

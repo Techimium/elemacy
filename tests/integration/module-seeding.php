@@ -31,7 +31,7 @@ final class ModuleSeedingTest extends IntegrationTestCase
             $current = array_map(static fn($module): string => $module->get_name(), $catalog->all());
 
             self::assertSame([], $seeded, 'Seeding writes the module-preferences option with no recorded choice, so every module follows its declared default.');
-            self::assertSame(['theme-builder', 'dynamic-tags', 'widgets', 'custom-css', 'popups'], $current, 'The module slugs are the permanent ones recorded in docs/CONTRACTS.md.');
+            self::assertSame(['theme-builder', 'dynamic-tags', 'loop-builder', 'form-builder', 'custom-css', 'popups'], $current, 'The module slugs are the permanent ones recorded in docs/CONTRACTS.md.');
         } finally {
             if (null === $previous) {
                 delete_option(OptionKeys::ACTIVE_MODULES);

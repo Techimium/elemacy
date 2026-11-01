@@ -22,7 +22,7 @@ class PopupFrontendAssets
     {
         wp_register_script(
             'elemacy-popups-engine',
-            Utils::get_plugin_url('src/Modules/Popups/assets/scripts/engine.js'),
+            Utils::get_plugin_url('src/Modules/Popups/assets/js/engine.js'),
             ['jquery', 'elemacy-frontend', 'elemacy-elementor-lifecycle'],
             ELEMACY_VERSION,
             true
@@ -30,7 +30,7 @@ class PopupFrontendAssets
 
         wp_register_style(
             'elemacy-popups',
-            Utils::get_plugin_url('src/Modules/Popups/assets/styles/popups.css'),
+            Utils::get_plugin_url('src/Modules/Popups/assets/css/popups.css'),
             ['elemacy-core'],
             ELEMACY_VERSION
         );

@@ -124,7 +124,7 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
 
         $condition = ConditionManager::instance()->get('search/post_type');
 
-        self::assertFalse($condition->is_mock());
+        self::assertFalse($condition->is_placeholder());
         self::assertTrue(ConditionManager::instance()->get_availability('search/post_type')->is_available());
         self::assertTrue($condition->applies_to('search'));
         self::assertContains(self::CPT, array_column($condition->get_sub_values(), 'value'));
@@ -140,7 +140,7 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
         self::assertNull($without->match($rules), 'Without Pro the saved rule must suspend the template, never broaden it.');
         self::assertTrue($without->match(ConditionRuleDTO::collection([$this->rule('search/all')])) !== null, 'The free global condition keeps working.');
 
-        if (ConditionManager::instance()->get('search/post_type') && !ConditionManager::instance()->get('search/post_type')->is_mock()) {
+        if (ConditionManager::instance()->get('search/post_type') && !ConditionManager::instance()->get('search/post_type')->is_placeholder()) {
             self::assertNotNull(
                 ConditionEvaluator::instance()->match($rules),
                 'With Pro present the same saved rule matches again without being re-saved.'
@@ -169,7 +169,7 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
         self::assertSame([], $names('404'));
         self::assertSame(['search/all'], $names('header'), 'Free\'s Search Results is offered on Header templates.');
         self::assertSame(['search/all'], $names('footer'), 'And on Footer templates.');
-        self::assertTrue($manager->get('search/post_type')->is_mock());
+        self::assertTrue($manager->get('search/post_type')->is_placeholder());
     }
 
     public function testFreeAloneDisplaysAHeaderWithSearchResultsOnEverySearchPage(): void
@@ -291,14 +291,14 @@ final class SearchTemplateConditionsTest extends IntegrationTestCase
         $condition = ConditionManager::instance()->get('search/post_type');
 
         self::assertNotNull($condition, 'Pro is active, so search/post_type must be registered.');
-        self::assertFalse($condition->is_mock(), 'Pro is active, so its real search/post_type must replace the placeholder.');
+        self::assertFalse($condition->is_placeholder(), 'Pro is active, so its real search/post_type must replace the placeholder.');
     }
 
     private function freeOnlyManager(): ConditionManager
     {
         $manager = new ConditionManager();
 
-        foreach (ConfigList::instances(Utils::get_plugin_path('src/Config/conditions.php'), ConditionInterface::class) as $condition) {
+        foreach (ConfigList::instances(Utils::get_plugin_path('src/Conditions/Config/conditions.php'), ConditionInterface::class) as $condition) {
             $manager->register($condition);
         }
 

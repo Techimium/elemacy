@@ -12,7 +12,7 @@ use Elemacy\Support\Utils;
 
 /**
  * Registers the triggers and advanced rules free ships, listed in
- * src/Modules/Popups/Config/{triggers,rules}.php. Both lists include mock
+ * src/Modules/Popups/Config/{triggers,rules}.php. Both lists include placeholder
  * entries that elemacy-pro overrides (by name) with real implementations when
  * active.
  *

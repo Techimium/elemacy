@@ -29,7 +29,7 @@ abstract class BaseTrigger implements TriggerInterface
         );
     }
 
-    public function is_mock(): bool
+    public function is_placeholder(): bool
     {
         return false;
     }

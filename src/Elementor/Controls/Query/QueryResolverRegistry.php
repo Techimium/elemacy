@@ -37,13 +37,13 @@ class QueryResolverRegistry implements QueryResolverRegistrarInterface
 
     /**
      * The registry the plugin uses: the resolvers listed in
-     * src/Config/query_resolvers.php, then whatever add-ons register on
+     * src/Elementor/Config/query_resolvers.php, then whatever add-ons register on
      * Hooks::QUERY_RESOLVERS_REGISTER_ACTION. Both happen on the first lookup.
      */
     public static function from_config(): self
     {
         return new self(static function (self $registry): void {
-            foreach (ConfigList::instances(Utils::get_plugin_path('src/Config/query_resolvers.php'), QueryResolverInterface::class) as $resolver) {
+            foreach (ConfigList::instances(Utils::get_plugin_path('src/Elementor/Config/query_resolvers.php'), QueryResolverInterface::class) as $resolver) {
                 $registry->register($resolver);
             }
 

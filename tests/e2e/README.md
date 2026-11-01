@@ -1,7 +1,7 @@
 # Frontend engine E2E tests
 
 Headless-Chromium regression suite for the popups frontend engine
-(`src/Modules/Popups/assets/scripts/engine.js`). The harness page mirrors the
+(`src/Modules/Popups/assets/js/engine.js`). The harness page mirrors the
 real runtime contract: its markup matches `PopupRenderer::build_markup()` and
 its `window.elemacyPopupsConfig` config matches `PopupConfigResource`. If either
 contract changes, update `popups.html` in the same commit.

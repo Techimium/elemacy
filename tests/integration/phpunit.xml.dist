@@ -62,6 +62,7 @@
             <file>condition-registry-extension.php</file>
             <file>library-persistence.php</file>
             <file>module-seeding.php</file>
+            <file>module-feature-availability.php</file>
             <file>template-rendering-preparation.php</file>
             <file>request-state.php</file>
             <file>shared-preparation-across-placements.php</file>

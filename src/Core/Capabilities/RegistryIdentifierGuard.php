@@ -34,9 +34,9 @@ final class RegistryIdentifierGuard
     }
 
     /**
-     * Replacement is directional. A real implementation may supersede a mock
+     * Replacement is directional. A real implementation may supersede a placeholder
      * stand-in — that is how an add-on takes over the identifier its free
-     * counterpart holds a placeholder for. The reverse never is: a mock
+     * counterpart holds a placeholder for. The reverse never is: a placeholder
      * displacing a working implementation only ever silently downgrades a
      * live feature, so it is rejected rather than accepted on registration
      * order alone.
@@ -49,7 +49,7 @@ final class RegistryIdentifierGuard
      * @throws \InvalidArgumentException When the identifier is reserved, already
      *                                   claimed by a different real implementation,
      *                                   or claimed by a real implementation the
-     *                                   incoming mock would displace.
+     *                                   incoming placeholder would displace.
      */
     public static function assert_registrable(string $domain, string $identifier, ?object $existing, object $incoming): void
     {
@@ -59,9 +59,9 @@ final class RegistryIdentifierGuard
             return;
         }
 
-        // Anything may supersede a mock: the real implementation it stands
+        // Anything may supersede a placeholder: the real implementation it stands
         // in for, or another stand-in.
-        if (self::is_mock($existing)) {
+        if (self::is_placeholder($existing)) {
             return;
         }
 
@@ -77,10 +77,10 @@ final class RegistryIdentifierGuard
         }
 
         // Past this point $existing is a real implementation and $incoming is
-        // a different entry: a mock trying to displace it, or a second real
+        // a different entry: a placeholder trying to displace it, or a second real
         // implementation colliding with it. Both are rejected, and the
         // message distinguishes them.
-        $reason = self::is_mock($incoming)
+        $reason = self::is_placeholder($incoming)
             ? 'refusing to replace it with the unavailable stand-in %s.'
             : 'refusing to replace it with %s.';
 
@@ -99,8 +99,8 @@ final class RegistryIdentifierGuard
      * Whether an entry reports itself as a non-functional stand-in. An entry
      * from a domain that has no such concept is never one.
      */
-    private static function is_mock(object $entry): bool
+    private static function is_placeholder(object $entry): bool
     {
-        return method_exists($entry, 'is_mock') && $entry->is_mock();
+        return method_exists($entry, 'is_placeholder') && $entry->is_placeholder();
     }
 }

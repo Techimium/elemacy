@@ -27,7 +27,7 @@ For a live admin UI with hot reload add `define('ELEMACY_ENV', 'dev');` to `wp-c
 | plugin root | `php tests/php/run.php` | Fast harness (pure logic, stubbed WordPress). |
 | plugin root | `vendor/bin/phpcs -q` | Coding standards and PHP compatibility. Target 0 errors. |
 | plugin root | `vendor/bin/phpcbf` | Auto-fix what WPCS can fix. |
-| plugin root | `php tests/architecture/check.php` | Layering, Elementor boundary and planning-reference rules. |
+| plugin root | `php tests/architecture/check.php` | Layering, Elementor boundary, planning-reference, contract and layout rules. |
 | plugin root | `php tests/integration/run.php` | Real WordPress and Elementor suite in a disposable site (`tests/integration/README.md`). |
 | `tests/e2e/` | `node run-*.mjs` | Real-browser suites (`tests/e2e/README.md`). |
 | `src-react/` | `npm run dev` / `npm run build` / `npm run lint` | Admin app. |
@@ -37,17 +37,22 @@ The full gate, in order, is in `docs/RELEASE.md` section 1. Run it before every 
 
 ## Where things live
 
+Every file has one home, and `php tests/architecture/check.php` (rule 9) rejects anything else. The full rule is `docs/ARCHITECTURE.md` § Where files go.
+
 | Folder | What goes there |
 | --- | --- |
 | `src/Core/` | Plugin lifecycle and composition: bootstrap, `Module`, `ModuleManager`, `Container`, `Hooks`, migrations, multisite, capabilities, admin menu and scripts. |
 | `src/Http/` | REST `Route`, `AjaxRouter`, requests, responses, middlewares, validation, exceptions. |
-| `src/Elementor/` | Everything that calls Elementor: rendering, CSS, preview, documents, controls, the widget base class, compatibility probes. |
-| `src/Loop/`, `src/Conditions/`, `src/TemplateLibrary/`, `src/Integrations/` | Shared domains used by more than one module. |
-| `src/Modules/<Name>/` | A user-facing feature. Inside: `Config/`, `Controllers/`, `Services/`, `Requests/`, `Resources/`, `DTO/`, `Documents/`, `Widgets/`, `Support/`, `Views/`, `assets/`. |
+| `src/Elementor/` | Adapters to Elementor's APIs: rendering, CSS, preview, documents, controls, compatibility probes. |
+| `src/Widgets/` | The always-on widget platform (`BaseWidget`, the registry, per-widget switches, the Widgets screen) and the general widgets, one folder each. |
+| `src/Loop/`, `src/Conditions/`, `src/TemplateLibrary/`, `src/Integrations/` | Shared engines that two or more areas use. |
+| `src/Modules/<Feature>/` | A feature an administrator can switch off, with everything only it uses: its engine, widgets, documents, routes, config and assets. |
 | `src/Support/` | Small stateless helpers. |
-| `src/Config/` | The module list, shared routes and built-in conditions. |
+| `src/Config/` | The composition root only: `modules.php` and the shared layers' `api.php`. Every other list lives in its owner's `Config/`. |
 
-Shared layers never import a module; a module never imports another module. `php tests/architecture/check.php` fails the build otherwise, and there is no allowlist.
+Code goes in a shared layer only when two or more areas use it; otherwise it lives in the one module that does. Shared layers never import a module, and a module never imports another module.
+
+Inside any area the same role folders hold the same things: `Config/`, `Contracts/` (`*Interface`), `Controllers/` (`*Controller`), `DTO/` (`*DTO`), `Documents/`, `Exceptions/` (`*Exception`), `Middlewares/` (`*Middleware`), `Placeholders/`, `Requests/`, `Resources/`, `Services/`, `Support/`, `Views/`, `Widgets/` and `assets/{js,css,images}/`. A class's suffix decides its folder, and folders of PHP are PascalCase.
 
 ## Conventions
 
@@ -70,7 +75,7 @@ Shared layers never import a module; a module never imports another module. `php
 ```php
 namespace Elemacy\Modules\Reviews;
 
-use Elemacy\Core\Container;
+use Elemacy\Core\Contracts\ContainerInterface;
 use Elemacy\Core\Module;
 use Elemacy\Support\Utils;
 
@@ -81,7 +86,7 @@ class Reviews extends Module
     public function get_icon(): string { return 'star'; }
     public function get_description(): string { return __('Collect and display reviews.', 'elemacy'); }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         // Bind what other code may inject; registries bind to their ::instance().
     }
@@ -95,27 +100,35 @@ class Reviews extends Module
     {
         require_once Utils::get_plugin_path('src/Modules/Reviews/Config/api.php');
     }
+
+    public function get_widgets(): array
+    {
+        return require Utils::get_plugin_path('src/Modules/Reviews/Config/widgets.php');
+    }
 }
 ```
 
-2. Add `Reviews::class` to `src/Config/modules.php`. The module appears on the Modules screen, can be toggled, and its `register()` runs before any module's `boot()`.
+2. Add `Reviews::class` to `src/Config/modules.php`. The module appears on the Modules screen, can be toggled, and its `register()` runs before any module's `boot()`. Its slug is stored in `elemacy_active_modules`, so it is never renamed after release.
 
 ### Add a widget
 
-1. Create `src/Modules/Widgets/Widgets/Testimonial.php` extending `Elemacy\Elementor\Widgets\BaseWidget`, with `get_name()` returning a stable, never-renamed name such as `elemacy-testimonial`.
-2. Add it to `src/Modules/Widgets/Config/widgets.php` (`name`, `title`, `icon`, `class`). Add-ons use `Hooks::WIDGETS_REGISTER_FILTER`.
-3. Enqueue its assets from `Modules/Widgets/Services/FrontendAssets.php`; frontend behaviour goes in `Modules/Widgets/assets/`.
+1. Pick its owner. A widget of a feature module lives in `src/Modules/<Feature>/Widgets/Testimonial/`; a general widget that belongs to no feature lives in `src/Widgets/Testimonial/`.
+2. Create `Testimonial/Testimonial.php` extending `Elemacy\Widgets\BaseWidget`, with `get_name()` returning a stable, never-renamed name such as `elemacy-testimonial`. Big control sections go in `Testimonial/Controls/`, helpers beside the class, and its own sources in `Testimonial/assets/js/testimonial.js` and `assets/css/testimonial.css`.
+3. List it in the owner's `Config/widgets.php` (`name`, `title`, `icon`, `class`, optional `requires`): `src/Widgets/Config/widgets.php` for the platform, or the module's own file returned by `get_widgets()`. Add-ons use `Hooks::WIDGETS_REGISTER_FILTER`.
+4. Register its handles from the owner's `Services/FrontendAssets.php` with `Widgets\Support\WidgetAssets::register_script()` / `register_style()`, which resolve the widget folder's `assets/js` and `assets/css`. The handle is `elemacy-<file>`.
+
+The widget is offered in the editor and listed on the Widgets screen while its owner is available and its own switch is on. Deleting its folder and its list entry removes it completely.
 
 ### Add a loop data source
 
-1. Keep the query in an Elementor-free class (like `Loop/Sources/PostsQuery.php`), and the public-context policy in another (like `Loop/Pagination/Policies/PostsPolicy.php`) implementing `Loop\Contracts\PublicLoopSourcePolicyInterface`.
-2. Create the source under `Modules/Widgets/DataSources/` implementing `Loop\Contracts\LoopDataSourceInterface`: `get_key()`, `get_label()`, `register_controls(BaseWidget $widget)`, `get_items(array $settings): LoopResultDTO`, `sanitize_ajax_settings()`, `register_preview_controls()`, `resolve_preview_item()`. Also implement `PublicLoopSourcePolicyInterface` if visitors may see it; without it the source renders only for editors.
+1. Keep the query in an Elementor-free class (like `Loop/Sources/Posts/PostsQuery.php`), and the public-context policy in another (like `Loop/Sources/Posts/PostsPolicy.php`) implementing `Loop\Contracts\PublicLoopSourcePolicyInterface`.
+2. Create the source under `Modules/LoopBuilder/DataSources/` implementing `Loop\Contracts\LoopDataSourceInterface`: `get_key()`, `get_label()`, `register_controls(BaseWidget $widget)`, `get_items(array $settings): LoopResultDTO`, `sanitize_ajax_settings()`, `register_preview_controls()`, `resolve_preview_item()`. Also implement `PublicLoopSourcePolicyInterface` if visitors may see it; without it the source renders only for editors.
 3. Register it on `Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION` with `Loop\LoopDataSourceRegistry`. A source whose items are the host page's own main query and whose pages are that page's URLs (like `CurrentQueryDataSource`) also implements `Loop\Contracts\PageUrlPaginatedSourceInterface`, so the signed-definition endpoint refuses it. The Loop Grid, Loop Carousel, AJAX pagination and Loop Item preview pick it up without changes.
 
 ### Add a display condition
 
 1. Create a class extending `Conditions\BaseCondition` with `get_name()` (`group/name`, never renamed), `get_type()`, `get_label()`, `get_value_type()` and `check(ConditionRuleDTO $rule): bool`.
-2. Free conditions are listed in `src/Config/conditions.php`; add-ons register on `Hooks::CONDITIONS_REGISTER_ACTION`.
+2. Free conditions are listed in `src/Conditions/Config/conditions.php`; add-ons register on `Hooks::CONDITIONS_REGISTER_ACTION`.
 3. Conditions are flat: includes OR together, any matching exclude vetoes. Do not design a condition that assumes grouping.
 
 ### Add a popup rule or trigger

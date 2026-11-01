@@ -8,7 +8,7 @@ Stored identifiers, saved names, HTTP paths and hook names that saved sites, Pro
 
 These are written into sites' databases and saved Elementor data. Renaming one silently breaks every site that stored the old value, so from the 1.0 release on a rename is never a refactor: it ships a `Core\Migrator` step, in the same change, that rewrites the stored value.
 
-- **Module slugs**: `theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`, stored in `elemacy_active_modules`.
+- **Module slugs**: `theme-builder`, `loop-builder`, `form-builder`, `custom-css`, `dynamic-tags`, `popups`, stored in `elemacy_active_modules`.
 - **Template type names**: every stored `_elemacy_template_type` value in § Library types and Elementor document names.
 - **Elementor document type names**: every stored `_elementor_template_type` value in the same table.
 - **Stored meta and option keys**: every key in § Storage ownership.
@@ -44,10 +44,10 @@ The same holds for a module's `Module::is_default_active()`: `elemacy_active_mod
 | `elemacy_db_version` | Same owner; currently a release-version string, despite its schema-oriented name |
 | `elemacy_schema_version` | `src/Core/Constants/OptionKeys.php`; completed Free data migrations, advanced only by `Core\Migrator` |
 | `elemacy_library_index` | `src/TemplateLibrary/ResolverCache.php`; rebuildable published candidate index, **non-autoloaded in code**, stored as `{shape, index}`; any `shape` other than `ResolverCache::SHAPE` is a miss and is rebuilt |
-| `elemacy_widgets` | `src/Modules/Widgets/Services/WidgetService.php`; widget status map, built through `Utils::with_prefix('widgets')` |
+| `elemacy_widgets` | `src/Widgets/Services/WidgetSettings.php`; widget status map, built through `Utils::with_prefix('widgets')` |
 | `elemacy_pro_license_key` | Pro `Core/License/LicenseManager.php`; stored license key; never include its value in fixtures/logs |
 | `elemacy_pro_license_status` | Same owner; `{valid, expires, plan}` with defaults supplied on read |
-| `elemacy_form_limit_*` | `src/Forms/Services/SubmissionRateLimiter.php`; form submission rate-limit rows (options, non-autoloaded), `elemacy_form_limit_<HMAC of the client IP>` holding `<window end>:<count>` |
+| `elemacy_form_limit_*` | `src/Modules/FormBuilder/Services/SubmissionRateLimiter.php`; form submission rate-limit rows (options, non-autoloaded), `elemacy_form_limit_<HMAC of the client IP>` holding `<window end>:<count>` |
 | `elemacy_pro_update` | Pro updater transient/cache identifier |
 | `elemacy_pro_license_revalidate` | Pro license cron hook; existing daily revalidation |
 
@@ -55,21 +55,21 @@ Elementor authoring metadata is also a compatibility boundary: `_elementor_data`
 
 ## Saved module, widget and data-source names
 
-Enabled Free module slugs: `theme-builder`, `widgets`, `custom-css`, `dynamic-tags`, `popups`. Source: `src/Config/modules.php` and each module's `get_name()`.
+Enabled Free module slugs: `theme-builder`, `loop-builder`, `form-builder`, `custom-css`, `dynamic-tags`, `popups`. Source: `src/Config/modules.php` and each module's `get_name()`. The widget platform (`src/Widgets/`) is always on and has no slug.
 
-| Widget class under `Modules/Widgets/Widgets` | Stored Elementor widget name |
-| --- | --- |
-| `SiteLogo` | `elemacy-site-logo` |
-| `NavMenu` | `elemacy-nav-menu` |
-| `LoopGrid` | `elemacy-loop-grid` |
-| `LoopCarousel` | `elemacy-loop-carousel` |
-| `Form` | `elemacy-form` |
-| `Search` | `elemacy-search` |
-| `Acf/AcfAccordion` | `elemacy-acf-accordion` |
-| `Acf/AcfIconList` | `elemacy-acf-icon-list` |
-| `Acf/AcfGallery` | `elemacy-acf-gallery` |
+| Widget class | Owner | Stored Elementor widget name |
+| --- | --- | --- |
+| `Widgets\SiteLogo\SiteLogo` | platform | `elemacy-site-logo` |
+| `Widgets\NavMenu\NavMenu` | platform | `elemacy-nav-menu` |
+| `Widgets\Search\Search` | platform | `elemacy-search` |
+| `Widgets\AcfAccordion\AcfAccordion` | platform | `elemacy-acf-accordion` |
+| `Widgets\AcfIconList\AcfIconList` | platform | `elemacy-acf-icon-list` |
+| `Widgets\AcfGallery\AcfGallery` | platform | `elemacy-acf-gallery` |
+| `Modules\LoopBuilder\Widgets\LoopGrid\LoopGrid` | `loop-builder` | `elemacy-loop-grid` |
+| `Modules\LoopBuilder\Widgets\LoopCarousel\LoopCarousel` | `loop-builder` | `elemacy-loop-carousel` |
+| `Modules\FormBuilder\Widgets\Form\Form` | `form-builder` | `elemacy-form` |
 
-The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Every widget type is `elemacy-*` with hyphens only.
+The catalog authorities are `src/Widgets/Config/widgets.php` and each module's `Config/widgets.php`. Every widget type is `elemacy-*` with hyphens only. A widget's name stays the same wherever its class lives, so moving a widget between owners changes no saved page.
 
 The Nav Menu's saved setting names are the Elementor Pro Nav Menu's control IDs (`menu`, `layout`, `pointer`, `animation_line`, `dropdown`, `toggle` and the rest, checked against `tests/integration/fixtures/nav-menu-reference-controls.json`), so Paste Style works between the two widgets. Keep them. Everything the widget puts on the page is Elemacy's own and is not a public styling API: classes under `elemacy-nav-menu`, the custom properties `--elemacy-nav-menu-*`, and the script and style handle `elemacy-nav-menu`.
 
@@ -182,7 +182,7 @@ Trigger identifiers: `page_load`, `click`, `scroll`, `exit_intent`, `inactivity`
 
 Rule identifiers: `frequency_cap`, `logged_in`, `once_per`, `devices`, `schedule`, `page_views`, `sessions`, `referrer`, `roles`, `browser`.
 
-Free supplies real page-load/click triggers and frequency/logged-in rules; Pro supplies implementations for the corresponding Free mocks, under the same identifier and with the same parameter keys. Source registries and `get_name()` values, rather than translated labels, identify stored configuration. Rule/trigger `params` retain their type-owned shapes. Saving refuses a trigger or rule whose type is not registered; a Free placeholder for a Pro type counts as registered, so a popup built with Pro can still be edited without it. The `logged_in` rule means "hide for logged-in users".
+Free supplies real page-load/click triggers and frequency/logged-in rules; Pro supplies implementations for the corresponding Free placeholders, under the same identifier and with the same parameter keys. Source registries and `get_name()` values, rather than translated labels, identify stored configuration. Rule/trigger `params` retain their type-owned shapes. Saving refuses a trigger or rule whose type is not registered; a Free placeholder for a Pro type counts as registered, so a popup built with Pro can still be edited without it. The `logged_in` rule means "hide for logged-in users".
 
 Parameter keys, by identifier: `page_load` (`delay`), `click` (`selector`), `scroll` (`percentage`), `inactivity` (`delay`), `scroll_to_element` (`selector`), `on_popup_close` (`popup_id`: the source popup's id, `0` or absent meaning any other popup), `frequency_cap` (`max`), `once_per` (`period`), `devices` (`allow`), `schedule` (`start`, `end`), `page_views` and `sessions` (`count`), `referrer` (`url`), `browser` (`browsers`), `roles` (`roles`). `exit_intent` and `logged_in` take none.
 
@@ -215,17 +215,17 @@ Condition identifiers come from `src/Conditions/*/get_name()` and Pro's matching
 
 ## Form Builder
 
-The forms engine lives in `src/Forms/` (`Elemacy\Forms`); the Form widget (`elemacy-form`) is its Elementor UI and registers itself as the form source `elementor`. Everything below is 1.0 contract: it changes only by adding to it, and `tests/architecture/persisted-identifiers.php` guards the saved parts.
+The forms engine lives in the Form Builder module, `src/Modules/FormBuilder/` (`Elemacy\Modules\FormBuilder`), and exists only while that module is active; the Form widget (`elemacy-form`) is its Elementor UI and registers itself as the form source `elementor`. Everything below is 1.0 contract: it changes only by adding to it, and `tests/architecture/persisted-identifiers.php` guards the saved parts.
 
 ### Saved form settings
 
-- **Field type keys** (the `type` of each `form_fields` row), in the editor's order from `src/Config/form_field_types.php`: `text`, `email`, `textarea`, `url`, `tel`, `number`, `date`, `time`, `select`, `radio`, `checkbox`, `acceptance`, `hidden`, `html`.
-- **Submit action keys** (`submit_actions`), from `src/Config/form_actions.php`: `email`.
+- **Field type keys** (the `type` of each `form_fields` row), in the editor's order from `src/Modules/FormBuilder/Config/field_types.php`: `text`, `email`, `textarea`, `url`, `tel`, `number`, `date`, `time`, `select`, `radio`, `checkbox`, `acceptance`, `hidden`, `html`.
+- **Submit action keys** (`submit_actions`), from `src/Modules/FormBuilder/Config/actions.php`: `email`.
 - **Row keys** every field has: Elementor's `_id`, `type`, `label`, `custom_id` (shown as "ID") and `width`. Shared field settings with a fixed kind (`Settings\Setting::STANDARD`): `placeholder`, `required`, `options` (one option per line, `Label` or `Label|value`), `field_value`. Type settings: `field_min`, `field_max`, `field_step` (Number), `min_date`, `max_date` (Date, `YYYY-MM-DD`), `acceptance_text`, `checked_by_default` (Acceptance), `field_html` (HTML). An enabled switcher saves `yes`.
 - **Email action settings**: `email_to`, `email_subject`, `email_content`, `email_from_name`, `email_from`, `email_reply_to`. Every setting of an action starts with its key and `_`, and its editor section is `section_{key}`.
 - **Widget controls**: `form_fields`, `labels_display`, `button_text`, `button_align`, `button_width`, `submit_actions`, and the style controls listed in the identifier check. `submit_actions` and the row `type` declare `save_default`, so a saved form never follows a later default; every other default is frozen by the defaults snapshot in the identifier check. A new widget starts with the fields `name`, `email` and `message`.
 
-**Field ID.** A field's ID is its `custom_id` when that is 1-64 letters, digits, `_` or `-` and no earlier field claimed it; otherwise it is the row's `_id` (and, for malformed data only, `field_{index}`). `Forms\Definition\FieldIdResolver` decides it, for rendering and submission alike. Values, errors and email placeholders use it, so reordering fields never moves a value.
+**Field ID.** A field's ID is its `custom_id` when that is 1-64 letters, digits, `_` or `-` and no earlier field claimed it; otherwise it is the row's `_id` (and, for malformed data only, `field_{index}`). `Modules\FormBuilder\Definition\FieldIdResolver` decides it, for rendering and submission alike. Values, errors and email placeholders use it, so reordering fields never moves a value.
 
 ### Submission request and response
 
@@ -249,7 +249,7 @@ Rendered markup holds nothing that expires or differs per visitor: no nonce, no 
 
 ### PHP extension points
 
-Register field types, actions and form sources on the three `FORM_*_REGISTER_ACTION` hooks (§ Public hook inventory); each receives its registrar interface (§ PHP extension contract), and a key that is already registered is refused with a `_doing_it_wrong` notice. The `@api` interfaces are `Forms\Contracts\FieldTypeInterface`, `FormActionInterface` and `FormSourceInterface`. Extend `Forms\Fields\AbstractFieldType` or `AbstractChoiceFieldType` rather than implementing the field interface directly, so later optional methods arrive with defaults. Settings are described with `Forms\Settings\Setting` (kinds `text`, `textarea`, `number`, `switcher`, `select`), which the widget turns into Elementor controls. An action receives a `Submission` (the `FormDefinition`, values by field ID, and `SubmissionMeta`: page URL, verified user ID or 0, time) and returns an `ActionResult`. It never reads the request and never uses `get_current_user_id()`.
+Register field types, actions and form sources on the three `FORM_*_REGISTER_ACTION` hooks (§ Public hook inventory); each receives its registrar interface (§ PHP extension contract), and a key that is already registered is refused with a `_doing_it_wrong` notice. The `@api` interfaces are `Modules\FormBuilder\Contracts\FieldTypeInterface`, `FormActionInterface` and `FormSourceInterface`. Extend `Modules\FormBuilder\Fields\AbstractFieldType` or `AbstractChoiceFieldType` rather than implementing the field interface directly, so later optional methods arrive with defaults. Settings are described with `Modules\FormBuilder\Settings\Setting` (kinds `text`, `textarea`, `number`, `switcher`, `select`), which the widget turns into Elementor controls. An action receives a `Submission` (the `FormDefinition`, values by field ID, and `SubmissionMeta`: page URL, verified user ID or 0, time) and returns an `ActionResult`. It never reads the request and never uses `get_current_user_id()`.
 
 ### Browser runtime
 
@@ -266,7 +266,7 @@ Every route below, Free's and Pro's, lives under the versioned `elemacy/v1` REST
 | `F/src/Config/api.php` | `GET /modules`; `PUT /modules/{name}` | Admin middleware |
 | Same | `GET /conditions/types`; `GET /conditions/search` | Admin middleware |
 | Same | `GET /library/template-types`; `GET, POST /library/templates`; `GET, PUT, DELETE /library/templates/{id}`; `POST /library/templates/{id}/duplicate` | Admin middleware |
-| `F/src/Modules/Widgets/Config/api.php` | `GET /widgets`; `PUT /widgets/{name}/toggle` | Admin middleware |
+| Same | `GET /widgets`; `PUT /widgets/{name}/toggle` | Admin middleware |
 | `F/src/Modules/ThemeBuilder/Config/api.php` | `GET /theme-builder/template-types`; `GET, POST /theme-builder/templates`; `GET, PUT, DELETE /theme-builder/templates/{id}`; `POST /theme-builder/templates/{id}/duplicate` | Admin middleware |
 | `F/src/Modules/Popups/Config/api.php` | `GET /popups/types`; `GET /popups/triggers`; `GET /popups/rules`; `GET, POST /popups`; `GET, PUT, DELETE /popups/{id}`; `POST /popups/{id}/duplicate` | Admin middleware |
 | `P/src/Core/License/Config/api.php` | `GET /license`; `POST /license/activate`; `POST /license/deactivate` | Auth and admin middleware |
@@ -277,8 +277,8 @@ Frontend `admin-ajax.php` actions:
 
 | Action | Registered by | Nonce action |
 | --- | --- | --- |
-| `elemacy_widgets_loop_grid_pagination` | `Modules/Widgets/Config/ajax.php` | none required; the signed loop context authorizes the request (§ Loop pagination) |
-| `elemacy_form_submit` | `Forms\FormsBootstrap` | none required; `elemacy_form_submit` only proves a logged-in visitor's identity (§ Form Builder) |
+| `elemacy_loop_builder_pagination` | `Modules/LoopBuilder/Config/ajax.php` (while Loop Builder is active) | none required; the signed loop context authorizes the request (§ Loop pagination) |
+| `elemacy_form_submit` | `Modules\FormBuilder\Services\FormsBootstrap` (while Form Builder is active) | none required; `elemacy_form_submit` only proves a logged-in visitor's identity (§ Form Builder) |
 
 Both actions serve guests and authenticated users, and each handler applies its own application policy. The loop action takes no public nonce, because a cached page keeps paginating however old it is; the signed context has no expiry and is invalidated only when the widget definition changes. The browser answers any failed request by loading the activated page link. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`. The form endpoint deliberately takes no public nonce, so a cached page keeps submitting however old it is.
 
@@ -290,15 +290,15 @@ What Pro and third-party add-ons may build on. Every class, interface and trait 
 
 Everything not listed here is `@internal`. Paths are relative to `Elemacy\`.
 
-- **Core:** `Core\Admin\SubMenuDTO`, `Core\Constants\PostStatus`, `Core\Contracts\AdminMenuRegistrarInterface`, `Core\Contracts\ContainerInterface`, `Core\Contracts\ModuleRegistrarInterface`, `Core\Contracts\ModuleStatusInterface`, `Core\Contracts\ProviderRegistrarInterface`, `Core\Contracts\ServiceProviderInterface`, `Core\Hooks`, `Core\Migrator`, `Core\Module`
+- **Core:** `Core\Admin\DTO\SubMenuDTO`, `Core\Constants\PostStatus`, `Core\Contracts\AdminMenuRegistrarInterface`, `Core\Contracts\ContainerInterface`, `Core\Contracts\ModuleRegistrarInterface`, `Core\Contracts\ModuleStatusInterface`, `Core\Contracts\ProviderRegistrarInterface`, `Core\Contracts\ServiceProviderInterface`, `Core\Hooks`, `Core\Migrator`, `Core\Module`
 - **Conditions:** `Conditions\BaseCondition`, `Conditions\Contracts\ConditionInterface`, `Conditions\Contracts\ConditionRegistrarInterface`, `Conditions\DTO\ConditionRuleDTO`, `Conditions\Specificity`, `Conditions\Support\Taxonomies`
 - **Loop:** `Loop\Access\PublicLoopLimits`, `Loop\Address\AddressStep`, `Loop\Contracts\AddressStepResolverInterface`, `Loop\Contracts\AddressStepResolverRegistrarInterface`, `Loop\Contracts\AddressableItemInterface`, `Loop\Contracts\ContextualLoopSourceInterface`, `Loop\Contracts\LoopDataSourceInterface`, `Loop\Contracts\LoopDataSourceRegistrarInterface`, `Loop\Contracts\LoopItemInterface`, `Loop\Contracts\NativePostItemInterface`, `Loop\Contracts\NativeTermItemInterface`, `Loop\Contracts\NativeUserItemInterface`, `Loop\Contracts\NestedItemInterface`, `Loop\Contracts\PageUrlPaginatedSourceInterface`, `Loop\Contracts\PlacementResolverInterface`, `Loop\Contracts\PlacementResolverRegistrarInterface`, `Loop\Contracts\PublicLoopSourcePolicyInterface`, `Loop\DTO\LoopResultDTO`, `Loop\LoopContext`, `Loop\LoopQuery`, `Loop\Placement\HostFacts`, `Loop\Support\LoopItemIdentity`, `Loop\Support\LoopLimits`
 - **Integrations:** `Integrations\Acf\AcfRepeaterResolver`, `Integrations\Acf\Contracts\AcfRowCursorInterface`, `Integrations\Acf\Contracts\FieldReaderInterface`
 - **Modules\Popups:** `Modules\Popups\Contracts\PopupEligibilityInterface`, `Modules\Popups\Contracts\PopupRepositoryInterface`, `Modules\Popups\Contracts\RuleInterface`, `Modules\Popups\Contracts\RuleRegistrarInterface`, `Modules\Popups\Contracts\TriggerInterface`, `Modules\Popups\Contracts\TriggerRegistrarInterface`, `Modules\Popups\DTO\PopupDTO`, `Modules\Popups\DTO\RuleDTO`, `Modules\Popups\DTO\TriggerDTO`, `Modules\Popups\Rules\BaseRule`, `Modules\Popups\Support\PopupChoices`, `Modules\Popups\Support\StorageKeys`, `Modules\Popups\Triggers\BaseTrigger`
 - **Modules\ThemeBuilder:** `Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility`, `Modules\ThemeBuilder\Contracts\ThemeChromeInterface`, `Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface`, `Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface`, `Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface`
 - **TemplateLibrary:** `TemplateLibrary\Contracts\LibraryTypeRegistrarInterface`, `TemplateLibrary\LibraryPostType`, `TemplateLibrary\TypeDefinition`
-- **Elementor:** `Elementor\Contracts\PreviewContextProviderInterface`, `Elementor\Contracts\QueryResolverInterface`, `Elementor\Contracts\QueryResolverRegistrarInterface`, `Elementor\Contracts\TemplateAssetsRegistrarInterface`, `Elementor\Documents\PreviewablePageBase`, `Elementor\Widgets\BaseWidget`
-- **Forms:** `Forms\Contracts\FieldTypeInterface`, `Forms\Contracts\FieldTypeRegistrarInterface`, `Forms\Contracts\FormActionInterface`, `Forms\Contracts\FormActionRegistrarInterface`, `Forms\Contracts\FormSourceInterface`, `Forms\Contracts\FormSourceRegistrarInterface`, `Forms\Definition\Field`, `Forms\Definition\FormDefinition`, `Forms\Fields\AbstractChoiceFieldType`, `Forms\Fields\AbstractFieldType`, `Forms\Rendering\RenderContext`, `Forms\Settings\Setting`, `Forms\Submission\ActionResult`, `Forms\Submission\FieldResult`, `Forms\Submission\Submission`, `Forms\Submission\SubmissionMeta`
+- **Elementor:** `Elementor\Contracts\PreviewContextProviderInterface`, `Elementor\Contracts\QueryResolverInterface`, `Elementor\Contracts\QueryResolverRegistrarInterface`, `Elementor\Contracts\TemplateAssetsRegistrarInterface`, `Elementor\Documents\PreviewablePageBase`, `Widgets\BaseWidget`
+- **Forms:** `Modules\FormBuilder\Contracts\FieldTypeInterface`, `Modules\FormBuilder\Contracts\FieldTypeRegistrarInterface`, `Modules\FormBuilder\Contracts\FormActionInterface`, `Modules\FormBuilder\Contracts\FormActionRegistrarInterface`, `Modules\FormBuilder\Contracts\FormSourceInterface`, `Modules\FormBuilder\Contracts\FormSourceRegistrarInterface`, `Modules\FormBuilder\Definition\Field`, `Modules\FormBuilder\Definition\FormDefinition`, `Modules\FormBuilder\Fields\AbstractChoiceFieldType`, `Modules\FormBuilder\Fields\AbstractFieldType`, `Modules\FormBuilder\Rendering\RenderContext`, `Modules\FormBuilder\Settings\Setting`, `Modules\FormBuilder\Submission\ActionResult`, `Modules\FormBuilder\Submission\FieldResult`, `Modules\FormBuilder\Submission\Submission`, `Modules\FormBuilder\Submission\SubmissionMeta`
 - **Support:** `Support\ConfigList`, `Support\PostTypes`
 - **Http:** the whole `Http` layer: `Route`, `Request`, `SiteRequest`, `Response`, `Resource`, `Sanitizer`, the middleware, exceptions, DTOs, `Validation\Validator` and every rule under `Validation\Rules`. Rules nothing calls yet are kept for add-ons on purpose, and are just as stable.
 
@@ -323,11 +323,11 @@ An add-on never constructs a Free service, never calls `Core\Container::instance
 | `CONDITIONS_REGISTER_ACTION` | `Conditions\Contracts\ConditionRegistrarInterface` |
 | `POPUP_TRIGGERS_REGISTER_ACTION` | `Modules\Popups\Contracts\TriggerRegistrarInterface` |
 | `POPUP_RULES_REGISTER_ACTION` | `Modules\Popups\Contracts\RuleRegistrarInterface` |
-| `FORM_FIELD_TYPES_REGISTER_ACTION` | `Forms\Contracts\FieldTypeRegistrarInterface` |
-| `FORM_ACTIONS_REGISTER_ACTION` | `Forms\Contracts\FormActionRegistrarInterface` |
-| `FORM_SOURCES_REGISTER_ACTION` | `Forms\Contracts\FormSourceRegistrarInterface` |
+| `FORM_FIELD_TYPES_REGISTER_ACTION` | `Modules\FormBuilder\Contracts\FieldTypeRegistrarInterface` |
+| `FORM_ACTIONS_REGISTER_ACTION` | `Modules\FormBuilder\Contracts\FormActionRegistrarInterface` |
+| `FORM_SOURCES_REGISTER_ACTION` | `Modules\FormBuilder\Contracts\FormSourceRegistrarInterface` |
 
-2. **Its provider resolves a contract from the container.** A provider added on `REGISTER_PROVIDERS_ACTION` receives a `Core\Contracts\ContainerInterface` in `register()`; keep it and resolve published contracts from it, or type a container-built class's constructor with them. Every registrar above resolves this way too, plus `ModuleStatusInterface` and `AdminMenuRegistrarInterface` (Core), `AcfRowCursorInterface` (a new cursor on every resolve), `PopupRepositoryInterface` and `PopupEligibilityInterface` (while Popups is active), and `ThemeChromeInterface` (while Theme Builder is active; theme adapters also receive it in `register()`). Resolving a contract nobody bound fails with a diagnostic naming it, never with an empty copy.
+2. **Its provider resolves a contract from the container.** A provider added on `REGISTER_PROVIDERS_ACTION` receives a `Core\Contracts\ContainerInterface` in `register()`; keep it and resolve published contracts from it, or type a container-built class's constructor with them. Every registrar above resolves this way too (the three `FORM_*` registrars only while Form Builder is active, the Popups and Theme Builder ones only while their module is), plus `ModuleStatusInterface` and `AdminMenuRegistrarInterface` (Core), `AcfRowCursorInterface` (a new cursor on every resolve), `PopupRepositoryInterface` and `PopupEligibilityInterface` (while Popups is active), and `ThemeChromeInterface` (while Theme Builder is active; theme adapters also receive it in `register()`). Resolving a contract nobody bound fails with a diagnostic naming it, never with an empty copy.
 
 ### Naming
 

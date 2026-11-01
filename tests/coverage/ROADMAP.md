@@ -38,15 +38,16 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `form-field:textarea` | real | Elementor Free | pending |
 | `form-field:time` | real | Elementor Free | pending |
 | `form-field:url` | real | Elementor Free | pending |
-| `loop-source:posts` | real | Elementor Free | pending |
 | `loop-source:current_query` | real | Elementor Free | pending |
+| `loop-source:posts` | real | Elementor Free | pending |
 | `loop-source:terms` | real | Elementor Free | pending |
 | `loop-source:users` | real | Elementor Free | pending |
 | `module:custom-css` | real | Elementor Free | pending |
 | `module:dynamic-tags` | real | Elementor Free | pending |
+| `module:form-builder` | real | Elementor Free | pending |
+| `module:loop-builder` | real | Elementor Free | pending |
 | `module:popups` | real | Elementor Free | pending |
 | `module:theme-builder` | real | Elementor Free | pending |
-| `module:widgets` | real | Elementor Free | pending |
 | `popup-type:banner` | real | Elementor Free | implemented |
 | `popup-type:floating` | real | Elementor Free | implemented |
 | `popup-type:popup` | real | Elementor Free | implemented |
@@ -220,6 +221,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:condition-registry-extension` | native-integration | `tests/integration/condition-registry-extension.php` |
 | `elemacy:integration:library-persistence` | native-integration | `tests/integration/library-persistence.php` |
 | `elemacy:integration:module-seeding` | native-integration | `tests/integration/module-seeding.php` |
+| `elemacy:integration:module-feature-availability` | native-integration | `tests/integration/module-feature-availability.php` |
 | `elemacy:integration:template-rendering-preparation` | native-integration | `tests/integration/template-rendering-preparation.php` |
 | `elemacy:integration:request-state` | native-integration | `tests/integration/request-state.php` |
 | `elemacy:integration:shared-preparation-across-placements` | native-integration | `tests/integration/shared-preparation-across-placements.php` |

@@ -5,7 +5,6 @@ namespace Elemacy\Http;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Contracts\RequestInterface;
-use Elemacy\Http\Sanitizer;
 
 /**
  * @api

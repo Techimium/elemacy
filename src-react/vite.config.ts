@@ -52,14 +52,14 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       // Entry is the module itself, not index.html, so the build emits only
-      // scripts/admin.js + styles/admin.css (no dead index.html in dist).
+      // js/admin.js + css/admin.css (no dead index.html in dist).
       input: {
         admin: path.resolve(__dirname, 'src/main.tsx'),
       },
       output: {
-        entryFileNames: 'scripts/[name].js',
-        chunkFileNames: 'scripts/[name].js',
-        assetFileNames: 'styles/[name].[ext]',
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name].js',
+        assetFileNames: 'css/[name].[ext]',
       }
     }
   }

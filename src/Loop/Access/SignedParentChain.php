@@ -10,7 +10,7 @@ use Elemacy\Loop\Address\ItemAddressResolver;
 use Elemacy\Loop\LoopContext;
 use Elemacy\Loop\Placement\HostFacts;
 use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
-use Elemacy\Loop\Rendering\TemplateRecursionException;
+use Elemacy\Loop\Exceptions\TemplateRecursionException;
 use Elemacy\Loop\Rendering\TemplateRecursionGuard;
 use Throwable;
 

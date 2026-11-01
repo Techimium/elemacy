@@ -46,7 +46,7 @@
   "exclude": [],
   "requiredRuntime": [
     "src/Core/Elemacy.php",
-    "assets/admin/scripts/admin.js",
-    "assets/admin/styles/admin.css"
+    "assets/admin/js/admin.js",
+    "assets/admin/css/admin.css"
   ]
 }

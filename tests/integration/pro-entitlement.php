@@ -19,7 +19,7 @@ require_once __DIR__ . '/fixtures/RequestSimulator.php';
 /**
  * An active Pro supplies its real conditions, rules, triggers and loop sources
  * whether or not it is licensed — the license covers updates and support only.
- * Without Pro, Free's mocks hold the same identifiers and suspend dependent
+ * Without Pro, Free's placeholders hold the same identifiers and suspend dependent
  * templates rather than widening their targeting.
  *
  * This environment installs Pro without a license. The "Pro inactive"
@@ -29,7 +29,7 @@ require_once __DIR__ . '/fixtures/RequestSimulator.php';
  */
 final class ProEntitlementTest extends IntegrationTestCase
 {
-    /** Identifiers Free ships a locked mock for and Pro implements for real. */
+    /** Identifiers Free ships a placeholder for and Pro implements for real. */
     private const PRO_CONDITIONS = [
         'general/front_page',
         'general/blog',
@@ -99,15 +99,15 @@ final class ProEntitlementTest extends IntegrationTestCase
             $condition = $manager->get($identifier);
 
             self::assertNotNull($condition, $identifier . ' must be registered.');
-            self::assertFalse($condition->is_mock(), $identifier . ' must be Pro\'s real implementation without a license.');
+            self::assertFalse($condition->is_placeholder(), $identifier . ' must be Pro\'s real implementation without a license.');
             self::assertTrue($manager->get_availability($identifier)->is_available(), $identifier . ' must be available.');
         }
     }
 
     public function testProRulesTriggersAndLoopSourceRegisterWithoutALicense(): void
     {
-        self::assertFalse(RuleManager::instance()->get('devices')->is_mock());
-        self::assertFalse(TriggerManager::instance()->get('scroll')->is_mock());
+        self::assertFalse(RuleManager::instance()->get('devices')->is_placeholder());
+        self::assertFalse(TriggerManager::instance()->get('scroll')->is_placeholder());
 
         if (!function_exists('get_field')) {
             self::markTestIncomplete('ACF is not active, so Pro registers no ACF Repeater source to check.');
@@ -205,22 +205,22 @@ final class ProEntitlementTest extends IntegrationTestCase
 
         $this->request->visit(get_permalink($this->posts[0]));
 
-        // Pro inactive: Free's mock holds the identifier and suspends the rule.
+        // Pro inactive: Free's placeholder holds the identifier and suspends the rule.
         $without_pro = new ConditionManager();
-        $without_pro->register(new \Elemacy\Conditions\Mock\SpecificPost());
+        $without_pro->register(new \Elemacy\Conditions\Placeholders\SpecificPost());
 
         self::assertFalse(
             (new ConditionEvaluator($without_pro))->evaluate([$rule]),
             'The saved rule must not match while its implementation is unavailable.'
         );
 
-        // Pro active: its real condition supersedes the mock under the same
+        // Pro active: its real condition supersedes the placeholder under the same
         // identifier, and the very same saved rule now evaluates for real.
         $with_pro = new ConditionManager();
-        $with_pro->register(new \Elemacy\Conditions\Mock\SpecificPost());
+        $with_pro->register(new \Elemacy\Conditions\Placeholders\SpecificPost());
         $with_pro->register(new \ElemacyPro\Extensions\Conditions\Singular\SpecificPost());
 
-        self::assertFalse($with_pro->get('singular/specific_post')->is_mock(), 'The real Pro condition must supersede the mock under the same identifier.');
+        self::assertFalse($with_pro->get('singular/specific_post')->is_placeholder(), 'The real Pro condition must supersede the placeholder under the same identifier.');
         self::assertTrue($with_pro->get_availability('singular/specific_post')->is_available());
         self::assertTrue(
             (new ConditionEvaluator($with_pro))->evaluate([$rule]),
@@ -228,37 +228,37 @@ final class ProEntitlementTest extends IntegrationTestCase
         );
     }
 
-    public function testAMockCannotDisplaceTheRealProConditionOnceItHolds(): void
+    public function testAPlaceholderCannotDisplaceTheRealProConditionOnceItHolds(): void
     {
         $registry = new ConditionManager();
-        $registry->register(new \Elemacy\Conditions\Mock\SpecificPost());
+        $registry->register(new \Elemacy\Conditions\Placeholders\SpecificPost());
         $registry->register(new \ElemacyPro\Extensions\Conditions\Singular\SpecificPost());
 
         try {
-            $registry->register(new \Elemacy\Conditions\Mock\SpecificPost());
-            self::fail('A mock must not be able to downgrade a live Pro condition.');
+            $registry->register(new \Elemacy\Conditions\Placeholders\SpecificPost());
+            self::fail('A placeholder must not be able to downgrade a live Pro condition.');
         } catch (\Throwable $error) {
-            self::assertFalse($registry->get('singular/specific_post')->is_mock());
+            self::assertFalse($registry->get('singular/specific_post')->is_placeholder());
         }
     }
 
-    public function testEveryProConditionDeclaresTheSameSpecificityAsTheMockItReplaces(): void
+    public function testEveryProConditionDeclaresTheSameSpecificityAsThePlaceholderItReplaces(): void
     {
         $empty = ConditionRuleDTO::from_array(['value' => '']);
         $value = ConditionRuleDTO::from_array(['value' => (string) $this->posts[0]]);
 
         $pairs = [
-            [\Elemacy\Conditions\Mock\SpecificPost::class, \ElemacyPro\Extensions\Conditions\Singular\SpecificPost::class],
-            [\Elemacy\Conditions\Mock\FrontPage::class, \ElemacyPro\Extensions\Conditions\General\FrontPage::class],
-            [\Elemacy\Conditions\Mock\ByAuthor::class, \ElemacyPro\Extensions\Conditions\Singular\ByAuthor::class],
+            [\Elemacy\Conditions\Placeholders\SpecificPost::class, \ElemacyPro\Extensions\Conditions\Singular\SpecificPost::class],
+            [\Elemacy\Conditions\Placeholders\FrontPage::class, \ElemacyPro\Extensions\Conditions\General\FrontPage::class],
+            [\Elemacy\Conditions\Placeholders\ByAuthor::class, \ElemacyPro\Extensions\Conditions\Singular\ByAuthor::class],
         ];
 
-        foreach ($pairs as [$mock, $real]) {
+        foreach ($pairs as [$placeholder, $real]) {
             foreach ([$empty, $value] as $rule) {
                 self::assertSame(
-                    (new $mock())->get_specificity($rule),
+                    (new $placeholder())->get_specificity($rule),
                     (new $real())->get_specificity($rule),
-                    $real . ' must declare the same specificity as the mock it replaces.'
+                    $real . ' must declare the same specificity as the placeholder it replaces.'
                 );
             }
         }

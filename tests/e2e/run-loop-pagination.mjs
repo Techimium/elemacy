@@ -183,7 +183,7 @@ try {
   await page.route(ajaxPattern, route => { sentBody = route.request().postData() || ''; route.continue(); });
   await waitForAjaxSuccess(page, probeGrid, () => probeGrid.locator('.elemacy-pagination a.page-numbers', { hasText: '2' }).first().click());
   await page.unroute(ajaxPattern);
-  assert.ok(sentBody.includes('action=elemacy_widgets_loop_grid_pagination'), 'The pagination request was not observed.');
+  assert.ok(sentBody.includes('action=elemacy_loop_builder_pagination'), 'The pagination request was not observed.');
   assert.ok(!sentBody.includes('_wpnonce'), 'The pagination request must carry no nonce.');
   results.push('PASS: the pagination request carries no page-embedded nonce');
 

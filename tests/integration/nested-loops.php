@@ -8,12 +8,12 @@ use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\LoopContext;
 use Elemacy\Loop\LoopQuery;
 use Elemacy\Loop\Preview\LoopItemPreviewContextProvider;
-use Elemacy\Modules\Widgets\Documents\LoopDocument;
+use Elemacy\Modules\LoopBuilder\Documents\LoopDocument;
 use Elemacy\Tests\Integration\Fixtures\NativeAjaxRequest;
 use Elementor\Plugin;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterQuery;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRepeaterRowLoopItem;
-use ElemacyPro\Extensions\LoopDataSources\AcfRepeater\AcfRows;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterQuery;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRepeaterRowLoopItem;
+use ElemacyPro\Extensions\LoopBuilder\DataSources\AcfRepeater\AcfRows;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/NativeAjaxRequest.php';

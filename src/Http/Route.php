@@ -10,8 +10,6 @@ use Throwable;
 use ReflectionMethod;
 use ReflectionNamedType;
 use WP_Error;
-use Elemacy\Http\Request;
-use Elemacy\Http\Response;
 use Elemacy\Http\Exceptions\AuthorizationException;
 use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\Http\Exceptions\ValidationException;

@@ -5,7 +5,7 @@ namespace Elemacy\Modules\Popups;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Admin\SubMenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Documents\DocumentManager;
 use Elemacy\Modules\Popups\Documents\PopupDocument;

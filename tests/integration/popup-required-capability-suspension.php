@@ -6,7 +6,7 @@ use Elemacy\Modules\Popups\Constants\MetaKeys;
 use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\Modules\Popups\Triggers\BaseTrigger;
-use Elemacy\Modules\Popups\Triggers\MockTrigger;
+use Elemacy\Modules\Popups\Triggers\Placeholders\PlaceholderTrigger;
 use Elemacy\Tests\Integration\Fixtures\LibraryDocument;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
 
@@ -21,7 +21,7 @@ require_once __DIR__ . '/fixtures/ThemeLifecycleHarness.php';
  * so overriding it here can never affect the other tests in this file that
  * rely on that shared fixture staying a mock throughout the whole run.
  */
-final class RecoverableMockTrigger extends MockTrigger
+final class RecoverableMockTrigger extends PlaceholderTrigger
 {
     public function get_name(): string
     {

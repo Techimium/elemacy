@@ -7,7 +7,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "archive/author",
-      "source": "src/Conditions/Mock/AuthorArchive.php",
+      "source": "src/Conditions/Placeholders/AuthorArchive.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -30,7 +30,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "archive/date",
-      "source": "src/Conditions/Mock/DateArchive.php",
+      "source": "src/Conditions/Placeholders/DateArchive.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -81,7 +81,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "archive/tax/{taxonomy}",
-      "source": "src/Conditions/Mock/TaxonomyArchive.php",
+      "source": "src/Conditions/Placeholders/TaxonomyArchive.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -104,7 +104,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "general/blog",
-      "source": "src/Conditions/Mock/Blog.php",
+      "source": "src/Conditions/Placeholders/Blog.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -154,7 +154,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "general/front_page",
-      "source": "src/Conditions/Mock/FrontPage.php",
+      "source": "src/Conditions/Placeholders/FrontPage.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -177,7 +177,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "general/not_found",
-      "source": "src/Conditions/Mock/NotFound.php",
+      "source": "src/Conditions/Placeholders/NotFound.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -228,7 +228,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "search/post_type",
-      "source": "src/Conditions/Mock/SearchPostType.php",
+      "source": "src/Conditions/Placeholders/SearchPostType.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [
@@ -254,7 +254,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "singular/by_author",
-      "source": "src/Conditions/Mock/ByAuthor.php",
+      "source": "src/Conditions/Placeholders/ByAuthor.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -277,7 +277,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "singular/child_of",
-      "source": "src/Conditions/Mock/ChildOf.php",
+      "source": "src/Conditions/Placeholders/ChildOf.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -300,7 +300,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "singular/in_tax/{taxonomy}",
-      "source": "src/Conditions/Mock/InTaxonomy.php",
+      "source": "src/Conditions/Placeholders/InTaxonomy.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -350,7 +350,7 @@
       "owner": "elemacy",
       "kind": "condition",
       "identifier": "singular/specific_post",
-      "source": "src/Conditions/Mock/SpecificPost.php",
+      "source": "src/Conditions/Placeholders/SpecificPost.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -374,7 +374,7 @@
       "owner": "elemacy",
       "kind": "form-action",
       "identifier": "email",
-      "source": "src/Forms/Actions/EmailAction.php",
+      "source": "src/Modules/FormBuilder/Actions/EmailAction.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -399,7 +399,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "acceptance",
-      "source": "src/Forms/Fields/Acceptance.php",
+      "source": "src/Modules/FormBuilder/Fields/Acceptance.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -424,7 +424,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "checkbox",
-      "source": "src/Forms/Fields/Checkbox.php",
+      "source": "src/Modules/FormBuilder/Fields/Checkbox.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -449,7 +449,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "date",
-      "source": "src/Forms/Fields/Date.php",
+      "source": "src/Modules/FormBuilder/Fields/Date.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -474,7 +474,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "email",
-      "source": "src/Forms/Fields/Email.php",
+      "source": "src/Modules/FormBuilder/Fields/Email.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -499,7 +499,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "hidden",
-      "source": "src/Forms/Fields/Hidden.php",
+      "source": "src/Modules/FormBuilder/Fields/Hidden.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -524,7 +524,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "html",
-      "source": "src/Forms/Fields/Html.php",
+      "source": "src/Modules/FormBuilder/Fields/Html.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -549,7 +549,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "number",
-      "source": "src/Forms/Fields/Number.php",
+      "source": "src/Modules/FormBuilder/Fields/Number.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -574,7 +574,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "radio",
-      "source": "src/Forms/Fields/Radio.php",
+      "source": "src/Modules/FormBuilder/Fields/Radio.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -599,7 +599,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "select",
-      "source": "src/Forms/Fields/Select.php",
+      "source": "src/Modules/FormBuilder/Fields/Select.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -624,7 +624,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "tel",
-      "source": "src/Forms/Fields/Tel.php",
+      "source": "src/Modules/FormBuilder/Fields/Tel.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -649,7 +649,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "text",
-      "source": "src/Forms/Fields/Text.php",
+      "source": "src/Modules/FormBuilder/Fields/Text.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -674,7 +674,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "textarea",
-      "source": "src/Forms/Fields/Textarea.php",
+      "source": "src/Modules/FormBuilder/Fields/Textarea.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -699,7 +699,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "time",
-      "source": "src/Forms/Fields/Time.php",
+      "source": "src/Modules/FormBuilder/Fields/Time.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -724,7 +724,7 @@
       "owner": "elemacy",
       "kind": "form-field",
       "identifier": "url",
-      "source": "src/Forms/Fields/Url.php",
+      "source": "src/Modules/FormBuilder/Fields/Url.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -745,43 +745,11 @@
       }
     },
     {
-      "id": "elemacy:loop-source:posts",
-      "owner": "elemacy",
-      "kind": "loop-source",
-      "identifier": "posts",
-      "source": "src/Modules/Widgets/DataSources/PostsDataSource.php",
-      "implementation": "real",
-      "prerequisites": [],
-      "coverage": [
-        "elemacy:integration:loop-load-more",
-        "elemacy:runner:run-loop-load-more",
-        "elemacy:runner:run-loop-load-more-editor",
-        "elemacy:integration:loop-host-context",
-        "elemacy:integration:loop-control-defaults",
-        "elemacy:integration:loop-addresses"
-      ],
-      "journey": {
-        "id": "elemacy:journey:loop-source:posts",
-        "status": "pending",
-        "profiles": [
-          "free-only",
-          "free-pro"
-        ],
-        "expected": [
-          "Configure through supported UI, save, reopen and verify persisted choices.",
-          "Verify the authored output or interaction as a visitor.",
-          "Verify applicable invalid, empty and unavailable dependency behavior."
-        ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
-      }
-    },
-    {
       "id": "elemacy:loop-source:current_query",
       "owner": "elemacy",
       "kind": "loop-source",
       "identifier": "current_query",
-      "source": "src/Modules/Widgets/DataSources/CurrentQueryDataSource.php",
+      "source": "src/Modules/LoopBuilder/DataSources/CurrentQueryDataSource.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -810,11 +778,43 @@
       }
     },
     {
+      "id": "elemacy:loop-source:posts",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "posts",
+      "source": "src/Modules/LoopBuilder/DataSources/PostsDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:loop-load-more",
+        "elemacy:runner:run-loop-load-more",
+        "elemacy:runner:run-loop-load-more-editor",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-addresses"
+      ],
+      "journey": {
+        "id": "elemacy:journey:loop-source:posts",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:loop-source:terms",
       "owner": "elemacy",
       "kind": "loop-source",
       "identifier": "terms",
-      "source": "src/Modules/Widgets/DataSources/TaxonomyDataSource.php",
+      "source": "src/Modules/LoopBuilder/DataSources/TaxonomyDataSource.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -847,7 +847,7 @@
       "owner": "elemacy",
       "kind": "loop-source",
       "identifier": "users",
-      "source": "src/Modules/Widgets/DataSources/UsersDataSource.php",
+      "source": "src/Modules/LoopBuilder/DataSources/UsersDataSource.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -925,6 +925,60 @@
       }
     },
     {
+      "id": "elemacy:module:form-builder",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "form-builder",
+      "source": "src/Modules/FormBuilder/FormBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:module-feature-availability"
+      ],
+      "journey": {
+        "id": "elemacy:journey:module:form-builder",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:module:loop-builder",
+      "owner": "elemacy",
+      "kind": "module",
+      "identifier": "loop-builder",
+      "source": "src/Modules/LoopBuilder/LoopBuilder.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:module-feature-availability"
+      ],
+      "journey": {
+        "id": "elemacy:journey:module:loop-builder",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:module:popups",
       "owner": "elemacy",
       "kind": "module",
@@ -969,31 +1023,6 @@
       ],
       "journey": {
         "id": "elemacy:journey:module:theme-builder",
-        "status": "pending",
-        "profiles": [
-          "free-only",
-          "free-pro"
-        ],
-        "expected": [
-          "Configure through supported UI, save, reopen and verify persisted choices.",
-          "Verify the authored output or interaction as a visitor.",
-          "Verify applicable invalid, empty and unavailable dependency behavior."
-        ],
-        "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
-      }
-    },
-    {
-      "id": "elemacy:module:widgets",
-      "owner": "elemacy",
-      "kind": "module",
-      "identifier": "widgets",
-      "source": "src/Modules/Widgets/Widgets.php",
-      "implementation": "real",
-      "prerequisites": [],
-      "coverage": [],
-      "journey": {
-        "id": "elemacy:journey:module:widgets",
         "status": "pending",
         "profiles": [
           "free-only",
@@ -1128,7 +1157,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "browser",
-      "source": "src/Modules/Popups/Rules/Mock/Browser.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Browser.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1151,7 +1180,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "devices",
-      "source": "src/Modules/Popups/Rules/Mock/Devices.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Devices.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1228,7 +1257,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "once_per",
-      "source": "src/Modules/Popups/Rules/Mock/OncePer.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/OncePer.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1251,7 +1280,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "page_views",
-      "source": "src/Modules/Popups/Rules/Mock/PageViews.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/PageViews.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1274,7 +1303,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "referrer",
-      "source": "src/Modules/Popups/Rules/Mock/Referrer.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Referrer.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1297,7 +1326,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "roles",
-      "source": "src/Modules/Popups/Rules/Mock/Roles.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Roles.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1320,7 +1349,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "schedule",
-      "source": "src/Modules/Popups/Rules/Mock/Schedule.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Schedule.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -1343,7 +1372,7 @@
       "owner": "elemacy",
       "kind": "rule",
       "identifier": "sessions",
-      "source": "src/Modules/Popups/Rules/Mock/Sessions.php",
+      "source": "src/Modules/Popups/Rules/Placeholders/Sessions.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -2811,7 +2840,7 @@
       "owner": "elemacy",
       "kind": "template",
       "identifier": "loop",
-      "source": "src/Modules/Widgets/Widgets.php",
+      "source": "src/Modules/LoopBuilder/LoopBuilder.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -2951,7 +2980,7 @@
       "owner": "elemacy",
       "kind": "trigger",
       "identifier": "exit_intent",
-      "source": "src/Modules/Popups/Triggers/Mock/ExitIntent.php",
+      "source": "src/Modules/Popups/Triggers/Placeholders/ExitIntent.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -2974,7 +3003,7 @@
       "owner": "elemacy",
       "kind": "trigger",
       "identifier": "inactivity",
-      "source": "src/Modules/Popups/Triggers/Mock/Inactivity.php",
+      "source": "src/Modules/Popups/Triggers/Placeholders/Inactivity.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -2997,7 +3026,7 @@
       "owner": "elemacy",
       "kind": "trigger",
       "identifier": "on_popup_close",
-      "source": "src/Modules/Popups/Triggers/Mock/OnPopupClose.php",
+      "source": "src/Modules/Popups/Triggers/Placeholders/OnPopupClose.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [
@@ -3049,7 +3078,7 @@
       "owner": "elemacy",
       "kind": "trigger",
       "identifier": "scroll",
-      "source": "src/Modules/Popups/Triggers/Mock/Scroll.php",
+      "source": "src/Modules/Popups/Triggers/Placeholders/Scroll.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -3072,7 +3101,7 @@
       "owner": "elemacy",
       "kind": "trigger",
       "identifier": "scroll_to_element",
-      "source": "src/Modules/Popups/Triggers/Mock/ScrollToElement.php",
+      "source": "src/Modules/Popups/Triggers/Placeholders/ScrollToElement.php",
       "implementation": "placeholder",
       "prerequisites": [],
       "coverage": [],
@@ -3095,7 +3124,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-acf-accordion",
-      "source": "src/Modules/Widgets/Widgets/Acf/AcfAccordion.php",
+      "source": "src/Widgets/AcfAccordion/AcfAccordion.php",
       "implementation": "real",
       "prerequisites": [
         "acf"
@@ -3123,7 +3152,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-acf-gallery",
-      "source": "src/Modules/Widgets/Widgets/Acf/AcfGallery.php",
+      "source": "src/Widgets/AcfGallery/AcfGallery.php",
       "implementation": "real",
       "prerequisites": [
         "acf"
@@ -3151,7 +3180,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-acf-icon-list",
-      "source": "src/Modules/Widgets/Widgets/Acf/AcfIconList.php",
+      "source": "src/Widgets/AcfIconList/AcfIconList.php",
       "implementation": "real",
       "prerequisites": [
         "acf"
@@ -3179,7 +3208,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-form",
-      "source": "src/Modules/Widgets/Widgets/Form.php",
+      "source": "src/Modules/FormBuilder/Widgets/Form/Form.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -3204,7 +3233,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-loop-carousel",
-      "source": "src/Modules/Widgets/Widgets/LoopCarousel.php",
+      "source": "src/Modules/LoopBuilder/Widgets/LoopCarousel/LoopCarousel.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -3231,7 +3260,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-loop-grid",
-      "source": "src/Modules/Widgets/Widgets/LoopGrid.php",
+      "source": "src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -3265,7 +3294,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-nav-menu",
-      "source": "src/Modules/Widgets/Widgets/NavMenu.php",
+      "source": "src/Widgets/NavMenu/NavMenu.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [
@@ -3295,7 +3324,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-search",
-      "source": "src/Modules/Widgets/Widgets/Search.php",
+      "source": "src/Widgets/Search/Search.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -3320,7 +3349,7 @@
       "owner": "elemacy",
       "kind": "widget",
       "identifier": "elemacy-site-logo",
-      "source": "src/Modules/Widgets/Widgets/SiteLogo.php",
+      "source": "src/Widgets/SiteLogo/SiteLogo.php",
       "implementation": "real",
       "prerequisites": [],
       "coverage": [],
@@ -3726,6 +3755,11 @@
       "id": "elemacy:integration:module-seeding",
       "layer": "native-integration",
       "path": "tests/integration/module-seeding.php"
+    },
+    {
+      "id": "elemacy:integration:module-feature-availability",
+      "layer": "native-integration",
+      "path": "tests/integration/module-feature-availability.php"
     },
     {
       "id": "elemacy:integration:template-rendering-preparation",

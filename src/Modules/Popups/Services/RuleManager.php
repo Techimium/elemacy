@@ -50,7 +50,7 @@ class RuleManager implements RuleRegistrarInterface
     /**
      * Whether a stored rule identifier can actually run right now, whether it
      * is enforced server-side or purely by the client engine: an unavailable
-     * rule (unregistered, or only a non-functional mock stand-in) cannot be
+     * rule (unregistered, or only a non-functional Pro placeholder) cannot be
      * relied on by either side to gate the popup, so neither treats it as
      * satisfied.
      */
@@ -62,7 +62,7 @@ class RuleManager implements RuleRegistrarInterface
             return FeatureAvailability::unknown_identifier($name);
         }
 
-        if ($rule->is_mock()) {
+        if ($rule->is_placeholder()) {
             return FeatureAvailability::inactive_extension($name);
         }
 

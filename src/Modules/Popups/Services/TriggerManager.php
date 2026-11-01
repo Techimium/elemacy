@@ -49,7 +49,7 @@ class TriggerManager implements TriggerRegistrarInterface
 
     /**
      * Whether a stored trigger identifier can actually fire right now: an
-     * unavailable trigger (unregistered, or only a non-functional mock
+     * unavailable trigger (unregistered, or only a non-functional placeholder
      * stand-in) has no real client handler, so it must not be shipped to the
      * browser as though it were a live way to open the popup.
      */
@@ -61,7 +61,7 @@ class TriggerManager implements TriggerRegistrarInterface
             return FeatureAvailability::unknown_identifier($name);
         }
 
-        if ($trigger->is_mock()) {
+        if ($trigger->is_placeholder()) {
             return FeatureAvailability::inactive_extension($name);
         }
 

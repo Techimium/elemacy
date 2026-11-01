@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 /**
  * Reads a config file that returns a list of class-strings and/or ready-made
- * instances (src/Config/conditions.php, a module's Config/triggers.php, ...)
+ * instances (src/Conditions/Config/conditions.php, a module's Config/triggers.php, ...)
  * and turns it into instances of one type. Each caller still registers them
  * with its own manager, whose register signature it alone knows.
  *

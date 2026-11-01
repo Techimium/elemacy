@@ -8,7 +8,6 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Core\Contracts\ServiceProviderInterface;
 use Elemacy\Core\Providers\CoreServiceProvider;
-use Elemacy\Core\Hooks;
 use Elemacy\Http\Route;
 use Elemacy\Core\Contracts\ProviderRegistrarInterface;
 

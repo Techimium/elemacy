@@ -35,7 +35,7 @@ final class FeatureAvailability
 
     /**
      * The stored identifier is no longer registered by anything: no real
-     * implementation and no mock stand-in (e.g. after an extension that
+     * implementation and no Pro placeholder (e.g. after an extension that
      * used to provide it is removed entirely).
      */
     public static function unknown_identifier(string $identifier): self
@@ -53,7 +53,7 @@ final class FeatureAvailability
 
     /**
      * The identifier resolves to a registered non-functional stand-in
-     * (a Mock condition/rule/trigger) because the extension that provides
+     * (a Placeholder condition/rule/trigger) because the extension that provides
      * the real implementation is not currently active.
      */
     public static function inactive_extension(string $identifier): self

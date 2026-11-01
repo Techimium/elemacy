@@ -8,7 +8,7 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Access\PublicLoopLimits;
-use Elemacy\Elementor\Widgets\BaseWidget;
+use Elemacy\Widgets\BaseWidget;
 
 /** Counts the real source boundary; queries still run through the real source. */
 final class ObservedLoopSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface

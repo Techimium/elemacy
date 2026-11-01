@@ -4,8 +4,8 @@ namespace Elemacy\Core\Admin;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Admin\MenuDTO;
-use Elemacy\Core\Admin\SubMenuDTO;
+use Elemacy\Core\Admin\DTO\MenuDTO;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
 
 /**
  * @internal

@@ -163,7 +163,7 @@ final class LoopPaginationPhase1CloseoutTest extends IntegrationTestCase
             wp_set_current_user(0);
             $_GET = [];
             $_POST = wp_slash([
-                'action' => 'elemacy_widgets_loop_grid_pagination',
+                'action' => 'elemacy_loop_builder_pagination',
                 'request' => wp_json_encode($payload),
                 'paginate_base' => $paginate_base,
             ]);

@@ -10,6 +10,7 @@ use Elemacy\Loop\Items\WordPressPostScope;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\LoopContext;
 use Throwable;
+use Elemacy\Loop\Exceptions\TemplateRecursionException;
 
 /**
  * Owns rendering exactly one loop item's fragment — the per-item body

@@ -4,7 +4,7 @@ Everything Elemacy ships that it did not write, with version, license and source
 
 ## Free admin bundle
 
-`assets/admin/scripts/admin.js` and `assets/admin/styles/admin.css` are built by Vite from `src-react/` and contain these packages (versions from `src-react/package-lock.json`):
+`assets/admin/js/admin.js` and `assets/admin/css/admin.css` are built by Vite from `src-react/` and contain these packages (versions from `src-react/package-lock.json`):
 
 | Package | Version | License | Source |
 | --- | --- | --- | --- |
@@ -33,11 +33,11 @@ Everything Elemacy ships that it did not write, with version, license and source
 
 ## Pro admin bundle
 
-`elemacy-pro/assets/admin/scripts/elemacy-pro.js` and `styles/elemacy-pro.css` are built from Pro's own sources only. Pro consumes React, ReactDOM and the shared components through Free's runtime bridge and its production build rejects any bundled React; it has no runtime dependencies of its own.
+`elemacy-pro/assets/admin/js/elemacy-pro.js` and `css/elemacy-pro.css` are built from Pro's own sources only. Pro consumes React, ReactDOM and the shared components through Free's runtime bridge and its production build rejects any bundled React; it has no runtime dependencies of its own.
 
 ## Hand-written assets
 
-Every file under `assets/editor`, `assets/frontend`, `src/Modules/*/assets` and Pro's `assets/popups` is Elemacy's own code under the plugin license.
+Every file under `assets/editor`, `assets/frontend`, any `src/**/assets` folder (modules, widget folders, Pro's extensions) is Elemacy's own code under the plugin license.
 
 ## Provided at runtime, not shipped
 
