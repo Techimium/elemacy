@@ -85,7 +85,9 @@ async function vendor() {
 async function zip(filename, files) {
   await new Promise((resolve, reject) => {
     const output = createWriteStream(filename);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    // One stat at a time: archiver writes an entry when its stat finishes, so parallel stats
+    // (its default of 4) reorder entries between runs and change the checksum.
+    const archive = archiver('zip', { zlib: { level: 9 }, statConcurrency: 1 });
     output.on('close', resolve);
     output.on('error', reject);
     archive.on('error', reject);
