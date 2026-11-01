@@ -3261,6 +3261,36 @@
       }
     },
     {
+      "id": "elemacy:widget:elemacy-nav-menu",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-nav-menu",
+      "source": "src/Modules/Widgets/Widgets/NavMenu.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:runner:run",
+        "elemacy:integration:nav-menu",
+        "elemacy:runner:run-nav-menu",
+        "elemacy:runner:run-nav-menu-parity"
+      ],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-nav-menu",
+        "status": "implemented",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "Authoring the widget in a Header template (menu, pointer, animation, breakpoint, full width), save, reopen and visitor desktop-submenu and mobile-dropdown checks pass in the free-only and free-pro profiles (tests/e2e/journeys/nav-menu-authoring.spec.mjs). Parity with Elementor Pro (run-nav-menu-parity.mjs) needs the paid Elementor Pro plugin (setup.py --elementor-pro-plugin) and reports unavailable without it.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:widget:elemacy-search",
       "owner": "elemacy",
       "kind": "widget",
@@ -3307,36 +3337,6 @@
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
         "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
-        "follow_up": "automate-release-browser-testing"
-      }
-    },
-    {
-      "id": "elemacy:widget:elemacy_nav_menu",
-      "owner": "elemacy",
-      "kind": "widget",
-      "identifier": "elemacy_nav_menu",
-      "source": "src/Modules/Widgets/Widgets/NavMenu.php",
-      "implementation": "real",
-      "prerequisites": [],
-      "coverage": [
-        "elemacy:runner:run",
-        "elemacy:integration:nav-menu",
-        "elemacy:runner:run-nav-menu",
-        "elemacy:runner:run-nav-menu-parity"
-      ],
-      "journey": {
-        "id": "elemacy:journey:widget:elemacy_nav_menu",
-        "status": "implemented",
-        "profiles": [
-          "free-only",
-          "free-pro"
-        ],
-        "expected": [
-          "Configure through supported UI, save, reopen and verify persisted choices.",
-          "Verify the authored output or interaction as a visitor.",
-          "Verify applicable invalid, empty and unavailable dependency behavior."
-        ],
-        "reason": "Authoring the widget in a Header template (menu, pointer, animation, breakpoint, full width), save, reopen and visitor desktop-submenu and mobile-dropdown checks pass in the free-only and free-pro profiles (tests/e2e/journeys/nav-menu-authoring.spec.mjs). Parity with Elementor Pro (run-nav-menu-parity.mjs) needs the paid Elementor Pro plugin (setup.py --elementor-pro-plugin) and reports unavailable without it.",
         "follow_up": "automate-release-browser-testing"
       }
     }
@@ -3436,6 +3436,11 @@
       "id": "elemacy:runner:check",
       "layer": "architecture",
       "path": "tests/architecture/check.php"
+    },
+    {
+      "id": "elemacy:runner:deploy-wordpress-test",
+      "layer": "release",
+      "path": "tests/release/deploy-wordpress-test.py"
     },
     {
       "id": "elemacy:runner:verify-package-test",

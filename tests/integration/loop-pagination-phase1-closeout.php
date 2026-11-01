@@ -164,7 +164,6 @@ final class LoopPaginationPhase1CloseoutTest extends IntegrationTestCase
             $_GET = [];
             $_POST = wp_slash([
                 'action' => 'elemacy_widgets_loop_grid_pagination',
-                '_wpnonce' => wp_create_nonce('elemacy_ajax_nonce'),
                 'request' => wp_json_encode($payload),
                 'paginate_base' => $paginate_base,
             ]);

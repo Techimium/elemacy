@@ -1257,14 +1257,15 @@ check('CompatibilityChecker::check() does not fail the version gate when ELEMENT
 // cannot be redefined, and the check above already proved the undefined case.
 define('ELEMENTOR_VERSION', '3.0.0');
 
-check('CompatibilityChecker::check() fails and schedules deactivation when the installed Elementor is older than the tested minimum', static function () {
+check('CompatibilityChecker::check() fails with a notice, and never schedules a deactivation, when the installed Elementor is older than the tested minimum', static function () {
     $GLOBALS['__wp_actions_fired']['elementor/loaded'] = 1;
     $GLOBALS['__wp_actions'] = [];
 
     $result = CompatibilityChecker::instance()->check();
 
     return false === $result && !empty($GLOBALS['__wp_actions']['admin_notices'])
-        && !empty($GLOBALS['__wp_actions']['admin_init']);
+        && empty($GLOBALS['__wp_actions']['admin_init'])
+        && !method_exists(CompatibilityChecker::instance(), 'plugin_deactivate');
 });
 
 check('CompatibilityChecker::admin_notice_outdated_elementor_version() names both the required and the installed version', static function () {
@@ -3611,7 +3612,7 @@ check('Free (SiteInstaller) and ElemacyPro both schedule their schema sync inste
 
     $pro = elemacy_code_without_comments($pro_path);
 
-    return false === strpos($pro, '->sync(') && false !== strpos($pro, '->schedule(false)');
+    return false === strpos($pro, '->sync(') && false !== strpos($pro, '->schedule($migrator->is_fresh_install())');
 });
 
 /* ── Theme compatibility adapter selection ──────────────────────── */

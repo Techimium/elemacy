@@ -105,7 +105,7 @@ try {
                 return $id;
             };
 
-            $nav = static fn (string $id, array $settings = []): array => elemacy_nm_widget($id, 'elemacy_nav_menu', $settings + ['menu' => $menu, 'align_items' => 'end']);
+            $nav = static fn (string $id, array $settings = []): array => elemacy_nm_widget($id, 'elemacy-nav-menu', $settings + ['menu' => $menu, 'align_items' => 'end']);
             $tall = static fn (string $id, string $html): array => elemacy_nm_widget($id, 'html', ['html' => $html]);
 
             $pages = [
@@ -174,7 +174,7 @@ try {
                 foreach ($variants as $name => $settings) {
                     $parity['variants'][$name] = [
                         'reference' => get_permalink($page('Parity ' . $name . ' reference', [elemacy_nm_container('nmp0001', [elemacy_nm_widget('nmp0002', 'nav-menu', $settings)])])),
-                        'elemacy'   => get_permalink($page('Parity ' . $name . ' elemacy', [elemacy_nm_container('nmp0001', [elemacy_nm_widget('nmp0002', 'elemacy_nav_menu', $settings)])])),
+                        'elemacy'   => get_permalink($page('Parity ' . $name . ' elemacy', [elemacy_nm_container('nmp0001', [elemacy_nm_widget('nmp0002', 'elemacy-nav-menu', $settings)])])),
                     ];
                 }
 
@@ -182,7 +182,7 @@ try {
                 $parity['together'] = [
                     'url'       => get_permalink($page('Parity together', [elemacy_nm_container('nmp0003', [
                         elemacy_nm_widget('nmp0004', 'nav-menu', $variants['framed']),
-                        elemacy_nm_widget('nmp0005', 'elemacy_nav_menu', $variants['background']),
+                        elemacy_nm_widget('nmp0005', 'elemacy-nav-menu', $variants['background']),
                     ])])),
                     'reference' => ['element' => 'nmp0004', 'variant' => 'framed'],
                     'elemacy'   => ['element' => 'nmp0005', 'variant' => 'background'],

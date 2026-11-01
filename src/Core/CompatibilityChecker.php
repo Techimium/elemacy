@@ -34,35 +34,12 @@ class CompatibilityChecker
             return false;
         }
 
-        if (version_compare(PHP_VERSION, '7.4', '<')) {
-            add_action('admin_notices', [$this, 'admin_notice_missing_php_version']);
-            add_action('admin_init', [$this, 'plugin_deactivate']);
-            return false;
-        }
-
         if (defined('ELEMENTOR_VERSION') && version_compare(ELEMENTOR_VERSION, self::MIN_ELEMENTOR_VERSION, '<')) {
             add_action('admin_notices', [$this, 'admin_notice_outdated_elementor_version']);
-            add_action('admin_init', [$this, 'plugin_deactivate']);
             return false;
         }
 
         return true;
-    }
-
-    public function plugin_deactivate()
-    {
-        deactivate_plugins(ELEMACY_PLUGIN_BASE);
-    }
-
-    public function admin_notice_missing_php_version()
-    {
-        $message = sprintf(
-            /* translators: %s: PHP version */
-            __('Elemacy requires PHP version %s or greater.', 'elemacy'),
-            '<strong>7.4</strong>'
-        );
-
-        printf('<div class="notice notice-error"><p>%s</p></div>', wp_kses_post($message));
     }
 
     public function admin_notice_outdated_elementor_version()

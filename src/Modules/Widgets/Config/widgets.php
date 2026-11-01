@@ -20,7 +20,7 @@ return [
         'class' => SiteLogo::class,
     ],
     [
-        'name' => 'elemacy_nav_menu',
+        'name' => 'elemacy-nav-menu',
         'title' => __('Elemacy Nav Menu', 'elemacy'),
         'icon' => 'menu',
         'class' => NavMenu::class,

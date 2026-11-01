@@ -234,7 +234,7 @@ async function compareTogether(context) {
   try {
     const leaks = await page.evaluate(() => ({
       elemacyInReference: document.querySelectorAll('.elementor-widget-nav-menu [class*="elemacy-nav-menu"]').length,
-      referenceInElemacy: document.querySelectorAll('.elementor-widget-elemacy_nav_menu [class*="elementor-nav-menu"], .elementor-widget-elemacy_nav_menu .elementor-item, .elementor-widget-elemacy_nav_menu .sub-arrow').length,
+      referenceInElemacy: document.querySelectorAll('.elementor-widget-elemacy-nav-menu [class*="elementor-nav-menu"], .elementor-widget-elemacy-nav-menu .elementor-item, .elementor-widget-elemacy-nav-menu .sub-arrow').length,
     }));
     assert.deepEqual(leaks, { elemacyInReference: 0, referenceInElemacy: 0 }, 'Neither widget carries the other\'s classes.');
 

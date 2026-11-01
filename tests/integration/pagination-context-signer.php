@@ -136,6 +136,18 @@ final class PaginationContextSignerTest extends IntegrationTestCase
         $this->signer->verify($foreign, 101, 'w1', str_repeat('a', 64));
     }
 
+    public function testATokenSignedLongAgoStillVerifiesOnACachedPage(): void
+    {
+        // A cached page can hold a token for weeks; only the signature, the
+        // blog and the definition revision decide, never the clock.
+        $post = $this->post();
+        $old = $this->signWithBlogId(get_current_blog_id(), 101, 'w1', str_repeat('a', 64), 'page', ['post_id' => $post], ['expires' => time() - 30 * DAY_IN_SECONDS]);
+        $none = $this->signWithBlogId(get_current_blog_id(), 101, 'w1', str_repeat('a', 64), 'page', ['post_id' => $post]);
+
+        self::assertSame('page', $this->signer->verify($old, 101, 'w1', str_repeat('a', 64))['type']);
+        self::assertSame('page', $this->signer->verify($none, 101, 'w1', str_repeat('a', 64))['type']);
+    }
+
     /** @dataProvider malformedTokens */
     public function testMalformedTokensAreRejected(string $token): void
     {
@@ -182,10 +194,10 @@ final class PaginationContextSignerTest extends IntegrationTestCase
         return $tampered . '.' . $signature;
     }
 
-    /** Builds a token exactly like the real signer would, but bound to a different blog. */
-    private function signWithBlogId(int $blog_id, int $owner_id, string $widget_id, string $fingerprint, string $type, array $facts): string
+    /** Builds a token like the real signer would, with the blog and any extra claims chosen by the caller. */
+    private function signWithBlogId(int $blog_id, int $owner_id, string $widget_id, string $fingerprint, string $type, array $facts, array $extra = []): string
     {
-        $encoded = $this->encode((string) wp_json_encode([
+        $encoded = $this->encode((string) wp_json_encode($extra + [
             'blog_id' => $blog_id, 'owner_id' => $owner_id, 'widget_id' => $widget_id,
             'fingerprint' => $fingerprint, 'type' => $type, 'facts' => $facts,
         ]));

@@ -248,15 +248,13 @@
             return;
         }
 
-        // A refresh-required/invalid response is stable and bounded: show a
-        // notice once and stop intercepting clicks — never an automatic
-        // reload or a repeated/fallback query with the stale request.
-        function showStaleNotice() {
-            $targetContainer.off('click.elemacyLoopGrid');
-            $targetContainer.find('.elemacy-loop-stale-notice').remove();
-            $targetContainer.append(
-                $('<p class="elemacy-loop-stale-notice"></p>').text('This content has changed. Refresh the page to continue.')
-            );
+        // The link was only intercepted to swap the items in place, so a
+        // failed request ends in the ordinary page load the link always was
+        // (never inside the editor preview, which must not navigate away).
+        function followLink(href) {
+            if (!elementorFrontend.isEditMode()) {
+                window.location.assign(href);
+            }
         }
 
         // Delegate pagination clicks
@@ -302,7 +300,6 @@
                 type: 'POST',
                 data: {
                     action: 'elemacy_widgets_loop_grid_pagination',
-                    _wpnonce: window.elemacy.nonce,
                     request: JSON.stringify(requestPayload),
                     paginate_base: paginateBase
                 },
@@ -345,7 +342,9 @@
                         }, 500);
 
                     } else {
-                        showStaleNotice();
+                        // Any unsuccessful answer (including a stale definition on
+                        // a cached page) is recovered by loading the real link.
+                        followLink(href);
                         if (elementorFrontend.isEditMode()) {
                             console.error('Elemacy Loop AJAX Error:', response.data);
                         } else {
@@ -354,6 +353,7 @@
                     }
                 },
                 error: function (xhr, status, error) {
+                    followLink(href);
                     if (elementorFrontend.isEditMode()) {
                         console.error('Elemacy Loop AJAX Request Failed:', error);
                     } else {

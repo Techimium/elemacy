@@ -28,6 +28,9 @@
  * 6. Every REST route and REST URL either plugin hands out is versioned
  *    (`elemacy/v1/...`): no unversioned namespace, `rest_url('elemacy/...')`
  *    or `/elemacy/...` route literal in shipped source.
+ * 7. Every Elementor widget type Free registers is `elemacy-` plus lowercase
+ *    words joined by hyphens: no underscore, so one naming rule holds for
+ *    every widget saved in `_elementor_data`.
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -240,6 +243,17 @@ foreach ($php8_tokens ? $shipped_php : [] as $path) {
     }
 }
 
+$widget_catalog = (string) file_get_contents($plugin_root . 'src/Modules/Widgets/Config/widgets.php');
+preg_match_all("/'name'\\s*=>\\s*'([^']+)'/", $widget_catalog, $widget_names);
+if (!$widget_names[1]) {
+    $violations[] = '[widget type naming] no widget type could be read from src/Modules/Widgets/Config/widgets.php';
+}
+foreach ($widget_names[1] as $widget_name) {
+    if (!preg_match('/^elemacy(-[a-z0-9]+)+$/', $widget_name)) {
+        $violations[] = sprintf("[widget type naming] '%s' in src/Modules/Widgets/Config/widgets.php must be elemacy- plus lowercase words joined by hyphens", $widget_name);
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -252,4 +266,4 @@ if ($violations) {
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name and PHP 7.4 syntax-floor rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming and PHP 7.4 syntax-floor rules all pass.\n";

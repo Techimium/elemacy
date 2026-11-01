@@ -1,7 +1,7 @@
 === Elemacy – Theme Builder, Popups, Forms & Loops for Elementor ===
 Contributors: techimium, mdashraful
 Tags: elementor, theme builder, popup builder, form builder, loop builder
-Requires at least: 6.0
+Requires at least: 6.8
 Tested up to: 7.1
 Stable tag: 1.0.0
 Requires PHP: 7.4
@@ -160,7 +160,7 @@ Replace a header. Give a contact form some care. Make one card and let a loop fi
 4. Edit a page with Elementor, or create a template from the Theme Builder or Template Library.
 5. For ACF features, activate Advanced Custom Fields and create the required fields. Repeater and gallery tools need the matching field-type support, such as ACF Pro.
 
-Requires WordPress 6.0+, PHP 7.4+ and Elementor 3.35.9+. Elementor Pro is optional. Elemacy Pro requires Elemacy Free 1.0.0 or newer.
+Requires WordPress 6.8+, PHP 7.4+ and Elementor 3.35.9+. Elementor Pro is optional. Elemacy Pro requires Elemacy Free 1.0.0 or newer.
 
 == Frequently Asked Questions ==
 

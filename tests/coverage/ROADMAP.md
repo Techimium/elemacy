@@ -133,9 +133,9 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `widget:elemacy-form` | real | Elementor Free | pending |
 | `widget:elemacy-loop-carousel` | real | Elementor Free | pending |
 | `widget:elemacy-loop-grid` | real | Elementor Free | pending |
+| `widget:elemacy-nav-menu` | real | Elementor Free | implemented |
 | `widget:elemacy-search` | real | Elementor Free | pending |
 | `widget:elemacy-site-logo` | real | Elementor Free | pending |
-| `widget:elemacy_nav_menu` | real | Elementor Free | implemented |
 
 ## Existing checks
 
@@ -162,6 +162,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-topbar-prerender` | native-browser | `tests/e2e/run-topbar-prerender.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
 | `elemacy:runner:check` | architecture | `tests/architecture/check.php` |
+| `elemacy:runner:deploy-wordpress-test` | release | `tests/release/deploy-wordpress-test.py` |
 | `elemacy:runner:verify-package-test` | release | `tests/release/verify-package-test.py` |
 | `elemacy:runner:verify-package` | release | `src-react/scripts/verify-package.py` |
 | `elemacy:runner:acf-repeater-query` | performance | `tests/performance/acf-repeater-query.php` |

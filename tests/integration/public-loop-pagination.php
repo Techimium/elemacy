@@ -67,7 +67,6 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             $_GET = [];
             $_POST = wp_slash([
                 'action' => 'elemacy_widgets_loop_grid_pagination',
-                '_wpnonce' => wp_create_nonce('elemacy_ajax_nonce'),
                 'request' => $payload,
                 'paginate_base' => home_url('/page/%#%/'),
             ]);
@@ -214,7 +213,6 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             $_GET = [];
             $_POST = wp_slash([
                 'action' => 'elemacy_widgets_loop_grid_pagination',
-                '_wpnonce' => wp_create_nonce('elemacy_ajax_nonce'),
                 'request' => $payload,
                 'paginate_base' => '',
             ]);

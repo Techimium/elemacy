@@ -441,7 +441,7 @@ const scenarios = {
     await frame.waitForSelector('.elementor-element-nmw0004 .elemacy-nav-menu__toggle', { state: 'attached', timeout: 60_000 });
 
     await page.evaluate(() => {
-      window.navMenu = () => elementor.getPreviewContainer().findChildrenRecursive(c => c.model.get('widgetType') === 'elemacy_nav_menu');
+      window.navMenu = () => elementor.getPreviewContainer().findChildrenRecursive(c => c.model.get('widgetType') === 'elemacy-nav-menu');
       elementor.changeDeviceMode('mobile');
     });
     await page.waitForTimeout(1500);

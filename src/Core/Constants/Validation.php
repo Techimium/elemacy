@@ -43,7 +43,7 @@ class Validation
      *
      * @var array
      *
-     * @since 3.3.0
+     * @since 1.0.0
      */
     public const RULE_MAP = [
         'required'  => RequiredRule::class,

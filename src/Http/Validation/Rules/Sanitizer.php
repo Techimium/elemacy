@@ -5,7 +5,7 @@ namespace Elemacy\Http\Validation\Rules;
 defined('ABSPATH') || exit;
 
 /**
- * Rule to ensure the minium value.
+ * Rule that sanitizes the value in place; it never rejects one.
  *
  * @since 1.0.0
  */

@@ -3,7 +3,7 @@ import { fixture } from '../shared/environment.mjs';
 import { readyEditor, addWidget, saveEditor } from '../shared/editor.mjs';
 import { createTemplate } from '../shared/templates.mjs';
 
-const WIDGET = '.elementor-widget-elemacy_nav_menu';
+const WIDGET = '.elementor-widget-elemacy-nav-menu';
 
 /** Opens the Nav Menu's panel on its Content > Layout section. */
 async function openLayoutSection(page, frame) {
@@ -13,7 +13,7 @@ async function openLayoutSection(page, frame) {
 
 const select = (page, setting) => page.locator(`select[data-setting="${setting}"]`);
 
-test('elemacy:journey:widget:elemacy_nav_menu @widgets', async ({ page, author, browser, checkpoint }) => {
+test('elemacy:journey:widget:elemacy-nav-menu @widgets', async ({ page, author, browser, checkpoint }) => {
   const { menu } = fixture('seed-menu', author.manifest);
   await createTemplate(page, { title: `Journey nav menu ${author.user}`, type: 'Header', edit: true });
 

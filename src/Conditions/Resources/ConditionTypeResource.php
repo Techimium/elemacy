@@ -28,8 +28,8 @@ class ConditionTypeResource extends Resource
             // Every entry here came from ConditionManager::get_all(), so it
             // is by definition registered — "unknown" cannot occur; only
             // whether it is a real implementation or a non-functional Mock
-            // stand-in (: type-list resources expose availability
-            // too, not just the per-saved-instance resources phase 4 covers).
+            // stand-in. Type-list resources expose availability too, not
+            // just the per-saved-instance resources.
             'availability' => ($this->is_mock()
                 ? FeatureAvailability::inactive_extension($this->get_name())
                 : FeatureAvailability::available())->to_array(),

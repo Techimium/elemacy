@@ -118,7 +118,7 @@ return [
 
     // Elementor widget names (widgetType in saved _elementor_data).
     $returned('elemacy-site-logo', 'src/Modules/Widgets/Widgets/SiteLogo.php'),
-    $returned('elemacy_nav_menu', 'src/Modules/Widgets/Widgets/NavMenu.php'),
+    $returned('elemacy-nav-menu', 'src/Modules/Widgets/Widgets/NavMenu.php'),
     $returned('elemacy-loop-grid', 'src/Modules/Widgets/Widgets/LoopGrid.php'),
     $returned('elemacy-loop-carousel', 'src/Modules/Widgets/Widgets/LoopCarousel.php'),
     $returned('elemacy-form', 'src/Modules/Widgets/Widgets/Form.php'),

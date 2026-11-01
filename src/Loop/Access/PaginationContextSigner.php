@@ -31,7 +31,6 @@ final class PaginationContextSigner
         $encoded = self::encode((string) wp_json_encode([
             'blog_id' => get_current_blog_id(),
             'host_id' => is_singular() ? get_queried_object_id() : 0,
-            'expires' => time() + DAY_IN_SECONDS,
             'owner_id' => $owner_id,
             'widget_id' => $widget_id,
             'fingerprint' => $fingerprint,
@@ -63,7 +62,6 @@ final class PaginationContextSigner
         if (
             !is_array($claims)
             || ($claims['blog_id'] ?? null) !== get_current_blog_id()
-            || ($claims['expires'] ?? 0) < time()
             || ($claims['owner_id'] ?? null) !== $owner_id
             || ($claims['widget_id'] ?? null) !== $widget_id
             || !isset($claims['fingerprint']) || !is_string($claims['fingerprint']) || !hash_equals($claims['fingerprint'], $fingerprint)

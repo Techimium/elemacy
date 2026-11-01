@@ -60,7 +60,7 @@ Enabled Free module slugs: `theme-builder`, `widgets`, `custom-css`, `dynamic-ta
 | Widget class under `Modules/Widgets/Widgets` | Stored Elementor widget name |
 | --- | --- |
 | `SiteLogo` | `elemacy-site-logo` |
-| `NavMenu` | `elemacy_nav_menu` |
+| `NavMenu` | `elemacy-nav-menu` |
 | `LoopGrid` | `elemacy-loop-grid` |
 | `LoopCarousel` | `elemacy-loop-carousel` |
 | `Form` | `elemacy-form` |
@@ -69,7 +69,7 @@ Enabled Free module slugs: `theme-builder`, `widgets`, `custom-css`, `dynamic-ta
 | `Acf/AcfIconList` | `elemacy-acf-icon-list` |
 | `Acf/AcfGallery` | `elemacy-acf-gallery` |
 
-The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Preserve the intentional underscore in `elemacy_nav_menu`.
+The catalog authority is `src/Modules/Widgets/Config/widgets.php`. Every widget type is `elemacy-*` with hyphens only.
 
 The Nav Menu's saved setting names are the Elementor Pro Nav Menu's control IDs (`menu`, `layout`, `pointer`, `animation_line`, `dropdown`, `toggle` and the rest, checked against `tests/integration/fixtures/nav-menu-reference-controls.json`), so Paste Style works between the two widgets. Keep them. Everything the widget puts on the page is Elemacy's own and is not a public styling API: classes under `elemacy-nav-menu`, the custom properties `--elemacy-nav-menu-*`, and the script and style handle `elemacy-nav-menu`.
 
@@ -277,10 +277,10 @@ Frontend `admin-ajax.php` actions:
 
 | Action | Registered by | Nonce action |
 | --- | --- | --- |
-| `elemacy_widgets_loop_grid_pagination` | `Modules/Widgets/Config/ajax.php` | `elemacy_ajax_nonce` (required) |
+| `elemacy_widgets_loop_grid_pagination` | `Modules/Widgets/Config/ajax.php` | none required; the signed loop context authorizes the request (§ Loop pagination) |
 | `elemacy_form_submit` | `Forms\FormsBootstrap` | none required; `elemacy_form_submit` only proves a logged-in visitor's identity (§ Form Builder) |
 
-Both actions serve guests and authenticated users, and each handler applies its own application policy. The loop's public nonce is request hygiene, not authorization. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`. The form endpoint deliberately takes no public nonce, so a cached page keeps submitting however old it is.
+Both actions serve guests and authenticated users, and each handler applies its own application policy. The loop action takes no public nonce, because a cached page keeps paginating however old it is; the signed context has no expiry and is invalidated only when the widget definition changes. The browser answers any failed request by loading the activated page link. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`. The form endpoint deliberately takes no public nonce, so a cached page keeps submitting however old it is.
 
 ## Shared PHP and admin entry points
 

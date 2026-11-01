@@ -8,7 +8,6 @@ wp_set_current_user(0);
 $_GET = [];
 $_POST = wp_slash([
     'action' => 'elemacy_widgets_loop_grid_pagination',
-    '_wpnonce' => wp_create_nonce('elemacy_ajax_nonce'),
     'request' => $input['request'],
     'paginate_base' => $input['paginate_base'] ?? '',
 ]);

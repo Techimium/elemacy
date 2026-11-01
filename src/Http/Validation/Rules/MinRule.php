@@ -7,7 +7,7 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Constants\Validation;
 
 /**
- * Rule to ensure the minium value.
+ * Rule to ensure the minimum value.
  *
  * @since 1.0.0
  */

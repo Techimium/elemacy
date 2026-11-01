@@ -87,8 +87,7 @@ class PostContent extends Tag
             // nesting depth - otherwise a single failed render would leave
             // $rendering permanently stuck for the rest of the request,
             // silently blocking every later legitimate use of this tag for
-            // the same post (: "protect... nested render
-            // counters ... with finally").
+            // the same post.
             --self::$level;
 
             if (0 === self::$level) {

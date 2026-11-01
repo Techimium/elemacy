@@ -39,7 +39,7 @@ class NavMenu extends BaseWidget
 
     public function get_name(): string
     {
-        return 'elemacy_nav_menu';
+        return 'elemacy-nav-menu';
     }
 
     public function get_title(): string

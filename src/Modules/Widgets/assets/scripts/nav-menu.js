@@ -1,5 +1,5 @@
 /**
- * Elemacy Nav Menu (elemacy_nav_menu) frontend.
+ * Elemacy Nav Menu (elemacy-nav-menu) frontend.
  *
  * Behaves like the Elementor Pro Nav Menu, whose submenus come from the
  * SmartMenus jQuery plugin, without loading it: the same hover delays, fades,
@@ -766,6 +766,6 @@
             },
         });
 
-        elementorFrontend.elementsHandler.attachHandler('elemacy_nav_menu', NavMenuHandler);
+        elementorFrontend.elementsHandler.attachHandler('elemacy-nav-menu', NavMenuHandler);
     });
 })(jQuery);

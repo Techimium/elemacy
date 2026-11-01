@@ -320,7 +320,7 @@ final class NavMenuTest extends IntegrationTestCase
             self::assertStringContainsString('@media (max-width:900px){.elemacy-nav-menu--breakpoint-tablet .elemacy-nav-menu__main{display:none}}', $css);
             self::assertStringContainsString('@media (min-width:901px){.elemacy-nav-menu--breakpoint-tablet .elemacy-nav-menu__toggle', $css);
 
-            $options = NavMenuControlCatalog::controls(Plugin::$instance->widgets_manager->get_widget_types('elemacy_nav_menu'))['dropdown']['options'];
+            $options = NavMenuControlCatalog::controls(Plugin::$instance->widgets_manager->get_widget_types('elemacy-nav-menu'))['dropdown']['options'];
             self::assertStringContainsString('(> 900px)', $options['tablet']);
             self::assertSame('none', array_key_last($options));
         } finally {
@@ -331,7 +331,7 @@ final class NavMenuTest extends IntegrationTestCase
 
     public function testTheInnerWrapperFollowsElementorsOptimizedMarkup(): void
     {
-        $widget = Plugin::$instance->widgets_manager->get_widget_types('elemacy_nav_menu');
+        $widget = Plugin::$instance->widgets_manager->get_widget_types('elemacy-nav-menu');
         $optimized = Plugin::$instance->experiments->is_feature_active('e_optimized_markup');
 
         self::assertSame(!$optimized, $widget->has_widget_inner_wrapper());
@@ -365,7 +365,7 @@ final class NavMenuTest extends IntegrationTestCase
     public function testControlsMatchTheElementorProReference(): void
     {
         $reference = json_decode((string) file_get_contents(__DIR__ . '/fixtures/nav-menu-reference-controls.json'), true);
-        $ours = NavMenuControlCatalog::describe(Plugin::$instance->widgets_manager->get_widget_types('elemacy_nav_menu'));
+        $ours = NavMenuControlCatalog::describe(Plugin::$instance->widgets_manager->get_widget_types('elemacy-nav-menu'));
 
         self::assertSame('4.2.2', $reference['reference']['elementor_pro']);
         self::assertSame(array_column($reference['controls'], 'name'), array_column($ours, 'name'), 'Same controls in the same order.');
@@ -409,7 +409,7 @@ final class NavMenuTest extends IntegrationTestCase
         $widget = Plugin::$instance->elements_manager->create_element_instance([
             'id'         => $id,
             'elType'     => 'widget',
-            'widgetType' => 'elemacy_nav_menu',
+            'widgetType' => 'elemacy-nav-menu',
             'settings'   => $settings + ['menu' => self::MENU],
         ]);
 
@@ -423,7 +423,7 @@ final class NavMenuTest extends IntegrationTestCase
     private function widget_content(array $settings): string
     {
         $xpath = $this->xpath($this->html($settings));
-        $element = $xpath->query('//*[contains(@class, "elementor-widget-elemacy_nav_menu")]')->item(0);
+        $element = $xpath->query('//*[contains(@class, "elementor-widget-elemacy-nav-menu")]')->item(0);
 
         if (!$element instanceof DOMElement) {
             return '';

@@ -163,6 +163,53 @@ try {
   assert.ok(await allThirdPartyWidgetsHydrated(reloadedGrid), 'A SECOND consecutive AJAX load\'s items must also be hydrated, not silently skipped by the adapter\'s already-initialized guard.');
   results.push('PASS: a second, consecutive AJAX load onto the same grid container hydrates its new items too (not silently skipped)');
 
+  // --- No page-embedded token, and any failure falls back to the real link ---
+  // A cached page may be days old, so the request must carry no nonce, and a
+  // rejected or unsuccessful answer must end in an ordinary page load.
+  const ajaxPattern = /admin-ajax\.php/;
+  const pageTwoPattern = /(\/page\/2\/?|[?&]paged=2\b)/;
+  const expectedFailures = [];
+  const recordIntentionalErrors = (before) => {
+    // The browser's own "Failed to load resource" line and the script's
+    // single console.error are the deliberate result of the forced failure.
+    expectedFailures.push(...errors.splice(before));
+  };
+
+  response = await page.goto(fixture.flat_url, { waitUntil: 'networkidle' });
+  assert.equal(response.status(), 200);
+  const probeGrid = page.locator('.elemacy-ajax-pagination').first();
+  await probeGrid.waitFor();
+  let sentBody = '';
+  await page.route(ajaxPattern, route => { sentBody = route.request().postData() || ''; route.continue(); });
+  await waitForAjaxSuccess(page, probeGrid, () => probeGrid.locator('.elemacy-pagination a.page-numbers', { hasText: '2' }).first().click());
+  await page.unroute(ajaxPattern);
+  assert.ok(sentBody.includes('action=elemacy_widgets_loop_grid_pagination'), 'The pagination request was not observed.');
+  assert.ok(!sentBody.includes('_wpnonce'), 'The pagination request must carry no nonce.');
+  results.push('PASS: the pagination request carries no page-embedded nonce');
+
+  for (const [label, fulfil] of [
+    ['an error status', route => route.fulfill({ status: 403, contentType: 'application/json', body: '{"success":false,"data":"Security check failed"}' })],
+    ['a stale-definition answer', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":false,"data":{"message":"This list has changed. Refresh the page to continue."}}' })],
+    ['a dropped connection', route => route.abort('failed')],
+  ]) {
+    response = await page.goto(fixture.flat_url, { waitUntil: 'networkidle' });
+    assert.equal(response.status(), 200);
+    const failingGrid = page.locator('.elemacy-ajax-pagination').first();
+    await failingGrid.waitFor();
+    const before = errors.length;
+    await page.route(ajaxPattern, fulfil);
+    await Promise.all([
+      page.waitForURL(pageTwoPattern, { timeout: 10000 }),
+      failingGrid.locator('.elemacy-pagination a.page-numbers', { hasText: '2' }).first().click(),
+    ]);
+    await page.unroute(ajaxPattern);
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('.elemacy-loop-stale-notice').count(), 0, 'No dead-end "refresh" notice may be shown.');
+    assert.ok((await itemIds(page.locator('.elemacy-ajax-pagination').first())).length > 0, 'The fallback page must render the loop.');
+    recordIntentionalErrors(before);
+    results.push(`PASS: ${label} on page 2 ends in a normal page load of the page link`);
+  }
+
   // --- Genuinely nested AJAX pagination ---
   response = await page.goto(fixture.nested_url, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);

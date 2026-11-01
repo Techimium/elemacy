@@ -1,5 +1,5 @@
 /*
- * Elemacy Nav Menu (elemacy_nav_menu).
+ * Elemacy Nav Menu (elemacy-nav-menu).
  *
  * Reproduces the Elementor Pro Nav Menu's built-in look value for value, under
  * Elemacy's own classes so neither widget's styles reach the other. Rule order
@@ -572,12 +572,12 @@
 }
 
 /* Widget wrapper. */
-.elementor-widget-elemacy_nav_menu:not(.elemacy-nav-menu--toggle) .elemacy-nav-menu__toggle {
+.elementor-widget-elemacy-nav-menu:not(.elemacy-nav-menu--toggle) .elemacy-nav-menu__toggle {
     display: none;
 }
 
-.elementor-widget-elemacy_nav_menu .elementor-widget-container,
-.elementor-widget-elemacy_nav_menu:not(:has(.elementor-widget-container)):not([class*=elementor-hidden-]) {
+.elementor-widget-elemacy-nav-menu .elementor-widget-container,
+.elementor-widget-elemacy-nav-menu:not(:has(.elementor-widget-container)):not([class*=elementor-hidden-]) {
     display: flex;
     flex-direction: column;
 }
