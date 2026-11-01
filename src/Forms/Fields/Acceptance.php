@@ -9,7 +9,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** A single checkbox to accept terms; required means it must be ticked. */
+/**
+ * A single checkbox to accept terms; required means it must be ticked.
+ *
+ * @internal
+ */
 final class Acceptance extends AbstractFieldType
 {
     public const ACCEPTED     = 'yes';

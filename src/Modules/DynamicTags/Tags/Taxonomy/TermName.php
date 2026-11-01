@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class TermName extends Tag
 {
     public function get_name()

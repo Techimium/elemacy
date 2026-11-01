@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * current request — a page, a Theme Builder location, a matched popup, or the
  * template presently rendering a nested loop item — rather than merely a
  * published document ID a request happens to reference.
+ *
+ * @api
  */
 interface PlacementResolverInterface
 {

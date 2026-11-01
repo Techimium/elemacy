@@ -10,6 +10,9 @@ use Elemacy\Conditions\Resources\ConditionGroupResource;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionSearchService;
 
+/**
+ * @internal
+ */
 class ConditionController
 {
     public function types(Request $request): Response

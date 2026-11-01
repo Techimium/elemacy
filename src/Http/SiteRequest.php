@@ -4,10 +4,13 @@ namespace Elemacy\Http;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Request;
+use Elemacy\Http\Contracts\RequestInterface;
 use Elemacy\Http\Sanitizer;
 
-class SiteRequest implements Request
+/**
+ * @api
+ */
+class SiteRequest implements RequestInterface
 {
     protected $attributes = [];
     protected $headers = [];

@@ -4,6 +4,7 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Contracts\ContainerInterface;
 use Exception;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -11,12 +12,11 @@ use ReflectionNamedType;
 /**
  * Reflection container with explicit interface-to-factory bindings. Lifetime
  * is chosen explicitly: See docs/ARCHITECTURE.md § Composition and injection.
+ *
+ * @internal
  */
-class Container
+class Container implements ContainerInterface
 {
-    public const SHARED = 'shared';
-    public const FRESH = 'fresh';
-
     protected static $instance = null;
 
     /** @var array<class-string,object> */
@@ -36,9 +36,11 @@ class Container
     protected array $resolving = [];
 
     /**
-     * Use instance().
+     * Use instance(). Binds ContainerInterface to this container, so a
+     * service that needs the container can type-hint the contract.
      */
     protected function __construct() {
+        $this->bind(ContainerInterface::class, static fn (self $container) => $container);
     }
 
     /**

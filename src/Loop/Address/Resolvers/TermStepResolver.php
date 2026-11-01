@@ -5,12 +5,16 @@ namespace Elemacy\Loop\Address\Resolvers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Address\AddressStep;
-use Elemacy\Loop\Address\AddressStepResolverInterface;
+use Elemacy\Loop\Contracts\AddressStepResolverInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Items\TermLoopItem;
 use Elemacy\Loop\Placement\HostFacts;
 
-/** `term:{id}` — a term of a publicly viewable taxonomy. */
+/**
+ * `term:{id}` — a term of a publicly viewable taxonomy.
+ *
+ * @internal
+ */
 final class TermStepResolver implements AddressStepResolverInterface
 {
     public function get_kind(): string

@@ -7,6 +7,8 @@ defined('ABSPATH') || exit;
 /**
  * Popup-owned post-meta keys. The type discriminator is not here — it lives in
  * the shared TemplateLibrary\Constants\MetaKeys::TEMPLATE_TYPE.
+ *
+ * @internal
  */
 class MetaKeys
 {

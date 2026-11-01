@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Request facts an action may rely on. The user is set only when the request
  * proved it with a nonce, so actions use user_id() rather than the
  * current user. The visitor's IP is deliberately absent.
+ *
+ * @api
  */
 final class SubmissionMeta
 {

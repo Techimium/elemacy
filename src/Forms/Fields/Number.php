@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
 /**
  * A number, optionally bounded and stepped. With no step any decimal is
  * allowed (the input gets step="any"), matching what the browser enforces.
+ *
+ * @internal
  */
 final class Number extends AbstractFieldType
 {

@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * The single owner of "does the installed Elementor expose this internal
  * class" for every optional/internal Elementor dependency the rendering
  * pipeline touches. See docs/ARCHITECTURE.md § The Elementor boundary.
+ *
+ * @internal
  */
 class Capabilities
 {

@@ -10,6 +10,7 @@ use DateTime;
  * Validates that the given value matches a specific date format.
  *
  * @since 1.0.0
+ * @api
  */
 class DateFormatRule extends BaseRule
 {

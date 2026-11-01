@@ -4,15 +4,21 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @api
+ */
 final class Hooks
 {
     // Core lifecycle.
     public const LOADED_ACTION           = 'elemacy/action/loaded';
+
+    // Fired after the built-in modules register, so add-ons can add their own
+    // (passes a Contracts\ModuleRegistrarInterface).
     public const REGISTER_MODULES_ACTION = 'elemacy/action/register_modules';
 
     // Fired early — after dependency/compatibility checks, before any
     // provider's boot runs — so a service provider can
-    // register itself (passes the Elemacy instance; call
+    // register itself (passes a Contracts\ProviderRegistrarInterface; call
     // register_provider() on it). Pro subscribes from its own plugin
     // bootstrap, so its own provider registration does not depend on the
     // later LOADED_ACTION below.
@@ -35,12 +41,14 @@ final class Hooks
     public const LIBRARY_CHANGED_ACTION = 'elemacy/action/library/changed';
 
     // Template library
-    // Fired so modules/add-ons can register library item types (passes the TypeRegistry).
+    // Fired so modules/add-ons can register library item types (passes a
+    // TemplateLibrary\Contracts\LibraryTypeRegistrarInterface).
     public const LIBRARY_TYPES_REGISTER_ACTION = 'elemacy/action/library/types/register';
 
     // Fired early (before Elementor's own style pass) so modules can register
     // post IDs whose Elementor content renders outside their own page — a
-    // popup, a theme template, etc. (passes the TemplateAssetsRegistrar).
+    // popup, a theme template, etc. (passes an
+    // Elemacy\Elementor\Contracts\TemplateAssetsRegistrarInterface).
     public const TEMPLATE_ASSETS_COLLECT_ACTION = 'elemacy/action/template_assets/collect';
 
     // Admin scripts.
@@ -65,17 +73,19 @@ final class Hooks
     // were configured for it.
     public const THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER = 'elemacy/filter/theme_builder/suppress_native_chrome';
 
-    // Fired so add-ons can register theme locations (passes the LocationRegistry).
+    // Fired so add-ons can register theme locations (passes a
+    // Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface).
     public const THEME_BUILDER_LOCATIONS_REGISTER_ACTION = 'elemacy/action/theme_builder/locations/register';
 
     // Fired after the Theme Builder module registers its built-in theme
     // compatibility adapters, so add-ons can register their own for an
-    // unrecognized theme slug without editing CompatibilityManager (passes
-    // the CompatibilityManager).
+    // unrecognized theme slug (passes a
+    // Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface).
     public const THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION = 'elemacy/action/theme_builder/compatibility/register';
 
     // Fired after the Widgets module registers its built-in loop data sources,
-    // so add-ons can register their own (passes the LoopDataSourceRegistry).
+    // so add-ons can register their own (passes a
+    // Loop\Contracts\LoopDataSourceRegistrarInterface).
     public const LOOP_DATA_SOURCES_REGISTER_ACTION = 'elemacy/action/loop/data_sources/register';
 
     // Lets add-ons adjust the WP_Query args the Current Query loop data source
@@ -86,18 +96,20 @@ final class Hooks
 
     // Fired after the Widgets module registers its built-in public pagination
     // placement resolvers (page, nested loop), so other modules/add-ons can
-    // register their own (passes the PlacementResolverRegistry).
+    // register their own (passes a
+    // Loop\Contracts\PlacementResolverRegistrarInterface).
     public const LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION = 'elemacy/action/loop/placement_resolvers/register';
 
     // Fired after the Widgets module registers its built-in loop item address
     // step resolvers (post, term, user), so add-ons that produce another kind
-    // of loop item can make it rebuildable for nested later pages (passes the
-    // AddressStepResolverRegistry).
+    // of loop item can make it rebuildable for nested later pages (passes a
+    // Loop\Contracts\AddressStepResolverRegistrarInterface).
     public const LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION = 'elemacy/action/loop/address_step_resolvers/register';
 
     // Fired after free registers its elemacy_query picker resolvers, so add-ons
-    // can register their own kind of live-search picker (passes the
-    // QueryResolverRegistry). Runs on the first picker search, never earlier.
+    // can register their own kind of live-search picker (passes an
+    // Elemacy\Elementor\Contracts\QueryResolverRegistrarInterface). Runs on the first
+    // picker search, never earlier.
     public const QUERY_RESOLVERS_REGISTER_ACTION = 'elemacy/action/query_control/resolvers/register';
 
     // Preview (editor real-data preview)
@@ -109,7 +121,8 @@ final class Hooks
     public const CONDITIONS_EXCLUDED_POST_TYPES_FILTER = 'elemacy/filter/conditions/excluded_post_types';
     public const CONDITIONS_EXCLUDED_TAXONOMIES_FILTER = 'elemacy/filter/conditions/excluded_taxonomies';
 
-    // Fired after free registers its conditions (passes the ConditionManager).
+    // Fired after free registers its conditions (passes a
+    // Conditions\Contracts\ConditionRegistrarInterface).
     public const CONDITIONS_REGISTER_ACTION = 'elemacy/action/conditions/register';
 
     // Popups.
@@ -118,15 +131,17 @@ final class Hooks
     public const POPUP_MATCHED_FILTER              = 'elemacy/filter/popups/matched';
     public const POPUP_DUPLICATE_EXCLUDED_META_FILTER = 'elemacy/filter/popups/duplicate_excluded_meta';
 
-    // Fired so add-ons can register popup triggers / rules (passes the manager).
+    // Fired so add-ons can register popup triggers / rules (passes a
+    // Modules\Popups\Contracts\TriggerRegistrarInterface / RuleRegistrarInterface).
     public const POPUP_TRIGGERS_REGISTER_ACTION = 'elemacy/action/popups/triggers/register';
     public const POPUP_RULES_REGISTER_ACTION    = 'elemacy/action/popups/rules/register';
 
     // Forms.
     // Fired on the first lookup of each forms registry, after free registers
     // its built-ins, so add-ons can register their own field types, submit
-    // actions and form sources (passes the registry). A key that is already
-    // registered is refused, never replaced.
+    // actions and form sources (passes a Forms\Contracts\FieldTypeRegistrarInterface,
+    // FormActionRegistrarInterface or FormSourceRegistrarInterface). A key
+    // that is already registered is refused, never replaced.
     public const FORM_FIELD_TYPES_REGISTER_ACTION = 'elemacy/action/forms/field_types/register';
     public const FORM_ACTIONS_REGISTER_ACTION     = 'elemacy/action/forms/actions/register';
     public const FORM_SOURCES_REGISTER_ACTION     = 'elemacy/action/forms/sources/register';

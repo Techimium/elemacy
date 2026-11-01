@@ -5,7 +5,7 @@ namespace Elemacy\Http\Validation;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\Validation;
-use Elemacy\Http\Contracts\Rule;
+use Elemacy\Http\Contracts\RuleInterface;
 use Elemacy\Http\Exceptions\InvalidValidationRuleException;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Http\Validation\Rules\BaseRule;
@@ -16,6 +16,7 @@ use InvalidArgumentException;
  * Handles data validation against defined rules.
  *
  * @since 1.0.0
+ * @api
  */
 class Validator
 {
@@ -363,12 +364,12 @@ class Validator
     /**
      * Get the rule class instance.
      *
-     * @param string|Rule $rule
-     * @param string      $key
-     * @param mixed       $value
-     * @param array       $all_applied_rules
+     * @param string|RuleInterface $rule
+     * @param string               $key
+     * @param mixed                $value
+     * @param array                $all_applied_rules
      *
-     * @return Rule
+     * @return RuleInterface
      * @throws InvalidValidationRuleException When the rule names no known rule class.
      */
     protected function get_rule_class($rule, $key, $value, $all_applied_rules)

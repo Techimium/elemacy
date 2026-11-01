@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
  * request names the engine reads back, and the attributes every control
  * shares. Field types build their markup through it, so they never invent
  * their own IDs or names.
+ *
+ * @api
  */
 final class RenderContext
 {

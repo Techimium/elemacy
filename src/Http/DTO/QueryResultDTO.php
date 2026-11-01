@@ -7,6 +7,8 @@ defined('ABSPATH') || exit;
 /**
  * A single live-search result for the elemacy_query control: the stored value and
  * the label shown in the dropdown.
+ *
+ * @api
  */
 class QueryResultDTO extends DTO
 {

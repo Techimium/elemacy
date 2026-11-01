@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class PostCustomField extends Tag
 {
     public function get_name()

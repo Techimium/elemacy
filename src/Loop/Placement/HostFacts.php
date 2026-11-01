@@ -20,6 +20,8 @@ use WP_Term;
  * Inside a loop item it also supplies the enclosing item's address, a
  * fingerprint of that item chain's content and the item's render key, so a
  * later page can rebuild exactly that chain and refuse it once it changed.
+ *
+ * @api
  */
 final class HostFacts
 {

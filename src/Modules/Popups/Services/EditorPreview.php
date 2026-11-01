@@ -14,6 +14,8 @@ use Elemacy\TemplateLibrary\TypeRegistry;
  * Renders the popup "chrome" (overlay + framed box + position + a real close
  * button) inside the Elementor editor preview, so authors see the popup as it
  * appears on the site — like Elementor Pro's popup editor.
+ *
+ * @internal
  */
 class EditorPreview
 {

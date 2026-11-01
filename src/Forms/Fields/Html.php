@@ -9,7 +9,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** Authored content shown between fields; it submits nothing. */
+/**
+ * Authored content shown between fields; it submits nothing.
+ *
+ * @internal
+ */
 final class Html extends AbstractFieldType
 {
     public function key(): string

@@ -4,6 +4,9 @@ namespace Elemacy\Modules\Widgets\Services;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 class LogoResolver
 {
     public function resolve(array $settings): int

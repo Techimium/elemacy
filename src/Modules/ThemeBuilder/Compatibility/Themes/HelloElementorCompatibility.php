@@ -4,8 +4,8 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /**
  * Hello Elementor, registered for the slug `hello-elementor`. Hello asks one
@@ -14,13 +14,15 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
  * the Elemacy template through Hello's own `wp_body_open` and `get_footer`.
  * The side is marked only for Hello's own check, never earlier: see
  * docs/ARCHITECTURE.md § Native chrome replacement.
+ *
+ * @internal
  */
 class HelloElementorCompatibility implements ThemeCompatibilityInterface
 {
     /** @var string|null 'header'|'footer'|null — which side is currently loading. */
     private $current = null;
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         $has_header = $manager->replaces_native_chrome('header');
         $has_footer = $manager->replaces_native_chrome('footer');

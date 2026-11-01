@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * A page of results plus its pagination numbers. Services return this from their
  * list queries; the controller serializes `items` through its Resource and emits
  * `pagination()` alongside, so the paged envelope shape is defined in one place.
+ *
+ * @api
  */
 class PaginatedResultDTO extends DTO
 {

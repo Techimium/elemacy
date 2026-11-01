@@ -8,7 +8,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** A time of day as 24-hour HH:MM, which is what the browser's time input posts. */
+/**
+ * A time of day as 24-hour HH:MM, which is what the browser's time input posts.
+ *
+ * @internal
+ */
 final class Time extends AbstractFieldType
 {
     public function key(): string

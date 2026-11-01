@@ -7,7 +7,6 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Container;
 use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
@@ -33,7 +32,11 @@ use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Core\Contracts\ContainerInterface;
 
+/**
+ * @internal
+ */
 class Widgets extends Module
 {
     public function get_name(): string
@@ -61,7 +64,7 @@ class Widgets extends Module
         return __('Extend the Elementor editor with extra widgets built by Elemacy.', 'elemacy');
     }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         $container->bind(WidgetManager::class, static fn () => WidgetManager::instance());
     }

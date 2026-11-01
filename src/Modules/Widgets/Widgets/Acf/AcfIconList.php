@@ -9,7 +9,11 @@ use Elementor\Controls_Manager;
 use Elementor\Icons_Manager;
 use Elementor\Widget_Icon_List;
 
-/** Renders an Elementor icon list populated from an ACF repeater field. */
+/**
+ * Renders an Elementor icon list populated from an ACF repeater field.
+ *
+ * @internal
+ */
 class AcfIconList extends Widget_Icon_List
 {
     public function get_name()

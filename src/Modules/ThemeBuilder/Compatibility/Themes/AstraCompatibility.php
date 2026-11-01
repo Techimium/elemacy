@@ -8,6 +8,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
 /**
  * Astra prints its header and footer, classic or from its header/footer
  * builder, from callbacks on `astra_header` and `astra_footer`.
+ *
+ * @internal
  */
 class AstraCompatibility extends HookedThemeCompatibility
 {

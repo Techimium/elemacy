@@ -87,7 +87,7 @@ The same registration contributes query controls and standalone preview. `templa
 
 **The data-source contract is frozen.** `Loop\Contracts\LoopDataSourceInterface` keeps its methods and their meanings from 1.0 on; a new ability arrives only as a separate optional interface a source may also implement, as `PublicLoopSourcePolicyInterface` and `PageUrlPaginatedSourceInterface` do, so a source written against 1.0 keeps loading. Visitors only ever see a source that implements `PublicLoopSourcePolicyInterface`: without it the loop renders in the editor, and a logged-in editor of the page sees a frontend notice that it cannot be shown to visitors. Its `get_public_settings($settings, $context, $page)` receives saved settings only, never request data, and host facts the server decided for the request: `post_id` (the post of the nearest enclosing post loop item, else the post a later page's signed context proved, else the viewed singular post) and `term_id` (the viewed term on a term archive), each present only while publicly viewable. Inside a loop item the facts also carry `parent`, `parent_fp` and `parent_render` (the enclosing item's address, a fingerprint of that item chain's content and its render key); a later page rebuilds and enters that chain before the policy runs, so a policy reads its parent from `LoopContext::current_frame()` the same way on every page.
 
-**Nested loops are optional contracts too.** A source that implements `Loop\Contracts\ContextualLoopSourceInterface` receives one `Loop\LoopQuery` (settings, the enclosing `LoopFrame`, page, preview flag) through `query()` instead of `get_items()`; later query abilities arrive as new `LoopQuery` fields. An item that implements `Loop\Contracts\AddressableItemInterface` contributes one `Loop\Address\AddressStep` (`kind:locator`) to its address, and an item that only exists inside another (an ACF sub-repeater row) implements `Loop\Contracts\NestedItemInterface` so the editor preview can rebuild its ancestors. A loop nested inside an item can paginate only when every step of the item's address has a resolver: register one per step kind through `Hooks::LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION` (`Loop\Address\AddressStepResolverInterface`: `get_kind()`, `resolve($step, $parent)` rebuilding and re-checking the item, and `fingerprint($item)`). Built-in kinds: `post`, `term`, `user` (Free) and `acf_row` (Pro); `opaque` is reserved for an item without a step. Step kinds and locators are carried inside signed tokens, so they never change once released. Loops nest at most `Loop\Support\LoopLimits::MAX_DEPTH` (10) deep.
+**Nested loops are optional contracts too.** A source that implements `Loop\Contracts\ContextualLoopSourceInterface` receives one `Loop\LoopQuery` (settings, the enclosing `LoopFrame`, page, preview flag) through `query()` instead of `get_items()`; later query abilities arrive as new `LoopQuery` fields. An item that implements `Loop\Contracts\AddressableItemInterface` contributes one `Loop\Address\AddressStep` (`kind:locator`) to its address, and an item that only exists inside another (an ACF sub-repeater row) implements `Loop\Contracts\NestedItemInterface` so the editor preview can rebuild its ancestors. A loop nested inside an item can paginate only when every step of the item's address has a resolver: register one per step kind through `Hooks::LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION` (`Loop\Contracts\AddressStepResolverInterface`: `get_kind()`, `resolve($step, $parent)` rebuilding and re-checking the item, and `fingerprint($item)`). Built-in kinds: `post`, `term`, `user` (Free) and `acf_row` (Pro); `opaque` is reserved for an item without a step. Step kinds and locators are carried inside signed tokens, so they never change once released. Loops nest at most `Loop\Support\LoopLimits::MAX_DEPTH` (10) deep.
 
 **Loop control IDs share one namespace.** Every source's controls live in the widget's single settings array, and Elementor silently drops a second control registered under an existing ID. An add-on source's control IDs start with its own source key. The IDs the built-in sources and the loop widgets use are reserved; `tests/integration/loop-control-defaults.php` fails on a clash, a rename, a removal, an unpinned control or a changed default. Changing one ships a `Core\Migrator` step and then a reviewed regeneration of the fixture (the command is in that test's docblock).
 
@@ -174,7 +174,7 @@ A `TypeDefinition`'s `targeting` decides how its single winning template is chos
 
 Among matching templates the most specific wins; within one level of specificity, the newest by publish date, then the higher post id. That tie-break is stable. Popups are collect-all and keep their own semantics: a popup with no conditions displays everywhere.
 
-The ChromeDocument setting `elemacy_html_tag` (`div`, `header`, `footer`, `main`, `section`, `aside`, `nav`, `article`; default `header`/`footer`) names the element a Header or Footer renders in. Where a theme adapter declares the theme keeps its own landmark around the template (`ThemeBuilderManager::keep_theme_landmark()`), a `header`/`footer` choice renders as `div` so landmarks never nest.
+The ChromeDocument setting `elemacy_html_tag` (`div`, `header`, `footer`, `main`, `section`, `aside`, `nav`, `article`; default `header`/`footer`) names the element a Header or Footer renders in. Where a theme adapter declares the theme keeps its own landmark around the template (`ThemeChromeInterface::keep_theme_landmark()`), a `header`/`footer` choice renders as `div` so landmarks never nest.
 
 ## Popup targeting and display settings
 
@@ -249,7 +249,7 @@ Rendered markup holds nothing that expires or differs per visitor: no nonce, no 
 
 ### PHP extension points
 
-Register field types, actions and form sources on the three `FORM_*_REGISTER_ACTION` hooks (§ Public hook inventory); each receives its registry, and a key that is already registered is refused with a `_doing_it_wrong` notice. The `@api` interfaces are `Forms\Contracts\FieldTypeInterface`, `FormActionInterface` and `FormSourceInterface`. Extend `Forms\Fields\AbstractFieldType` or `AbstractChoiceFieldType` rather than implementing the field interface directly, so later optional methods arrive with defaults. Settings are described with `Forms\Settings\Setting` (kinds `text`, `textarea`, `number`, `switcher`, `select`), which the widget turns into Elementor controls. An action receives a `Submission` (the `FormDefinition`, values by field ID, and `SubmissionMeta`: page URL, verified user ID or 0, time) and returns an `ActionResult`. It never reads the request and never uses `get_current_user_id()`.
+Register field types, actions and form sources on the three `FORM_*_REGISTER_ACTION` hooks (§ Public hook inventory); each receives its registrar interface (§ PHP extension contract), and a key that is already registered is refused with a `_doing_it_wrong` notice. The `@api` interfaces are `Forms\Contracts\FieldTypeInterface`, `FormActionInterface` and `FormSourceInterface`. Extend `Forms\Fields\AbstractFieldType` or `AbstractChoiceFieldType` rather than implementing the field interface directly, so later optional methods arrive with defaults. Settings are described with `Forms\Settings\Setting` (kinds `text`, `textarea`, `number`, `switcher`, `select`), which the widget turns into Elementor controls. An action receives a `Submission` (the `FormDefinition`, values by field ID, and `SubmissionMeta`: page URL, verified user ID or 0, time) and returns an `ActionResult`. It never reads the request and never uses `get_current_user_id()`.
 
 ### Browser runtime
 
@@ -282,9 +282,62 @@ Frontend `admin-ajax.php` actions:
 
 Both actions serve guests and authenticated users, and each handler applies its own application policy. The loop action takes no public nonce, because a cached page keeps paginating however old it is; the signed context has no expiry and is invalidated only when the widget definition changes. The browser answers any failed request by loading the activated page link. The successful loop response keys are `items` and `pagination`; the loop request is the signed envelope described in `docs/ARCHITECTURE.md`. The form endpoint deliberately takes no public nonce, so a cached page keeps submitting however old it is.
 
-## Shared PHP and admin entry points
+## PHP extension contract
 
-`Core\Container::{instance,make,singleton,bind}` is the composition surface. The loop layer's canonical classes live under `Elemacy\Loop` (`Contracts\LoopDataSourceInterface`, `Contracts\LoopItemInterface`, `LoopContext` and its `LoopFrame`s, `LoopQuery`, `Address\*` for item addresses and their step resolvers, `LoopDataSourceRegistry`, `Rendering\LoopItemStyles`, `Placement\PlacementResolverRegistry`, `Access\*` for visitor eligibility and signed pagination, `Pagination\*` for the pagination UI, and one folder per built-in source under `Sources\` holding its query, public policy and settings); ACF access under `Elemacy\Integrations\Acf`; the HTTP layer under `Elemacy\Http`; everything that calls Elementor under `Elemacy\Elementor`. There are no alias paths.
+What Pro and third-party add-ons may build on. Every class, interface and trait in Free's `src/` carries exactly one tier in its docblock: **`@api`** (stable: changed only through the evolution policy below) or **`@internal`** (may change in any release, including a patch). An add-on uses `@api` symbols only. `tests/architecture/check.php` (rule 8) fails when a symbol has no tier or two, when an interface breaks the naming convention, when an `@api` interface's signature names an `@internal` class, and when Pro's source references an `@internal` Free symbol.
+
+### Stable surface
+
+Everything not listed here is `@internal`. Paths are relative to `Elemacy\`.
+
+- **Core:** `Core\Admin\SubMenuDTO`, `Core\Constants\PostStatus`, `Core\Contracts\AdminMenuRegistrarInterface`, `Core\Contracts\ContainerInterface`, `Core\Contracts\ModuleRegistrarInterface`, `Core\Contracts\ModuleStatusInterface`, `Core\Contracts\ProviderRegistrarInterface`, `Core\Contracts\ServiceProviderInterface`, `Core\Hooks`, `Core\Migrator`, `Core\Module`
+- **Conditions:** `Conditions\BaseCondition`, `Conditions\Contracts\ConditionInterface`, `Conditions\Contracts\ConditionRegistrarInterface`, `Conditions\DTO\ConditionRuleDTO`, `Conditions\Specificity`, `Conditions\Support\Taxonomies`
+- **Loop:** `Loop\Access\PublicLoopLimits`, `Loop\Address\AddressStep`, `Loop\Contracts\AddressStepResolverInterface`, `Loop\Contracts\AddressStepResolverRegistrarInterface`, `Loop\Contracts\AddressableItemInterface`, `Loop\Contracts\ContextualLoopSourceInterface`, `Loop\Contracts\LoopDataSourceInterface`, `Loop\Contracts\LoopDataSourceRegistrarInterface`, `Loop\Contracts\LoopItemInterface`, `Loop\Contracts\NativePostItemInterface`, `Loop\Contracts\NativeTermItemInterface`, `Loop\Contracts\NativeUserItemInterface`, `Loop\Contracts\NestedItemInterface`, `Loop\Contracts\PageUrlPaginatedSourceInterface`, `Loop\Contracts\PlacementResolverInterface`, `Loop\Contracts\PlacementResolverRegistrarInterface`, `Loop\Contracts\PublicLoopSourcePolicyInterface`, `Loop\DTO\LoopResultDTO`, `Loop\LoopContext`, `Loop\LoopQuery`, `Loop\Placement\HostFacts`, `Loop\Support\LoopItemIdentity`, `Loop\Support\LoopLimits`
+- **Integrations:** `Integrations\Acf\AcfRepeaterResolver`, `Integrations\Acf\Contracts\AcfRowCursorInterface`, `Integrations\Acf\Contracts\FieldReaderInterface`
+- **Modules\Popups:** `Modules\Popups\Contracts\PopupEligibilityInterface`, `Modules\Popups\Contracts\PopupRepositoryInterface`, `Modules\Popups\Contracts\RuleInterface`, `Modules\Popups\Contracts\RuleRegistrarInterface`, `Modules\Popups\Contracts\TriggerInterface`, `Modules\Popups\Contracts\TriggerRegistrarInterface`, `Modules\Popups\DTO\PopupDTO`, `Modules\Popups\DTO\RuleDTO`, `Modules\Popups\DTO\TriggerDTO`, `Modules\Popups\Rules\BaseRule`, `Modules\Popups\Support\PopupChoices`, `Modules\Popups\Support\StorageKeys`, `Modules\Popups\Triggers\BaseTrigger`
+- **Modules\ThemeBuilder:** `Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility`, `Modules\ThemeBuilder\Contracts\ThemeChromeInterface`, `Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface`, `Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface`, `Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface`
+- **TemplateLibrary:** `TemplateLibrary\Contracts\LibraryTypeRegistrarInterface`, `TemplateLibrary\LibraryPostType`, `TemplateLibrary\TypeDefinition`
+- **Elementor:** `Elementor\Contracts\PreviewContextProviderInterface`, `Elementor\Contracts\QueryResolverInterface`, `Elementor\Contracts\QueryResolverRegistrarInterface`, `Elementor\Contracts\TemplateAssetsRegistrarInterface`, `Elementor\Documents\PreviewablePageBase`, `Elementor\Widgets\BaseWidget`
+- **Forms:** `Forms\Contracts\FieldTypeInterface`, `Forms\Contracts\FieldTypeRegistrarInterface`, `Forms\Contracts\FormActionInterface`, `Forms\Contracts\FormActionRegistrarInterface`, `Forms\Contracts\FormSourceInterface`, `Forms\Contracts\FormSourceRegistrarInterface`, `Forms\Definition\Field`, `Forms\Definition\FormDefinition`, `Forms\Fields\AbstractChoiceFieldType`, `Forms\Fields\AbstractFieldType`, `Forms\Rendering\RenderContext`, `Forms\Settings\Setting`, `Forms\Submission\ActionResult`, `Forms\Submission\FieldResult`, `Forms\Submission\Submission`, `Forms\Submission\SubmissionMeta`
+- **Support:** `Support\ConfigList`, `Support\PostTypes`
+- **Http:** the whole `Http` layer: `Route`, `Request`, `SiteRequest`, `Response`, `Resource`, `Sanitizer`, the middleware, exceptions, DTOs, `Validation\Validator` and every rule under `Validation\Rules`. Rules nothing calls yet are kept for add-ons on purpose, and are just as stable.
+
+### Reaching Free's services
+
+An add-on never constructs a Free service, never calls `Core\Container::instance()` and never calls a Free class's `::instance()`. It reaches a live service in one of two ways, and both give it the very instance Free itself uses:
+
+1. **A registration hook hands it a registrar.** Each hook below passes the same object as always, documented as its interface:
+
+| Hook | Argument |
+| --- | --- |
+| `REGISTER_PROVIDERS_ACTION` | `Core\Contracts\ProviderRegistrarInterface` |
+| `REGISTER_MODULES_ACTION` | `Core\Contracts\ModuleRegistrarInterface` |
+| `LIBRARY_TYPES_REGISTER_ACTION` | `TemplateLibrary\Contracts\LibraryTypeRegistrarInterface` |
+| `TEMPLATE_ASSETS_COLLECT_ACTION` | `Elementor\Contracts\TemplateAssetsRegistrarInterface` |
+| `THEME_BUILDER_LOCATIONS_REGISTER_ACTION` | `Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface` |
+| `THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION` | `Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface` |
+| `LOOP_DATA_SOURCES_REGISTER_ACTION` | `Loop\Contracts\LoopDataSourceRegistrarInterface` |
+| `LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION` | `Loop\Contracts\PlacementResolverRegistrarInterface` |
+| `LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION` | `Loop\Contracts\AddressStepResolverRegistrarInterface` |
+| `QUERY_RESOLVERS_REGISTER_ACTION` | `Elementor\Contracts\QueryResolverRegistrarInterface` |
+| `CONDITIONS_REGISTER_ACTION` | `Conditions\Contracts\ConditionRegistrarInterface` |
+| `POPUP_TRIGGERS_REGISTER_ACTION` | `Modules\Popups\Contracts\TriggerRegistrarInterface` |
+| `POPUP_RULES_REGISTER_ACTION` | `Modules\Popups\Contracts\RuleRegistrarInterface` |
+| `FORM_FIELD_TYPES_REGISTER_ACTION` | `Forms\Contracts\FieldTypeRegistrarInterface` |
+| `FORM_ACTIONS_REGISTER_ACTION` | `Forms\Contracts\FormActionRegistrarInterface` |
+| `FORM_SOURCES_REGISTER_ACTION` | `Forms\Contracts\FormSourceRegistrarInterface` |
+
+2. **Its provider resolves a contract from the container.** A provider added on `REGISTER_PROVIDERS_ACTION` receives a `Core\Contracts\ContainerInterface` in `register()`; keep it and resolve published contracts from it, or type a container-built class's constructor with them. Every registrar above resolves this way too, plus `ModuleStatusInterface` and `AdminMenuRegistrarInterface` (Core), `AcfRowCursorInterface` (a new cursor on every resolve), `PopupRepositoryInterface` and `PopupEligibilityInterface` (while Popups is active), and `ThemeChromeInterface` (while Theme Builder is active; theme adapters also receive it in `register()`). Resolving a contract nobody bound fails with a diagnostic naming it, never with an empty copy.
+
+### Naming
+
+Every interface lives in its area's `Contracts/` folder and its name ends in `Interface`. A service contract describes one role, holds only the methods add-ons call, and names only scalars, arrays and `@api` types in its signatures. There are no alias paths: the 1.0 names are the only names.
+
+### Evolution policy
+
+A released `@api` interface is never edited. A changed contract ships as a new interface (`PopupRepositoryV2Interface`, say) while the old one stays bound, through an adapter over the new implementation if needed, for at least two later major versions, with its deprecation noted here. An `@api` class or method is removed only after the same window. An add-on detects a newer contract with `interface_exists()` and turns off only the feature that needs it when it is missing. Pro also declares the oldest Free it runs on (`ELEMACY_PRO_REQUIRES_FREE` in `P/elemacy-pro.php`).
+
+### Admin and browser entry points
 
 Free owns the admin mount `#elemacy_root` and the `window.ElemacyShared` bridge (contract version `AdminScripts::CONTRACT_VERSION`, the `elemacy:admin-ready` event). Popup bootstrap globals are `window.elemacyPopupsConfig` and Pro's `window.elemacyPopupsAnalyticsConfig`. Version these surfaces deliberately; never rename them for tidiness.
 
@@ -342,7 +395,7 @@ The pre-1.0 `elemacy/filter/theme_builder/template_types` filter is retired: it 
 
 ### Opting a theme out of native chrome replacement
 
-A configured Header or Footer template replaces the active theme's own header or footer, whichever adapter serves the theme: the generic one (which loads the theme's `header.php`/`footer.php` and discards the output), a theme-specific one, or the block-theme one (see `docs/ARCHITECTURE.md` § Native chrome replacement). `THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER` is the escape hatch for all of them. It is applied at most once per side per request, with `true` and the side (`'header'` or `'footer'`), and not at all for a side that has no template. Returning `false` leaves that side to the theme: the theme's own chrome renders and the Elemacy template for that side does not. The other side is unaffected. An add-on adapter gets the same behaviour by asking `ThemeBuilderManager::replaces_native_chrome($side)` instead of reading the template id.
+A configured Header or Footer template replaces the active theme's own header or footer, whichever adapter serves the theme: the generic one (which loads the theme's `header.php`/`footer.php` and discards the output), a theme-specific one, or the block-theme one (see `docs/ARCHITECTURE.md` § Native chrome replacement). `THEME_BUILDER_SUPPRESS_NATIVE_CHROME_FILTER` is the escape hatch for all of them. It is applied at most once per side per request, with `true` and the side (`'header'` or `'footer'`), and not at all for a side that has no template. Returning `false` leaves that side to the theme: the theme's own chrome renders and the Elemacy template for that side does not. The other side is unaffected. An add-on adapter gets the same behaviour by asking the `ThemeChromeInterface` its `register()` receives, `replaces_native_chrome($side)`, instead of reading the template id.
 
 ```php
 add_filter('elemacy/filter/theme_builder/suppress_native_chrome', function (bool $suppress, string $side): bool {

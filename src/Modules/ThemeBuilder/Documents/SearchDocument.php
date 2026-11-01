@@ -11,6 +11,8 @@ use Elementor\Controls_Manager;
  * Elementor document for Search Results templates. Search results are a query, so
  * the preview runs a sample search and resolves the results title and post loop
  * against it.
+ *
+ * @internal
  */
 class SearchDocument extends PreviewablePageBase
 {

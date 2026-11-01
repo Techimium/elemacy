@@ -10,6 +10,8 @@ use WP_Post;
  * Reversibly acquires the native WordPress "current post" context — everything
  * `setup_postdata()` changes — and restores exactly the state that was active
  * before enter ran, not the site's main-query post.
+ *
+ * @internal
  */
 final class WordPressPostScope
 {

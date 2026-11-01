@@ -9,6 +9,9 @@ use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\Http\Exceptions\ValidationException;
 use Throwable;
 
+/**
+ * @api
+ */
 class ApiExceptionHandler
 {
     /**

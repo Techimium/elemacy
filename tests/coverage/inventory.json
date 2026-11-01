@@ -3788,6 +3788,11 @@
       "path": "tests/integration/post-excerpt-tag.php"
     },
     {
+      "id": "elemacy:integration:php-extension-contract",
+      "layer": "native-integration",
+      "path": "tests/integration/php-extension-contract.php"
+    },
+    {
       "id": "elemacy:lifecycle:uninstall-current-site",
       "layer": "native-integration",
       "path": "tests/integration/fixtures/uninstall-current-site.php"

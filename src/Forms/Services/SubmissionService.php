@@ -18,6 +18,8 @@ defined('ABSPATH') || exit;
  * source, check the owner, validate the values, let extensions add errors,
  * apply the rate limit, then run the saved actions in order. The first
  * failing action stops the rest and its own message reaches the visitor.
+ *
+ * @internal
  */
 final class SubmissionService
 {

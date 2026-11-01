@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Enters/leaves the native context a previewed item needs while it renders in
  * the Elementor editor — the piece of Core\Preview\PreviewManager's own
  * orchestration that used to call directly into a concrete Loop service.
+ *
+ * @api
  */
 interface PreviewContextProviderInterface
 {

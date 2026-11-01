@@ -13,13 +13,17 @@ use Elemacy\Elementor\Rendering\TemplateRenderer;
 use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\Modules\ThemeBuilder\Compatibility\ElementorProLocations;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\BlockThemeCompatibility;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use Elementor\Modules\PageTemplates\Module as PageTemplates;
 use Elementor\Plugin;
 
-class ThemeBuilderManager
+/**
+ * @internal
+ */
+class ThemeBuilderManager implements ThemeChromeInterface
 {
     /**
      * TemplateAssetsRegistrar/TemplateRenderer preparation context for

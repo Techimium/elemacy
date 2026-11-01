@@ -10,6 +10,8 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * Reads display/behavior settings off the popup's Elementor document
  * (registered in PopupDocument::register_controls) and maps them into the
  * engine.js `display` config shape.
+ *
+ * @internal
  */
 class DocumentDisplay
 {

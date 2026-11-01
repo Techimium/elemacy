@@ -11,6 +11,8 @@ use Elemacy\Elementor\Rendering\ClassicCssRenderer;
  * Prints CSS at render position for a loop item template — both its shared
  * base styles and, when it uses a dynamic tag anywhere in a control or style,
  * a per-item pass scoped to that one rendered item.
+ *
+ * @internal
  */
 class LoopItemStyles
 {

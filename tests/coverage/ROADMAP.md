@@ -232,5 +232,6 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:migration-leases` | native-integration | `tests/integration/migration-leases.php` |
 | `elemacy:integration:dynamic-tags-registration` | native-integration | `tests/integration/dynamic-tags-registration.php` |
 | `elemacy:integration:post-excerpt-tag` | native-integration | `tests/integration/post-excerpt-tag.php` |
+| `elemacy:integration:php-extension-contract` | native-integration | `tests/integration/php-extension-contract.php` |
 | `elemacy:lifecycle:uninstall-current-site` | native-integration | `tests/integration/fixtures/uninstall-current-site.php` |
 | `elemacy:lifecycle:uninstall-network` | native-integration | `tests/integration/fixtures/uninstall-network.php` |

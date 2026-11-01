@@ -10,7 +10,11 @@ use Elemacy\Loop\LoopDataSourceRegistry;
 use Elementor\Controls_Manager;
 use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
 
-/** Elementor document for Loop Item templates. */
+/**
+ * Elementor document for Loop Item templates.
+ *
+ * @internal
+ */
 class LoopDocument extends PreviewablePageBase
 {
     public static function get_type()

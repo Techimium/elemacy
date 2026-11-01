@@ -6,7 +6,11 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Support\Utils;
 
-/** Registers (but does not enqueue) the popup frontend engine script/style. */
+/**
+ * Registers (but does not enqueue) the popup frontend engine script/style.
+ *
+ * @internal
+ */
 class PopupFrontendAssets
 {
     public function __construct()

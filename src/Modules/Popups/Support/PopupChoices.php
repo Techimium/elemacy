@@ -13,6 +13,8 @@ use Elemacy\TemplateLibrary\TypeRegistry;
  * The site's popups as select options, for a trigger or rule parameter that
  * names another popup. Free's placeholder and Pro's implementation of the same
  * trigger both build their option list here, so the two can never differ.
+ *
+ * @api
  */
 final class PopupChoices
 {

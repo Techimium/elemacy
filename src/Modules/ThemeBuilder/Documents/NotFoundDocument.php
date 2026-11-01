@@ -10,6 +10,8 @@ use Elementor\Core\DocumentTypes\PageBase;
  * Elementor document for 404 templates. A not-found page has no post or query
  * to preview against, so it is a plain page document: Page Layout, Body Style
  * and Hide Title, like the other content locations, without Preview Settings.
+ *
+ * @internal
  */
 class NotFoundDocument extends PageBase
 {

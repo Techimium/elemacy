@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * AJAX endpoint emits for later pages, from the widget's saved pagination
  * settings: page links for the link types, or a single "next page" link
  * styled as a button for Load More and Infinite Scroll.
+ *
+ * @internal
  */
 class PaginationRenderer
 {

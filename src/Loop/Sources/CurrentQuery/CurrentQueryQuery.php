@@ -14,6 +14,8 @@ use WP_Query;
  * returned for this request and page, kept free of any Elementor widget
  * dependency; CurrentQueryDataSource delegates get_items() to an instance of
  * this class.
+ *
+ * @internal
  */
 class CurrentQueryQuery
 {

@@ -9,6 +9,8 @@ use Elemacy\Http\Resource;
 
 /**
  * Serializes a single advanced rule (RuleInterface) for the admin app.
+ *
+ * @internal
  */
 class RuleTypeResource extends Resource
 {

@@ -9,6 +9,9 @@ use Elemacy\Http\Sanitizer;
 use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
+/**
+ * @internal
+ */
 class CreatePopupRequest extends Request
 {
     public function rules()

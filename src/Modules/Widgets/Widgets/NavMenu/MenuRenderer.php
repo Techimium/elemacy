@@ -11,6 +11,8 @@ use Elemacy\Modules\Widgets\Widgets\NavMenu;
 /**
  * Prints one Nav Menu: the desktop `<nav>`, the toggle, and the mobile dropdown
  * `<nav>`, each only when the settings can ever show it.
+ *
+ * @internal
  */
 final class MenuRenderer
 {

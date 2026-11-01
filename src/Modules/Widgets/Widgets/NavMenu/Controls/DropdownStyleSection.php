@@ -11,7 +11,11 @@ use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Typography;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 
-/** Style > Dropdown: desktop submenus and, below the breakpoint, the whole mobile dropdown. */
+/**
+ * Style > Dropdown: desktop submenus and, below the breakpoint, the whole mobile dropdown.
+ *
+ * @internal
+ */
 final class DropdownStyleSection
 {
     private const DROPDOWN = '{{WRAPPER}} .elemacy-nav-menu__dropdown';

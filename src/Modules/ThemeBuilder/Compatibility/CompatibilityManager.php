@@ -19,9 +19,14 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\OceanWPCompatibility;
 use Elemacy\Modules\ThemeBuilder\Compatibility\Themes\StorefrontCompatibility;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface;
 
-/** Selects and boots exactly one theme compatibility adapter per request. */
-class CompatibilityManager
+/**
+ * Selects and boots exactly one theme compatibility adapter per request.
+ *
+ * @internal
+ */
+class CompatibilityManager implements ThemeCompatibilityRegistrarInterface
 {
     /**
      * @var CompatibilityManager|null

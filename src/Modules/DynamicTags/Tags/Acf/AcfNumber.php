@@ -10,6 +10,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class AcfNumber extends Tag
 {
     use LoopLevelControl;

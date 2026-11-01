@@ -16,6 +16,8 @@ use Elemacy\TemplateLibrary\TypeRegistry;
  * unavailable condition, or one a newer template overrides, without visiting
  * the site. Read from the resolver's own candidate index and the condition
  * registry: it describes the same decision the front end makes.
+ *
+ * @internal
  */
 class TemplateDisplaySummary
 {

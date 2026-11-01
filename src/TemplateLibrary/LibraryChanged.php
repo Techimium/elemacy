@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * \Elemacy\Core\Hooks::LIBRARY_CHANGED_ACTION}, after a create, update,
  * duplicate or delete is fully complete and its authoritative metadata is in
  * place.
+ *
+ * @internal
  */
 final class LibraryChanged
 {

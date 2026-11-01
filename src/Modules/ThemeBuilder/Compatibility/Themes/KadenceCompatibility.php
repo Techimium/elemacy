@@ -8,6 +8,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
 /**
  * Kadence prints its whole header (desktop and mobile rows) from
  * `kadence_header` and its whole footer from `kadence_footer`.
+ *
+ * @internal
  */
 class KadenceCompatibility extends HookedThemeCompatibility
 {

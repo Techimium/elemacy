@@ -15,6 +15,8 @@ use Elemacy\Support\Utils;
  * src/Modules/Popups/Config/{triggers,rules}.php. Both lists include mock
  * entries that elemacy-pro overrides (by name) with real implementations when
  * active.
+ *
+ * @internal
  */
 class TriggerRuleBootstrap
 {

@@ -12,6 +12,8 @@ use WP_Post;
  * Owns native post/meta operations for the shared library CPT — never an
  * HTTP request, never a builder-specific decision. {@see DocumentWriter}
  * coordinates those on top of this.
+ *
+ * @internal
  */
 class LibraryRepository
 {

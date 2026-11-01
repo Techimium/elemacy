@@ -10,6 +10,8 @@ use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 
 /**
  * A single trigger attached to a popup (page-load, exit-intent, scroll, etc.).
+ *
+ * @api
  */
 class TriggerDTO extends DTO
 {

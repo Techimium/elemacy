@@ -1,11 +1,14 @@
 <?php
 
-namespace Elemacy\Conditions;
+namespace Elemacy\Conditions\Contracts;
 
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
+/**
+ * @api
+ */
 interface ConditionInterface
 {
     public function get_name(): string;
@@ -49,7 +52,7 @@ interface ConditionInterface
 
     /**
      * How narrowly this condition targets the request, as one of the
-     * {@see Specificity} levels. Takes the stored rule because a condition's
+     * {@see \Elemacy\Conditions\Specificity} levels. Takes the stored rule because a condition's
      * reach usually depends on its value: a taxonomy archive condition with no
      * term targets a whole taxonomy, the same condition with a term targets one
      * archive.

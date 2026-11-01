@@ -12,6 +12,8 @@ use Elementor\Core\Files\CSS\Post as Post_CSS;
  * different "current" post — the escape hatch Elementor's classic CSS pipeline
  * already uses to bypass its cached file whenever a control uses a dynamic
  * tag, borrowed here so each rendered loop item gets its own pass.
+ *
+ * @internal
  */
 class LoopDynamicCss extends Dynamic_CSS
 {

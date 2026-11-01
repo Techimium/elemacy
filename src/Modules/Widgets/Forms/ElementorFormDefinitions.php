@@ -12,6 +12,8 @@ defined('ABSPATH') || exit;
  * Turns the Form widget's saved settings into the engine's FormDefinition.
  * Rendering and submission both go through here, so field IDs, field order
  * and selected actions can never differ between the page and the server.
+ *
+ * @internal
  */
 final class ElementorFormDefinitions
 {

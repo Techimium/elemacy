@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * the render-identity counterpart to LoopContext's item stack, used by the
  * dynamic-CSS layer to scope per-item styles to exactly the occurrence
  * currently rendering, not merely the current item's domain identity.
+ *
+ * @internal
  */
 final class LoopRenderContext
 {

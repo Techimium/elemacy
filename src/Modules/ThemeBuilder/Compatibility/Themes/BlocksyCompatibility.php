@@ -8,6 +8,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
 /**
  * Blocksy switches its header and footer builders off through its own
  * filters, and the template renders where they would have started.
+ *
+ * @internal
  */
 class BlocksyCompatibility extends HookedThemeCompatibility
 {

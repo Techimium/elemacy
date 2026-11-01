@@ -7,14 +7,17 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 use Elemacy\Loop\Contracts\LoopDataSourceInterface;
+use Elemacy\Loop\Contracts\LoopDataSourceRegistrarInterface;
 
 /**
  * In-memory registry of the loop data sources modules have declared.
  * Populated during the Widgets module's init and via
  * Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION; never persisted. Mirrors
  * TemplateLibrary\TypeRegistry / ThemeBuilder's LocationRegistry.
+ *
+ * @internal
  */
-class LoopDataSourceRegistry
+class LoopDataSourceRegistry implements LoopDataSourceRegistrarInterface
 {
     protected static ?self $instance = null;
 

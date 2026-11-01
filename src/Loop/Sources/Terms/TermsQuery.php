@@ -15,6 +15,8 @@ use WP_Term_Query;
  * The Terms source's runtime query execution, kept free of any Elementor
  * widget/document dependency; TaxonomyDataSource delegates get_items() and
  * sanitize_ajax_settings() to an instance of this class.
+ *
+ * @internal
  */
 class TermsQuery
 {

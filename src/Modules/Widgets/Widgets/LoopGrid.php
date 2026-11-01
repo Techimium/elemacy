@@ -23,6 +23,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class LoopGrid extends LoopWidget
 {
     public function get_name()

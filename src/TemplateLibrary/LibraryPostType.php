@@ -7,6 +7,8 @@ defined('ABSPATH') || exit;
 /**
  * The single CPT that backs every template-like item — theme templates,
  * popups, and anything modules add later.
+ *
+ * @api
  */
 class LibraryPostType
 {

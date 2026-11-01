@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that the given value is a valid url.
  *
  * @since 1.0.0
+ * @api
  */
 class UrlRule extends BaseRule
 {

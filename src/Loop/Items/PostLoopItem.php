@@ -22,6 +22,8 @@ use WP_Post;
  * correctly with no changes to any of them. While entered, any enclosing ACF
  * row is hidden, so the post's own fields never resolve to a same-named
  * sub-field of that row.
+ *
+ * @internal
  */
 class PostLoopItem implements LoopItemInterface, NativePostItemInterface, AddressableItemInterface
 {

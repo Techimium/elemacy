@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Rule to ensure a a user exist with id.
  *
  * @since 1.0.0
+ * @api
  */
 class UserExists extends BaseRule
 {

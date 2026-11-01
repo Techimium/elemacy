@@ -13,6 +13,9 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elemacy\Elementor\Widgets\BaseWidget;
 
+/**
+ * @internal
+ */
 class Search extends BaseWidget
 {
     private const SKIN_CLASSIC     = 'classic';

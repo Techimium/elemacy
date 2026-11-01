@@ -11,7 +11,11 @@ use Elemacy\Modules\ThemeBuilder\Services\ArchivePreviewQuery;
 use Elementor\Controls_Manager;
 use WP_Post_Type;
 
-/** Elementor document for Archive templates. */
+/**
+ * Elementor document for Archive templates.
+ *
+ * @internal
+ */
 class ArchiveDocument extends PreviewablePageBase
 {
     public const PREVIEW_POST_TYPE = 'elemacy_preview_post_type';

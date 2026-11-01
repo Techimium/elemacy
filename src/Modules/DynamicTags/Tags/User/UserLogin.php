@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class UserLogin extends Tag
 {
     public function get_name()

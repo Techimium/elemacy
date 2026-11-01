@@ -4,13 +4,15 @@ namespace Elemacy\Elementor\Controls\Query\Resolvers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Elementor\Controls\Query\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Http\DTO\QueryResultDTO;
 
 /**
  * People, found and shown by display name only: a login or an email is neither
  * searchable nor returned. `query.who` is `authors` (the default: people who can
  * write posts) or `all`.
+ *
+ * @internal
  */
 class UserResolver implements QueryResolverInterface
 {

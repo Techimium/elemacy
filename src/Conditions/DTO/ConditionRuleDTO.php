@@ -7,7 +7,11 @@ defined('ABSPATH') || exit;
 use Elemacy\Http\DTO\DTO;
 use Elemacy\Http\Exceptions\ValidationException;
 
-/** A single display-condition rule attached to a template. */
+/**
+ * A single display-condition rule attached to a template.
+ *
+ * @api
+ */
 class ConditionRuleDTO extends DTO
 {
     /** @var string */

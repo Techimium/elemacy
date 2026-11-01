@@ -4,6 +4,7 @@ namespace Elemacy\TemplateLibrary;
 
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
+use Elemacy\TemplateLibrary\Contracts\LibraryTypeRegistrarInterface;
 
 defined('ABSPATH') || exit;
 
@@ -11,8 +12,10 @@ defined('ABSPATH') || exit;
  * In-memory registry of the library item types modules have declared. Populated
  * during module init and via Hooks::LIBRARY_TYPES_REGISTER_ACTION; never
  * persisted.
+ *
+ * @internal
  */
-class TypeRegistry
+class TypeRegistry implements LibraryTypeRegistrarInterface
 {
     protected static ?self $instance = null;
 

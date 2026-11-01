@@ -10,14 +10,17 @@ use Elemacy\Core\Contracts\ServiceProviderInterface;
 use Elemacy\Core\Providers\CoreServiceProvider;
 use Elemacy\Core\Hooks;
 use Elemacy\Http\Route;
+use Elemacy\Core\Contracts\ProviderRegistrarInterface;
 
 /**
  * The composition root: connects the plugin's parts in order and holds no
  * feature logic itself. Site setup lives in SiteInstaller, module loading in
  * ModuleLoader; everything Core attaches to WordPress lives in
  * CoreServiceProvider's bootstraps.
+ *
+ * @internal
  */
-class Elemacy
+class Elemacy implements ProviderRegistrarInterface
 {
     protected static $instance = null;
 
@@ -54,7 +57,7 @@ class Elemacy
      */
     protected function subscribe_own_provider(): void
     {
-        add_action(Hooks::REGISTER_PROVIDERS_ACTION, function (self $elemacy) {
+        add_action(Hooks::REGISTER_PROVIDERS_ACTION, function (ProviderRegistrarInterface $elemacy) {
             $elemacy->register_provider(new CoreServiceProvider());
         });
     }

@@ -11,6 +11,8 @@ use stdClass;
 /**
  * Validated public pagination claims. Query settings are never part of this
  * DTO.
+ *
+ * @internal
  */
 final class PublicLoopRequest
 {

@@ -11,7 +11,11 @@ use Elemacy\Modules\Widgets\Widgets\NavMenu\BreakpointStyles;
 use Elemacy\Modules\Widgets\Widgets\NavMenu\Css;
 use Elemacy\Modules\Widgets\Widgets\NavMenu\MenuOptions;
 
-/** Content > Layout: which menu, how it is laid out, and how it collapses on small screens. */
+/**
+ * Content > Layout: which menu, how it is laid out, and how it collapses on small screens.
+ *
+ * @internal
+ */
 final class LayoutSection
 {
     public static function register(NavMenu $widget): void

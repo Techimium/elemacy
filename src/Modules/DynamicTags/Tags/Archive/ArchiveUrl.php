@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class ArchiveUrl extends Data_Tag
 {
     public function get_name()

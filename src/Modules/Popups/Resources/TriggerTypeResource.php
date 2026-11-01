@@ -9,6 +9,8 @@ use Elemacy\Http\Resource;
 
 /**
  * Serializes a single trigger (TriggerInterface) for the admin app.
+ *
+ * @internal
  */
 class TriggerTypeResource extends Resource
 {

@@ -10,6 +10,9 @@ use Elemacy\Integrations\Acf\AcfRepeaterResolver;
 use Elemacy\Modules\Widgets\DTO\WidgetDTO;
 use Elemacy\Support\Utils;
 
+/**
+ * @internal
+ */
 class WidgetService
 {
     /**

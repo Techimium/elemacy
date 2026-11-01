@@ -13,6 +13,8 @@ defined('ABSPATH') || exit;
  *
  * A closure has no name, so the defining file is the one test that works for
  * functions, methods and closures alike.
+ *
+ * @internal
  */
 final class ThemeHookCleaner
 {

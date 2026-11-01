@@ -5,7 +5,7 @@ namespace Elemacy\Tests\Integration;
 use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
 use Elemacy\Elementor\Controls\Query\QueryControlManager;
-use Elemacy\Elementor\Controls\Query\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Elementor\Controls\Query\QueryResolverRegistry;
 use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Http\DTO\QueryResultDTO;

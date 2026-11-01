@@ -10,6 +10,7 @@ use Elemacy\Support\Str;
  * Rule to ensure the value is after the given date.
  *
  * @since 1.0.0
+ * @api
  */
 class GreaterThanRule extends BaseRule
 {

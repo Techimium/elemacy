@@ -14,6 +14,8 @@ use Elemacy\Elementor\Rendering\Support\LoopDynamicCss;
  * that needs a post's classic CSS rather than an enqueued file — currently
  * Loop widgets, which render post IDs that aren't the current page and can't
  * rely on Elementor's own <head> enqueue timing.
+ *
+ * @internal
  */
 class ClassicCssRenderer
 {

@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Shared identifier validation for the plugin's domain registries
  * (TemplateLibrary\TypeRegistry, Loop\LoopDataSourceRegistry,
  * Conditions\ConditionManager, Popups\Services\{Rule,Trigger}Manager).
+ *
+ * @internal
  */
 final class RegistryIdentifierGuard
 {

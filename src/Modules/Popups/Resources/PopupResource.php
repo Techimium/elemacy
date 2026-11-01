@@ -13,6 +13,9 @@ use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
+/**
+ * @internal
+ */
 class PopupResource extends Resource
 {
     public function to_array()

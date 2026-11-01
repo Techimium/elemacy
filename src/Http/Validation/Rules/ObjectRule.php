@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that a value is an object.
  *
  * @since 1.0.0
+ * @api
  */
 class ObjectRule extends BaseRule
 {

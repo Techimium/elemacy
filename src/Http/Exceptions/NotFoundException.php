@@ -10,6 +10,7 @@ use Elemacy\Http\Response;
  * Exception thrown when a requested resource does not exist.
  *
  * @since 1.0.0
+ * @api
  */
 class NotFoundException extends HttpException
 {

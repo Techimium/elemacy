@@ -8,6 +8,9 @@ use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Conditions\MockCondition;
 
+/**
+ * @internal
+ */
 class ChildOf extends MockCondition
 {
     public function get_name(): string

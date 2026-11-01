@@ -6,7 +6,6 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Container;
 use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\Module;
@@ -20,7 +19,14 @@ use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Core\Contracts\ContainerInterface;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityRegistrarInterface;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 
+/**
+ * @internal
+ */
 class ThemeBuilder extends Module
 {
     public function get_name(): string
@@ -48,11 +54,16 @@ class ThemeBuilder extends Module
         return __('Design headers, footers, archives and other site-wide templates that apply across your theme.', 'elemacy');
     }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         foreach ([LocationRegistry::class, CompatibilityManager::class, ThemeBuilderManager::class] as $registry) {
             $container->bind($registry, static fn () => $registry::instance());
         }
+
+        // Published contracts: each resolves to the live instance Free uses.
+        $container->bind(ThemeLocationRegistrarInterface::class, static fn () => LocationRegistry::instance());
+        $container->bind(ThemeCompatibilityRegistrarInterface::class, static fn () => CompatibilityManager::instance());
+        $container->bind(ThemeChromeInterface::class, static fn () => ThemeBuilderManager::instance());
     }
 
     public function boot(): void

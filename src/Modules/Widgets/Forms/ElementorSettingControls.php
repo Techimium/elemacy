@@ -12,6 +12,8 @@ defined('ABSPATH') || exit;
  * Presents the engine's builder-neutral settings as Elementor controls, so
  * a field type or action registered by any add-on gets its editor UI here
  * without writing Elementor code.
+ *
+ * @internal
  */
 final class ElementorSettingControls
 {

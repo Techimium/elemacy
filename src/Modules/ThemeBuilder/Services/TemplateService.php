@@ -31,6 +31,8 @@ use WP_Query;
  * this service keeps only what is specific to theme templates — the
  * per-type page template and conditions — plus its own public DTO-shaped
  * responses.
+ *
+ * @internal
  */
 class TemplateService
 {

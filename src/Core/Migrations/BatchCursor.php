@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * A named, resumable progress cursor plus an expiring lock, for one migration
  * step that must process more records than fit in one request without timing
  * out.
+ *
+ * @internal
  */
 class BatchCursor
 {

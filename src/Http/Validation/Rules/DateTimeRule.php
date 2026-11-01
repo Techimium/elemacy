@@ -11,6 +11,7 @@ use DateTime;
  * Validates that the given value matches db date time format.
  *
  * @since 1.0.0
+ * @api
  */
 class DateTimeRule extends BaseRule
 {

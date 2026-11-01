@@ -10,6 +10,8 @@ use Elemacy\Http\Exceptions\ValidationException;
 /**
  * The one place display-condition rules are persisted, so ThemeBuilder templates
  * and Popups read/write them the same way instead of re-implementing storage.
+ *
+ * @internal
  */
 class ConditionRepository
 {

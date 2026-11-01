@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * What a submit action reports. A failure's message is shown to the visitor
  * and stops the remaining actions. Data is returned to the browser under the
  * action's key, so keep it public-safe.
+ *
+ * @api
  */
 final class ActionResult
 {

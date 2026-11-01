@@ -18,6 +18,8 @@ defined('ABSPATH') || exit;
  *
  * The markup holds nothing that expires or differs per visitor, so cached
  * pages keep working. DOM IDs are unique per rendered instance.
+ *
+ * @internal
  */
 final class FormRenderer
 {

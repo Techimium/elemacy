@@ -7,7 +7,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** A web address; only http and https are accepted. */
+/**
+ * A web address; only http and https are accepted.
+ *
+ * @internal
+ */
 final class Url extends AbstractFieldType
 {
     public function key(): string

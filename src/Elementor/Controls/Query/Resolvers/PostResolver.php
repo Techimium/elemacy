@@ -5,13 +5,15 @@ namespace Elemacy\Elementor\Controls\Query\Resolvers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
-use Elemacy\Elementor\Controls\Query\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Http\DTO\QueryResultDTO;
 use Elemacy\Support\PostTypes;
 use WP_Post;
 
 /**
  * Posts of any public type. `query` may narrow the post types and statuses.
+ *
+ * @internal
  */
 class PostResolver implements QueryResolverInterface
 {

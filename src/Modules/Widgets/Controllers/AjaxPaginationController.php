@@ -19,6 +19,8 @@ use Elemacy\Loop\LoopQueryDispatcher;
  * Resolves request → authored definition → policy → source query → render,
  * strictly in that order: every authorization check below must complete before
  * the first source query or Elementor render.
+ *
+ * @internal
  */
 class AjaxPaginationController
 {

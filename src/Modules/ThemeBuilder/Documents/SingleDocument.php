@@ -10,6 +10,8 @@ use Elemacy\Elementor\Documents\SinglePostPreviewDocument;
  * Elementor document for Single templates. A single template renders one post
  * of its matched type, so it previews against a single real post chosen in
  * Preview Settings.
+ *
+ * @internal
  */
 class SingleDocument extends SinglePostPreviewDocument
 {

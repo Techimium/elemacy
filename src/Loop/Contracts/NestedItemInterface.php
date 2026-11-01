@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * exists inside another item (an ACF sub-repeater row inside its parent row).
  * Lets an editor preview, which has no real outer loop, rebuild the enclosing
  * frames so ancestor reads and nested loops behave as they will on the page.
+ *
+ * @api
  */
 interface NestedItemInterface
 {

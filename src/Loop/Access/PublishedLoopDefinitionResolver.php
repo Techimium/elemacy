@@ -10,6 +10,8 @@ use JsonException;
 /**
  * Reads the persisted authoring tree; never executes a source or an Elementor
  * widget. Builder placement and source-context policy remain separate checks.
+ *
+ * @internal
  */
 final class PublishedLoopDefinitionResolver
 {

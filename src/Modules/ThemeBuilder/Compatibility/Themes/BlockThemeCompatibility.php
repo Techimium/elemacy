@@ -4,21 +4,23 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /**
  * Block theme compatibility. A template part is the theme's header or footer
  * when its area is header or footer, whatever its slug. A part whose area is
  * not declared (an older theme that lists no template parts) falls back to
  * the conventional slugs `header` and `footer`.
+ *
+ * @internal
  */
 class BlockThemeCompatibility implements ThemeCompatibilityInterface
 {
     /** @var array<string, string|null> Side of each part looked up this request, by "theme//slug". */
     private array $sides = [];
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         if (!$manager->replaces_native_chrome('header') && !$manager->replaces_native_chrome('footer')) {
             return;

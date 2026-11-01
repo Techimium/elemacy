@@ -5,6 +5,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class CompatibilityChecker
 {
     /**

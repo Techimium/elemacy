@@ -17,6 +17,9 @@ use Elementor\Plugin;
 use Elemacy\Modules\Widgets\Services\LogoResolver;
 use Elemacy\Elementor\Widgets\BaseWidget;
 
+/**
+ * @internal
+ */
 class SiteLogo extends BaseWidget
 {
     private LogoResolver $logo_resolver;

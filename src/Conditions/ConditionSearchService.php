@@ -6,7 +6,11 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\PostStatus;
 
-/** Runs the lookups behind a condition's `search` value input. */
+/**
+ * Runs the lookups behind a condition's `search` value input.
+ *
+ * @internal
+ */
 class ConditionSearchService
 {
     protected const LIMIT = 20;

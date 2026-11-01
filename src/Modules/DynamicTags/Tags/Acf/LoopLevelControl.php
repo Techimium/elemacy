@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
  * The ACF tags' "Loop Level" choice: read the field from the current loop item
  * (the default, unchanged behavior) or from an enclosing one, e.g. a section
  * row's title inside one of its item cards.
+ *
+ * @internal
  */
 trait LoopLevelControl
 {

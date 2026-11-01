@@ -4,7 +4,11 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-/** Elementor document for Header templates. */
+/**
+ * Elementor document for Header templates.
+ *
+ * @internal
+ */
 class HeaderDocument extends ChromeDocument
 {
     public static function get_type()

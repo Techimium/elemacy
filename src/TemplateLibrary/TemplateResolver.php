@@ -11,6 +11,8 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
  * Resolves which library items apply to the current request, evaluating display
  * conditions against the cached candidate index. Serves both theme locations
  * (resolve) and popups (resolve_group).
+ *
+ * @internal
  */
 class TemplateResolver
 {

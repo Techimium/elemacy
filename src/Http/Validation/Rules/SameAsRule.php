@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that a value is same as another specified field.
  *
  * @since 1.0.0
+ * @api
  */
 class SameAsRule extends BaseRule
 {

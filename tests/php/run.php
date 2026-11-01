@@ -100,6 +100,7 @@ use Elemacy\Loop\LoopContext;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Support\LoopItemIdentity;
 use Elemacy\Loop\Rendering\LoopItemStyles;
+use Elemacy\Core\Contracts\ContainerInterface;
 
 /* ── Test doubles ───────────────────────────────────────────────── */
 
@@ -608,7 +609,7 @@ final class FixtureOrderTrackingProvider implements ServiceProviderInterface
         $this->name = $name;
     }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         self::$log[] = "register:{$this->name}";
     }
@@ -643,7 +644,7 @@ final class FixtureUnguardedProvider implements ServiceProviderInterface
         $this->label = $label;
     }
 
-    public function register(Container $container): void {}
+    public function register(ContainerInterface $container): void {}
 
     public function boot(): void
     {
@@ -869,8 +870,10 @@ check('CoreServiceProvider::boot() wires every service\'s native hooks; single-b
         'save_post',
         'elementor/editor/before_enqueue_scripts',
         'elementor/controls/register',
-        'elementor/document/related_posts',
     ];
+    // Not 'elementor/document/related_posts': TemplateAssetsRegistrar is
+    // container-shared (TemplateAssetsRegistrarInterface resolves to the
+    // hooked instance), so an earlier test's boot already attached it.
 
     $counts_before = [];
     foreach ($representative_hooks as $hook) {
@@ -945,7 +948,7 @@ final class FixtureTrackedModule extends Module
         return '';
     }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         self::$log[] = "register:{$this->name}";
     }
@@ -5490,7 +5493,7 @@ check('CoreServiceProvider builds every bootstrap through the container rather t
     $source = elemacy_code_without_comments(ELEMACY_PATH . 'src/Core/Providers/CoreServiceProvider.php');
 
     return false === strpos($source, '(new ')
-        && substr_count($source, '$container->make(') === 12;
+        && preg_match_all('/\$container->(?:make|singleton)\([A-Za-z]+::class\)->register_hooks\(\)/', $source) === 12;
 });
 
 check('Core\Preview\PreviewManager and Core\Documents\PreviewablePageBase source files import no concrete Elemacy\Modules\Widgets class', static function () {

@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class ProductGallery extends Data_Tag
 {
     public function get_name()

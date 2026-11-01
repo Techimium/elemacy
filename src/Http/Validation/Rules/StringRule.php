@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that the given value is a string.
  *
  * @since 1.0.0
+ * @api
  */
 class StringRule extends BaseRule
 {

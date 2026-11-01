@@ -13,6 +13,8 @@ use Elementor\Controls_Manager;
  * type, the editor-AJAX endpoints that feed its search/value-title requests,
  * and the editor script that turns the base select2 view into an autocomplete
  * one.
+ *
+ * @internal
  */
 class QueryControlManager
 {

@@ -74,6 +74,7 @@
             <file>migration-leases.php</file>
             <file>dynamic-tags-registration.php</file>
             <file>post-excerpt-tag.php</file>
+            <file>php-extension-contract.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

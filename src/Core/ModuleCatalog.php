@@ -13,6 +13,8 @@ defined('ABSPATH') || exit;
  * a second catalog in the same request would otherwise receive `true`
  * instead of the array, and iterating that is a runtime error rather than a
  * visible one.
+ *
+ * @internal
  */
 class ModuleCatalog
 {

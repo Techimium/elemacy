@@ -8,6 +8,9 @@ use Elemacy\Http\Request;
 use Elemacy\Http\Sanitizer;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
+/**
+ * @internal
+ */
 class UpdateTemplateRequest extends Request
 {
     public function rules()

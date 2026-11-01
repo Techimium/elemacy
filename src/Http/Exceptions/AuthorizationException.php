@@ -10,6 +10,7 @@ use Exception;
  * Exception thrown when a authorization fails.
  *
  * @since 1.0.0
+ * @api
  */
 class AuthorizationException extends Exception
 {

@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Rule that sanitizes the value in place; it never rejects one.
  *
  * @since 1.0.0
+ * @api
  */
 class Sanitizer extends BaseRule
 {

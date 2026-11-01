@@ -12,6 +12,7 @@ use Exception;
  * getCode() as the response status.
  *
  * @since 1.0.0
+ * @api
  */
 class HttpException extends Exception
 {

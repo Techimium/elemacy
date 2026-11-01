@@ -19,6 +19,8 @@ use WP_Term;
  * is no native "current term in a content loop" comparable to
  * setup_postdata()/$post that any existing dynamic tag or third-party widget
  * could already depend on. They only hide an enclosing ACF row.
+ *
+ * @internal
  */
 class TermLoopItem implements LoopItemInterface, NativeTermItemInterface, AddressableItemInterface
 {

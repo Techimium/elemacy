@@ -12,6 +12,9 @@ use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Modules\Popups\Services\RuleManager;
 use Elemacy\Modules\Popups\Services\TriggerManager;
 
+/**
+ * @internal
+ */
 class PopupSettingsController
 {
     public function types(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.

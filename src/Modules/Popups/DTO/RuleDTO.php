@@ -11,6 +11,8 @@ use Elemacy\Modules\Popups\Support\RuleTriggerParams;
 /**
  * A single advanced display rule attached to a popup
  * (frequency, device, schedule, etc.).
+ *
+ * @api
  */
 class RuleDTO extends DTO
 {

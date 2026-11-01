@@ -7,7 +7,11 @@ defined('ABSPATH') || exit;
 use Elementor\Controls_Manager;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 
-/** Style > Toggle Button: the hamburger that opens the mobile dropdown. */
+/**
+ * Style > Toggle Button: the hamburger that opens the mobile dropdown.
+ *
+ * @internal
+ */
 final class ToggleStyleSection
 {
     private const TOGGLE = '{{WRAPPER}} .elemacy-nav-menu__toggle';

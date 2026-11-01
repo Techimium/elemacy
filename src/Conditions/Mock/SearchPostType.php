@@ -9,6 +9,9 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Conditions\MockCondition;
 use Elemacy\Support\PostTypes;
 
+/**
+ * @internal
+ */
 class SearchPostType extends MockCondition
 {
     public function get_name(): string

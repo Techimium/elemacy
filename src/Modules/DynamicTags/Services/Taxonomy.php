@@ -13,6 +13,8 @@ use WP_Term;
  * term a Taxonomy Terms-sourced loop item is currently rendering, falling back
  * to the term the current page's own query is for (a normal taxonomy archive
  * page) when there is no active loop item.
+ *
+ * @internal
  */
 class Taxonomy
 {

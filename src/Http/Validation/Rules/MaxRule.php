@@ -10,6 +10,7 @@ use Elemacy\Core\Constants\Validation;
  * Rule to ensure the maximum value.
  *
  * @since 1.0.0
+ * @api
  */
 class MaxRule extends BaseRule
 {

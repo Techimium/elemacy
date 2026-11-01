@@ -11,6 +11,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
  * when positioned above or below the header rather than inside it, hang on
  * `generate_before_header`/`generate_after_header`, which also carry page
  * content (the page hero), so those are named one by one.
+ *
+ * @internal
  */
 class GeneratePressCompatibility extends HookedThemeCompatibility
 {

@@ -13,6 +13,8 @@ use WP_User;
  * Users-sourced loop item is currently rendering, falling back to the user the
  * current page's own query is for (an author archive page) when there is no
  * active loop item.
+ *
+ * @internal
  */
 class User
 {

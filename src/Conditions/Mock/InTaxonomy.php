@@ -13,6 +13,8 @@ use WP_Taxonomy;
 /**
  * Mock for pro's per-taxonomy "In {Taxonomy}" singular condition. One instance
  * is registered per public taxonomy, matching the name pro overrides.
+ *
+ * @internal
  */
 class InTaxonomy extends MockCondition
 {

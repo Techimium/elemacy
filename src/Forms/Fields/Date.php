@@ -8,7 +8,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** A calendar date as YYYY-MM-DD, optionally within an authored range. */
+/**
+ * A calendar date as YYYY-MM-DD, optionally within an authored range.
+ *
+ * @internal
+ */
 final class Date extends AbstractFieldType
 {
     public function key(): string

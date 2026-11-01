@@ -10,6 +10,9 @@ use Elemacy\Http\Response;
 use Elemacy\Modules\Widgets\Resources\WidgetListResource;
 use Elemacy\Modules\Widgets\Services\WidgetService;
 
+/**
+ * @internal
+ */
 class WidgetsApiController
 {
     protected WidgetService $service;

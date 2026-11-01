@@ -5,13 +5,17 @@ namespace Elemacy\Loop\Address;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
+use Elemacy\Loop\Contracts\AddressStepResolverInterface;
+use Elemacy\Loop\Contracts\AddressStepResolverRegistrarInterface;
 
 /**
  * In-memory registry of the address step resolvers, keyed by step kind.
  * Populated during the Widgets module's init and via
  * Hooks::LOOP_ADDRESS_STEP_RESOLVERS_REGISTER_ACTION; never persisted.
+ *
+ * @internal
  */
-final class AddressStepResolverRegistry
+final class AddressStepResolverRegistry implements AddressStepResolverRegistrarInterface
 {
     private static ?self $instance = null;
 

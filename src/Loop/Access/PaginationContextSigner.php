@@ -13,6 +13,8 @@ use JsonException;
 /**
  * Signs/verifies the opaque host-context token a public pagination request
  * carries. See docs/ARCHITECTURE.md § Rationale digest.
+ *
+ * @internal
  */
 final class PaginationContextSigner
 {

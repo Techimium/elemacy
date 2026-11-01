@@ -25,6 +25,7 @@ use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\LibraryRepository;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use WP_Query;
+use Elemacy\Modules\Popups\Contracts\PopupRepositoryInterface;
 
 /**
  * Native persistence, group/type ownership and library/Elementor document type
@@ -32,8 +33,10 @@ use WP_Query;
  * DocumentWriter}/{@see DocumentDuplicator} primitives; this service keeps
  * only what is specific to popups — the fixed Canvas editor defaults,
  * triggers/rules, and conditions — plus its own public DTO-shaped responses.
+ *
+ * @internal
  */
-class PopupService
+class PopupService implements PopupRepositoryInterface
 {
     public const GROUP = 'popup';
     public const DOCUMENT_TYPE = 'elemacy_popup';

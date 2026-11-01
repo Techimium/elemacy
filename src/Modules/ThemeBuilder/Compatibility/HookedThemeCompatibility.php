@@ -4,8 +4,8 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /**
  * Base for a theme whose header and footer print on its own action hooks. An
@@ -20,6 +20,8 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
  * change here. Only a hook that mixes chrome with page content names the
  * chrome callbacks one by one; a name the theme no longer registers is
  * recorded in missing_callbacks() so the pinned-theme tests catch the drift.
+ *
+ * @api
  */
 abstract class HookedThemeCompatibility implements ThemeCompatibilityInterface
 {
@@ -80,7 +82,7 @@ abstract class HookedThemeCompatibility implements ThemeCompatibilityInterface
         return [];
     }
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         foreach (['header', 'footer'] as $side) {
             $location = $this->chrome_locations()[$side] ?? null;

@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\Popups\Support\PopupChoices;
 use Elemacy\Modules\Popups\Triggers\MockTrigger;
 
+/**
+ * @internal
+ */
 class OnPopupClose extends MockTrigger
 {
     public function get_name(): string

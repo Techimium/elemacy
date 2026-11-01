@@ -36,6 +36,9 @@ use Elemacy\Http\Validation\Rules\StringRule;
 use Elemacy\Http\Validation\Rules\UrlRule;
 use Elemacy\Http\Validation\Rules\UserExists;
 
+/**
+ * @internal
+ */
 class Validation
 {
     /**

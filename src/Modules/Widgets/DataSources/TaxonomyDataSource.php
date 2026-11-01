@@ -24,6 +24,8 @@ use WP_Term_Query;
  * Built-in Taxonomy Terms data source: loops over a chosen taxonomy's terms
  * instead of posts, so a Loop Grid/Carousel can build a "browse by category"
  * grid or similar.
+ *
+ * @internal
  */
 class TaxonomyDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {

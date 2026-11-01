@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Describes one kind of library item (e.g. header, footer, popup, topbar).
  * Modules register the types they own; the registry is pure code with no DB
  * footprint, so types come and go with the module without touching stored data.
+ *
+ * @api
  */
 class TypeDefinition
 {

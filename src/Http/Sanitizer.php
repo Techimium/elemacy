@@ -10,6 +10,7 @@ use InvalidArgumentException;
  * Class Sanitizer.
  *
  * @since 1.0.0
+ * @api
  */
 class Sanitizer
 {

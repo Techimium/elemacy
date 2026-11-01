@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class AuthorName extends Tag
 {
     public function get_name()

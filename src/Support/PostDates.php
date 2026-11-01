@@ -10,6 +10,8 @@ use WP_Post;
 /**
  * Post date helpers shared by the library item services (templates, popups,
  * blocks), so every API resource reports dates in one canonical shape.
+ *
+ * @internal
  */
 class PostDates
 {

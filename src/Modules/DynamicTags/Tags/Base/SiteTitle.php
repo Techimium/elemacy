@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class SiteTitle extends Tag
 {
     public function get_name()

@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\Popups\Contracts\RuleInterface;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 
+/**
+ * @api
+ */
 abstract class BaseRule implements RuleInterface
 {
     public function get_config_schema(): array

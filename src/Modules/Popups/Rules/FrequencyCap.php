@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 
+/**
+ * @internal
+ */
 class FrequencyCap extends BaseRule
 {
     public function get_name(): string

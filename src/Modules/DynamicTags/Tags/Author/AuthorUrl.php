@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class AuthorUrl extends Data_Tag
 {
     public function get_name()

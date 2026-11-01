@@ -1,15 +1,17 @@
 <?php
 
-namespace Elemacy\Loop\Address;
+namespace Elemacy\Loop\Contracts;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Loop\Contracts\LoopItemInterface;
+use Elemacy\Loop\Address\AddressStep;
 
 /**
  * Rebuilds the loop item one kind of address step points to, from its already
  * rebuilt and validated parent, and checks again that it may still be shown.
  * Registered by kind on AddressStepResolverRegistry.
+ *
+ * @api
  */
 interface AddressStepResolverInterface
 {

@@ -14,6 +14,8 @@ use WP_Term;
  * author, a month, or just a post type). Whatever the settings hold, a choice
  * that no longer resolves falls back to the post type archive, so the editor
  * never has to show an error.
+ *
+ * @internal
  */
 class ArchivePreviewQuery
 {

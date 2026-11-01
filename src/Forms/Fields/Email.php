@@ -7,6 +7,9 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 final class Email extends AbstractFieldType
 {
     public function key(): string

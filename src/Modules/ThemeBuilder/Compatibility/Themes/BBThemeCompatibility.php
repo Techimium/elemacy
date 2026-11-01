@@ -4,12 +4,15 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
+/**
+ * @internal
+ */
 class BBThemeCompatibility implements ThemeCompatibilityInterface
 {
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         if ($manager->replaces_native_chrome('header')) {
             $manager->keep_theme_landmark('header');

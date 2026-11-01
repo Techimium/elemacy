@@ -11,6 +11,8 @@ use Elemacy\Loop\Access\PublicLoopLimits;
  * The Users source's public-context policy, kept free of any Elementor
  * widget/document dependency; UsersDataSource delegates get_public_settings()
  * to an instance of this class.
+ *
+ * @internal
  */
 class UsersPolicy implements PublicLoopSourcePolicyInterface
 {

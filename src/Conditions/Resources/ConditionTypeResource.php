@@ -10,6 +10,8 @@ use Elemacy\Http\Resource;
 
 /**
  * Serializes a single condition (ConditionInterface) for the admin app.
+ *
+ * @internal
  */
 class ConditionTypeResource extends Resource
 {

@@ -10,6 +10,8 @@ use WP_Taxonomy;
 /**
  * Public taxonomies used to fan out the per-taxonomy conditions — "In {Tax}"
  * (singular) and "{Tax} Archive".
+ *
+ * @api
  */
 class Taxonomies
 {

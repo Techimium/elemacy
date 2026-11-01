@@ -4,6 +4,9 @@ namespace Elemacy\Modules\Popups\Support;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 class PopupTypes
 {
     public const POPUP    = 'popup';

@@ -5,6 +5,7 @@ namespace Elemacy\Forms;
 use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
 use Elemacy\Forms\Contracts\FormActionInterface;
+use Elemacy\Forms\Contracts\FormActionRegistrarInterface;
 use Elemacy\Forms\Settings\Setting;
 use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
@@ -15,8 +16,10 @@ defined('ABSPATH') || exit;
  * The submit actions forms can select: src/Config/form_actions.php, then
  * whatever add-ons register on Hooks::FORM_ACTIONS_REGISTER_ACTION. Every
  * setting key of an action starts with "{key}_".
+ *
+ * @internal
  */
-final class FormActionRegistry extends Registry
+final class FormActionRegistry extends Registry implements FormActionRegistrarInterface
 {
     /**
      * Class-string entries are built through the container, so a built-in

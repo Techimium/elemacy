@@ -10,6 +10,8 @@ use Elemacy\Core\Hooks;
  * Public post types Elemacy treats as user content, with the Elementor / Elemacy
  * internal post types filtered out. Shared by the display-conditions engine and the
  * editor preview pickers, so it lives in Support rather than under either feature.
+ *
+ * @api
  */
 class PostTypes
 {

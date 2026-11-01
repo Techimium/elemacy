@@ -4,7 +4,11 @@ namespace Elemacy\Forms\Submission;
 
 defined('ABSPATH') || exit;
 
-/** What a field type made of one submitted value. */
+/**
+ * What a field type made of one submitted value.
+ *
+ * @api
+ */
 final class FieldResult
 {
     private const VALID   = 'valid';

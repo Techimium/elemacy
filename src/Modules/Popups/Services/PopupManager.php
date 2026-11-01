@@ -20,6 +20,8 @@ use Elementor\Plugin as ElementorPlugin;
  * Orchestrates frontend popup display: matches popups for the request,
  * conditionally enqueues the engine, and renders each popup's container — top
  * bars at the top of the page (wp_body_open), everything else in the footer.
+ *
+ * @internal
  */
 class PopupManager
 {

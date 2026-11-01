@@ -18,6 +18,8 @@ use Elemacy\Modules\Popups\Support\StorageKeys;
 /**
  * Per-popup configuration contract handed to the frontend engine (engine.js)
  * via wp_localize_script.
+ *
+ * @internal
  */
 class PopupConfigResource extends Resource
 {

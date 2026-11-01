@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Rule to ensure a value exists within a predefined set.
  *
  * @since 1.0.0
+ * @api
  */
 class InRule extends BaseRule
 {

@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
  * filters on those hooks keep working. Ours are registered once and act only on
  * a menu whose arguments carry a RenderContext. A theme menu or a second menu
  * rendered in the same request, even from inside this one, is never touched.
+ *
+ * @internal
  */
 final class MenuMarkup
 {

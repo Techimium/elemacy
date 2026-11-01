@@ -11,6 +11,8 @@ use Elemacy\Modules\Popups\Services\TriggerManager;
 /**
  * Shared write-boundary validation for RuleDTO/TriggerDTO `params` — the one
  * field an editor payload fully controls.
+ *
+ * @internal
  */
 final class RuleTriggerParams
 {

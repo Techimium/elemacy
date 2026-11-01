@@ -17,6 +17,8 @@ if (!defined('ABSPATH')) {
  * ModuleManager in a provider: providers register inside init(), and the
  * binding would discard an instance a caller may already hold, leaving the
  * request with two managers.
+ *
+ * @internal
  */
 class ModuleLoader
 {

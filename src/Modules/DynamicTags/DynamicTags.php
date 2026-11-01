@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Module;
 use Elemacy\Modules\DynamicTags\Services\TagManager;
 
+/**
+ * @internal
+ */
 class DynamicTags extends Module
 {
     public function get_name(): string

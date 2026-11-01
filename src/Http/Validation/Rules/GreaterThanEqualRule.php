@@ -10,6 +10,7 @@ use Elemacy\Support\Str;
  * Rule to ensure the value is greater than or equal to the given value.
  *
  * @since 1.0.0
+ * @api
  */
 class GreaterThanEqualRule extends BaseRule
 {

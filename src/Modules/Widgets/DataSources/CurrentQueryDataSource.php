@@ -21,6 +21,8 @@ use Elementor\Controls_Manager;
  * advance. Later pages are the page's own paginated URLs (see
  * PageUrlPaginatedSourceInterface), so nothing is rebuilt and nothing the
  * browser sends can widen the result.
+ *
+ * @internal
  */
 class CurrentQueryDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface, PageUrlPaginatedSourceInterface
 {

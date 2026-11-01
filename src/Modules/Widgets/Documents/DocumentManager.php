@@ -9,6 +9,8 @@ use Elemacy\Support\Utils;
 /**
  * Registers the Loop Item Elementor document type so loop templates edit on a
  * dedicated document with real-data Preview Settings.
+ *
+ * @internal
  */
 class DocumentManager
 {

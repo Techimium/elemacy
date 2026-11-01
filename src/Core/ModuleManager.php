@@ -5,10 +5,15 @@ namespace Elemacy\Core;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Constants\OptionKeys;
+use Elemacy\Core\Contracts\ModuleRegistrarInterface;
+use Elemacy\Core\Contracts\ModuleStatusInterface;
 use Elemacy\Http\Exceptions\ModuleNotFoundException;
 use Elemacy\Http\Response;
 
-class ModuleManager
+/**
+ * @internal
+ */
+class ModuleManager implements ModuleRegistrarInterface, ModuleStatusInterface
 {
     protected bool $initialized = false;
 

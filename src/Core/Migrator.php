@@ -10,6 +10,8 @@ use Elemacy\Core\Migrations\DatabaseLease;
 /**
  * Runs ordered data migrations when the plugin is upgraded. See
  * docs/ARCHITECTURE.md § Caches and schema.
+ *
+ * @api
  */
 class Migrator
 {

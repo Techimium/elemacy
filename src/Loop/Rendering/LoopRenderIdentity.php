@@ -13,6 +13,8 @@ use Elemacy\Loop\Support\LoopItemIdentity;
  * within one render), AJAX batch context, and the enclosing loop item's own
  * render key, so the same inner widget under two parent items never shares a
  * scope. See docs/ARCHITECTURE.md § Rationale digest.
+ *
+ * @internal
  */
 final class LoopRenderIdentity
 {

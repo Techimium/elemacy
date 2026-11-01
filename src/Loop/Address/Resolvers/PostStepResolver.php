@@ -5,13 +5,17 @@ namespace Elemacy\Loop\Address\Resolvers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Address\AddressStep;
-use Elemacy\Loop\Address\AddressStepResolverInterface;
+use Elemacy\Loop\Contracts\AddressStepResolverInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\NativePostItemInterface;
 use Elemacy\Loop\Items\PostLoopItem;
 use Elemacy\Loop\Placement\HostFacts;
 
-/** `post:{id}` — a post, while it is still publicly viewable. */
+/**
+ * `post:{id}` — a post, while it is still publicly viewable.
+ *
+ * @internal
+ */
 final class PostStepResolver implements AddressStepResolverInterface
 {
     public function get_kind(): string

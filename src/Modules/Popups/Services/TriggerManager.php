@@ -7,8 +7,12 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 use Elemacy\Modules\Popups\Contracts\TriggerInterface;
+use Elemacy\Modules\Popups\Contracts\TriggerRegistrarInterface;
 
-class TriggerManager
+/**
+ * @internal
+ */
+class TriggerManager implements TriggerRegistrarInterface
 {
     protected static ?self $instance = null;
 

@@ -4,11 +4,14 @@ namespace Elemacy\Http\DTO;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Request;
+use Elemacy\Http\Contracts\RequestInterface;
 
+/**
+ * @api
+ */
 class DTO
 {
-    public static function from_request(Request $request)
+    public static function from_request(RequestInterface $request)
     {
         return static::from_array($request->clean());
     }

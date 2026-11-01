@@ -4,8 +4,12 @@ namespace Elemacy\Conditions;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\Contracts\ConditionInterface;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
+/**
+ * @api
+ */
 abstract class BaseCondition implements ConditionInterface
 {
     /**

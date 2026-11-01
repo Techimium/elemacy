@@ -9,6 +9,9 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateDisplaySummary;
 use Elemacy\Http\Resource;
 
+/**
+ * @internal
+ */
 class TemplateResource extends Resource
 {
     public function to_array()

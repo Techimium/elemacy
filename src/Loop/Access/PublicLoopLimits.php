@@ -7,7 +7,11 @@ defined('ABSPATH') || exit;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\Pagination\PaginationType;
 
-/** Shared bounds for public source policies and their initial paginated output. */
+/**
+ * Shared bounds for public source policies and their initial paginated output.
+ *
+ * @api
+ */
 final class PublicLoopLimits
 {
     public const MAX_ITEMS = 100;

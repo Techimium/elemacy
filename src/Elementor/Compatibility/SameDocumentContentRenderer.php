@@ -14,6 +14,8 @@ defined('ABSPATH') || exit;
  * currently being viewed (get_the_ID() === $post_id, which is always true for
  * this tag), which is exactly the recursion PostContent needs to allow for a
  * *different* actively-rendering document.
+ *
+ * @internal
  */
 class SameDocumentContentRenderer
 {

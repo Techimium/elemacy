@@ -5,7 +5,7 @@ namespace Elemacy\Loop\Address\Resolvers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Address\AddressStep;
-use Elemacy\Loop\Address\AddressStepResolverInterface;
+use Elemacy\Loop\Contracts\AddressStepResolverInterface;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Items\UserLoopItem;
 use WP_User;
@@ -13,6 +13,8 @@ use WP_User;
 /**
  * `user:{id}` — a user the Users source listed. The address was signed by the
  * server for that loop, so this only checks that the user still exists.
+ *
+ * @internal
  */
 final class UserStepResolver implements AddressStepResolverInterface
 {

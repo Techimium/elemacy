@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Wires the plugin's REST and AJAX transport: loads Core's own route
  * definitions and registers every defined route with WordPress once all
  * modules and add-ons have defined theirs.
+ *
+ * @api
  */
 class HttpBootstrap
 {

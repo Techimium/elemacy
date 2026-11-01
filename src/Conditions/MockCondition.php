@@ -6,7 +6,11 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
-/** A non-functional stand-in for a condition provided by an extension. */
+/**
+ * A non-functional stand-in for a condition provided by an extension.
+ *
+ * @internal
+ */
 abstract class MockCondition extends BaseCondition
 {
     public function check(ConditionRuleDTO $rule): bool

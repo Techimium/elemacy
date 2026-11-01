@@ -11,6 +11,8 @@ use Elemacy\Loop\Support\LoopLimits;
 /**
  * A Loop Grid widget authored inside a loop item template — the owner is the
  * template actively rendering right now, not an independently reachable page.
+ *
+ * @internal
  */
 final class NestedLoopPlacementResolver implements PlacementResolverInterface
 {

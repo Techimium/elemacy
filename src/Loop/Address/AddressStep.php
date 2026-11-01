@@ -10,6 +10,8 @@ use InvalidArgumentException;
  * One step of an item address: what kind of thing the item points to (a post,
  * a term, an ACF row, ...) and where it is within its parent. The locator's
  * meaning belongs to the resolver registered for the kind; core never reads it.
+ *
+ * @api
  */
 final class AddressStep
 {

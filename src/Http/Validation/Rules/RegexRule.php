@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that the given value with the given regex
  *
  * @since 1.0.0
+ * @api
  */
 class RegexRule extends BaseRule
 {

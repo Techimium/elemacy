@@ -15,6 +15,9 @@ use Elemacy\TemplateLibrary\Resources\BlockTemplateResource;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
+/**
+ * @internal
+ */
 class LibraryController
 {
     protected BlockTemplateService $service;

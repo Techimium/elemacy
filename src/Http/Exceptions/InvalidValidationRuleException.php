@@ -10,6 +10,7 @@ use Exception;
  * Exception thrown when an invalid or non-existent validation rule is used.
  *
  * @since 1.0.0
+ * @api
  */
 class InvalidValidationRuleException extends Exception
 {

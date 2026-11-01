@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * core document/DB primitives (Documents_Manager::get,
  * Document::get_elements_data, DB::iterate_data), none of which belong to the
  * optional Atomic Widgets module.
+ *
+ * @internal
  */
 class ElementTreeWalker
 {

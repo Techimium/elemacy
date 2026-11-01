@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Layout/behavior control keys shared by PopupDocument (writer) and
  * DocumentDisplay (reader) — a persisted contract, so renaming a literal in
  * only one place would orphan saved popups.
+ *
+ * @internal
  */
 final class DisplayKeys
 {

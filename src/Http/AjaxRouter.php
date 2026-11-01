@@ -14,6 +14,9 @@ defined('ABSPATH') || exit;
 use Throwable;
 use Elemacy\Core\Container;
 
+/**
+ * @api
+ */
 class AjaxRouter
 {
     public const USER_GUEST = 'guest';

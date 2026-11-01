@@ -18,6 +18,8 @@ use Elemacy\Elementor\Widgets\BaseWidget;
  * PublicLoopSourcePolicyInterface; without it the loop renders for editors
  * only. An extension's control IDs start with its own source key, because
  * every source's controls share the widget's one settings namespace.
+ *
+ * @api
  */
 interface LoopDataSourceInterface
 {

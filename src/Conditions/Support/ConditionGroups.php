@@ -6,6 +6,8 @@ defined('ABSPATH') || exit;
 
 /**
  * Localized labels for condition groups (keyed by ConditionInterface::get_type()).
+ *
+ * @internal
  */
 class ConditionGroups
 {

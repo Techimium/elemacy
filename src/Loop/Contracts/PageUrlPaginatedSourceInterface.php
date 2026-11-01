@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * URLs (its items are the page's main query), not requests the signed
  * definition endpoint replays. The endpoint therefore refuses such a source,
  * and the widget paginates it by fetching those URLs instead.
+ *
+ * @api
  */
 interface PageUrlPaginatedSourceInterface
 {

@@ -4,6 +4,7 @@ namespace Elemacy\Forms;
 
 use Elemacy\Core\Hooks;
 use Elemacy\Forms\Contracts\FormSourceInterface;
+use Elemacy\Forms\Contracts\FormSourceRegistrarInterface;
 
 defined('ABSPATH') || exit;
 
@@ -12,8 +13,10 @@ defined('ABSPATH') || exit;
  * module that renders a builder's forms registers its source on
  * Hooks::FORM_SOURCES_REGISTER_ACTION, so a disabled module's forms are
  * simply unavailable.
+ *
+ * @internal
  */
-final class FormSourceRegistry extends Registry
+final class FormSourceRegistry extends Registry implements FormSourceRegistrarInterface
 {
     public static function from_hook(): self
     {

@@ -4,7 +4,11 @@ namespace Elemacy\Forms\Fields;
 
 defined('ABSPATH') || exit;
 
-/** A phone number. Formats vary by country, so any single line is accepted. */
+/**
+ * A phone number. Formats vary by country, so any single line is accepted.
+ *
+ * @internal
+ */
 final class Tel extends AbstractFieldType
 {
     public function key(): string

@@ -5,7 +5,11 @@ namespace Elemacy\Support;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Sanitizer;
-/** A utility class for string manipulation and formatting. */
+/**
+ * A utility class for string manipulation and formatting.
+ *
+ * @internal
+ */
 class Str
 {
     /**

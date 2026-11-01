@@ -11,6 +11,8 @@ use Elemacy\Elementor\Compatibility\Capabilities;
  * it's needed. Independent of TemplateAssetsRegistrar: rendering never depends
  * on when (or whether) a document's assets were registered. See
  * docs/ARCHITECTURE.md § The Elementor boundary.
+ *
+ * @internal
  */
 class TemplateRenderer
 {

@@ -13,6 +13,8 @@ use Elementor\Core\DynamicTags\Base_Tag;
  * Registers the dynamic tag groups and tags free ships, listed in
  * src/Modules/DynamicTags/Config/tags.php, then fires
  * Hooks::DYNAMIC_TAGS_REGISTER_ACTION so add-ons can register their own.
+ *
+ * @internal
  */
 class TagManager
 {

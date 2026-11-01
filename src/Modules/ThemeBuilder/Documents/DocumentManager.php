@@ -9,6 +9,8 @@ use Elemacy\Support\Utils;
 /**
  * Registers one Elementor document type per Theme Builder template type, from
  * Config/documents.php.
+ *
+ * @internal
  */
 class DocumentManager
 {

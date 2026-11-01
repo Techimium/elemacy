@@ -12,6 +12,8 @@ use Elemacy\Loop\DTO\LoopResultDTO;
  * The one way core asks a source for items: a whole LoopQuery for a source that
  * reads one, its settings otherwise. The enclosing frame is whatever loop
  * frame is current when the query runs.
+ *
+ * @internal
  */
 final class LoopQueryDispatcher
 {

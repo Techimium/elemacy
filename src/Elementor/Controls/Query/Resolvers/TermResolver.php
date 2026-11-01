@@ -5,13 +5,15 @@ namespace Elemacy\Elementor\Controls\Query\Resolvers;
 defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\Support\Taxonomies;
-use Elemacy\Elementor\Controls\Query\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Http\DTO\QueryResultDTO;
 use WP_Term;
 
 /**
  * Terms of any public taxonomy, found by name whether or not they have posts.
  * `query.taxonomy` may narrow the taxonomies.
+ *
+ * @internal
  */
 class TermResolver implements QueryResolverInterface
 {

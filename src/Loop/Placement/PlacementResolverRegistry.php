@@ -5,9 +5,14 @@ namespace Elemacy\Loop\Placement;
 defined('ABSPATH') || exit;
 
 use Elemacy\Loop\Contracts\PlacementResolverInterface;
+use Elemacy\Loop\Contracts\PlacementResolverRegistrarInterface;
 
-/** Contributed placement resolvers, tried in registration order. */
-final class PlacementResolverRegistry
+/**
+ * Contributed placement resolvers, tried in registration order.
+ *
+ * @internal
+ */
+final class PlacementResolverRegistry implements PlacementResolverRegistrarInterface
 {
     private static ?self $instance = null;
 

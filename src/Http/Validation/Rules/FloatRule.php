@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that the given value is a float.
  *
  * @since 1.0.0
+ * @api
  */
 class FloatRule extends BaseRule
 {

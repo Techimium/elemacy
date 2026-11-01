@@ -4,7 +4,11 @@ namespace Elemacy\Loop\Contracts;
 
 defined('ABSPATH') || exit;
 
-/** Optional source capability: public pagination requires explicit opt-in. */
+/**
+ * Optional source capability: public pagination requires explicit opt-in.
+ *
+ * @api
+ */
 interface PublicLoopSourcePolicyInterface
 {
     /**

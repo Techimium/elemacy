@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Resolves an ACF repeater/gallery field name to its row array, supporting both
  * top-level usage (get_field) and nested-loop usage (get_sub_field) so the
  * widget renders correctly inside another repeater iteration as well.
+ *
+ * @api
  */
 class AcfRepeaterResolver
 {

@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Canonical WordPress post-status values used across the plugin. Use these
  * instead of bare string literals so status checks and query args stay
  * consistent and greppable.
+ *
+ * @api
  */
 class PostStatus
 {

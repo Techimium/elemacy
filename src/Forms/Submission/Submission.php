@@ -7,7 +7,11 @@ use Elemacy\Forms\Definition\FormDefinition;
 
 defined('ABSPATH') || exit;
 
-/** A validated submission: the saved form, its values by field ID, and request facts. */
+/**
+ * A validated submission: the saved form, its values by field ID, and request facts.
+ *
+ * @api
+ */
 final class Submission
 {
     private FormDefinition $form;

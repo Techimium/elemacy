@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that a value is present and not null.
  *
  * @since 1.0.0
+ * @api
  */
 class RequiredIfExists extends BaseRule
 {

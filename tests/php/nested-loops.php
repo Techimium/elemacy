@@ -72,7 +72,7 @@ check('ItemAddress parent()/last()/hash(): the parent drops the last step, the h
 
 /* ── Loop\Address\ItemAddressResolver / AddressStepResolverRegistry ──────────────── */
 
-final class CountingStepResolver implements \Elemacy\Loop\Address\AddressStepResolverInterface
+final class CountingStepResolver implements \Elemacy\Loop\Contracts\AddressStepResolverInterface
 {
     public int $calls = 0;
     /** @var array<int, string|null> */

@@ -5,7 +5,6 @@ namespace Elemacy\Modules\Popups;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Admin\AdminMenu;
-use Elemacy\Core\Container;
 use Elemacy\Core\Admin\SubMenuDTO;
 use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Documents\DocumentManager;
@@ -27,7 +26,16 @@ use Elemacy\TemplateLibrary\LibraryChanged;
 use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Core\Contracts\ContainerInterface;
+use Elemacy\Modules\Popups\Contracts\RuleRegistrarInterface;
+use Elemacy\Modules\Popups\Contracts\TriggerRegistrarInterface;
+use Elemacy\Modules\Popups\Contracts\PopupEligibilityInterface;
+use Elemacy\Modules\Popups\Contracts\PopupRepositoryInterface;
+use Elemacy\Modules\Popups\Services\PopupService;
 
+/**
+ * @internal
+ */
 class Popups extends Module
 {
     public function get_name(): string
@@ -55,11 +63,17 @@ class Popups extends Module
         return __('Build popups, top/bottom bars, banners and floating elements with display conditions and triggers.', 'elemacy');
     }
 
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         foreach ([PopupManager::class, PopupDisplayResolver::class, RuleManager::class, TriggerManager::class] as $registry) {
             $container->bind($registry, static fn () => $registry::instance());
         }
+
+        // Published contracts: each resolves to the live instance Free uses.
+        $container->bind(RuleRegistrarInterface::class, static fn () => RuleManager::instance());
+        $container->bind(TriggerRegistrarInterface::class, static fn () => TriggerManager::instance());
+        $container->bind(PopupEligibilityInterface::class, static fn () => PopupDisplayResolver::instance());
+        $container->bind(PopupRepositoryInterface::class, static fn (ContainerInterface $container) => $container->singleton(PopupService::class));
     }
 
     public function boot(): void

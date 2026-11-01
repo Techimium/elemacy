@@ -13,6 +13,8 @@ use WP_Taxonomy;
 /**
  * Mock for pro's per-taxonomy "{Taxonomy} Archive" condition. One instance is
  * registered per public taxonomy, matching the name pro overrides.
+ *
+ * @internal
  */
 class TaxonomyArchive extends MockCondition
 {

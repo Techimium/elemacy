@@ -15,6 +15,8 @@ defined('ABSPATH') || exit;
  * reset here, and the flush runs as the first `wp` callback of every page
  * WP::main() serves. Code that renders outside WP::main() calls flush()
  * itself before each page.
+ *
+ * @internal
  */
 final class RequestState
 {

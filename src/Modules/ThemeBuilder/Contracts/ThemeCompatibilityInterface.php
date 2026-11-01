@@ -4,10 +4,14 @@ namespace Elemacy\Modules\ThemeBuilder\Contracts;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-
+/**
+ * A theme adapter, registered through
+ * {@see \Elemacy\Core\Hooks::THEME_BUILDER_COMPATIBILITY_REGISTER_ACTION}.
+ *
+ * @api
+ */
 interface ThemeCompatibilityInterface
 {
     /** Register theme-specific header/footer overrides. */
-    public function register(ThemeBuilderManager $manager): void;
+    public function register(ThemeChromeInterface $manager): void;
 }

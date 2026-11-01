@@ -12,6 +12,8 @@ use WP_User;
  * resolver, chiefly) can ask for it directly — a narrower, more precise seam
  * than routing everything through the generic LoopItemInterface::get_field() key
  * contract, and one that never requires checking a concrete item class.
+ *
+ * @api
  */
 interface NativeUserItemInterface
 {

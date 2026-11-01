@@ -7,6 +7,8 @@ defined('ABSPATH') || exit;
 /**
  * Limits every nested-loop path shares: rendering, editor preview, signed
  * later-page context and rebuilding an item address all stop at the same depth.
+ *
+ * @api
  */
 final class LoopLimits
 {

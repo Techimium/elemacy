@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Http\Resource;
 
+/**
+ * @internal
+ */
 class PopupListResource extends Resource
 {
     public function to_array()

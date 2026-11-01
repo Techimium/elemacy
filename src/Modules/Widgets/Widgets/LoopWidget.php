@@ -27,6 +27,8 @@ if (!defined('ABSPATH')) {
  * Query section every registered data source contributes to, and resolving
  * this render's items under the same public policy the AJAX endpoint applies.
  * Each widget keeps its own layout, pagination and render markup.
+ *
+ * @internal
  */
 abstract class LoopWidget extends BaseWidget
 {

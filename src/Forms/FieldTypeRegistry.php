@@ -5,6 +5,7 @@ namespace Elemacy\Forms;
 use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
 use Elemacy\Forms\Contracts\FieldTypeInterface;
+use Elemacy\Forms\Contracts\FieldTypeRegistrarInterface;
 use Elemacy\Forms\Settings\Setting;
 use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
@@ -18,8 +19,10 @@ defined('ABSPATH') || exit;
  * Field settings share one namespace per field, so a key two types both
  * declare must have the same kind, the standard keys keep their standard
  * kind, and the keys every field has are reserved.
+ *
+ * @internal
  */
-final class FieldTypeRegistry extends Registry
+final class FieldTypeRegistry extends Registry implements FieldTypeRegistrarInterface
 {
     public const RESERVED_SETTINGS = ['_id', 'type', 'label', 'custom_id', 'width'];
 

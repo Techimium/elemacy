@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * allows_line_breaks()) line breaks, which could otherwise reach mail
  * headers. Subclasses check the trimmed, non-empty value in check().
  *
- * @api Extend this (or AbstractChoiceFieldType) for a new field type.
+ * @api
  */
 abstract class AbstractFieldType implements FieldTypeInterface
 {

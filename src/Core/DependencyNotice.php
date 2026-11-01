@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * dependency: a persistent card with an Install or Activate call to action
  * instead of a self-deactivating one-shot error, so the user can resolve the
  * dependency without leaving the page.
+ *
+ * @internal
  */
 class DependencyNotice
 {

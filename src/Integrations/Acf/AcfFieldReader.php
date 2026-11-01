@@ -10,6 +10,8 @@ use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
  * The real ACF-backed field reader — moved from the former static Dynamic Tags
  * ACF service, converted to an instance so callers (loop items, chiefly) can
  * receive it through their own constructor instead of a static import.
+ *
+ * @internal
  */
 class AcfFieldReader implements FieldReaderInterface
 {

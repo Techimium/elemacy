@@ -22,6 +22,8 @@ defined('ABSPATH') || exit;
  * carries a valid nonce for that user; otherwise the submission runs as a
  * guest, so a cross-site post can never act as, or reach private posts as,
  * the visitor.
+ *
+ * @internal
  */
 final class SubmissionController
 {

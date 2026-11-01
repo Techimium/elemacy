@@ -9,6 +9,8 @@ use Elemacy\Conditions\Support\ConditionGroups;
 
 /**
  * Serializes a condition group (type + its applicable conditions) for the admin app.
+ *
+ * @internal
  */
 class ConditionGroupResource extends Resource
 {

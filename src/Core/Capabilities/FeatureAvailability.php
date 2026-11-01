@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Whether a registered capability (condition, rule, trigger, popup type, loop
  * source, ...) can execute at all, kept separate from what it decides. See
  * docs/ARCHITECTURE.md § Shared domains.
+ *
+ * @internal
  */
 final class FeatureAvailability
 {

@@ -4,6 +4,7 @@ namespace Elemacy\Integrations\Acf;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Integrations\Acf\Contracts\AcfRowCursorInterface;
 use Throwable;
 
 /**
@@ -21,8 +22,10 @@ use Throwable;
  *
  * One instance can be entered again while already entered (an ancestor read);
  * every enter()/isolate() is undone by its own exit().
+ *
+ * @internal
  */
-final class AcfCursor
+final class AcfCursor implements AcfRowCursorInterface
 {
     /** @var array<int, array<int, array<string, mixed>>> One snapshot per active enter()/isolate(). */
     private array $snapshots = [];

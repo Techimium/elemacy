@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Support\Utils;
 
+/**
+ * @internal
+ */
 class PluginLinks
 {
     protected bool $registered = false;

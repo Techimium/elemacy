@@ -4,7 +4,7 @@ namespace Elemacy\Conditions;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Conditions\ConditionInterface;
+use Elemacy\Conditions\Contracts\ConditionInterface;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Core\Hooks;
 use Elemacy\Support\ConfigList;
@@ -14,6 +14,8 @@ use Elemacy\Support\Utils;
  * Registers the display conditions free ships, listed in
  * src/Config/conditions.php. The list includes mock conditions that elemacy-
  * pro overrides (by name) with real implementations when active.
+ *
+ * @internal
  */
 class ConditionsBootstrap
 {

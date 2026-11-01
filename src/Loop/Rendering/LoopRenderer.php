@@ -16,6 +16,8 @@ use Throwable;
  * Grid/Carousel/AJAX each used to duplicate independently. Each caller keeps
  * its own outer layout (wrapper markup, pagination, navigation) and calls
  * render_item() once per item. See docs/ARCHITECTURE.md § Shared domains.
+ *
+ * @internal
  */
 final class LoopRenderer
 {

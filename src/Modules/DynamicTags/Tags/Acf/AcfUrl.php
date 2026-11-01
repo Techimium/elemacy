@@ -10,6 +10,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class AcfUrl extends Data_Tag
 {
     use LoopLevelControl;

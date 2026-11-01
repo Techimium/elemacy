@@ -17,6 +17,8 @@ defined('ABSPATH') || exit;
  * navigation, scripts, comments and the chrome element are never returned. Any
  * markup this cannot read with certainty makes the whole result "unreadable"
  * (null), and the caller then re-emits nothing for that side.
+ *
+ * @internal
  */
 final class LayoutWrapperReader
 {

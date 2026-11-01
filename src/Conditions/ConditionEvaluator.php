@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
+/**
+ * @internal
+ */
 class ConditionEvaluator
 {
     protected static ?self $instance = null;

@@ -14,6 +14,8 @@ use WP_Post;
  * type + Elementor document type metadata that must change together — the
  * defect exists to fix: a block template whose type changed without its
  * Elementor document type following.
+ *
+ * @internal
  */
 class DocumentWriter
 {

@@ -10,7 +10,11 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Group_Control_Typography;
 use Elemacy\Modules\Widgets\Widgets\NavMenu;
 
-/** Style > Main Menu: the desktop menu's items, pointers and dividers. */
+/**
+ * Style > Main Menu: the desktop menu's items, pointers and dividers.
+ *
+ * @internal
+ */
 final class MainMenuStyleSection
 {
     private const ITEM = '{{WRAPPER}} .elemacy-nav-menu__main .elemacy-nav-menu__item';

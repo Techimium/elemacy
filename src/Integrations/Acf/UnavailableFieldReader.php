@@ -9,6 +9,8 @@ use Elemacy\Integrations\Acf\Contracts\FieldReaderInterface;
 /**
  * Safe null-object implementation of FieldReaderInterface: always returns
  * null, no ACF/post-meta lookup of any kind.
+ *
+ * @internal
  */
 final class UnavailableFieldReader implements FieldReaderInterface
 {

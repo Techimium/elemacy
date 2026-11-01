@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Optional field-reading capability a loop item (or anything else outside the
  * ACF integration itself) can consume without importing any concrete
  * ACF/Dynamic Tags class directly.
+ *
+ * @api
  */
 interface FieldReaderInterface
 {

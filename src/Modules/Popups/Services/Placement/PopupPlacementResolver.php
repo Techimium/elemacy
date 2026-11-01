@@ -7,7 +7,11 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\Popups\Services\PopupManager;
 use Elemacy\Loop\Contracts\PlacementResolverInterface;
 
-/** Proves a popup document is one the server actually matched for this request. */
+/**
+ * Proves a popup document is one the server actually matched for this request.
+ *
+ * @internal
+ */
 final class PopupPlacementResolver implements PlacementResolverInterface
 {
     public function get_key(): string

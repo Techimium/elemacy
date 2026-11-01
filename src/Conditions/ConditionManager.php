@@ -4,11 +4,15 @@ namespace Elemacy\Conditions;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Conditions\ConditionInterface;
+use Elemacy\Conditions\Contracts\ConditionInterface;
+use Elemacy\Conditions\Contracts\ConditionRegistrarInterface;
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 
-class ConditionManager
+/**
+ * @internal
+ */
+class ConditionManager implements ConditionRegistrarInterface
 {
     protected static ?self $instance = null;
 

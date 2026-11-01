@@ -14,6 +14,8 @@ defined('ABSPATH') || exit;
  * front-end assets every form builder depends on, and the per-request
  * render state. The registries load only when a form is rendered, edited or
  * submitted.
+ *
+ * @internal
  */
 final class FormsBootstrap
 {

@@ -4,7 +4,10 @@ namespace Elemacy\Http\Contracts\Support;
 
 defined('ABSPATH') || exit;
 
-interface Jsonable
+/**
+ * @api
+ */
+interface JsonableInterface
 {
     /**
      * Convert the object to a JSON string.

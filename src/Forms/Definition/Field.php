@@ -6,7 +6,11 @@ use Elemacy\Forms\Settings\Setting;
 
 defined('ABSPATH') || exit;
 
-/** One authored field of a saved form, addressed by its stable field ID. */
+/**
+ * One authored field of a saved form, addressed by its stable field ID.
+ *
+ * @api
+ */
 final class Field
 {
     private string $id;

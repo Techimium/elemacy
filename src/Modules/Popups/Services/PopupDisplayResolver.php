@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Container;
 use Elemacy\Core\Hooks;
+use Elemacy\Modules\Popups\Contracts\PopupEligibilityInterface;
 use Elemacy\Modules\Popups\DTO\PopupDTO;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
@@ -15,8 +16,10 @@ use Elemacy\TemplateLibrary\TemplateResolver;
 /**
  * Resolves which published popups match the current request based on their
  * display conditions.
+ *
+ * @internal
  */
-class PopupDisplayResolver
+class PopupDisplayResolver implements PopupEligibilityInterface
 {
     protected static ?self $instance = null;
 

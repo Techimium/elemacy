@@ -8,7 +8,11 @@ use Elemacy\Forms\Submission\FieldResult;
 
 defined('ABSPATH') || exit;
 
-/** Multi-line text; the only built-in type whose value may contain line breaks. */
+/**
+ * Multi-line text; the only built-in type whose value may contain line breaks.
+ *
+ * @internal
+ */
 final class Textarea extends AbstractFieldType
 {
     public function key(): string

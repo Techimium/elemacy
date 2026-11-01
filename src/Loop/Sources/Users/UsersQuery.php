@@ -13,6 +13,8 @@ use WP_User_Query;
  * The Users source's runtime query execution, kept free of any Elementor
  * widget/document dependency; UsersDataSource delegates get_items() and
  * sanitize_ajax_settings() to an instance of this class.
+ *
+ * @internal
  */
 class UsersQuery
 {

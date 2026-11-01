@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * one place every item class should route its identity through, so a
  * future non-post source (a repeater row key, a term ID, an API item's own
  * id field) can never leak unsafe characters into generated markup or CSS.
+ *
+ * @api
  */
 final class LoopItemIdentity
 {

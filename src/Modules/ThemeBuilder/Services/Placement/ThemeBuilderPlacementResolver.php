@@ -8,7 +8,11 @@ use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
 use Elemacy\Loop\Contracts\PlacementResolverInterface;
 use Elemacy\TemplateLibrary\TemplateResolver;
 
-/** Proves a Theme Builder document is the one the server actually resolved for this request. */
+/**
+ * Proves a Theme Builder document is the one the server actually resolved for this request.
+ *
+ * @internal
+ */
 final class ThemeBuilderPlacementResolver implements PlacementResolverInterface
 {
     public function get_key(): string

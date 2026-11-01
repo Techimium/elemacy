@@ -11,6 +11,8 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
  * One data source's resolved items for one widget render, plus enough
  * pagination bookkeeping for the loop widgets' existing pagination UI to
  * keep working regardless of which source produced the items.
+ *
+ * @api
  */
 class LoopResultDTO extends DTO
 {

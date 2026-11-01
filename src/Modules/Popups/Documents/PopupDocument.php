@@ -18,6 +18,8 @@ use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
  * Custom Elementor document type for popups. Extends free-core PageBase (no
  * Elementor Pro needed) so popups edit on a real CPT post with page controls,
  * forced onto the Canvas template (no theme header/footer).
+ *
+ * @internal
  */
 class PopupDocument extends PageBase
 {

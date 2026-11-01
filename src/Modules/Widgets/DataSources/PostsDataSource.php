@@ -26,6 +26,8 @@ use Elemacy\Elementor\Widgets\BaseWidget;
  * order and current-post exclusion Loop Grid's and Loop Carousel's Query
  * section offers. Listing "whatever the page queries" is the separate Current
  * Query source.
+ *
+ * @internal
  */
 class PostsDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {

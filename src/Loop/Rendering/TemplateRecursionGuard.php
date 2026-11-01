@@ -10,6 +10,8 @@ use Elemacy\Loop\Support\LoopLimits;
  * Refuses an *active* recursive template cycle — direct or indirect — and caps
  * nesting depth, without refusing a repeated template across sequential (non-
  * nested) items, which is entirely legal.
+ *
+ * @internal
  */
 final class TemplateRecursionGuard
 {

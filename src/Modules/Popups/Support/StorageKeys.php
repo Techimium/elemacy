@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * other's counts. The templates are permanent identifiers: a visitor's saved
  * frequency and visit counts are found by them.
  *
- * @api Pro builds its visit-count keys from prefix().
+ * @api
  */
 final class StorageKeys
 {

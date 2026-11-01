@@ -8,6 +8,9 @@ use Elemacy\Core\Module;
 use Elemacy\Modules\CustomCss\Services\CustomCssManager;
 use Elemacy\Modules\CustomCss\Services\FrontendAssets;
 
+/**
+ * @internal
+ */
 class CustomCss extends Module
 {
     public function get_name(): string

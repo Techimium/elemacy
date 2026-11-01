@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
 /**
  * A drop-down. A placeholder becomes an empty first choice, so a required
  * select left on it fails, in the browser and on the server.
+ *
+ * @internal
  */
 final class Select extends AbstractChoiceFieldType
 {

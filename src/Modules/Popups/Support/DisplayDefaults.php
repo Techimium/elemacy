@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
 
+/**
+ * @internal
+ */
 class DisplayDefaults
 {
     public const DEFAULT_OVERLAY_BLUR = 0;

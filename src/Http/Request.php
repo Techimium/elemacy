@@ -7,7 +7,7 @@ use Elemacy\Http\Validation\Validator;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Request as BaseRequest;
+use Elemacy\Http\Contracts\RequestInterface;
 use Elemacy\Http\Sanitizer;
 use WP_REST_Request;
 
@@ -15,8 +15,9 @@ use WP_REST_Request;
  * Handles REST API request data abstraction for elemacy operations.
  *
  * @since 1.0.0
+ * @api
  */
-class Request implements BaseRequest
+class Request implements RequestInterface
 {
     /**
      * The request's input attributes.

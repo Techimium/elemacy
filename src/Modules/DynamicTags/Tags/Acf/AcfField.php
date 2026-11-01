@@ -11,6 +11,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class AcfField extends Tag
 {
     use LoopLevelControl;

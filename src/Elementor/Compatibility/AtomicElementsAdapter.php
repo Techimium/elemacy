@@ -12,6 +12,8 @@ defined('ABSPATH') || exit;
  * adapters for version-specific calls", isolating the exact call shape a
  * future Elementor version could restructure behind one adapter instead of
  * three call sites inline in the renderer itself.
+ *
+ * @internal
  */
 class AtomicElementsAdapter
 {

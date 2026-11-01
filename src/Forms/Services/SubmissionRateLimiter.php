@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
  * Fixed-window, per-IP bucket with database compare-and-swap and bounded
  * retries. Rows are elemacy_form_limit_<HMAC of the IP>, so raw IPs are
  * never stored. The limit and window come from Hooks::FORM_RATE_LIMIT_FILTER.
+ *
+ * @internal
  */
 final class SubmissionRateLimiter
 {

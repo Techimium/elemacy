@@ -7,8 +7,12 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Capabilities\FeatureAvailability;
 use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
 use Elemacy\Modules\Popups\Contracts\RuleInterface;
+use Elemacy\Modules\Popups\Contracts\RuleRegistrarInterface;
 
-class RuleManager
+/**
+ * @internal
+ */
+class RuleManager implements RuleRegistrarInterface
 {
     protected static ?self $instance = null;
 

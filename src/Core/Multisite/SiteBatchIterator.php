@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * switching into each site only for the duration of a supplied callback and
  * always restoring the prior blog context via `finally` — even if the callback
  * throws.
+ *
+ * @internal
  */
 class SiteBatchIterator
 {

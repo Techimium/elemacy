@@ -15,6 +15,9 @@ use Elemacy\Modules\Popups\Resources\PopupListResource;
 use Elemacy\Modules\Popups\Resources\PopupResource;
 use Elemacy\Modules\Popups\Services\PopupService;
 
+/**
+ * @internal
+ */
 class PopupController
 {
     protected $service;

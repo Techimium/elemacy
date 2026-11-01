@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Supports excluding current user during updates.
  *
  * @since 1.0.0
+ * @api
  */
 class EmailUniqueRule extends BaseRule
 {

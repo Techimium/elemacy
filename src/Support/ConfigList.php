@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * instances (src/Config/conditions.php, a module's Config/triggers.php, ...)
  * and turns it into instances of one type. Each caller still registers them
  * with its own manager, whose register signature it alone knows.
+ *
+ * @api
  */
 class ConfigList
 {

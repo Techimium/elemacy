@@ -14,6 +14,8 @@ defined('ABSPATH') || exit;
  * Sends the submission as an HTML email to the authored recipients. Every
  * header value is sanitized and stripped of line breaks, and Reply-To only
  * takes a field value that is a clean email address.
+ *
+ * @internal
  */
 final class EmailAction implements FormActionInterface
 {

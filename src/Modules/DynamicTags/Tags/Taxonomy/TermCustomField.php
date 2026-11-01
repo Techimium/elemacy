@@ -14,6 +14,8 @@ if (!defined('ABSPATH')) {
 /**
  * Reads an ACF term-meta field (or plain term meta, when ACF is inactive — see
  * AcfFieldReader::get_field_value()'s fallback) for the current term.
+ *
+ * @internal
  */
 class TermCustomField extends Tag
 {

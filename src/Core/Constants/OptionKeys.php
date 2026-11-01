@@ -4,6 +4,9 @@ namespace Elemacy\Core\Constants;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 class OptionKeys
 {
     public const ACTIVE_MODULES = 'elemacy_active_modules';

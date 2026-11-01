@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 
+/**
+ * @api
+ */
 interface TriggerInterface
 {
     /**

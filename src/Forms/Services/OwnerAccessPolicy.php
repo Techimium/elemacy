@@ -16,6 +16,8 @@ defined('ABSPATH') || exit;
  * needs to be published and of a registered type: where it is shown is the
  * template's business, and its form can only reach its own authored
  * recipients either way.
+ *
+ * @internal
  */
 final class OwnerAccessPolicy
 {

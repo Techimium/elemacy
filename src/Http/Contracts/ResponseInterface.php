@@ -8,8 +8,9 @@ defined('ABSPATH') || exit;
  * Contract for sending structured JSON responses.
  *
  * @since 1.0.0
+ * @api
  */
-interface Response
+interface ResponseInterface
 {
     /**
      * Return a JSON-formatted REST response.

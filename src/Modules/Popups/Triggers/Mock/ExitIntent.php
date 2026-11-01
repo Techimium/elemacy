@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\Triggers\MockTrigger;
 
+/**
+ * @internal
+ */
 class ExitIntent extends MockTrigger
 {
     public function get_name(): string

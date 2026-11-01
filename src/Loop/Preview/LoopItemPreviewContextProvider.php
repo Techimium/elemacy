@@ -17,6 +17,8 @@ use Elemacy\Loop\Support\LoopLimits;
  * row) brings its enclosing items along, outermost first, so ancestor reads
  * and loops nested in the template behave as they will on the page. Each frame
  * is pushed before it is entered, as LoopRenderer does.
+ *
+ * @internal
  */
 class LoopItemPreviewContextProvider implements PreviewContextProviderInterface
 {

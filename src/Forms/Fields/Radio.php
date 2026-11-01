@@ -7,6 +7,9 @@ use Elemacy\Forms\Rendering\RenderContext;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 final class Radio extends AbstractChoiceFieldType
 {
     public function key(): string

@@ -13,6 +13,8 @@ defined('ABSPATH') || exit;
  * submits a value, as "Label: value", and [field id="..."] inserts one field's
  * value. Values are formatted by their field type and HTML-escaped; the
  * authored body around them is trusted as written.
+ *
+ * @internal
  */
 final class EmailTemplate
 {

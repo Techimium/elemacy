@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * A saved form as the engine sees it, whichever builder authored it: where it
  * lives, its fields in authored order, the submit actions it selected and
  * every saved setting (actions read their own from settings()).
+ *
+ * @api
  */
 final class FormDefinition
 {

@@ -5,15 +5,18 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 defined('ABSPATH') || exit;
 
 use Elemacy\Modules\ThemeBuilder\Compatibility\ThemeHookCleaner;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
+/**
+ * @internal
+ */
 class GenesisCompatibility implements ThemeCompatibilityInterface
 {
     /** Genesis registers its header and footer markup up to priority 15; this adapter's own wrapper opens at 16. */
     private const CHROME_MAX_PRIORITY = 15;
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         if ($manager->replaces_native_chrome('header')) {
             $manager->keep_theme_landmark('header');

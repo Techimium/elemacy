@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class ProductAddToCartUrl extends Data_Tag
 {
     public function get_name()

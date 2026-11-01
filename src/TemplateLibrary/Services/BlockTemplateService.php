@@ -27,6 +27,8 @@ use WP_Query;
  * CRUD for "block" library items — referenced-by-ID building blocks (Loop
  * today). Lives in Core because these items sit on the always-registered
  * library CPT and are not owned by any toggleable module.
+ *
+ * @internal
  */
 class BlockTemplateService
 {

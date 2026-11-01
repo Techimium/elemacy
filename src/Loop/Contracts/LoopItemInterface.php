@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * One item a loop widget renders its template against, regardless of what kind
  * of data it wraps (a post, a term, a repeater row, an API response object,
  * ...).
+ *
+ * @api
  */
 interface LoopItemInterface
 {

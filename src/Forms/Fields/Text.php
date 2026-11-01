@@ -4,6 +4,9 @@ namespace Elemacy\Forms\Fields;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 final class Text extends AbstractFieldType
 {
     public function key(): string

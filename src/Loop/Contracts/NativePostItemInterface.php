@@ -11,6 +11,8 @@ use WP_Post;
  * callers that need the native post (the placement registry's "current post"
  * fact, chiefly) can ask for it directly, without checking a concrete item
  * class.
+ *
+ * @api
  */
 interface NativePostItemInterface
 {

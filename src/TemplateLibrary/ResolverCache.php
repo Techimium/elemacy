@@ -12,6 +12,8 @@ use WP_Query;
 /**
  * Caches the per-type candidate index used to resolve which library items
  * apply to a request. The index holds published items' ids + raw conditions.
+ *
+ * @internal
  */
 class ResolverCache
 {

@@ -4,7 +4,11 @@ namespace Elemacy\Core\Migrations;
 
 defined('ABSPATH') || exit;
 
-/** Non-autoloaded, atomically claimed lease for bounded idempotent migration steps. */
+/**
+ * Non-autoloaded, atomically claimed lease for bounded idempotent migration steps.
+ *
+ * @internal
+ */
 final class DatabaseLease
 {
     private string $key;

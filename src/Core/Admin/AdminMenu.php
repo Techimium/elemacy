@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Admin\MenuDTO;
 use Elemacy\Core\Admin\SubMenuDTO;
 
+/**
+ * @internal
+ */
 class AdminMenu
 {
     protected static $menus = [];

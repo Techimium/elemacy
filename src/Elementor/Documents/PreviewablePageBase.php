@@ -12,6 +12,8 @@ use Elementor\Core\DocumentTypes\PageBase;
 /**
  * Base for library documents that render against real content in the editor
  * preview.
+ *
+ * @api
  */
 abstract class PreviewablePageBase extends PageBase
 {

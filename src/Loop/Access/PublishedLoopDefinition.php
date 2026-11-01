@@ -4,7 +4,11 @@ namespace Elemacy\Loop\Access;
 
 defined('ABSPATH') || exit;
 
-/** Saved authoring definition, independent of Elementor widget instances. */
+/**
+ * Saved authoring definition, independent of Elementor widget instances.
+ *
+ * @internal
+ */
 final class PublishedLoopDefinition
 {
     /** @var int */

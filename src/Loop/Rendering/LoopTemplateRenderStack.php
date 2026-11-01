@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * Lets a nested Loop Grid widget's placement resolver prove its owner is the
  * template actually being rendered right now, not an arbitrary published loop
  * template ID.
+ *
+ * @internal
  */
 final class LoopTemplateRenderStack
 {

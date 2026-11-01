@@ -1,6 +1,6 @@
 <?php
 
-namespace Elemacy\Elementor\Controls\Query;
+namespace Elemacy\Elementor\Contracts;
 
 defined('ABSPATH') || exit;
 
@@ -12,6 +12,8 @@ use Elemacy\Http\DTO\QueryResultDTO;
  * term matches, how an entry is labelled, how a stored id is turned back into
  * a label, and who may ask. QueryService only routes to it by key, so a new
  * picker type is one resolver class and one registration.
+ *
+ * @api
  */
 interface QueryResolverInterface
 {

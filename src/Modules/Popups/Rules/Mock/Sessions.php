@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\Rules\MockRule;
 
+/**
+ * @internal
+ */
 class Sessions extends MockRule
 {
     public function get_name(): string

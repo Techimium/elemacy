@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * left at its default, so neither ever changes (loop-control-defaults.php
  * pins both). The control, the query and the public policy all read them
  * from here, so page 1 and page 2 can never disagree.
+ *
+ * @internal
  */
 final class PostsSettings
 {

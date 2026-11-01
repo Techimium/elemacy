@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Class names the Nav Menu markup, its control selectors, its stylesheet and its
  * script agree on. All of them live under `elemacy-nav-menu` so neither Elementor
  * Pro's Nav Menu nor a theme's global menu styles can match them.
+ *
+ * @internal
  */
 final class Css
 {

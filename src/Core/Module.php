@@ -4,6 +4,7 @@ namespace Elemacy\Core;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Core\Contracts\ContainerInterface;
 use Elemacy\Core\Contracts\ServiceProviderInterface;
 
 /**
@@ -11,6 +12,8 @@ use Elemacy\Core\Contracts\ServiceProviderInterface;
  * it shares, boot attaches its behavior. ModuleManager runs every active
  * module's register before any module's boot. See docs/ARCHITECTURE.md § Boot
  * lifecycle.
+ *
+ * @api
  */
 abstract class Module implements ServiceProviderInterface
 {
@@ -25,7 +28,7 @@ abstract class Module implements ServiceProviderInterface
     /**
      * Binds the services this module shares. Nothing by default.
      */
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
     }
 

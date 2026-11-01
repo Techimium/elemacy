@@ -5,6 +5,8 @@ namespace Elemacy\Elementor\Controls\Query;
 defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverRegistrarInterface;
 use Elemacy\Support\ConfigList;
 use Elemacy\Support\Utils;
 use InvalidArgumentException;
@@ -13,8 +15,10 @@ use InvalidArgumentException;
  * The resolvers elemacy_query can search with, by key. Populated on first use
  * rather than when built, so nothing is loaded on a request that never runs a
  * picker search (every visitor request).
+ *
+ * @internal
  */
-class QueryResolverRegistry
+class QueryResolverRegistry implements QueryResolverRegistrarInterface
 {
     /** @var callable(self): void|null */
     protected $loader;

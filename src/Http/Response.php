@@ -4,7 +4,7 @@ namespace Elemacy\Http;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Response as BaseResponse;
+use Elemacy\Http\Contracts\ResponseInterface;
 use stdClass;
 use WP_REST_Response;
 
@@ -12,8 +12,9 @@ use WP_REST_Response;
  * Handles standardized REST API responses for the elemacy plugin.
  *
  * @since 1.0.0
+ * @api
  */
-class Response extends WP_REST_Response implements BaseResponse
+class Response extends WP_REST_Response implements ResponseInterface
 {
     /**
      * HTTP status code for a successful request.

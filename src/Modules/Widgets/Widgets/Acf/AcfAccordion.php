@@ -10,7 +10,11 @@ use Elementor\Icons_Manager;
 use Elementor\Utils;
 use Elementor\Widget_Accordion;
 
-/** Renders an Elementor accordion populated from an ACF repeater field. */
+/**
+ * Renders an Elementor accordion populated from an ACF repeater field.
+ *
+ * @internal
+ */
 class AcfAccordion extends Widget_Accordion
 {
     public function get_name()

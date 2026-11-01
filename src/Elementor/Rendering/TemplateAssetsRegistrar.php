@@ -7,12 +7,15 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Hooks;
 use Elemacy\Core\RequestState;
 use Elemacy\Elementor\Compatibility\Capabilities;
+use Elemacy\Elementor\Contracts\TemplateAssetsRegistrarInterface;
 
 /**
  * Registers post IDs whose Elementor content renders on a page other than
  * their own, so that document's CSS actually gets generated.
+ *
+ * @internal
  */
-class TemplateAssetsRegistrar
+class TemplateAssetsRegistrar implements TemplateAssetsRegistrarInterface
 {
     /**
      * Prepended to a stylesheet's id to take it out of the pattern the editor

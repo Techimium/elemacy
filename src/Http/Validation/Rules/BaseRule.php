@@ -4,14 +4,15 @@ namespace Elemacy\Http\Validation\Rules;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Rule;
+use Elemacy\Http\Contracts\RuleInterface;
 
 /**
  * Abstract base class for validation rules.
  *
  * @since 1.0.0
+ * @api
  */
-abstract class BaseRule implements Rule
+abstract class BaseRule implements RuleInterface
 {
     /**
      * Check for strict data type

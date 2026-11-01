@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
  * Several options, any number ticked. Required means at least one: no box
  * carries the required attribute (the browser would demand every one); the
  * form runtime checks the group instead.
+ *
+ * @internal
  */
 final class Checkbox extends AbstractChoiceFieldType
 {

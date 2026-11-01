@@ -20,6 +20,8 @@ use WP_User;
  * could already depend on, and wp_set_current_user() is explicitly ruled out
  * here since it would change current_user_can() results for the rest of the
  * request.
+ *
+ * @internal
  */
 class UserLoopItem implements LoopItemInterface, NativeUserItemInterface, AddressableItemInterface
 {

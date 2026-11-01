@@ -12,6 +12,8 @@ defined('ABSPATH') || exit;
  *
  * Values are spaced by ten so a level can be inserted between two existing
  * ones without renumbering; only their order is meaningful.
+ *
+ * @api
  */
 final class Specificity
 {

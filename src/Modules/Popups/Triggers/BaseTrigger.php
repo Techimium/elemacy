@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\Popups\Contracts\TriggerInterface;
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 
+/**
+ * @api
+ */
 abstract class BaseTrigger implements TriggerInterface
 {
     public function get_config_schema(): array

@@ -12,6 +12,8 @@ use Elemacy\Loop\Access\PublicLoopLimits;
  * The Terms source's public-context policy, kept free of any Elementor
  * widget/document dependency; TaxonomyDataSource delegates get_public_settings()
  * to an instance of this class.
+ *
+ * @internal
  */
 class TermsPolicy implements PublicLoopSourcePolicyInterface
 {

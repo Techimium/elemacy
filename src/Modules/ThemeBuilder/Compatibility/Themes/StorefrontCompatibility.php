@@ -5,11 +5,13 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 defined('ABSPATH') || exit;
 
 use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 
 /**
  * Storefront prints its header on `storefront_header` and its footer on
  * `storefront_footer`; the template renders just outside each.
+ *
+ * @internal
  */
 class StorefrontCompatibility extends HookedThemeCompatibility
 {
@@ -38,7 +40,7 @@ class StorefrontCompatibility extends HookedThemeCompatibility
         ];
     }
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         parent::register($manager);
 

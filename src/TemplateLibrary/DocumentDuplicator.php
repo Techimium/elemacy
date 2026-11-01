@@ -12,6 +12,8 @@ use WP_Post;
  * Duplicates a library document through the same verified native write
  * boundary {@see LibraryRepository}/{@see DocumentWriter} use, instead of each
  * of the three application services running its own copy loop.
+ *
+ * @internal
  */
 class DocumentDuplicator
 {

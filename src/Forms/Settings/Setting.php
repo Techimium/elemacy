@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * any builder's control API. Each builder turns it into its own editor
  * control (the Elementor Form widget does so in ElementorSettingControls),
  * so an extension written once works in every builder.
+ *
+ * @api
  */
 final class Setting
 {

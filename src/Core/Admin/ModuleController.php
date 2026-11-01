@@ -9,6 +9,9 @@ use Elemacy\Http\Exceptions\HttpException;
 use Elemacy\Http\Request;
 use Elemacy\Http\Response;
 
+/**
+ * @internal
+ */
 class ModuleController
 {
     /**

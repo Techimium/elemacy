@@ -7,7 +7,7 @@
  * real WordPress in tests/integration/query-pickers.php.
  */
 
-use Elemacy\Elementor\Controls\Query\QueryResolverInterface;
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Elementor\Controls\Query\QueryResolverRegistry;
 use Elemacy\Elementor\Controls\Query\QueryService;
 use Elemacy\Http\DTO\QueryResultDTO;

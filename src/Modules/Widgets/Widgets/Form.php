@@ -28,6 +28,8 @@ if (!defined('ABSPATH')) {
  * FormRenderer. Every control ID below is saved with the widget, so none may
  * be renamed, and a non-text default is stored behavior (see
  * tests/architecture/persisted-identifiers.php).
+ *
+ * @internal
  */
 class Form extends BaseWidget
 {

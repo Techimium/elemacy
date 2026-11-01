@@ -20,6 +20,8 @@ use Throwable;
  * no longer public or changed since the token was signed, then enters every
  * item root first with its template on the lineage stacks, exactly as the
  * first page had them. leave() undoes all of it.
+ *
+ * @internal
  */
 final class SignedParentChain
 {

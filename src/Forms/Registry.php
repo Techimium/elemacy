@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * request that never renders or submits a form builds none of them. A key is
  * registered once; a second registration is refused with a development
  * diagnostic and the first one stays.
+ *
+ * @internal
  */
 abstract class Registry
 {

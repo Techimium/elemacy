@@ -10,6 +10,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+/**
+ * @internal
+ */
 class AcfDateTime extends Tag
 {
     use LoopLevelControl;

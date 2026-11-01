@@ -11,6 +11,8 @@ use Elemacy\Conditions\DTO\ConditionRuleDTO;
 /**
  * Any search results page, whatever post types are searched. The narrower
  * "Search Results: Post Type" is a Pro condition.
+ *
+ * @internal
  */
 class AllResults extends BaseCondition
 {

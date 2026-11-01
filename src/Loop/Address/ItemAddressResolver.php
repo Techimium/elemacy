@@ -10,6 +10,8 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
  * Rebuilds the chain of loop items a signed address points to, root first,
  * each step from its already validated parent. One instance serves one
  * request: a prefix it already rebuilt is not resolved again.
+ *
+ * @internal
  */
 final class ItemAddressResolver
 {

@@ -17,6 +17,8 @@ use Elemacy\Modules\Widgets\Widgets\NavMenu\MenuRenderer;
  * Elementor Pro Nav Menu, requiring only Elementor. Control IDs match the
  * reference widget's, so builders find the same panel and Paste Style works
  * between the two; everything that reaches the page is Elemacy's own.
+ *
+ * @internal
  */
 class NavMenu extends BaseWidget
 {

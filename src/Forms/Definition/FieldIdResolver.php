@@ -11,6 +11,8 @@ defined('ABSPATH') || exit;
  * A field's ID is its author ID when that is valid and not already taken by
  * an earlier field, else its builder's permanent item ID, else (malformed
  * data only) its position.
+ *
+ * @internal
  */
 final class FieldIdResolver
 {

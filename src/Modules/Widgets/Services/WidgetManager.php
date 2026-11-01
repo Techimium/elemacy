@@ -7,6 +7,9 @@ if (!defined('ABSPATH')) {
 
 use Elemacy\Support\Utils;
 
+/**
+ * @internal
+ */
 class WidgetManager
 {
     protected static $instance = null;

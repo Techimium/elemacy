@@ -11,6 +11,8 @@ use InvalidArgumentException;
  * Where a rendered loop item lives: its enclosing item's address plus one step,
  * outermost first. Immutable. The canonical string is only for boundaries (a
  * signed token, a hash); code passes the object.
+ *
+ * @internal
  */
 final class ItemAddress
 {

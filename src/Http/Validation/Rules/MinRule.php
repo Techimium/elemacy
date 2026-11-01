@@ -10,6 +10,7 @@ use Elemacy\Core\Constants\Validation;
  * Rule to ensure the minimum value.
  *
  * @since 1.0.0
+ * @api
  */
 class MinRule extends BaseRule
 {

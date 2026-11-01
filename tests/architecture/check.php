@@ -31,6 +31,12 @@
  * 7. Every Elementor widget type Free registers is `elemacy-` plus lowercase
  *    words joined by hyphens: no underscore, so one naming rule holds for
  *    every widget saved in `_elementor_data`.
+ * 8. The PHP extension contract (docs/CONTRACTS.md § PHP extension
+ *    contract): every Free class, interface and trait carries exactly one of
+ *    `@api` and `@internal`; every interface lives in a Contracts/ folder and
+ *    ends in `Interface`; no `@api` interface's signature names an
+ *    `@internal` Free class; and Pro's shipped source references only `@api`
+ *    Free symbols (checked when Pro's checkout sits beside this one).
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -254,6 +260,140 @@ foreach ($widget_names[1] as $widget_name) {
     }
 }
 
+/**
+ * Every class, interface and trait Free ships, keyed by FQN: its file, kind,
+ * tier tag(s), imports, and its code with comments removed.
+ *
+ * @return array<string, array{path: string, kind: string, tiers: string[], uses: array<string, string>, namespace: string, code: string}>
+ */
+$declared_symbols = static function (string $src_root): array {
+    $symbols = [];
+
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($src_root, FilesystemIterator::SKIP_DOTS)) as $file_info) {
+        if ('php' !== $file_info->getExtension()) {
+            continue;
+        }
+
+        $source = (string) file_get_contents($file_info->getPathname());
+        $doc = '';
+        $code = '';
+        $declaration = null;
+
+        foreach (token_get_all($source) as $token) {
+            $id = is_array($token) ? $token[0] : null;
+            $text = is_array($token) ? $token[1] : $token;
+
+            if (T_DOC_COMMENT === $id) {
+                $doc = $text;
+                continue;
+            }
+            if (T_COMMENT === $id) {
+                continue;
+            }
+            if (null === $declaration && in_array($id, [T_CLASS, T_INTERFACE, T_TRAIT], true) && !preg_match('/::\s*$/', $code)) {
+                $declaration = ['kind' => strtolower($text), 'doc' => $doc];
+            } elseif (null === $declaration && !in_array($id, [T_WHITESPACE, T_FINAL, T_ABSTRACT], true)) {
+                $doc = '';
+            }
+            $code .= $text;
+        }
+
+        if (null === $declaration || !preg_match('/^namespace\s+([^;]+);/m', $code, $namespace)
+            || !preg_match('/^(?:final\s+|abstract\s+)?(?:class|interface|trait)\s+(\w+)/m', $code, $name)) {
+            continue;
+        }
+
+        $uses = [];
+        preg_match_all('/^use\s+\\\\?([\w\\\\]+)(?:\s+as\s+(\w+))?\s*;/m', $code, $imports, PREG_SET_ORDER);
+        foreach ($imports as $import) {
+            $parts = explode('\\', $import[1]);
+            $uses[$import[2] ?? end($parts)] = $import[1];
+        }
+
+        preg_match_all('/^\s*\*\s*@(api|internal)\b/m', $declaration['doc'], $tags);
+        $symbols[$namespace[1] . '\\' . $name[1]] = [
+            'path' => $file_info->getPathname(),
+            'kind' => $declaration['kind'],
+            'tiers' => $tags[1],
+            'uses' => $uses,
+            'namespace' => $namespace[1],
+            'code' => $code,
+        ];
+    }
+
+    return $symbols;
+};
+
+// 8. PHP extension contract (docs/CONTRACTS.md § PHP extension contract).
+$free_symbols = $declared_symbols($plugin_root . 'src');
+$is_api = static function (string $fqn) use ($free_symbols): bool {
+    return ($free_symbols[$fqn]['tiers'] ?? []) === ['api'];
+};
+
+foreach ($free_symbols as $fqn => $symbol) {
+    $relative_path = ltrim(str_replace($plugin_root, '', $symbol['path']), '/');
+
+    // 8a. Exactly one stability tier.
+    if (1 !== count($symbol['tiers'])) {
+        $violations[] = sprintf('[stability tier] %s (%s) must carry exactly one of @api or @internal in its %s docblock', $fqn, $relative_path, $symbol['kind']);
+    }
+
+    if ('interface' !== $symbol['kind']) {
+        continue;
+    }
+
+    // 8b. Interfaces live in a Contracts/ folder and end in Interface.
+    if (false === strpos($relative_path, '/Contracts/') || !preg_match('/Interface$/', $fqn)) {
+        $violations[] = sprintf('[interface convention] %s must live in a Contracts/ folder and its name must end in Interface', $relative_path);
+    }
+
+    // 8d. A stable interface's signatures name only stable Free types.
+    if (!$is_api($fqn)) {
+        continue;
+    }
+    preg_match_all('/function\s+\w+\s*\(([^)]*)\)\s*(?::\s*\??([\w\\\\]+))?/', $symbol['code'], $signatures, PREG_SET_ORDER);
+    foreach ($signatures as $signature) {
+        $types = isset($signature[2]) ? [$signature[2]] : [];
+        preg_match_all('/(?:^|,)\s*\??([\w\\\\]+)\s+&?(?:\.\.\.)?\$/', $signature[1], $parameter_types);
+        foreach (array_merge($types, $parameter_types[1]) as $type) {
+            $head = explode('\\', ltrim($type, '\\'))[0];
+            $resolved = '\\' === $type[0]
+                ? ltrim($type, '\\')
+                : (isset($symbol['uses'][$head]) ? $symbol['uses'][$head] . substr($type, strlen($head)) : $symbol['namespace'] . '\\' . $type);
+            if (isset($free_symbols[$resolved]) && !$is_api($resolved)) {
+                $violations[] = sprintf('[contract signature] @api %s names @internal %s', $fqn, $resolved);
+            }
+        }
+    }
+}
+
+// 8c. Pro references only stable Free symbols.
+if (is_dir(dirname($plugin_root) . '/elemacy-pro/src')) {
+    $pro_root = dirname($plugin_root) . '/elemacy-pro/';
+
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($pro_root . 'src', FilesystemIterator::SKIP_DOTS)) as $file_info) {
+        if ('php' !== $file_info->getExtension()) {
+            continue;
+        }
+
+        $code = '';
+        foreach (token_get_all((string) file_get_contents($file_info->getPathname())) as $token) {
+            if (!is_array($token) || !in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                $code .= is_array($token) ? $token[1] : $token;
+            }
+        }
+
+        preg_match_all('/(?:^use\s+|\\\\)(Elemacy\\\\[\w\\\\]+)/m', $code, $references);
+        foreach (array_unique($references[1]) as $reference) {
+            if (isset($free_symbols[$reference]) && !$is_api($reference)) {
+                $violations[] = sprintf('[Pro uses internal] elemacy-pro/%s references @internal %s', ltrim(str_replace($pro_root, '', $file_info->getPathname()), '/'), $reference);
+            } elseif (!isset($free_symbols[$reference])) {
+                $violations[] = sprintf('[Pro uses unknown] elemacy-pro/%s references %s, which Free does not declare', ltrim(str_replace($pro_root, '', $file_info->getPathname()), '/'), $reference);
+            }
+        }
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -261,9 +401,9 @@ if ($violations) {
         fwrite(STDERR, '  - ' . $violation . "\n");
     }
 
-    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, and version every REST route. There is no allowlist.\n");
+    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, version every REST route, and tag every Free symbol @api or @internal, with Pro using only @api ones. There is no allowlist.\n");
 
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming and PHP 7.4 syntax-floor rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor and PHP-extension-contract rules all pass.\n";

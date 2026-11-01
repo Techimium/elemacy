@@ -9,6 +9,8 @@ use Elemacy\Modules\Popups\Rules\MockRule;
 /**
  * Mock placeholder — the real "Show on devices" rule ships in elemacy-pro,
  * which overrides this by name when active. Shown locked in the UI to tease pro.
+ *
+ * @internal
  */
 class Devices extends MockRule
 {

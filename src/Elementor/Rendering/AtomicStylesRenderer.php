@@ -11,6 +11,8 @@ use Elemacy\Elementor\Compatibility\StylesRendererAdapter;
  * The single place that touches Elementor's atomic-widgets CSS internals (via
  * AtomicElementsAdapter/StylesRendererAdapter) on behalf of anything that
  * needs a post's atomic CSS as a plain string.
+ *
+ * @internal
  */
 class AtomicStylesRenderer
 {

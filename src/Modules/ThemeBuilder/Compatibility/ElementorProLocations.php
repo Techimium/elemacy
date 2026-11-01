@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * this request, so Elemacy leaves those to it rather than printing a second
  * document shell or a second header. Asked through Elementor Pro's public
  * `elementor_location_exits()`, the function themes use for the same purpose.
+ *
+ * @internal
  */
 final class ElementorProLocations
 {

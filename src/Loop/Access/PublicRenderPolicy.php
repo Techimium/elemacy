@@ -17,7 +17,11 @@ use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeRegistry;
 use WP_Post;
 
-/** Shared native document eligibility and explicit source-policy enforcement. */
+/**
+ * Shared native document eligibility and explicit source-policy enforcement.
+ *
+ * @internal
+ */
 final class PublicRenderPolicy
 {
     public const UNAVAILABLE = 'elemacy_loop_unavailable';

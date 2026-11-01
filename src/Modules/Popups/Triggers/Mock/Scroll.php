@@ -9,6 +9,8 @@ use Elemacy\Modules\Popups\Triggers\MockTrigger;
 /**
  * Mock placeholder — the real "On Scroll" trigger ships in elemacy-pro, which
  * overrides this by name when active. Shown locked in the UI to tease pro.
+ *
+ * @internal
  */
 class Scroll extends MockTrigger
 {

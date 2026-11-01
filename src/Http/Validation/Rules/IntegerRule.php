@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that a value is an integer.
  *
  * @since 1.0.0
+ * @api
  */
 class IntegerRule extends BaseRule
 {

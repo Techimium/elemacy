@@ -4,6 +4,7 @@ namespace Elemacy\Elementor\Controls\Query;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Elementor\Contracts\QueryResolverInterface;
 use Elemacy\Http\DTO\QueryResultDTO;
 
 /**
@@ -12,6 +13,8 @@ use Elemacy\Http\DTO\QueryResultDTO;
  * values when the control re-renders. It only routes: the control's
  * `autocomplete.object` picks a resolver from the registry, and that resolver
  * does the work, so supporting a new kind of thing never touches this class.
+ *
+ * @internal
  */
 class QueryService
 {

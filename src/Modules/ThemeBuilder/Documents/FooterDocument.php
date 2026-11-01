@@ -4,7 +4,11 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-/** Elementor document for Footer templates. */
+/**
+ * Elementor document for Footer templates.
+ *
+ * @internal
+ */
 class FooterDocument extends ChromeDocument
 {
     public static function get_type()

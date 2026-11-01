@@ -24,6 +24,8 @@ use Elemacy\Core\Container;
  * first typed parameter is hydrated from the request. Access is enforced only
  * by attached middleware; a route without middleware is public. See
  * docs/ARCHITECTURE.md § Transport.
+ *
+ * @api
  */
 class Route
 {

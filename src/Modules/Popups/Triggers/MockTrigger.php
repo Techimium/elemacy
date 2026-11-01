@@ -4,7 +4,11 @@ namespace Elemacy\Modules\Popups\Triggers;
 
 defined('ABSPATH') || exit;
 
-/** A non-functional stand-in for a trigger provided by an extension. */
+/**
+ * A non-functional stand-in for a trigger provided by an extension.
+ *
+ * @internal
+ */
 abstract class MockTrigger extends BaseTrigger
 {
     public function is_mock(): bool

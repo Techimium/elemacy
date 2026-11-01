@@ -8,6 +8,9 @@ use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
+/**
+ * @internal
+ */
 class EntireSite extends BaseCondition
 {
     public function get_name(): string

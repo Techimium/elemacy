@@ -5,8 +5,8 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 defined('ABSPATH') || exit;
 
 use Elemacy\Modules\ThemeBuilder\Compatibility\LayoutWrapperReader;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
 /**
  * Generic adapter for any classic theme without a dedicated one. See
@@ -23,6 +23,8 @@ use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
  * opening) are read from what was discarded and printed around the Elemacy
  * template, so the page stays balanced and keeps the theme's layout. See
  * LayoutWrapperReader.
+ *
+ * @internal
  */
 class ClassicThemeCompatibility implements ThemeCompatibilityInterface
 {
@@ -43,10 +45,10 @@ class ClassicThemeCompatibility implements ThemeCompatibilityInterface
         'footer' => ['wp_footer'],
     ];
 
-    /** @var ThemeBuilderManager */
+    /** @var ThemeChromeInterface */
     private $manager;
 
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
         $this->manager = $manager;
 

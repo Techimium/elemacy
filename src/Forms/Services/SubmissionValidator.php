@@ -14,6 +14,8 @@ defined('ABSPATH') || exit;
  * rejected, each field's own type validates its value, and a field whose
  * type is no longer registered is skipped. Validating comes before
  * sanitizing, so a malformed shape or injected header cannot disappear.
+ *
+ * @internal
  */
 final class SubmissionValidator
 {

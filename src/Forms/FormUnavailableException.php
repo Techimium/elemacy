@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * The requested form does not exist or may not be used by this visitor.
  * Deliberately one message for every reason, so a response never reveals
  * which posts or forms exist.
+ *
+ * @internal
  */
 final class FormUnavailableException extends ValidationException
 {

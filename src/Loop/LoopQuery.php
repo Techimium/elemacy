@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * Everything one loop query is asked with: the settings to run, the loop frame
  * it renders inside (if any), the page, and whether it is an editor preview.
  * New query abilities arrive as new fields here, not as new interfaces.
+ *
+ * @api
  */
 final class LoopQuery
 {

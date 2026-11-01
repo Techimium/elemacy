@@ -8,8 +8,9 @@ defined('ABSPATH') || exit;
  * Contract for validation rule.
  *
  * @since 1.0.0
+ * @api
  */
-interface Rule
+interface RuleInterface
 {
     /**
      * Check the validity.

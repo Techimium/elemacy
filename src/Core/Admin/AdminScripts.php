@@ -10,6 +10,9 @@ use Elemacy\Core\Elemacy;
 use Elemacy\Core\Hooks;
 use Elemacy\Support\Utils;
 
+/**
+ * @internal
+ */
 class AdminScripts
 {
     protected bool $registered = false;

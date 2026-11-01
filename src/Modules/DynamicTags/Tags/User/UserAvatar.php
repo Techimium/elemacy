@@ -9,6 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @internal
+ */
 class UserAvatar extends Data_Tag
 {
     public function get_name()

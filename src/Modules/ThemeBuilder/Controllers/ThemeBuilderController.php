@@ -16,6 +16,9 @@ use Elemacy\Modules\ThemeBuilder\Resources\TemplateResource;
 use Elemacy\Modules\ThemeBuilder\Services\TemplateService;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
+/**
+ * @internal
+ */
 class ThemeBuilderController
 {
     protected $service;

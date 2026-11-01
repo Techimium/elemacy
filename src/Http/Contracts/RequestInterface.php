@@ -8,8 +8,9 @@ defined('ABSPATH') || exit;
  * Contract for interacting with an HTTP request in a normalized way.
  *
  * @since 1.0.0
+ * @api
  */
-interface Request
+interface RequestInterface
 {
     /**
      * Get the HTTP method of the request (GET, POST, etc).

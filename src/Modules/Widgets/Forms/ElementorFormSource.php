@@ -13,6 +13,8 @@ defined('ABSPATH') || exit;
  * The Form widget's saved forms: the one elemacy-form element with the
  * requested ID in the owner's saved Elementor data, with Elementor's control
  * defaults applied (the editor does not store values equal to a default).
+ *
+ * @internal
  */
 final class ElementorFormSource implements FormSourceInterface
 {

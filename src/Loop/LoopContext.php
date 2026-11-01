@@ -15,6 +15,8 @@ use Throwable;
  * The stack of loop frames currently being rendered, innermost last. Each
  * pushed item gets its address here: the enclosing frame's address plus the
  * item's own step.
+ *
+ * @api
  */
 final class LoopContext
 {

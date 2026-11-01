@@ -9,6 +9,9 @@ use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 use Elemacy\Support\PostTypes;
 
+/**
+ * @internal
+ */
 class PostType extends BaseCondition
 {
     public function get_name(): string

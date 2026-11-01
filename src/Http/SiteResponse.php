@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Site Response Class
  *
  * @since 1.0.0
+ * @api
  */
 class SiteResponse
 {

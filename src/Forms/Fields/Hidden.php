@@ -13,6 +13,8 @@ defined('ABSPATH') || exit;
  * A value sent without being shown. It starts as the authored value; a
  * script may change it (for example to a campaign code), so the submitted
  * value is kept, as plain single-line text.
+ *
+ * @internal
  */
 final class Hidden extends AbstractFieldType
 {

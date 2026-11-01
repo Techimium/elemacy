@@ -19,6 +19,8 @@ use Elementor\Utils;
  * would present settings that silently do nothing. See
  * docs/ELEMENTOR-COMPATIBILITY.md § Documents for the exact Elementor surface
  * this narrowing depends on.
+ *
+ * @internal
  */
 abstract class ChromeDocument extends PageBase
 {

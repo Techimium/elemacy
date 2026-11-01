@@ -4,11 +4,14 @@ namespace Elemacy\Http;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Http\Contracts\Support\Arrayable;
-use Elemacy\Http\Contracts\Support\Jsonable;
+use Elemacy\Http\Contracts\Support\ArrayableInterface;
+use Elemacy\Http\Contracts\Support\JsonableInterface;
 
 // phpcs:ignore PHPCompatibility.Keywords.ForbiddenNamesAsDeclared.resourceFound -- soft-reserved only; never hard-reserved through PHP 8.x.
-abstract class Resource implements Arrayable, Jsonable
+/**
+ * @api
+ */
+abstract class Resource implements ArrayableInterface, JsonableInterface
 {
     protected $resource;
 

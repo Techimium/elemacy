@@ -10,6 +10,8 @@ use Elemacy\Support\Utils;
 /**
  * The plugin's own top-level menu and its Core submenus. Modules add their
  * own submenus; AdminMenu orders and registers all of them on admin_menu.
+ *
+ * @internal
  */
 class CoreAdminMenu
 {

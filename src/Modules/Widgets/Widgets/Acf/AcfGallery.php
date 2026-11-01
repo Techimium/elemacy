@@ -9,7 +9,11 @@ use Elementor\Controls_Manager;
 use Elementor\Plugin;
 use Elementor\Widget_Image_Gallery;
 
-/** Renders an Elementor image gallery populated from an ACF gallery field. */
+/**
+ * Renders an Elementor image gallery populated from an ACF gallery field.
+ *
+ * @internal
+ */
 class AcfGallery extends Widget_Image_Gallery
 {
     public function get_name()

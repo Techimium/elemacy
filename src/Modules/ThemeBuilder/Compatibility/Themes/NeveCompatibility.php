@@ -10,6 +10,8 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
  * `neve_do_top_bar`) inside the `<header>` element of its header.php, which
  * stays. Its footer, `<footer>` element included, prints from
  * `neve_do_footer`.
+ *
+ * @internal
  */
 class NeveCompatibility extends HookedThemeCompatibility
 {

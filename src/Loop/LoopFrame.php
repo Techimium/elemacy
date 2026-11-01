@@ -11,6 +11,8 @@ use Elemacy\Loop\Contracts\LoopItemInterface;
  * One loop item as it is being rendered: the item, where it lives (its
  * address), which source and template rendered it, its position in that render
  * and the render key that scopes its styles.
+ *
+ * @internal
  */
 final class LoopFrame
 {

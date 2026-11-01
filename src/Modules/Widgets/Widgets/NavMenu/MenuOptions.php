@@ -4,7 +4,11 @@ namespace Elemacy\Modules\Widgets\Widgets\NavMenu;
 
 defined('ABSPATH') || exit;
 
-/** The site's WordPress menus, as the Menu control lists them. */
+/**
+ * The site's WordPress menus, as the Menu control lists them.
+ *
+ * @internal
+ */
 final class MenuOptions
 {
     /** @return array<string, string> Menu name by slug, in WordPress's order. */

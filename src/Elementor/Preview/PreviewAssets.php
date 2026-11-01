@@ -12,6 +12,8 @@ use Elementor\Plugin;
  * Enqueues the editor preview bridge for any previewable document, so the
  * "Apply & Preview" button works the same across Loop Item, Single, Archive and
  * Search templates.
+ *
+ * @internal
  */
 class PreviewAssets
 {

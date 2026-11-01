@@ -4,6 +4,9 @@ namespace Elemacy\Modules\DynamicTags\Services;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 class Woo
 {
     public static function get_product($post_id = null)

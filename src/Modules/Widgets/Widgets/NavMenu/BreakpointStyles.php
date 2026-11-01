@@ -13,6 +13,8 @@ use Elementor\Plugin;
  * included, so the Breakpoint control's labels and the switch between main menu
  * and toggle always agree. Laptop and Widescreen are not offered: the dropdown is
  * a mobile pattern.
+ *
+ * @internal
  */
 final class BreakpointStyles
 {

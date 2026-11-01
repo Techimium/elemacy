@@ -4,7 +4,10 @@ namespace Elemacy\Http\Contracts\Support;
 
 defined('ABSPATH') || exit;
 
-interface Arrayable
+/**
+ * @api
+ */
+interface ArrayableInterface
 {
     /**
      * Convert the object to an array.

@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Http\DTO\DTO;
 
+/**
+ * @internal
+ */
 class UpdateBlockTemplateDTO extends DTO
 {
     /**

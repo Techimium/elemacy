@@ -12,6 +12,8 @@ use WP_Query;
 /**
  * Makes previewable documents render against real content in the Elementor
  * editor.
+ *
+ * @internal
  */
 class PreviewManager
 {

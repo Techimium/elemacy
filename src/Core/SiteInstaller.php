@@ -20,6 +20,8 @@ use Elemacy\TemplateLibrary\LibraryPostType;
  * registered — so this class and its dependencies must stay buildable by the
  * container's auto-wiring alone. Never bind it, or anything it takes, in a
  * provider: the binding would not exist on those paths.
+ *
+ * @internal
  */
 class SiteInstaller
 {

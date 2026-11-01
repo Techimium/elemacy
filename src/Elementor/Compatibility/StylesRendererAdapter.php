@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * styles-to-CSS renderer (Modules\AtomicWidgets\Styles\Styles_Renderer) and
  * its breakpoints configuration — "small adapters for
  * version-specific calls".
+ *
+ * @internal
  */
 class StylesRendererAdapter
 {

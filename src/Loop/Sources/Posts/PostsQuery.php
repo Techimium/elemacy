@@ -15,6 +15,8 @@ use WP_Query;
  * The Posts source's runtime query execution, kept free of any Elementor
  * widget/document dependency; PostsDataSource delegates get_items() and
  * sanitize_ajax_settings() to an instance of this class.
+ *
+ * @internal
  */
 class PostsQuery
 {

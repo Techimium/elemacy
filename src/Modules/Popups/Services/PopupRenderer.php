@@ -10,7 +10,11 @@ use Elemacy\Modules\Popups\Resources\PopupConfigResource;
 use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 
-/** Renders a popup's root container into the page footer. */
+/**
+ * Renders a popup's root container into the page footer.
+ *
+ * @internal
+ */
 class PopupRenderer
 {
     protected TemplateRenderer $renderer;

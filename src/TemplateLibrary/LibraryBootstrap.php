@@ -14,6 +14,8 @@ use Elemacy\TemplateLibrary\Constants\MetaKeys;
  * library types, the per-request candidate-cache invalidation, keeping library
  * items' own URLs private, and keeping the library CPT out of
  * display-condition target lists.
+ *
+ * @internal
  */
 class LibraryBootstrap
 {

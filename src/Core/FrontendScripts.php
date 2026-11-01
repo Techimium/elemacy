@@ -13,6 +13,8 @@ use Elemacy\Support\Utils;
  * popup engine declare `elemacy-frontend` / `elemacy-core` as dependencies, so
  * the assets — and the localized `elemacy` config — load only on pages that
  * actually render something of ours.
+ *
+ * @internal
  */
 class FrontendScripts
 {

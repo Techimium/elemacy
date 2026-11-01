@@ -24,6 +24,8 @@ use WP_User;
  * Built-in Users data source: loops over WP_User accounts instead of posts or
  * terms, so a Loop Grid/Carousel can build a team directory, author grid, or
  * staff listing.
+ *
+ * @internal
  */
 class UsersDataSource implements LoopDataSourceInterface, PublicLoopSourcePolicyInterface
 {

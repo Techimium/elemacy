@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
  * Validates that a value is present and null.
  *
  * @since 1.0.0
+ * @api
  */
 class NullableRule extends BaseRule
 {

@@ -8,6 +8,8 @@ defined('ABSPATH') || exit;
  * The saved `pagination_type` values of a Loop Grid. The three link types
  * render page links; the two incremental types append the next page's items
  * to the loop instead, and are always loaded in place.
+ *
+ * @internal
  */
 final class PaginationType
 {

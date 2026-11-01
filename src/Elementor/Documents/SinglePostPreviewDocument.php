@@ -13,6 +13,8 @@ use Elemacy\Elementor\Controls\Query\QueryService;
  * Base for previewable documents that render in the context of a single real post
  * (Loop Item, Single template). Provides the shared "Preview Content" post picker
  * and resolves the chosen post; subclasses only declare their type/title/template.
+ *
+ * @internal
  */
 abstract class SinglePostPreviewDocument extends PreviewablePageBase
 {

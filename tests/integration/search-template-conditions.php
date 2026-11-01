@@ -3,7 +3,7 @@
 namespace Elemacy\Tests\Integration;
 
 use Elemacy\Conditions\ConditionEvaluator;
-use Elemacy\Conditions\ConditionInterface;
+use Elemacy\Conditions\Contracts\ConditionInterface;
 use Elemacy\Conditions\ConditionManager;
 use Elemacy\Conditions\ConditionRepository;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;

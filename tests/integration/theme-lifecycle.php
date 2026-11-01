@@ -8,6 +8,7 @@ use Elemacy\Tests\Integration\Fixtures\LibraryDocument;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 use Elemacy\Tests\Integration\Fixtures\ThemePageRequest;
 use Elemacy\Tests\Integration\Fixtures\ThemeLifecycleHarness;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
 require_once __DIR__ . '/fixtures/ThemeLifecycleHarness.php';
@@ -21,7 +22,7 @@ require_once __DIR__ . '/fixtures/ThemePageRequest.php';
  */
 final class ExternalMarkerCompatibility implements ThemeCompatibilityInterface
 {
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
     }
 }

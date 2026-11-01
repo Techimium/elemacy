@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 
+/**
+ * @internal
+ */
 class Click extends BaseTrigger
 {
     public function get_name(): string

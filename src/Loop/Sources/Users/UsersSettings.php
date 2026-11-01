@@ -10,6 +10,8 @@ defined('ABSPATH') || exit;
  * left at its default, so neither ever changes (loop-control-defaults.php
  * pins both). The control, the query and the public policy all read them
  * from here.
+ *
+ * @internal
  */
 final class UsersSettings
 {
