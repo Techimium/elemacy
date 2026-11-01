@@ -64,10 +64,16 @@ try {
     page.on('console', message => { if (message.type() === 'error' && !message.text().startsWith('[Elemacy Pro]')) errors.push(message.text()); });
     page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
     page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
+    // The script a delayed scenario slows down. If its path ever changes, the scenario must fail
+    // rather than silently run undelayed.
+    const delayedScript = { 'free-delayed': '/assets/admin/js/admin.js', 'pro-delayed': '/assets/admin/js/elemacy-pro.js' }[scenario];
+    let delayed = false;
     await page.route('**/*', async route => {
       const url = route.request().url();
-      if ((scenario === 'free-delayed' && url.includes('/scripts/admin.js')) ||
-          (scenario === 'pro-delayed' && url.includes('/scripts/elemacy-pro.js'))) await delay(1500);
+      if (delayedScript && new URL(url).pathname.endsWith(delayedScript)) {
+        delayed = true;
+        await delay(1500);
+      }
       if (scenario === 'unsupported' && route.request().isNavigationRequest()) {
         const response = await route.fetch();
         return route.fulfill({ response, body: (await response.text()).replace(/"contract_version":"1\.0\.0"/g, '"contract_version":"99.0.0"') });
@@ -76,6 +82,7 @@ try {
     });
     await page.goto(new URL('/wp-admin/admin.php?page=elemacy', base).href, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => Boolean(window.ElemacyShared));
+    if (delayedScript) assert.ok(delayed, `The ${scenario} scenario must actually delay ${delayedScript}`);
     const freeStyle = page.locator('#elemacy-admin-app-css');
     assert.equal(await freeStyle.count(), 1, 'Free stylesheet must remain loaded');
     assert.equal(await page.locator('#elemacy-pro-admin-css').count(), 1, 'Pro stylesheet must be additive');
