@@ -15,8 +15,8 @@ const build = path.join(root, 'build');
 const staging = path.join(build, manifest.slug);
 const hash = data => createHash('sha256').update(data).digest('hex');
 
-function run(command, args, cwd, capture = false) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', stdio: capture ? 'pipe' : 'inherit', shell: false });
+function run(command, args, cwd, capture = false, env = process.env) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', stdio: capture ? 'pipe' : 'inherit', shell: false, env });
   if (result.error || result.status !== 0) {
     throw new Error(`Required command failed: ${command} ${args.join(' ')}: ${result.error?.message || result.stderr || result.status}`);
   }
@@ -58,9 +58,13 @@ async function stage() {
   }
 }
 
-async function vendor() {
+async function vendor(version) {
   for (const name of ['composer.json', 'composer.lock']) await fs.copyFile(path.join(root, name), path.join(staging, name));
-  run('composer', ['install', '--no-dev', '--no-scripts', '--no-plugins', '--prefer-dist', '--optimize-autoloader', '--no-interaction'], staging);
+  // Staging sits inside the git checkout, so Composer would record the current commit as the root
+  // package's reference in vendor/composer/installed.php, and every commit (even a docs-only one)
+  // would change the shipped archive. Hide git from this run and name the root version explicitly.
+  const composerEnv = { ...process.env, GIT_DIR: path.join(staging, '.no-git'), COMPOSER_ROOT_VERSION: version };
+  run('composer', ['install', '--no-dev', '--no-scripts', '--no-plugins', '--prefer-dist', '--optimize-autoloader', '--no-interaction'], staging, false, composerEnv);
   run('php', ['-r', `
     $root = $argv[1];
     require $root . '/vendor/autoload.php';
@@ -114,7 +118,7 @@ try {
   await fs.rm(staging, { recursive: true, force: true });
   await fs.mkdir(staging, { recursive: true });
   await stage();
-  await vendor();
+  await vendor(version);
   const files = [];
   for (const filename of await list(staging)) {
     files.push({ path: path.relative(staging, filename).split(path.sep).join('/'), sha256: hash(await fs.readFile(filename)) });
