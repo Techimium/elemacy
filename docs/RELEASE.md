@@ -168,11 +168,11 @@ Each profile ran on a fresh disposable site (`tests/integration/setup.py --priva
 Archive checksums (`build/*.sha256`, produced by the package job):
 
 ```
-b262943ed8ce33d15a324df15c0e42c99e3146bba0becdea108140d229402eda  elemacy-1.0.0.zip
-1f82748b6d3bcdd27a9e55650be481c36cb32a62d0e8ba4e6a37124bbe29c5d5  elemacy-pro-1.0.0.zip
+b5844680db0922384ce671216e0ad4a55380ff22f7f4aa3b313089e4e84b3a54  elemacy-1.0.0.zip
+cee23de6e2de7123a091ce4d77d6c8e76adf513341283079373fc5e919857de8  elemacy-pro-1.0.0.zip
 ```
 
-The `build/` directory is not committed and `docs/`, `.github/` and tests are not shipped, so these checksums hold for the branch head. Rebuild with `npm run build:zip` from `src-react/` and compare; a different checksum means a shipped file changed after the hand-off and the gate must run again.
+The build is reproducible (fixed timestamps, sorted entries written one at a time), and `build/`, `docs/`, `.github/` and tests are not shipped, so these checksums hold for the branch head. Rebuild with `npm run build:zip` from `src-react/` and compare; a different checksum means a shipped file changed after the hand-off and the gate must run again.
 
 ### Owner steps
 
