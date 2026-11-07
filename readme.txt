@@ -129,7 +129,7 @@ For the last few details, add **Custom CSS** to supported Elementor widgets, con
 
 = Keep the toolkit comfortable to work with =
 
-Enable the modules you need from the Elemacy dashboard and switch individual widgets on or off. Theme Builder, Widgets, Dynamic Tags, Custom CSS and Popups are managed together, so you have one place to shape your toolkit.
+Enable the modules you need from the Elemacy dashboard: Theme Builder, Dynamic Tags, Loop Builder, Form Builder, Custom CSS and Popups. Switch individual widgets on or off in the Widgets Library, so you have one place to shape your toolkit.
 
 Popup runtime assets load when a popup matches the page. Widget assets are registered as dependencies of the widgets that use them. Your theme, content and other plugins still affect overall site performance.
 
@@ -222,7 +222,7 @@ Use the WordPress.org support forum for Elemacy Free. Report bugs or contribute 
 
 == Screenshots ==
 
-1. Modules — enable the Theme Builder, Dynamic Tags, Widgets, Custom CSS, and Popups tools you need.
+1. Modules — enable the Theme Builder, Dynamic Tags, Loop Builder, Form Builder, Custom CSS, and Popups tools you need.
 2. Theme Builder — manage headers, footers, single posts, archives, search results, and other site templates.
 3. Display Conditions — assign theme templates using include and exclude rules. Advanced conditions are available with Elemacy Pro.
 4. Template Library — organize reusable page templates and loop item designs.
