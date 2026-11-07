@@ -47,6 +47,11 @@ class LoopBuilder extends Module
         return true;
     }
 
+    public function is_headless(): bool
+    {
+        return true;
+    }
+
     public function get_title(): string
     {
         return __('Loop Builder', 'elemacy');
