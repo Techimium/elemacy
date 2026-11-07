@@ -1,0 +1,393 @@
+/**
+ * Elemacy Popups — frontend base styles.
+ *
+ * Only structural styling lives here. Per-popup sizing (width/z-index)
+ * comes from the popup document, while visual styling belongs to the author's
+ * root Elementor container. The outer `.elemacy-popup__box` must remain
+ * transparent and undecorated so it never shows behind that container.
+ *
+ * Independence rules (keep them — they prevent cross-popup style bleed):
+ * - Every rule here is scoped under `.elemacy-popup` (each popup's own root).
+ * - Per-popup placement is keyed off the root's `.elemacy-popup--pos-*` class,
+ *   applied by engine.js from THIS popup's own `display.position`.
+ * - Overlay appearance variables are inline on each popup's own overlay element
+ *   (set by engine.js), never shared.
+ * - Do NOT make the frontend read the document's `body { --elemacy-* }`
+ *   variables: those are page-global (last popup wins) and exist purely as the
+ *   editor-preview live-binding (see EditorPreview / PopupDocument). Reading them
+ *   here would reintroduce cross-popup bleed.
+ *
+ * Sizing custom properties — the author's override surface. The popup document
+ * sets them on this popup's own root/box; author CSS may set them anywhere
+ * without !important. This file only reads them (with fallbacks) and must
+ * never declare them, or it would win the cascade tie against the document.
+ * - --elemacy-popup-gap: space to the screen edges (modal, floating, banner).
+ * - --elemacy-popup-max-height: a modal box's height cap; defaults to the
+ *   visible screen height minus twice the gap.
+ * - --elemacy-popup-overflow: the content scroller's overflow.
+ */
+
+.elemacy-popup[hidden] {
+	display: none;
+}
+
+.elemacy-popup {
+	box-sizing: border-box;
+}
+
+.elemacy-popup *,
+.elemacy-popup *::before,
+.elemacy-popup *::after {
+	box-sizing: border-box;
+}
+
+/* Overlay element (injected by the engine when display.overlay.enabled). */
+.elemacy-popup__overlay {
+	position: fixed;
+	inset: 0;
+	background: transparent;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+	-webkit-backdrop-filter: blur(var(--elemacy-popup-overlay-blur, 0px));
+	backdrop-filter: blur(var(--elemacy-popup-overlay-blur, 0px));
+}
+
+/* Keep tint opacity separate from the backdrop-filter layer. Applying opacity
+   to an opaque overlay hides the filtered backdrop during compositing. */
+.elemacy-popup__overlay::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--elemacy-popup-overlay-color, #000);
+	opacity: var(--elemacy-popup-overlay-opacity, 0.6);
+}
+
+.elemacy-popup.is-open .elemacy-popup__overlay {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+/* The popup box (the Elementor content wrapper, tagged by the engine). It is a
+   plain frame: it must not scroll or clip, so the close button can sit outside
+   it. The author's content scrolls in .elemacy-popup__scroll instead, which
+   shrinks to the box's max-height. */
+.elemacy-popup__box {
+	position: relative;
+	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.elemacy-popup__scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: var(--elemacy-popup-overflow, auto);
+	/* The close button is anchored to the box, over this element, so a classic
+	   scrollbar must be narrower than the button's default 10px inset or the
+	   button would sit on top of it. */
+	scrollbar-width: thin;
+}
+
+/* Generic close button helper (authors may also use their own). */
+.elemacy-popup .elemacy-popup-close {
+	cursor: pointer;
+}
+
+/* While a modal popup is open (engine.js sets the class and the top modal's
+   z-index on <html>), Elementor's lightbox, opened from an image inside the
+   popup, shows above every open popup instead of behind it. */
+.elemacy-has-modal .elementor-lightbox {
+	z-index: calc(var(--elemacy-popup-top-z, 9999) + 1);
+}
+
+/* Close button. Structure lives here; size/colour/border/shadow and the
+   hover/active states come from the document's "Close Button" controls (which
+   target this element on the frontend and in the editor preview). The values
+   below are only fallbacks used before/without those controls. Scoped under
+   .elemacy-popup so Elementor's element styles inside the box can't override it. */
+.elemacy-popup .elemacy-popup__close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ------------------------------------------------------------------ */
+/* Screen layer: popup, floating and banner.                          */
+/* Each of these roots is a fixed layer covering the screen, inset by */
+/* the Screen Gap, that places its box with flex alignment. A         */
+/* percentage Width on the box therefore measures the screen minus    */
+/* the gap, exactly as in the editor preview, whose frame lays the box */
+/* out the same way (EditorPreview::frame_css()).                     */
+/* ------------------------------------------------------------------ */
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner) {
+	position: fixed;
+	inset: 0;
+	display: none;
+	/* Centered by default; the exact position comes from the per-popup
+	   .elemacy-popup--pos-* class below (applied by the engine from this
+	   popup's own Position setting). We deliberately do NOT key off the
+	   <body> --elemacy-align/justify variables here: those are document-scoped
+	   and would be clobbered when more than one popup loads on the same page. */
+	align-items: center;
+	justify-content: center;
+	padding: var(--elemacy-popup-gap, 20px);
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).is-open {
+	display: flex;
+}
+
+/* Per-popup placement — driven by the root's own position class so each
+   popup positions independently (no cross-popup variable bleed). */
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-center {
+	align-items: center;
+	justify-content: center;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-top {
+	align-items: flex-start;
+	justify-content: center;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-bottom {
+	align-items: flex-end;
+	justify-content: center;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-top-left {
+	align-items: flex-start;
+	justify-content: flex-start;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-top-right {
+	align-items: flex-start;
+	justify-content: flex-end;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-bottom-left {
+	align-items: flex-end;
+	justify-content: flex-start;
+}
+
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-bottom-right {
+	align-items: flex-end;
+	justify-content: flex-end;
+}
+
+/* Custom position — the box's static (flow) position collapses to the
+   layer's top-left corner; .elemacy-popup__box's own `position: relative`
+   (declared above) then honors the author's Offset X/Y CSS (generated by
+   the document's Offset X/Y controls) as a nudge from there. */
+:is(.elemacy-popup--popup, .elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-custom {
+	align-items: flex-start;
+	justify-content: flex-start;
+}
+
+/* ------------------------------------------------------------------ */
+/* Type: popup — modal; its layer also holds the overlay.             */
+/* ------------------------------------------------------------------ */
+.elemacy-popup--popup .elemacy-popup__box {
+	max-height: var(--elemacy-popup-max-height, calc(100vh - 2 * var(--elemacy-popup-gap, 20px)));
+}
+
+/* Measure against the visible screen where supported (a mobile toolbar is
+   excluded). Gated, not a second declaration: a var() declaration always
+   parses, so an unsupported unit in its fallback would compute to `none`. */
+@supports (height: 100dvh) {
+	.elemacy-popup--popup .elemacy-popup__box {
+		max-height: var(--elemacy-popup-max-height, calc(100dvh - 2 * var(--elemacy-popup-gap, 20px)));
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* Types: floating + banner — non-modal boxes on a click-through      */
+/* layer. A banner behaves exactly like a floating element (authors   */
+/* use it to build floating promo banners); only the per-type         */
+/* defaults differ.                                                   */
+/* ------------------------------------------------------------------ */
+/* The layer spans the screen but must never block the page behind it:
+   only the box takes pointer input. */
+:is(.elemacy-popup--floating, .elemacy-popup--banner) {
+	pointer-events: none;
+}
+
+:is(.elemacy-popup--floating, .elemacy-popup--banner) .elemacy-popup__box {
+	pointer-events: auto;
+}
+
+/* A Custom position is placed by its Offset X/Y alone, measured from the
+   screen's top-left corner, so the gap does not move it. */
+:is(.elemacy-popup--floating, .elemacy-popup--banner).elemacy-popup--pos-custom {
+	padding: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Type: topbar — full-width fixed bar (top or bottom).               */
+/* ------------------------------------------------------------------ */
+.elemacy-popup--topbar {
+	display: none;
+	left: 0;
+	right: 0;
+	width: 100%;
+}
+
+.elemacy-popup--topbar.is-open {
+	display: block;
+}
+
+/* Top bar flows at the top of the page (pushes content down), like a header. */
+.elemacy-popup--topbar:not(.elemacy-popup--pos-bottom) {
+	position: relative;
+}
+
+/* Top bar, sticky — stays in view while scrolling. */
+.elemacy-popup--topbar.is-sticky:not(.elemacy-popup--pos-bottom) {
+	position: sticky;
+	top: 0;
+}
+
+/* Bottom bar is fixed to the bottom of the viewport. */
+.elemacy-popup--topbar.elemacy-popup--pos-bottom {
+	position: fixed;
+	bottom: 0;
+}
+
+.elemacy-popup--topbar .elemacy-popup__box {
+	max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Animations.                                                        */
+/* The engine adds .elemacy-popup--in-{name} while a popup opens and  */
+/* .elemacy-popup--out-{name} while it closes, so every Animation In  */
+/* and Animation Out choice combines with every other. Slide Down     */
+/* moves the popup downward and Slide Up upward, in both directions.  */
+/* ------------------------------------------------------------------ */
+.elemacy-popup.is-animating .elemacy-popup__box {
+	animation-duration: 0.35s;
+	animation-fill-mode: both;
+	animation-timing-function: ease;
+}
+
+.elemacy-popup--in-fade .elemacy-popup__box {
+	animation-name: elemacy-popup-fade-in;
+}
+
+.elemacy-popup--in-slide-down .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-in-down;
+}
+
+.elemacy-popup--in-slide-up .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-in-up;
+}
+
+.elemacy-popup--out-fade .elemacy-popup__box {
+	animation-name: elemacy-popup-fade-out;
+}
+
+.elemacy-popup--out-slide-down .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-out-down;
+}
+
+.elemacy-popup--out-slide-up .elemacy-popup__box {
+	animation-name: elemacy-popup-slide-out-up;
+}
+
+@keyframes elemacy-popup-fade-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes elemacy-popup-fade-out {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+/* Enters moving downward, from above. */
+@keyframes elemacy-popup-slide-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(-100%);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Enters moving upward, from below. */
+@keyframes elemacy-popup-slide-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Leaves moving downward. */
+@keyframes elemacy-popup-slide-out-down {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+}
+
+/* Leaves moving upward. */
+@keyframes elemacy-popup-slide-out-up {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-100%);
+	}
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+	.elemacy-popup .elemacy-popup__box,
+	.elemacy-popup__overlay {
+		animation: none !important;
+		transition: none !important;
+	}
+}

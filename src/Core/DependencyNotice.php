@@ -9,6 +9,8 @@ defined('ABSPATH') || exit;
  * dependency: a persistent card with an Install or Activate call to action
  * instead of a self-deactivating one-shot error, so the user can resolve the
  * dependency without leaving the page.
+ *
+ * @internal
  */
 class DependencyNotice
 {
@@ -33,7 +35,7 @@ class DependencyNotice
     {
         wp_enqueue_style(
             'elemacy-dependency-notice',
-            ELEMACY_URL . 'assets/admin/styles/dependency-notice.css',
+            ELEMACY_URL . 'assets/admin/css/dependency-notice.css',
             [],
             ELEMACY_VERSION
         );
@@ -84,9 +86,9 @@ class DependencyNotice
         ]);
     }
 
-    private function view(array $data): void
+    private function view(array $data): void // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Read by the required view.
     {
-        require ELEMACY_PATH . 'src/Core/views/dependency-notice.php';
+        require ELEMACY_PATH . 'src/Core/Views/dependency-notice.php';
     }
 
     private function is_installed(): bool

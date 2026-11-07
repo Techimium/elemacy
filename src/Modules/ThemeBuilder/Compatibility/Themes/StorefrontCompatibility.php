@@ -4,40 +4,60 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
+use Elemacy\Modules\ThemeBuilder\Compatibility\HookedThemeCompatibility;
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 
-class StorefrontCompatibility implements ThemeCompatibilityInterface
+/**
+ * Storefront prints its header on `storefront_header` and its footer on
+ * `storefront_footer`; the template renders just outside each.
+ *
+ * @internal
+ */
+class StorefrontCompatibility extends HookedThemeCompatibility
 {
-    public function register(ThemeBuilderManager $manager): void
+    /** Storefront's chrome sits below this; its handheld footer bar (priority 999) is a separate mobile control and is kept. */
+    private const CHROME_MAX_PRIORITY = 199;
+
+    protected function chrome_locations(): array
     {
-        if ($manager->get_header_id()) {
-            add_action('template_redirect', function () {
-                for ($priority = 0; $priority < 200; $priority++) {
-                    remove_all_actions('storefront_header', $priority);
-                }
-            }, 10);
+        return [
+            'header' => [
+                'hook'     => 'storefront_before_header',
+                'priority' => 500,
+            ],
+            'footer' => [
+                'hook'     => 'storefront_after_footer',
+                'priority' => 500,
+            ],
+        ];
+    }
 
-            add_action('storefront_before_header', [$manager, 'render_header'], 500);
+    protected function chrome_hooks(): array
+    {
+        return [
+            'header' => ['storefront_header' => self::CHROME_MAX_PRIORITY],
+            'footer' => ['storefront_footer' => self::CHROME_MAX_PRIORITY],
+        ];
+    }
 
-            add_action('wp_enqueue_scripts', function () {
-                wp_add_inline_style('elementor-frontend', '.site-header{display:none;}');
-            }, 50);
-        }
+    public function register(ThemeChromeInterface $manager): void
+    {
+        parent::register($manager);
 
-        if ($manager->get_footer_id()) {
-            add_action('template_redirect', function () {
-                for ($priority = 0; $priority < 200; $priority++) {
-                    remove_all_actions('storefront_footer', $priority);
-                }
-            }, 10);
+        // The theme's chrome callbacks are gone, but header.php and footer.php
+        // still print an empty <header>/<footer> with the theme's padding and
+        // background. This hides that empty shell, not any chrome content.
+        $shells = [
+            'header' => '.site-header',
+            'footer' => '.site-footer',
+        ];
 
-            add_action('storefront_after_footer', [$manager, 'render_footer'], 500);
-
-            add_action('wp_enqueue_scripts', function () {
-                wp_add_inline_style('elementor-frontend', '.site-footer{display:none;}');
-            }, 50);
+        foreach ($shells as $side => $selector) {
+            if ($manager->replaces_native_chrome($side)) {
+                add_action('wp_enqueue_scripts', static function () use ($selector): void {
+                    wp_add_inline_style('elementor-frontend', $selector . '{display:none;}');
+                }, 50);
+            }
         }
     }
 }
-

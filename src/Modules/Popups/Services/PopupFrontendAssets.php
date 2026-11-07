@@ -9,7 +9,7 @@ use Elemacy\Support\Utils;
 /**
  * Registers (but does not enqueue) the popup frontend engine script/style.
  *
- * The PopupManager decides whether to actually enqueue them on a given request.
+ * @internal
  */
 class PopupFrontendAssets
 {
@@ -22,15 +22,15 @@ class PopupFrontendAssets
     {
         wp_register_script(
             'elemacy-popups-engine',
-            Utils::get_plugin_url('src/Modules/Popups/assets/scripts/engine.js'),
-            ['jquery', 'elemacy-frontend'],
+            Utils::get_plugin_url('src/Modules/Popups/assets/js/engine.js'),
+            ['jquery', 'elemacy-frontend', 'elemacy-elementor-lifecycle'],
             ELEMACY_VERSION,
             true
         );
 
         wp_register_style(
             'elemacy-popups',
-            Utils::get_plugin_url('src/Modules/Popups/assets/styles/popups.css'),
+            Utils::get_plugin_url('src/Modules/Popups/assets/css/popups.css'),
             ['elemacy-core'],
             ELEMACY_VERSION
         );

@@ -4,10 +4,13 @@ namespace Elemacy\Modules\Popups\Support;
 
 defined('ABSPATH') || exit;
 
+/**
+ * @internal
+ */
 class PopupTypes
 {
-    const POPUP    = 'popup';
-    const TOPBAR   = 'topbar';
-    const BANNER   = 'banner';
-    const FLOATING = 'floating';
+    public const POPUP    = 'popup';
+    public const TOPBAR   = 'topbar';
+    public const BANNER   = 'banner';
+    public const FLOATING = 'floating';
 }

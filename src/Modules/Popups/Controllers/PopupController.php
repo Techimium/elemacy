@@ -4,8 +4,8 @@ namespace Elemacy\Modules\Popups\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\Modules\Popups\DTO\CreatePopupDTO;
 use Elemacy\Modules\Popups\DTO\PopupListFilterDTO;
 use Elemacy\Modules\Popups\DTO\UpdatePopupDTO;
@@ -15,13 +15,16 @@ use Elemacy\Modules\Popups\Resources\PopupListResource;
 use Elemacy\Modules\Popups\Resources\PopupResource;
 use Elemacy\Modules\Popups\Services\PopupService;
 
+/**
+ * @internal
+ */
 class PopupController
 {
     protected $service;
 
-    public function __construct()
+    public function __construct(PopupService $service)
     {
-        $this->service = new PopupService();
+        $this->service = $service;
     }
 
     public function index(Request $request)
@@ -34,7 +37,7 @@ class PopupController
                 'results' => PopupListResource::collection($result->items),
                 'pagination' => $result->pagination(),
             ],
-            'message' => __('Popups retrieved successfully', 'elemacy')
+            'message' => __('Popups retrieved successfully', 'elemacy'),
         ]);
     }
 
@@ -44,7 +47,7 @@ class PopupController
 
         return Response::create()->json([
             'data' => PopupResource::make($popup),
-            'message' => __('Popup retrieved successfully', 'elemacy')
+            'message' => __('Popup retrieved successfully', 'elemacy'),
         ]);
     }
 
@@ -54,7 +57,7 @@ class PopupController
 
         return Response::create()->json([
             'message' => __('Popup created successfully', 'elemacy'),
-            'data' => PopupResource::make($popup)
+            'data' => PopupResource::make($popup),
         ], Response::CREATED);
     }
 
@@ -64,7 +67,7 @@ class PopupController
 
         return Response::create()->json([
             'message' => __('Popup updated successfully', 'elemacy'),
-            'data' => PopupResource::make($popup)
+            'data' => PopupResource::make($popup),
         ]);
     }
 
@@ -74,7 +77,7 @@ class PopupController
 
         return Response::create()->json([
             'message' => __('Popup duplicated successfully', 'elemacy'),
-            'data' => PopupResource::make($popup)
+            'data' => PopupResource::make($popup),
         ], Response::CREATED);
     }
 
@@ -83,7 +86,7 @@ class PopupController
         $this->service->delete((int) $id);
 
         return Response::create()->json([
-            'message' => __('Popup deleted successfully', 'elemacy')
+            'message' => __('Popup deleted successfully', 'elemacy'),
         ]);
     }
 }

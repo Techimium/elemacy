@@ -10,6 +10,8 @@ use Elemacy\Modules\Popups\DTO\RuleDTO;
  * Hide the popup for logged-in users. Enforced server-side: when a logged-in
  * user is detected the popup is dropped before it ever reaches the client, so
  * this rule is excluded from the frontend config.
+ *
+ * @internal
  */
 class LoggedInUsers extends BaseRule
 {

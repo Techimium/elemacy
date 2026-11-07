@@ -1,0 +1,6 @@
+/*
+Theme Name: Elemacy Fixture (no wp_body_open)
+Version: 1.0.0
+Description: Minimal classic theme whose header.php never calls
+wp_body_open() — for ClassicThemeCompatibility's own detection/fallback fixture.
+*/

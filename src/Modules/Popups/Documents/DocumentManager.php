@@ -6,6 +6,8 @@ defined('ABSPATH') || exit;
 
 /**
  * Registers the popup Elementor document type.
+ *
+ * @internal
  */
 class DocumentManager
 {

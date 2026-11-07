@@ -1,0 +1,8 @@
+/*
+Theme Name: Elemacy Fixture (Astra-like)
+Version: 1.0.0
+Description: Minimal theme replicating Astra's public astra_header/astra_footer
+hook contract for disposable integration tests. Not the real Astra theme —
+its slug ("astra") is what CompatibilityManager's real selection logic
+matches, exercising the real AstraCompatibility adapter class.
+*/

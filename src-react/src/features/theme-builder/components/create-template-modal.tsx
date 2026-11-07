@@ -5,7 +5,7 @@ import {
     DialogHeader,
 } from "@/components/ui/dialog"
 import { TemplateForm } from "./template-form"
-import { type CreateTemplate, type Template } from "@/features/theme-builder/schemas/template"
+import { isSettableStatus, type CreateTemplate, type Template, type UpdateTemplate } from "@/features/theme-builder/schemas/template"
 import { useCreateTemplateMutation } from "@/features/theme-builder/services/template"
 import { Button } from "@/components/ui/button"
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
@@ -20,15 +20,21 @@ interface CreateTemplateModalProps {
 export function CreateTemplateModal({ onSuccess, isOpen = false, isDisabled = false, onOpenChange }: CreateTemplateModalProps) {
     const { mutateAsync: createTemplate } = useCreateTemplateMutation();
 
-    const onSubmit = async (template: CreateTemplate) => {
-        const data = await createTemplate(template);
+    // The create form validates its status as Published or Draft.
+    const toCreate = (values: UpdateTemplate): CreateTemplate => ({
+        ...values,
+        status: isSettableStatus(values.status) ? values.status : 'draft',
+    });
+
+    const onSubmit = async (values: UpdateTemplate) => {
+        const data = await createTemplate(toCreate(values));
         onSuccess?.(data);
         onOpenChange?.(false);
     }
 
     // Create the template, then hand off to the Elementor editor for the new post.
-    const onSaveAndEdit = async (template: CreateTemplate) => {
-        const data = await createTemplate(template);
+    const onSaveAndEdit = async (values: UpdateTemplate) => {
+        const data = await createTemplate(toCreate(values));
         onSuccess?.(data);
         if (data?.edit_with_elementor) {
             window.open(data.edit_with_elementor, '_self');

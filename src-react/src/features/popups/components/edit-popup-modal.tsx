@@ -75,6 +75,7 @@ export function EditPopupModal({ popupId, open, onOpenChange, onSuccess }: EditP
                         submitLabel={__('Update Popup', 'elemacy')}
                         saveAndEditLabel={__('Save & Edit with Elementor', 'elemacy')}
                         showStatus
+                        typeAvailability={popup.type_availability}
                     />
                 )}
             </DialogContent>

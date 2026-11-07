@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\TriggerDTO;
 
+/**
+ * @api
+ */
 interface TriggerInterface
 {
     /**
@@ -38,5 +41,5 @@ interface TriggerInterface
      * (i.e. a pro feature not available in this build). Drives the locked "Pro"
      * state in the admin UI.
      */
-    public function is_mock(): bool;
+    public function is_placeholder(): bool;
 }

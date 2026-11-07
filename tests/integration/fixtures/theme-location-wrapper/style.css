@@ -1,0 +1,10 @@
+/*
+Theme Name: Elemacy Fixture (Location wrapper)
+Version: 1.0.0
+Description: Minimal classic theme with its own header.php/footer.php, used
+only by theme-builder-wrapper.php location-replacement tests. A dedicated
+theme (rather than reusing another fixture's header.php/footer.php) avoids
+PHP's require_once deduplication: within one long-lived PHPUnit process,
+loading the exact same theme file twice via get_header()/get_footer() would
+silently no-op the second time.
+*/

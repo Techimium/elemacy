@@ -2,14 +2,20 @@
 
 namespace Elemacy\TemplateLibrary;
 
+use Elemacy\Core\Capabilities\FeatureAvailability;
+use Elemacy\Core\Capabilities\RegistryIdentifierGuard;
+use Elemacy\TemplateLibrary\Contracts\LibraryTypeRegistrarInterface;
+
 defined('ABSPATH') || exit;
 
 /**
  * In-memory registry of the library item types modules have declared. Populated
  * during module init and via Hooks::LIBRARY_TYPES_REGISTER_ACTION; never
  * persisted.
+ *
+ * @internal
  */
-class TypeRegistry
+class TypeRegistry implements LibraryTypeRegistrarInterface
 {
     protected static ?self $instance = null;
 
@@ -29,6 +35,13 @@ class TypeRegistry
 
     public function register(TypeDefinition $definition): self
     {
+        RegistryIdentifierGuard::assert_registrable(
+            'Library type',
+            $definition->name,
+            $this->types[$definition->name] ?? null,
+            $definition
+        );
+
         $this->types[$definition->name] = $definition;
 
         return $this;
@@ -37,6 +50,18 @@ class TypeRegistry
     public function get(string $name): ?TypeDefinition
     {
         return $this->types[$name] ?? null;
+    }
+
+    /**
+     * Whether a stored library type identifier is still registered by any
+     * module. No Pro-placeholder concept exists for this registry today, so
+     * this only distinguishes a live registration from an unregistered one.
+     */
+    public function get_availability(string $name): FeatureAvailability
+    {
+        return $this->get($name) !== null
+            ? FeatureAvailability::available()
+            : FeatureAvailability::unknown_identifier($name);
     }
 
     /**

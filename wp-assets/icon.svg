@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Elemacy</title>
+  <defs><clipPath id="square"><path d="M0 0h256v256H0z"/></clipPath></defs>
+  <g clip-path="url(#square)">
+    <path fill="#311DDA" d="M0 0h256v256H0z"/>
+    <circle cx="275" cy="-22" r="107" fill="#7C64F1" opacity=".36"/>
+    <circle cx="-24" cy="280" r="79" fill="none" stroke="#D5EE9B" stroke-width="17"/>
+    <g transform="translate(52 52) scale(1.9)" fill="#FFFFFF">
+      <path d="M0 0H80V33.5L69.5 39.5V10.5H10.5V33.5L0 39.5ZM0 46.5L10.5 40.5V69.5H69.5V46.5L80 40.5V80H0Z"/>
+      <path d="M21 19.5H59V27H29V36H53V43.5H29V53H59V60.5H21Z"/>
+    </g>
+  </g>
+</svg>

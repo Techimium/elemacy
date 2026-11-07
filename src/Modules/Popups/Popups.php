@@ -4,24 +4,48 @@ namespace Elemacy\Modules\Popups;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\AdminMenu;
-use Elemacy\Core\DTO\SubMenuDTO;
+use Elemacy\Core\Admin\AdminMenu;
+use Elemacy\Core\Admin\DTO\SubMenuDTO;
+use Elemacy\Core\Hooks;
 use Elemacy\Modules\Popups\Documents\DocumentManager;
+use Elemacy\Modules\Popups\Documents\PopupDocument;
 use Elemacy\Modules\Popups\Services\EditorPreview;
+use Elemacy\Modules\Popups\Services\Placement\PopupPlacementResolver;
+use Elemacy\Modules\Popups\Services\PopupDisplayResolver;
 use Elemacy\Modules\Popups\Services\PopupFrontendAssets;
 use Elemacy\Modules\Popups\Services\PopupManager;
+use Elemacy\Modules\Popups\Services\RuleManager;
+use Elemacy\Modules\Popups\Services\TriggerManager;
 use Elemacy\Modules\Popups\Services\TriggerRuleBootstrap;
+use Elemacy\Modules\Popups\Support\DocumentDisplay;
 use Elemacy\Modules\Popups\Support\PopupTypes;
 use Elemacy\Core\Module;
+use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Support\Utils;
+use Elemacy\TemplateLibrary\LibraryChanged;
+use Elemacy\TemplateLibrary\LibraryPostType;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Core\Contracts\ContainerInterface;
+use Elemacy\Modules\Popups\Contracts\RuleRegistrarInterface;
+use Elemacy\Modules\Popups\Contracts\TriggerRegistrarInterface;
+use Elemacy\Modules\Popups\Contracts\PopupEligibilityInterface;
+use Elemacy\Modules\Popups\Contracts\PopupRepositoryInterface;
+use Elemacy\Modules\Popups\Services\PopupService;
 
+/**
+ * @internal
+ */
 class Popups extends Module
 {
     public function get_name(): string
     {
         return 'popups';
+    }
+
+    public function is_default_active(): bool
+    {
+        return true;
     }
 
     public function get_title(): string
@@ -39,16 +63,72 @@ class Popups extends Module
         return __('Build popups, top/bottom bars, banners and floating elements with display conditions and triggers.', 'elemacy');
     }
 
-    public function init(): void
+    public function register(ContainerInterface $container): void
     {
-        $this->register_admin_menu();
-        $this->register_types();
+        foreach ([PopupManager::class, PopupDisplayResolver::class, RuleManager::class, TriggerManager::class] as $registry) {
+            $container->bind($registry, static fn () => $registry::instance());
+        }
 
+        // Published contracts: each resolves to the live instance Free uses.
+        $container->bind(RuleRegistrarInterface::class, static fn () => RuleManager::instance());
+        $container->bind(TriggerRegistrarInterface::class, static fn () => TriggerManager::instance());
+        $container->bind(PopupEligibilityInterface::class, static fn () => PopupDisplayResolver::instance());
+        $container->bind(PopupRepositoryInterface::class, static fn (ContainerInterface $container) => $container->singleton(PopupService::class));
+    }
+
+    public function boot(): void
+    {
         (new DocumentManager())->register_hooks();
         (new EditorPreview())->register_hooks();
-        (new PopupFrontendAssets());
+        new PopupFrontendAssets();
         PopupManager::instance()->register_hooks();
         (new TriggerRuleBootstrap())->register();
+        $this->register_cache_invalidation();
+
+        $this->register_admin_menu();
+        $this->register_types();
+        $this->register_placement_resolver();
+    }
+
+    /**
+     * Popups owns resetting its own request-level caches when a library
+     * document changes or the acting site changes mid-request.
+     */
+    protected function register_cache_invalidation(): void
+    {
+        $reset = static function ($post_id): void {
+            if (get_post_type($post_id) === LibraryPostType::POST_TYPE) {
+                PopupManager::instance()->reset();
+                DocumentDisplay::forget((int) $post_id);
+            }
+        };
+
+        add_action('save_post', $reset);
+        add_action('before_delete_post', $reset);
+        add_action('trashed_post', $reset);
+        add_action('untrashed_post', $reset);
+
+        add_action(Hooks::LIBRARY_CHANGED_ACTION, static function (LibraryChanged $event): void {
+            PopupManager::instance()->reset();
+            DocumentDisplay::forget($event->id);
+        });
+
+        add_action('switch_blog', static function (): void {
+            PopupManager::instance()->reset();
+            DocumentDisplay::reset();
+        });
+    }
+
+    /**
+     * Contributes the Popup placement resolver into Widgets' public
+     * pagination registry (see ThemeBuilder::register_placement_resolver()
+     * for the same pattern).
+     */
+    protected function register_placement_resolver(): void
+    {
+        add_action(Hooks::LOOP_PLACEMENT_RESOLVERS_REGISTER_ACTION, static function (PlacementResolverRegistry $registry) {
+            $registry->register(new PopupPlacementResolver());
+        });
     }
 
     public function register_routes()
@@ -59,8 +139,6 @@ class Popups extends Module
     /**
      * The popup item types this module owns. The CPT itself is registered by
      * Core, so enabling/disabling the module no longer needs a rewrite flush.
-     * Hooked on `init` because the labels are translated — calling __() before
-     * `init` trips WP 6.7's "translation loaded too early" notice.
      */
     protected function register_types(): void
     {
@@ -74,8 +152,12 @@ class Popups extends Module
                 PopupTypes::FLOATING => __('Floating Element', 'elemacy'),
             ];
 
+            // Every popup type is backed by the same popup document. Declared
+            // here rather than only passed at write time, so the registry — not
+            // one service's call site — is what says which Elementor document a
+            // popup type resolves to.
             foreach ($types as $name => $label) {
-                $registry->register(new TypeDefinition($name, $label, 'popup', $this->get_name()));
+                $registry->register(new TypeDefinition($name, $label, 'popup', $this->get_name(), PopupDocument::class));
             }
         });
     }

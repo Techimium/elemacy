@@ -4,14 +4,18 @@ namespace Elemacy\Modules\ThemeBuilder\Compatibility\Themes;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeChromeInterface;
 use Elemacy\Modules\ThemeBuilder\Contracts\ThemeCompatibilityInterface;
-use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 
+/**
+ * @internal
+ */
 class BBThemeCompatibility implements ThemeCompatibilityInterface
 {
-    public function register(ThemeBuilderManager $manager): void
+    public function register(ThemeChromeInterface $manager): void
     {
-        if ($manager->get_header_id()) {
+        if ($manager->replaces_native_chrome('header')) {
+            $manager->keep_theme_landmark('header');
             add_filter('fl_header_enabled', '__return_false');
             add_action('fl_before_header', function () use ($manager) {
                 if (class_exists('FLTheme') && method_exists('FLTheme', 'get_setting')) {
@@ -27,7 +31,8 @@ class BBThemeCompatibility implements ThemeCompatibilityInterface
             }, 10);
         }
 
-        if ($manager->get_footer_id()) {
+        if ($manager->replaces_native_chrome('footer')) {
+            $manager->keep_theme_landmark('footer');
             add_filter('fl_footer_enabled', '__return_false');
             add_action('fl_after_content', function () use ($manager) {
                 if (is_page_template('tpl-no-header-footer.php')) {
@@ -41,4 +46,3 @@ class BBThemeCompatibility implements ThemeCompatibilityInterface
         }
     }
 }
-

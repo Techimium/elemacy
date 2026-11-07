@@ -4,8 +4,11 @@ namespace Elemacy\Modules\Popups\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
+/**
+ * @internal
+ */
 class PopupListResource extends Resource
 {
     public function to_array()

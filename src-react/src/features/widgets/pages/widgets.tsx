@@ -3,39 +3,28 @@ import Container from "@/components/container";
 import { Card } from "@/components/ui/card";
 import Topbar from "@/components/layout/topbar";
 
-import { useModuleQuery } from "@/services/module";
-import InactiveModule from "@/components/inactive-module";
-import Spinner from "@/components/spinner";
 import { WidgetList } from "@/features/widgets/components/widget-list";
 
+// The widget platform is always on: this screen lists every widget whose
+// owner (the platform or an active module) is available, each with its switch.
 function Widgets() {
-    const { data: module, isLoading: isLoadingModule } = useModuleQuery({ name: 'widgets' });
-
     return (
         <>
             <Topbar />
 
             <Container className="space-y-6 mt-6 px-4">
-                {isLoadingModule ? (
-                    <div className="flex justify-center items-center h-64">
-                        <Spinner />
+                <Card className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-6 border-b border-gray-100 shadow-sm">
+                    <div>
+                        <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">
+                            <span>{__("Widgets", "elemacy")}</span>
+                        </div>
+                        <div className="text-gray-500 mt-2 max-w-2xl">
+                            {__("Switch each Elemacy widget on or off. Widgets that belong to a module appear here while that module is active.", "elemacy")}
+                        </div>
                     </div>
-                ) : (
-                    <>
-                        <Card className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-6 border-b border-gray-100 shadow-sm">
-                            <div>
-                                <div className="flex items-center gap-5 text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">
-                                    <span>{module?.title || __("Widgets", "elemacy")}</span>
-                                </div>
-                                <div className="text-gray-500 mt-2 max-w-2xl">
-                                    {module?.description || __("Extend the Elementor editor with extra widgets built by Elemacy.", "elemacy")}
-                                </div>
-                            </div>
-                        </Card>
+                </Card>
 
-                        {module?.is_active ? <WidgetList /> : <InactiveModule />}
-                    </>
-                )}
+                <WidgetList />
             </Container>
         </>
     );

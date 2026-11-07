@@ -1,35 +1,28 @@
 <?php
+/**
+ * A full header-side shell: the document opening, then the Header template.
+ * Used where Elemacy owns the whole shell (a theme with no header.php).
+ *
+ * On a block theme theme-builder-wrapper.php sets $elemacy_block_theme_shell:
+ * the page is then laid out in the theme's `.wp-site-blocks` wrapper, and a
+ * side with no Elemacy template shows the theme's own template part.
+ */
+
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
-use Elementor\Utils;
 
 if (!defined('ABSPATH')) {
-	exit; // Exit if accessed directly.
+    exit; // Exit if accessed directly.
 }
 
-$elemacy_manager = ThemeBuilderManager::instance();
-?>
-<!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+if (!empty($elemacy_block_theme_shell)) {
+    ThemeBuilderManager::instance()->prepare_block_theme_sides();
+}
 
-<head>
-	<meta charset="<?php bloginfo('charset'); ?>">
-	<?php
-	// PHPCS - not a user input.
-	echo Utils::get_meta_viewport('theme-builder'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	?>
-	<?php if (!current_theme_supports('title-tag')): ?>
-		<title>
-			<?php
-			// PHPCS - already escaped by WordPress.
-			echo wp_get_document_title(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			?>
-		</title>
-	<?php endif; ?>
-	<?php wp_head(); ?>
-</head>
+require __DIR__ . '/theme-shell-open.php';
 
-<body <?php body_class(); ?>>
-	<?php
-	wp_body_open();
-	$elemacy_manager->render_template($elemacy_manager->get_header_id());
-	?>
+if (!empty($elemacy_block_theme_shell)) {
+    echo '<div class="wp-site-blocks">';
+    ThemeBuilderManager::instance()->render_block_theme_side('header');
+} else {
+    ThemeBuilderManager::instance()->render_header();
+}

@@ -4,8 +4,8 @@ namespace Elemacy\TemplateLibrary\Controllers;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Http\Request;
-use Elemacy\Core\Http\Response;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
 use Elemacy\TemplateLibrary\DTO\BlockTemplateListFilterDTO;
 use Elemacy\TemplateLibrary\DTO\CreateBlockTemplateDTO;
 use Elemacy\TemplateLibrary\DTO\UpdateBlockTemplateDTO;
@@ -15,13 +15,16 @@ use Elemacy\TemplateLibrary\Resources\BlockTemplateResource;
 use Elemacy\TemplateLibrary\Services\BlockTemplateService;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
+/**
+ * @internal
+ */
 class LibraryController
 {
     protected BlockTemplateService $service;
 
-    public function __construct()
+    public function __construct(BlockTemplateService $service)
     {
-        $this->service = new BlockTemplateService();
+        $this->service = $service;
     }
 
     public function types()

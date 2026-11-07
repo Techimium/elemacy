@@ -6,15 +6,16 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Core\Hooks;
 
+/**
+ * @internal
+ */
 class DisplayDefaults
 {
-    const DEFAULT_OVERLAY_BLUR = 0;
-    const MAX_OVERLAY_BLUR     = 40;
+    public const DEFAULT_OVERLAY_BLUR = 0;
+    public const MAX_OVERLAY_BLUR     = 40;
 
     /**
      * Default DisplaySettings for a given popup type.
-     *
-     * This is the schema source of truth for the display settings shape.
      *
      * @param string $type
      * @return array
@@ -25,6 +26,7 @@ class DisplayDefaults
             case PopupTypes::TOPBAR:
                 $defaults = [
                     'position' => 'top',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -53,6 +55,7 @@ class DisplayDefaults
             case PopupTypes::FLOATING:
                 $defaults = [
                     'position' => 'bottom-right',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -83,6 +86,7 @@ class DisplayDefaults
                 // promotional bar (bottom-anchored, dismissible) by default.
                 $defaults = [
                     'position' => 'bottom',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => false,
                         'color' => '#000000',
@@ -112,6 +116,7 @@ class DisplayDefaults
             default:
                 $defaults = [
                     'position' => 'center',
+                    'sticky' => false,
                     'overlay' => [
                         'enabled' => true,
                         'color' => '#000000',

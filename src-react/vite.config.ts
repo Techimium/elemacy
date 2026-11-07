@@ -17,6 +17,31 @@ function readWpConfigDevServer() {
   return match?.[1]
 }
 
+// Translation calls must reach the shipped bundle as `wp.i18n.__(...)`: the
+// WordPress.org language-pack extractor and `wp i18n make-pot` read the built
+// admin.js, and a minifier renames an imported `__` to a short local name they
+// cannot recognise. So in the app's own sources, `__(` and `_n(` become calls
+// on WordPress's runtime (the same instance the alias below re-exports) and
+// their imports are dropped. Type checking (`tsc -b`) still sees the imports.
+function wpI18nCalls() {
+  const calls = ['__', '_n']
+  return {
+    name: 'elemacy-wp-i18n-calls',
+    enforce: 'pre' as const,
+    transform(code: string, id: string) {
+      if (!id.startsWith(path.resolve(__dirname, 'src')) || !/\.(t|j)sx?$/.test(id) || !/from\s*['"]@wordpress\/i18n['"]/.test(code)) {
+        return null
+      }
+      let out = code.replace(/import\s*\{([^}]*)\}\s*from\s*(['"])@wordpress\/i18n\2;?/g, (_match, names: string) => {
+        const kept = names.split(',').map(name => name.trim()).filter(name => name && !calls.includes(name))
+        return kept.length ? `import { ${kept.join(', ')} } from '@wordpress/i18n';` : ''
+      })
+      out = out.replace(/(?<![\w$.])(__|_n)\(/g, 'wp.i18n.$1(')
+      return { code: out, map: null }
+    },
+  }
+}
+
 const DEV_SERVER_URL = process.env.ELEMACY_VITE_DEV_SERVER ?? readWpConfigDevServer() ?? 'http://localhost:5173'
 const DEV_SERVER = new URL(DEV_SERVER_URL)
 
@@ -33,10 +58,11 @@ export default defineConfig({
       host: DEV_SERVER.hostname
     }
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [wpI18nCalls(), react(), tailwindcss()],
   // No static public/ assets belong in the WP build output (kills vite.svg).
   publicDir: false,
   resolve: {
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
       // Use WordPress's enqueued wp-i18n (window.wp.i18n) instead of bundling a
@@ -51,14 +77,14 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       // Entry is the module itself, not index.html, so the build emits only
-      // scripts/admin.js + styles/admin.css (no dead index.html in dist).
+      // js/admin.js + css/admin.css (no dead index.html in dist).
       input: {
         admin: path.resolve(__dirname, 'src/main.tsx'),
       },
       output: {
-        entryFileNames: 'scripts/[name].js',
-        chunkFileNames: 'scripts/[name].js',
-        assetFileNames: 'styles/[name].[ext]',
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name].js',
+        assetFileNames: 'css/[name].[ext]',
       }
     }
   }

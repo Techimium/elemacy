@@ -36,7 +36,7 @@ export function TriggersField() {
 
             {fields.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                    {__('No triggers — the popup opens immediately on page load.', 'elemacy')}
+                    {__('No triggers — the popup opens only from links to it or the JavaScript API.', 'elemacy')}
                 </p>
             ) : (
                 <div className="space-y-3">

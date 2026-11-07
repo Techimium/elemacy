@@ -7,8 +7,10 @@ defined('ABSPATH') || exit;
 use Elemacy\Support\Utils;
 
 /**
- * Registers the Single, Archive and Search Elementor document types so those
- * theme templates edit on dedicated documents with real-data Preview Settings.
+ * Registers one Elementor document type per Theme Builder template type, from
+ * Config/documents.php.
+ *
+ * @internal
  */
 class DocumentManager
 {

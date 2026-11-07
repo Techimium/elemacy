@@ -6,6 +6,9 @@ defined('ABSPATH') || exit;
 
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 
+/**
+ * @api
+ */
 interface RuleInterface
 {
     /**
@@ -50,5 +53,5 @@ interface RuleInterface
      * (i.e. a pro feature not available in this build). Drives the locked "Pro"
      * state in the admin UI.
      */
-    public function is_mock(): bool;
+    public function is_placeholder(): bool;
 }

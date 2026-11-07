@@ -8,11 +8,19 @@ use Elemacy\Core\Module;
 use Elemacy\Modules\CustomCss\Services\CustomCssManager;
 use Elemacy\Modules\CustomCss\Services\FrontendAssets;
 
+/**
+ * @internal
+ */
 class CustomCss extends Module
 {
     public function get_name(): string
     {
         return 'custom-css';
+    }
+
+    public function is_default_active(): bool
+    {
+        return true;
     }
 
     public function get_title(): string
@@ -35,7 +43,7 @@ class CustomCss extends Module
         return true;
     }
 
-    public function init(): void
+    public function boot(): void
     {
         new FrontendAssets();
         new CustomCssManager();

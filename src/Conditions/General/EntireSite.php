@@ -4,9 +4,13 @@ namespace Elemacy\Conditions\General;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Conditions\Specificity;
 use Elemacy\Conditions\BaseCondition;
 use Elemacy\Conditions\DTO\ConditionRuleDTO;
 
+/**
+ * @internal
+ */
 class EntireSite extends BaseCondition
 {
     public function get_name(): string
@@ -22,6 +26,12 @@ class EntireSite extends BaseCondition
     public function get_label(): string
     {
         return __('Entire Site', 'elemacy');
+    }
+
+    /** Matches everything, by definition the broadest level. */
+    public function get_specificity(ConditionRuleDTO $rule): int
+    {
+        return Specificity::SITE;
     }
 
     public function check(ConditionRuleDTO $rule): bool

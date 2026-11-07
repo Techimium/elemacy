@@ -5,6 +5,7 @@ import {
     useDeletePopupMutation,
     useDuplicatePopupMutation,
     usePopups,
+    usePopupTypes,
 } from '../services/popup';
 import PopupCard from './popup-card';
 import {
@@ -24,14 +25,8 @@ import Spinner from '@/components/spinner';
 import { ListToolbar, type FilterOption } from '@/components/list/list-toolbar';
 import { InfiniteScrollSentinel } from '@/components/list/infinite-scroll-sentinel';
 import { useDebounce } from '@/hooks/use-debounce';
-import { POPUP_TYPES } from '../constants/popups';
 
 const ALL_FILTER = 'all';
-
-const FILTERS: FilterOption[] = [
-    { value: ALL_FILTER, label: __('All', 'elemacy') },
-    ...POPUP_TYPES.map((type) => ({ value: type.value, label: type.label })),
-];
 
 function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -40,6 +35,14 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const [filter, setFilter] = useState<string>(ALL_FILTER);
     const [search, setSearch] = useState('');
     const debouncedSearch = useDebounce(search, 300);
+
+    // Registry-backed, not a hardcoded list: an extension type
+    // needs no edit here to appear as a filter option.
+    const { data: popupTypes = [] } = usePopupTypes();
+    const filters: FilterOption[] = [
+        { value: ALL_FILTER, label: __('All', 'elemacy') },
+        ...popupTypes.map((type) => ({ value: type.value, label: type.label })),
+    ];
 
     const {
         data,
@@ -74,7 +77,7 @@ function PopupList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                 search={search}
                 onSearchChange={setSearch}
                 searchPlaceholder={__('Search popups…', 'elemacy')}
-                filters={FILTERS}
+                filters={filters}
                 filter={filter}
                 onFilterChange={setFilter}
             />

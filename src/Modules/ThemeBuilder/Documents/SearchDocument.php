@@ -4,17 +4,19 @@ namespace Elemacy\Modules\ThemeBuilder\Documents;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Documents\PreviewablePageBase;
+use Elemacy\Elementor\Documents\PreviewablePageBase;
 use Elementor\Controls_Manager;
 
 /**
  * Elementor document for Search Results templates. Search results are a query, so
  * the preview runs a sample search and resolves the results title and post loop
  * against it.
+ *
+ * @internal
  */
 class SearchDocument extends PreviewablePageBase
 {
-    const PREVIEW_TERM = 'elemacy_preview_search_term';
+    public const PREVIEW_TERM = 'elemacy_preview_search_term';
 
     public static function get_type()
     {

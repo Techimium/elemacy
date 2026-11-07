@@ -4,10 +4,11 @@ if (!defined('ABSPATH')) {
 }
 
 use Elemacy\Conditions\Controllers\ConditionController;
-use Elemacy\Core\Middlewares\API\AdminMiddleware;
-use Elemacy\Core\Route;
-use Elemacy\Core\Controllers\ModuleController;
+use Elemacy\Http\Middlewares\AdminMiddleware;
+use Elemacy\Http\Route;
+use Elemacy\Core\Admin\Controllers\ModuleController;
 use Elemacy\TemplateLibrary\Controllers\LibraryController;
+use Elemacy\Widgets\Controllers\WidgetController;
 
 Route::get('/modules', [ModuleController::class, 'index'])->middleware(AdminMiddleware::class);
 Route::put('/modules/{name}', [ModuleController::class, 'toggle'])->middleware(AdminMiddleware::class);
@@ -23,3 +24,7 @@ Route::post('/library/templates', [LibraryController::class, 'store'])->middlewa
 Route::put('/library/templates/{id}', [LibraryController::class, 'update'])->middleware(AdminMiddleware::class);
 Route::post('/library/templates/{id}/duplicate', [LibraryController::class, 'duplicate'])->middleware(AdminMiddleware::class);
 Route::delete('/library/templates/{id}', [LibraryController::class, 'destroy'])->middleware(AdminMiddleware::class);
+
+// Widgets screen: the always-on widget platform, every widget of an active owner.
+Route::get('/widgets', [WidgetController::class, 'index'])->middleware(AdminMiddleware::class);
+Route::put('/widgets/{name}/toggle', [WidgetController::class, 'toggle'])->middleware(AdminMiddleware::class);

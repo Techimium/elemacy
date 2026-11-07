@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "templateParts": [
+    { "name": "masthead", "title": "Masthead", "area": "header" },
+    { "name": "colophon", "title": "Colophon", "area": "footer" },
+    { "name": "aside-notes", "title": "Aside notes", "area": "uncategorized" }
+  ]
+}

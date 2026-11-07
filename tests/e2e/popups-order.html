@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Elemacy popups: extension load order</title>
+<link rel="stylesheet" href="popups.css">
+<style>.spacer{height:3000px}</style>
+</head>
+<body>
+  <div class="elemacy-popup elemacy-popup-301 elemacy-popup--floating" data-elemacy-popup-id="301" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-301" style="width:200px"><p>scroll popup</p></div></template>
+  </div>
+  <div class="elemacy-popup elemacy-popup-302 elemacy-popup--floating" data-elemacy-popup-id="302" data-elemacy-popup-type="floating" aria-hidden="true" hidden>
+    <template class="elemacy-popup-tpl"><div class="elementor elementor-302" style="width:200px"><p>unknown rule popup</p></div></template>
+  </div>
+  <button type="button" class="open-302">open 302</button>
+  <div class="spacer"></div>
+
+  <script>
+    var display = {
+      position: 'bottom-right', sticky: false,
+      overlay: { enabled: false, color: '#000000', opacity: 0.6, blur: 0 },
+      animation: { in: 'none', out: 'none' },
+      close: { button: true, auto_close_s: 0, on_overlay_click: false, on_esc: true },
+      prevent_body_scroll: false, z_index: 9999
+    };
+    window.elemacyPopupsConfig = {
+      popups: [
+        { id: 301, type: 'floating', modal: false, rules: [], display: display, storage_key: 'elemacy_1_popup_301',
+          triggers: [{ type: 'scroll', percent: 5 }] },
+        { id: 302, type: 'floating', modal: false, display: display, storage_key: 'elemacy_1_popup_302',
+          triggers: [{ type: 'click', selector: '.open-302' }], rules: [{ type: 'mystery' }] }
+      ],
+      i18n: { close: 'Close' }
+    };
+    window.__events = [];
+    document.addEventListener('elemacy-popup:opened', function (e) { window.__events.push(['shown', e.detail.id]); });
+    window.__extCalls = 0;
+
+    // A minimal scroll trigger, standing in for Pro's.
+    window.__registerScroll = function (api) {
+      window.__extCalls++;
+      api.registerTrigger('scroll', function (id, params, trigger) {
+        var onScroll = function () {
+          if (window.scrollY > 50) { trigger.open(); }
+        };
+        window.addEventListener('scroll', onScroll);
+        trigger.onCleanup(function () { window.removeEventListener('scroll', onScroll); });
+      });
+    };
+
+    var variant = new URLSearchParams(location.search).get('variant') || 'late';
+    if (variant === 'queue') {
+      // Pushed before engine.js is even requested, as a script the optimizer moved up would.
+      (window.elemacyPopupsExtensions = window.elemacyPopupsExtensions || []).push(window.__registerScroll);
+    }
+    document.write('<script src="engine.js"><\/script>');
+  </script>
+  <script>
+    if (variant === 'late') {
+      // Registered 500ms after the engine started.
+      window.setTimeout(function () { window.__registerScroll(window.elemacyPopups); }, 500);
+    }
+    if (variant === 'queue-late') {
+      // Pushed after the engine has run: called at once, exactly once.
+      window.elemacyPopupsExtensions.push(window.__registerScroll);
+    }
+  </script>
+</body>
+</html>

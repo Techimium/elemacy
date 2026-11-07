@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
 import { ProBadge } from '@/components/pro-badge';
+import { UnavailableBadge } from '@/components/unavailable-badge';
 import {
     Select,
     SelectContent,
@@ -37,7 +38,7 @@ export function TriggerRow({ entry, types, onChange, onRemove }: TriggerRowProps
                     </SelectTrigger>
                     <SelectContent>
                         {types.map((type) => {
-                            const locked = type.is_mock;
+                            const locked = type.is_placeholder;
                             return (
                                 <SelectItem
                                     key={type.value}
@@ -58,6 +59,8 @@ export function TriggerRow({ entry, types, onChange, onRemove }: TriggerRowProps
                         })}
                     </SelectContent>
                 </Select>
+
+                <UnavailableBadge availability={entry.availability} />
 
                 <Button
                     type="button"

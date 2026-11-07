@@ -1,0 +1,66 @@
+<?php
+
+namespace Elemacy\Widgets\Controllers;
+
+defined('ABSPATH') || exit;
+
+use Elemacy\Http\Exceptions\HttpException;
+use Elemacy\Http\Request;
+use Elemacy\Http\Response;
+use Elemacy\Widgets\Resources\WidgetListResource;
+use Elemacy\Widgets\WidgetRegistry;
+
+/**
+ * @internal
+ */
+class WidgetController
+{
+    protected WidgetRegistry $registry;
+
+    public function __construct(WidgetRegistry $registry)
+    {
+        $this->registry = $registry;
+    }
+
+    /**
+     * Lists every available widget and its enabled/disabled state.
+     *
+     * @param Request $request The incoming REST request.
+     * @return Response
+     */
+    public function index(Request $request) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- The router passes every handler the request.
+    {
+        $widgets = $this->registry->get_all_widgets();
+
+        return Response::create()->json([
+            'data' => WidgetListResource::collection($widgets),
+            'message' => __('Widgets retrieved successfully', 'elemacy'),
+        ]);
+    }
+
+    /**
+     * Enables or disables a widget.
+     *
+     * @param Request $request The incoming REST request; expects an `action` param of `enable`/`disable`.
+     * @param string  $name    The widget slug to toggle.
+     * @return Response
+     * @throws HttpException If `action` isn't `enable`/`disable`.
+     */
+    public function toggle(Request $request, $name)
+    {
+        $action = $request->get_string('action');
+
+        if (!in_array($action, ['enable', 'disable'], true)) {
+            throw new HttpException(
+                esc_html__('Invalid action', 'elemacy'),
+                Response::BAD_REQUEST // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- HTTP status code, not output.
+            );
+        }
+
+        $this->registry->toggle_widget($name, $action);
+
+        return Response::create()->json([
+            'message' => __('Widget toggled successfully', 'elemacy'),
+        ]);
+    }
+}

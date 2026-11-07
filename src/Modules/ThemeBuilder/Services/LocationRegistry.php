@@ -4,13 +4,16 @@ namespace Elemacy\Modules\ThemeBuilder\Services;
 
 defined('ABSPATH') || exit;
 
+use Elemacy\Modules\ThemeBuilder\Contracts\ThemeLocationRegistrarInterface;
+
 /**
  * Maps the current request to a template type for mutually-exclusive "content"
  * locations (single, archive, search, 404, …). Replaces hardcoded is_*()
  * branches so add-ons can register their own locations (checkout, author, …).
- * Header and footer are not locations — they are resolved independently.
+ *
+ * @internal
  */
-class LocationRegistry
+class LocationRegistry implements ThemeLocationRegistrarInterface
 {
     protected static ?self $instance = null;
 
@@ -29,6 +32,7 @@ class LocationRegistry
     }
 
     /**
+     * @param string   $type The location's template type.
      * @param callable $matches Returns true when the location applies to the
      *                          current request. Evaluated lazily at resolve time.
      */

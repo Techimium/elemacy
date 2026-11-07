@@ -1,0 +1,806 @@
+/*
+ * Elemacy Nav Menu (elemacy-nav-menu).
+ *
+ * Reproduces the Elementor Pro Nav Menu's built-in look value for value, under
+ * Elemacy's own classes so neither widget's styles reach the other. Rule order
+ * and specificity follow the reference so control selectors win the same way.
+ * Breakpoint rules depend on the site's Elementor breakpoints and are added
+ * inline by BreakpointStyles.
+ */
+
+/* Pointers: shared pseudo-element base and state. */
+.elemacy-nav-menu__item:after,
+.elemacy-nav-menu__item:before {
+    display: block;
+    position: absolute;
+    transition: .3s;
+    transition-timing-function: cubic-bezier(.58,.3,.005,1);
+}
+
+.elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    opacity: 0;
+}
+
+.elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__item:hover:before {
+    transform: scale(1);
+}
+
+/* Line pointers: Underline, Overline, Double Line. */
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:before {
+    background-color: #3f444b;
+    height: 3px;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    height: 0;
+    left: 50%;
+    width: 0;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: 10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-out .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    bottom: 10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: -10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-drop-in .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    bottom: -10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-none:hover,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-none:hover,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-overline .elemacy-nav-menu__item:before {
+    content: "";
+    top: 0;
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before,
+.elemacy-nav-menu__main--pointer-overline.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: -20px;
+    width: 10px;
+}
+
+.elemacy-nav-menu__main--pointer-double-line .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-underline .elemacy-nav-menu__item:after {
+    bottom: 0;
+    content: "";
+}
+
+.elemacy-nav-menu__main--pointer-double-line.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after,
+.elemacy-nav-menu__main--pointer-underline.elemacy-nav-menu__main--animation-slide .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):after {
+    inset-inline-start: 100%;
+    width: 10px;
+}
+
+/* Framed pointer. */
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:before {
+    background: transparent;
+    border: 3px solid #3f444b;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.elemacy-nav-menu__main--pointer-framed .elemacy-nav-menu__item:before {
+    content: "";
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(.75);
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(1.25);
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:before {
+    transition: opacity .2s,transform .4s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:before {
+    height: 3px;
+    width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:before {
+    border-block-end-width: 3px;
+    border-block-start-width: 0;
+    border-inline-end-width: 0;
+    border-inline-start-width: 3px;
+    transition: width .1s .2s,height .1s .3s,opacity .12s .22s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:after {
+    border-block-end-width: 0;
+    border-block-start-width: 3px;
+    border-inline-end-width: 3px;
+    border-inline-start-width: 0;
+    content: "";
+    inset-block-end: 0;
+    inset-block-start: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    transition: width .1s,height .1s .1s,opacity .02s .18s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:before {
+    height: 100%;
+    width: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:before {
+    transition: opacity .02s,height .1s,width .1s .1s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-draw .elemacy-nav-menu__item:hover:after {
+    transition: opacity .02s .2s,height .1s .2s,width .1s .3s;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:before {
+    height: 3px;
+    width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:before {
+    border-block-end-width: 0;
+    border-block-start-width: 3px;
+    border-inline-end-width: 0;
+    border-inline-start-width: 3px;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:after {
+    border-block-end-width: 3px;
+    border-block-start-width: 0;
+    border-inline-end-width: 3px;
+    border-inline-start-width: 0;
+    content: "";
+    inset-block-end: 0;
+    inset-block-start: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:hover:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-corners .elemacy-nav-menu__item:hover:before {
+    height: 100%;
+    transition: opacity 2ms,width .4s,height .4s;
+    width: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-framed.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+/* Background pointer. */
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:before {
+    content: "";
+    transition: .3s;
+}
+
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:before {
+    background: #3f444b;
+    inset: 0;
+    z-index: -1;
+}
+
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__link--active,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-background .elemacy-nav-menu__item:hover {
+    color: #fff;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:before {
+    transform: scale(.5);
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:hover:before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    transform: scale(1.2);
+    transition: .3s;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:hover:before {
+    transition: opacity .15s,transform .4s;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-left .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-right .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    right: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-up .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    top: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-sweep-down .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    bottom: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-out-vertical .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    bottom: 50%;
+    top: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-out-horizontal .elemacy-nav-menu__item:not(:hover):not(:focus):not(.elemacy-nav-menu__link--active):not(.elemacy-nav-menu__link--open):before {
+    left: 50%;
+    right: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:after {
+    background: #3f444b;
+    inset: 0;
+    z-index: -1;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:before {
+    bottom: 100%;
+    top: 0;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:after {
+    bottom: 0;
+    top: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:hover:before {
+    bottom: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-vertical .elemacy-nav-menu__item:hover:after {
+    top: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:before {
+    left: 100%;
+    right: 0;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:after {
+    left: 0;
+    right: 100%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__link--active:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item.elemacy-nav-menu__link--open:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:focus:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:hover:before {
+    left: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__link--active:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item.elemacy-nav-menu__link--open:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:focus:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-shutter-in-horizontal .elemacy-nav-menu__item:hover:after {
+    right: 50%;
+}
+
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-background.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+/* Text pointer. */
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-skew .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-skew .elemacy-nav-menu__item:hover {
+    transform: skew(-8deg);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-grow .elemacy-nav-menu__item:hover {
+    transform: scale(1.2);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-shrink .elemacy-nav-menu__item:hover {
+    transform: scale(.8);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-float .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-float .elemacy-nav-menu__item:hover {
+    transform: translateY(-8px);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-sink .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-sink .elemacy-nav-menu__item:hover {
+    transform: translateY(8px);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-rotate .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-rotate .elemacy-nav-menu__item:hover {
+    transform: rotate(6deg);
+}
+
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:after,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:before,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:after,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:before,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:focus,
+.elemacy-nav-menu__main--pointer-text.elemacy-nav-menu__main--animation-none:hover {
+    transition-duration: 0s;
+}
+
+/* Desktop menu. */
+.elemacy-nav-menu__main .elemacy-nav-menu__list a {
+    transition: .4s;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__list a,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a:focus,
+.elemacy-nav-menu__main .elemacy-nav-menu__list a:hover {
+    padding: 13px 20px;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__list ul {
+    border-style: solid;
+    border-width: 0;
+    padding: 0;
+    position: absolute;
+    width: auto;
+    min-width: 10em;
+    max-width: 1000px;
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator .e-font-icon-svg,
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator i {
+    transform: rotate(calc(-90deg * var(--direction-multiplier, 1)));
+}
+
+.elemacy-nav-menu__main .elemacy-nav-menu__dropdown .elemacy-nav-menu__indicator .e-font-icon-svg {
+    fill: currentColor;
+    height: 1em;
+    width: 1em;
+}
+
+/* Horizontal layout and dividers. */
+.elemacy-nav-menu__main--horizontal {
+    display: flex;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list a {
+    flex-grow: 1;
+    white-space: nowrap;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li {
+    display: flex;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li ul {
+    top: 100%!important;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:first-child)>a {
+    margin-inline-start: var(--elemacy-nav-menu-item-margin);
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:first-child)>ul {
+    inset-inline-start: var(--elemacy-nav-menu-item-margin)!important;
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:last-child)>a {
+    margin-inline-end: var(--elemacy-nav-menu-item-margin);
+}
+
+.elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li:not(:last-child):after {
+    align-self: center;
+    border-color: var(--elemacy-nav-menu-divider-color,#000);
+    border-left-style: var(--elemacy-nav-menu-divider-style,solid);
+    border-left-width: var(--elemacy-nav-menu-divider-width,2px);
+    content: var(--elemacy-nav-menu-divider-content,none);
+    height: var(--elemacy-nav-menu-divider-height,35%);
+}
+
+/* Alignment (wrapper classes from the Alignment control). */
+.elemacy-nav-menu--align-start .elemacy-nav-menu__list {
+    justify-content: flex-start;
+    margin-inline-end: auto;
+}
+
+.elemacy-nav-menu--align-start .elemacy-nav-menu__main--vertical>ul>li>a {
+    justify-content: flex-start;
+}
+
+.elemacy-nav-menu--align-end .elemacy-nav-menu__list {
+    justify-content: flex-end;
+    margin-inline-start: auto;
+}
+
+.elemacy-nav-menu--align-end .elemacy-nav-menu__main--vertical>ul>li>a {
+    justify-content: flex-end;
+}
+
+.elemacy-nav-menu--align-center .elemacy-nav-menu__list {
+    justify-content: center;
+    margin-inline-end: auto;
+    margin-inline-start: auto;
+}
+
+.elemacy-nav-menu--align-center .elemacy-nav-menu__main--vertical>ul>li>a {
+    justify-content: center;
+}
+
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list {
+    width: 100%;
+}
+
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li {
+    flex-grow: 1;
+}
+
+.elemacy-nav-menu--align-justify .elemacy-nav-menu__main--horizontal .elemacy-nav-menu__list>li>a {
+    justify-content: center;
+}
+
+/* Widget wrapper. */
+.elementor-widget-elemacy-nav-menu:not(.elemacy-nav-menu--toggle) .elemacy-nav-menu__toggle {
+    display: none;
+}
+
+.elementor-widget-elemacy-nav-menu .elementor-widget-container,
+.elementor-widget-elemacy-nav-menu:not(:has(.elementor-widget-container)):not([class*=elementor-hidden-]) {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Menu trees: base list, links, nested indents and submenu indicator. */
+.elemacy-nav-menu__list {
+    position: relative;
+    z-index: 2;
+}
+
+.elemacy-nav-menu__list:after {
+    clear: both;
+    content: " ";
+    display: block;
+    font: 0/0 serif;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.elemacy-nav-menu__list,
+.elemacy-nav-menu__list li,
+.elemacy-nav-menu__list ul {
+    display: block;
+    line-height: normal;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.elemacy-nav-menu__list ul {
+    display: none;
+}
+
+.elemacy-nav-menu__list ul ul a,
+.elemacy-nav-menu__list ul ul a:active,
+.elemacy-nav-menu__list ul ul a:focus,
+.elemacy-nav-menu__list ul ul a:hover {
+    border-left: 16px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul a,
+.elemacy-nav-menu__list ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul a:hover {
+    border-left: 24px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul ul a,
+.elemacy-nav-menu__list ul ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul ul a:hover {
+    border-left: 32px solid transparent;
+}
+
+.elemacy-nav-menu__list ul ul ul ul ul a,
+.elemacy-nav-menu__list ul ul ul ul ul a:active,
+.elemacy-nav-menu__list ul ul ul ul ul a:focus,
+.elemacy-nav-menu__list ul ul ul ul ul a:hover {
+    border-left: 40px solid transparent;
+}
+
+.elemacy-nav-menu__list a,
+.elemacy-nav-menu__list li {
+    position: relative;
+}
+
+.elemacy-nav-menu__list li {
+    border-width: 0;
+}
+
+.elemacy-nav-menu__list a {
+    align-items: center;
+    display: flex;
+}
+
+.elemacy-nav-menu__list a,
+.elemacy-nav-menu__list a:focus,
+.elemacy-nav-menu__list a:hover {
+    line-height: 20px;
+    padding: 10px 20px;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator {
+    align-items: center;
+    display: flex;
+    line-height: 1;
+    margin-block-end: -10px;
+    margin-block-start: -10px;
+    padding: 10px;
+    padding-inline-end: 0;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator i {
+    pointer-events: none;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .fa.fa-chevron-down,
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .fas.fa-chevron-down {
+    font-size: .7em;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .e-font-icon-svg {
+    height: 1em;
+    width: 1em;
+}
+
+.elemacy-nav-menu__list .elemacy-nav-menu__indicator .e-font-icon-svg.elemacy-nav-menu__indicator-chevron {
+    height: .7em;
+    width: .7em;
+}
+
+/* Dropdown (desktop submenus and the mobile dropdown) item states. */
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item.elemacy-nav-menu__link--active,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item:focus,
+.elemacy-nav-menu__dropdown .elemacy-nav-menu__item:hover,
+.elemacy-nav-menu__sub-item.elemacy-nav-menu__link--active,
+.elemacy-nav-menu__sub-item.elemacy-nav-menu__link--open,
+.elemacy-nav-menu__sub-item:focus,
+.elemacy-nav-menu__sub-item:hover {
+    background-color: #3f444b;
+    color: #fff;
+}
+
+/* Toggle button. */
+.elemacy-nav-menu__toggle {
+    align-items: center;
+    background-color: rgba(0,0,0,.05);
+    border: 0 solid;
+    border-radius: 3px;
+    color: #33373d;
+    cursor: pointer;
+    display: flex;
+    font-size: var(--elemacy-nav-menu-toggle-size,22px);
+    justify-content: center;
+    padding: .25em;
+}
+
+.elemacy-nav-menu__toggle.elemacy-nav-menu__toggle--active .elemacy-nav-menu__toggle-icon--open,
+.elemacy-nav-menu__toggle:not(.elemacy-nav-menu__toggle--active) .elemacy-nav-menu__toggle-icon--close {
+    display: none;
+}
+
+.elemacy-nav-menu__toggle .e-font-icon-svg {
+    fill: #33373d;
+    height: 1em;
+    width: 1em;
+}
+
+.elemacy-nav-menu__toggle svg {
+    fill: var(--elemacy-nav-menu-toggle-color,currentColor);
+    height: auto;
+    width: 1em;
+}
+
+span.elemacy-nav-menu__toggle-icon--close,
+span.elemacy-nav-menu__toggle-icon--open {
+    line-height: 1;
+}
+
+/* Dropdown box, the mobile dropdown container and its open/closed states. */
+.elemacy-nav-menu__dropdown {
+    background-color: #fff;
+    font-size: 13px;
+}
+
+.elemacy-nav-menu--breakpoint-none .elemacy-nav-menu__toggle,
+.elemacy-nav-menu--breakpoint-none .elemacy-nav-menu__dropdown {
+    display: none;
+}
+
+.elemacy-nav-menu__dropdown.elemacy-nav-menu__container {
+    margin-top: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform-origin: top;
+    transition: max-height .3s,transform .3s;
+}
+
+.elemacy-nav-menu__dropdown.elemacy-nav-menu__container .elemacy-nav-menu__sub-item {
+    font-size: .85em;
+}
+
+.elemacy-nav-menu__dropdown a {
+    color: #33373d;
+}
+
+ul.elemacy-nav-menu__dropdown a,
+ul.elemacy-nav-menu__dropdown a:focus,
+ul.elemacy-nav-menu__dropdown a:hover {
+    border-inline-start: 8px solid transparent;
+    text-shadow: none;
+}
+
+.elemacy-nav-menu--text-align-center .elemacy-nav-menu__dropdown .elemacy-nav-menu__list a {
+    justify-content: center;
+}
+
+.elemacy-nav-menu--toggle {
+    --elemacy-nav-menu-height: 100vh;
+}
+
+.elemacy-nav-menu--toggle .elemacy-nav-menu__toggle:not(.elemacy-nav-menu__toggle--active)+.elemacy-nav-menu__container {
+    max-height: 0;
+    overflow: hidden;
+    transform: scaleY(0);
+}
+
+.elemacy-nav-menu--toggle .elemacy-nav-menu__toggle.elemacy-nav-menu__toggle--active+.elemacy-nav-menu__container {
+    animation: elemacy-nav-menu-hide-scroll .3s backwards;
+    max-height: var(--elemacy-nav-menu-height);
+    transform: scaleY(1);
+}
+
+.elemacy-nav-menu--stretch .elemacy-nav-menu__container.elemacy-nav-menu__dropdown {
+    position: absolute;
+    z-index: 9997;
+}
+
+@keyframes elemacy-nav-menu-hide-scroll {
+    0%, to {
+        overflow: hidden;
+    }
+}

@@ -25,7 +25,7 @@ export const ParamDescriptorSchema = z.object({
 export const TriggerTypeSchema = z.object({
     value: z.string(),
     label: z.string(),
-    is_mock: z.boolean(),
+    is_placeholder: z.boolean(),
     params_schema: z.array(ParamDescriptorSchema),
 });
 

@@ -6,6 +6,8 @@ defined('ABSPATH') || exit;
 
 /**
  * Localized labels for condition groups (keyed by ConditionInterface::get_type()).
+ *
+ * @internal
  */
 class ConditionGroups
 {
@@ -18,6 +20,8 @@ class ConditionGroups
                 return __('Singular', 'elemacy');
             case 'archive':
                 return __('Archive', 'elemacy');
+            case 'search':
+                return __('Search', 'elemacy');
             default:
                 return ucfirst($type);
         }

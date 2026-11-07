@@ -45,6 +45,8 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
     const {
         data,
         isLoading,
+        isError,
+        refetch,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -65,8 +67,12 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
 
     const confirmDelete = async () => {
         if (!deletingTemplate) return;
-        await deleteTemplate(deletingTemplate.id);
-        setDeletingTemplate(null);
+        try {
+            await deleteTemplate(deletingTemplate.id);
+            setDeletingTemplate(null);
+        } catch {
+            // The API layer has already shown the error; keep the dialog open.
+        }
     };
 
     return (
@@ -80,10 +86,28 @@ function TemplateList({ setIsOpen }: { setIsOpen: (open: boolean) => void }) {
                 onFilterChange={setFilter}
             />
 
+            {window.elemacy.theme_builder?.elementor_pro_active && (
+                <div role="note" className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    {__("Elementor Pro's Theme Builder is active. Wherever one of its templates applies, it is used for that location (header, footer, single or archive) and the Elemacy template is skipped there.", 'elemacy')}
+                </div>
+            )}
+
             {isLoading ? (
                 <div className="flex justify-center items-center h-64">
                     <Spinner />
                 </div>
+            ) : isError ? (
+                <Card>
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyTitle>{__('Templates could not be loaded', 'elemacy')}</EmptyTitle>
+                            <EmptyDescription>{__('Something went wrong while loading your templates. They have not been changed.', 'elemacy')}</EmptyDescription>
+                        </EmptyHeader>
+                        <EmptyContent>
+                            <Button className="cursor-pointer" onClick={() => refetch()}>{__('Try again', 'elemacy')}</Button>
+                        </EmptyContent>
+                    </Empty>
+                </Card>
             ) : templates.length > 0 ? (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

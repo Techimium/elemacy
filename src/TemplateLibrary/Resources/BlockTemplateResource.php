@@ -4,8 +4,11 @@ namespace Elemacy\TemplateLibrary\Resources;
 
 defined('ABSPATH') || exit;
 
-use Elemacy\Core\Resource;
+use Elemacy\Http\Resource;
 
+/**
+ * @internal
+ */
 class BlockTemplateResource extends Resource
 {
     public function to_array()

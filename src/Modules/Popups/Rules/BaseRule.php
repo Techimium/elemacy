@@ -7,6 +7,9 @@ defined('ABSPATH') || exit;
 use Elemacy\Modules\Popups\Contracts\RuleInterface;
 use Elemacy\Modules\Popups\DTO\RuleDTO;
 
+/**
+ * @api
+ */
 abstract class BaseRule implements RuleInterface
 {
     public function get_config_schema(): array
@@ -16,9 +19,13 @@ abstract class BaseRule implements RuleInterface
 
     public function to_js_config(RuleDTO $dto): array
     {
+        // The registered type must win regardless of anything already stored
+        // in params: put it last so array_merge()'s "later key
+        // wins" behavior can never let a params['type'] value masquerade as
+        // a different rule to the client engine.
         return array_merge(
-            ['type' => $this->get_name()],
-            is_array($dto->params) ? $dto->params : []
+            is_array($dto->params) ? $dto->params : [],
+            ['type' => $this->get_name()]
         );
     }
 
@@ -32,7 +39,7 @@ abstract class BaseRule implements RuleInterface
         return false;
     }
 
-    public function is_mock(): bool
+    public function is_placeholder(): bool
     {
         return false;
     }

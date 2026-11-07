@@ -1,0 +1,762 @@
+{
+    "popup": {
+        "elemacy_animation_in": {
+            "type": "select",
+            "default": "fade"
+        },
+        "elemacy_animation_out": {
+            "type": "select",
+            "default": "fade"
+        },
+        "elemacy_auto_close": {
+            "type": "number",
+            "default": 0
+        },
+        "elemacy_close_active_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_bg": {
+            "type": "color",
+            "default": "rgba(0, 0, 0, 0.55)"
+        },
+        "elemacy_close_bg_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_bg_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_border": {
+            "type": "select",
+            "default": ""
+        },
+        "elemacy_close_border_color": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_width": {
+            "type": "dimensions",
+            "default": {
+                "unit": "px",
+                "top": "",
+                "right": "",
+                "bottom": "",
+                "left": "",
+                "isLinked": true
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow": {
+            "type": "box_shadow",
+            "default": {
+                "horizontal": 0,
+                "vertical": 0,
+                "blur": 10,
+                "spread": 0,
+                "color": "rgba(0,0,0,0.5)"
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow_position": {
+            "type": "select",
+            "default": " "
+        },
+        "elemacy_close_box_shadow_box_shadow_type": {
+            "type": "popover_toggle",
+            "default": ""
+        },
+        "elemacy_close_button": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_close_color": {
+            "type": "color",
+            "default": "#ffffff"
+        },
+        "elemacy_close_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_font": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_close_hover_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_normal_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_offset": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 10,
+                "sizes": []
+            }
+        },
+        "elemacy_close_on_esc": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_close_on_overlay": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_close_radius": {
+            "type": "slider",
+            "default": {
+                "unit": "%",
+                "size": 50,
+                "sizes": []
+            }
+        },
+        "elemacy_close_size": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 36,
+                "sizes": []
+            }
+        },
+        "elemacy_close_state_tabs": {
+            "type": "tabs",
+            "default": null
+        },
+        "elemacy_close_style_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_content_overflow": {
+            "type": "select",
+            "default": "auto"
+        },
+        "elemacy_offset_x": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_offset_y": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_overlay_blur": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_overlay_color": {
+            "type": "color",
+            "default": "#000000"
+        },
+        "elemacy_overlay_opacity": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0.6,
+                "sizes": []
+            }
+        },
+        "elemacy_popup_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_position": {
+            "type": "select",
+            "default": "center"
+        },
+        "elemacy_position_custom_notice": {
+            "type": "alert",
+            "default": null
+        },
+        "elemacy_prevent_scroll": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_width": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 600,
+                "sizes": []
+            }
+        },
+        "elemacy_z_index": {
+            "type": "number",
+            "default": 9999
+        }
+    },
+    "topbar": {
+        "elemacy_animation_in": {
+            "type": "select",
+            "default": "slide-down"
+        },
+        "elemacy_animation_out": {
+            "type": "select",
+            "default": "slide-up"
+        },
+        "elemacy_auto_close": {
+            "type": "number",
+            "default": 0
+        },
+        "elemacy_close_active_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_bg": {
+            "type": "color",
+            "default": "rgba(0, 0, 0, 0.55)"
+        },
+        "elemacy_close_bg_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_bg_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_border": {
+            "type": "select",
+            "default": ""
+        },
+        "elemacy_close_border_color": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_width": {
+            "type": "dimensions",
+            "default": {
+                "unit": "px",
+                "top": "",
+                "right": "",
+                "bottom": "",
+                "left": "",
+                "isLinked": true
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow": {
+            "type": "box_shadow",
+            "default": {
+                "horizontal": 0,
+                "vertical": 0,
+                "blur": 10,
+                "spread": 0,
+                "color": "rgba(0,0,0,0.5)"
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow_position": {
+            "type": "select",
+            "default": " "
+        },
+        "elemacy_close_box_shadow_box_shadow_type": {
+            "type": "popover_toggle",
+            "default": ""
+        },
+        "elemacy_close_button": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_close_color": {
+            "type": "color",
+            "default": "#ffffff"
+        },
+        "elemacy_close_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_font": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_close_hover_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_normal_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_offset": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 10,
+                "sizes": []
+            }
+        },
+        "elemacy_close_radius": {
+            "type": "slider",
+            "default": {
+                "unit": "%",
+                "size": 50,
+                "sizes": []
+            }
+        },
+        "elemacy_close_size": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 36,
+                "sizes": []
+            }
+        },
+        "elemacy_close_state_tabs": {
+            "type": "tabs",
+            "default": null
+        },
+        "elemacy_close_style_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_popup_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_position": {
+            "type": "select",
+            "default": "top"
+        },
+        "elemacy_sticky": {
+            "type": "switcher",
+            "default": ""
+        },
+        "elemacy_width": {
+            "type": "slider",
+            "default": {
+                "unit": "%",
+                "size": 100,
+                "sizes": []
+            }
+        },
+        "elemacy_z_index": {
+            "type": "number",
+            "default": 9990
+        }
+    },
+    "banner": {
+        "elemacy_animation_in": {
+            "type": "select",
+            "default": "slide-up"
+        },
+        "elemacy_animation_out": {
+            "type": "select",
+            "default": "slide-down"
+        },
+        "elemacy_auto_close": {
+            "type": "number",
+            "default": 0
+        },
+        "elemacy_close_active_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_bg": {
+            "type": "color",
+            "default": "rgba(0, 0, 0, 0.55)"
+        },
+        "elemacy_close_bg_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_bg_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_border": {
+            "type": "select",
+            "default": ""
+        },
+        "elemacy_close_border_color": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_width": {
+            "type": "dimensions",
+            "default": {
+                "unit": "px",
+                "top": "",
+                "right": "",
+                "bottom": "",
+                "left": "",
+                "isLinked": true
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow": {
+            "type": "box_shadow",
+            "default": {
+                "horizontal": 0,
+                "vertical": 0,
+                "blur": 10,
+                "spread": 0,
+                "color": "rgba(0,0,0,0.5)"
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow_position": {
+            "type": "select",
+            "default": " "
+        },
+        "elemacy_close_box_shadow_box_shadow_type": {
+            "type": "popover_toggle",
+            "default": ""
+        },
+        "elemacy_close_button": {
+            "type": "switcher",
+            "default": "yes"
+        },
+        "elemacy_close_color": {
+            "type": "color",
+            "default": "#ffffff"
+        },
+        "elemacy_close_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_font": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_close_hover_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_normal_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_offset": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 10,
+                "sizes": []
+            }
+        },
+        "elemacy_close_radius": {
+            "type": "slider",
+            "default": {
+                "unit": "%",
+                "size": 50,
+                "sizes": []
+            }
+        },
+        "elemacy_close_size": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 36,
+                "sizes": []
+            }
+        },
+        "elemacy_close_state_tabs": {
+            "type": "tabs",
+            "default": null
+        },
+        "elemacy_close_style_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_offset_x": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_offset_y": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_popup_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_position": {
+            "type": "select",
+            "default": "bottom"
+        },
+        "elemacy_position_custom_notice": {
+            "type": "alert",
+            "default": null
+        },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_width": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 720,
+                "sizes": []
+            }
+        },
+        "elemacy_z_index": {
+            "type": "number",
+            "default": 9970
+        }
+    },
+    "floating": {
+        "elemacy_animation_in": {
+            "type": "select",
+            "default": "fade"
+        },
+        "elemacy_animation_out": {
+            "type": "select",
+            "default": "fade"
+        },
+        "elemacy_auto_close": {
+            "type": "number",
+            "default": 0
+        },
+        "elemacy_close_active_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_bg": {
+            "type": "color",
+            "default": "rgba(0, 0, 0, 0.55)"
+        },
+        "elemacy_close_bg_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_bg_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_border": {
+            "type": "select",
+            "default": ""
+        },
+        "elemacy_close_border_color": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_border_width": {
+            "type": "dimensions",
+            "default": {
+                "unit": "px",
+                "top": "",
+                "right": "",
+                "bottom": "",
+                "left": "",
+                "isLinked": true
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow": {
+            "type": "box_shadow",
+            "default": {
+                "horizontal": 0,
+                "vertical": 0,
+                "blur": 10,
+                "spread": 0,
+                "color": "rgba(0,0,0,0.5)"
+            }
+        },
+        "elemacy_close_box_shadow_box_shadow_position": {
+            "type": "select",
+            "default": " "
+        },
+        "elemacy_close_box_shadow_box_shadow_type": {
+            "type": "popover_toggle",
+            "default": ""
+        },
+        "elemacy_close_button": {
+            "type": "switcher",
+            "default": ""
+        },
+        "elemacy_close_color": {
+            "type": "color",
+            "default": "#ffffff"
+        },
+        "elemacy_close_color_active": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_color_hover": {
+            "type": "color",
+            "default": ""
+        },
+        "elemacy_close_font": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_close_hover_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_normal_tab": {
+            "type": "tab",
+            "default": null
+        },
+        "elemacy_close_offset": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 10,
+                "sizes": []
+            }
+        },
+        "elemacy_close_radius": {
+            "type": "slider",
+            "default": {
+                "unit": "%",
+                "size": 50,
+                "sizes": []
+            }
+        },
+        "elemacy_close_size": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 36,
+                "sizes": []
+            }
+        },
+        "elemacy_close_state_tabs": {
+            "type": "tabs",
+            "default": null
+        },
+        "elemacy_close_style_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_offset_x": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_offset_y": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 0,
+                "sizes": []
+            }
+        },
+        "elemacy_popup_section": {
+            "type": "section",
+            "default": null
+        },
+        "elemacy_position": {
+            "type": "select",
+            "default": "bottom-right"
+        },
+        "elemacy_position_custom_notice": {
+            "type": "alert",
+            "default": null
+        },
+        "elemacy_screen_gap": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 20,
+                "sizes": []
+            }
+        },
+        "elemacy_width": {
+            "type": "slider",
+            "default": {
+                "unit": "px",
+                "size": 360,
+                "sizes": []
+            }
+        },
+        "elemacy_z_index": {
+            "type": "number",
+            "default": 9980
+        }
+    }
+}

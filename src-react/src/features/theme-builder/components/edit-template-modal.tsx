@@ -1,7 +1,7 @@
 import { __ } from "@wordpress/i18n";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { TemplateForm } from "./template-form";
-import { type Template, type UpdateTemplate } from "../schemas/template";
+import { isSettableStatus, type Template, type UpdateTemplate } from "../schemas/template";
 import { useUpdateTemplateMutation } from "../services/template";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
@@ -22,15 +22,20 @@ export function EditTemplateModal({
 
   if (!template) return null;
 
+  // A status set in Elementor (private, pending, scheduled) that the author
+  // left alone is not sent, so the server keeps it.
+  const save = ({ status, ...values }: UpdateTemplate) =>
+    updateTemplate({ id: template.id, ...values, ...(isSettableStatus(status) ? { status } : {}) });
+
   const onSubmit = async (values: UpdateTemplate) => {
-    const data = await updateTemplate({ id: template.id, ...values });
+    const data = await save(values);
     onSuccess?.(data);
     onOpenChange(false);
   };
 
   // Save the form first, then open the Elementor editor for this template.
   const onSaveAndEdit = async (values: UpdateTemplate) => {
-    const data = await updateTemplate({ id: template.id, ...values });
+    const data = await save(values);
     onSuccess?.(data);
     const editUrl = data?.edit_with_elementor || template.edit_with_elementor;
     if (editUrl) {
@@ -54,7 +59,7 @@ export function EditTemplateModal({
           </DialogDescription>
         </DialogHeader>
         <TemplateForm
-          defaultValues={template}
+          defaultValues={{ title: template.title, type: template.type, status: template.status, conditions: template.conditions ?? [] }}
           onSubmit={onSubmit}
           onSaveAndEdit={onSaveAndEdit}
           submitLabel={__("Update Template", "elemacy")}

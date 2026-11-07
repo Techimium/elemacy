@@ -7,11 +7,19 @@ defined('ABSPATH') || exit;
 use Elemacy\Core\Module;
 use Elemacy\Modules\DynamicTags\Services\TagManager;
 
+/**
+ * @internal
+ */
 class DynamicTags extends Module
 {
     public function get_name(): string
     {
         return 'dynamic-tags';
+    }
+
+    public function is_default_active(): bool
+    {
+        return true;
     }
 
     public function get_title(): string
@@ -34,8 +42,8 @@ class DynamicTags extends Module
         return true;
     }
 
-    public function init(): void
+    public function boot(): void
     {
-        TagManager::init();
+        (new TagManager())->register_hooks();
     }
 }
