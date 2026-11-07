@@ -27,6 +27,11 @@ class WidgetDTO extends DTO
     public $icon;
 
     /**
+     * @var string
+     */
+    public $description;
+
+    /**
      * @var bool
      */
     public $is_enabled;

@@ -112,6 +112,7 @@ class WidgetRegistry
             $dto->name = $widget['name'];
             $dto->title = $widget['title'];
             $dto->icon = $widget['icon'];
+            $dto->description = (string) ($widget['description'] ?? '');
             $dto->class = $widget['class'];
             $dto->is_enabled = $this->settings->is_enabled($widget['name']);
             $widgets[] = $dto;

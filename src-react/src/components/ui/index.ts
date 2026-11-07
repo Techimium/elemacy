@@ -12,3 +12,5 @@ export * from './sonner';
 export * from './switch';
 export * from './tabs';
 export { default as Topbar } from '../layout/topbar';
+export { default as Page } from '../layout/page';
+export { default as PageHeader } from '../layout/page-header';

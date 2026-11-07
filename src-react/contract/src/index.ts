@@ -5,3 +5,5 @@ export { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 export { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '../../src/components/ui/empty';
 export { Input } from '../../src/components/ui/input';
 export { default as Topbar } from '../../src/components/layout/topbar';
+export { default as Page } from '../../src/components/layout/page';
+export { default as PageHeader } from '../../src/components/layout/page-header';

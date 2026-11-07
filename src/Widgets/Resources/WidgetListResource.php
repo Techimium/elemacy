@@ -17,6 +17,7 @@ class WidgetListResource extends Resource
             'name' => $this->name,
             'title' => $this->title,
             'icon' => $this->icon,
+            'description' => $this->description,
             'is_enabled' => $this->is_enabled,
         ];
     }
