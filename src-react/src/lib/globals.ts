@@ -1,6 +1,10 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import * as ElemacyComponents from '@/components/ui'
+// The bridge exposes exactly the components the published contract declares
+// (contract/src/index.ts, the same file the Pro-facing .d.ts is built from), so
+// the runtime surface and the declared surface are one list. Adding a shared
+// component means exporting it there and bumping the contract version.
+import * as ElemacyComponents from '../../contract/src'
 import { toast } from 'sonner'
 import { registry } from '@/lib/registry'
 import { routeRegistry } from '@/lib/route-registry'

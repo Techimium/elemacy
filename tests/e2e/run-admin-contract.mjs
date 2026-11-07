@@ -55,7 +55,21 @@ try {
   }
   assert.ok(ready, 'Fixture server did not start');
   browser = await chromium.launch(process.env.ELEMACY_CHROMIUM ? { executablePath: process.env.ELEMACY_CHROMIUM } : {});
-  for (const scenario of ['ordinary', 'free-delayed', 'pro-delayed', 'unsupported']) {
+  // The components the published contract declares: the names exported by the contract entry,
+  // which is also what Free's bridge builds `components` from.
+  const declaredComponents = [...readFileSync(path.join(integration, '../../src-react/contract/src/index.ts'), 'utf8').matchAll(/export\s*\{([^}]*)\}/g)]
+    .flatMap(match => match[1].split(',').map(part => part.trim().split(/\s+as\s+/).pop()).filter(Boolean)).sort();
+  assert.ok(declaredComponents.length > 0, 'The contract entry must declare components');
+  // Scenarios that must stop Pro: each rewrites one value in the page's own HTML (the contract Free
+  // publishes, or what Pro's loader was told it needs). `pattern` must match, or the scenario would
+  // silently run unmodified.
+  const blockedScenarios = {
+    unsupported: { pattern: /"contract_version":"1\.0\.0"/g, replacement: () => '"contract_version":"99.0.0"' },
+    'older-contract': { pattern: /("requires":\{"contract":")[^"]*"/, replacement: (_match, head) => `${head}1.99.0"` },
+    'missing-component': { pattern: /("requires":\{"contract":"[^"]*","components":\[)/, replacement: (_match, head) => `${head}"NonexistentComponent",` },
+  };
+  for (const scenario of ['ordinary', 'free-delayed', 'pro-delayed', ...Object.keys(blockedScenarios)]) {
+    const blocked = blockedScenarios[scenario];
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await context.addCookies(fixture.cookies.map(cookie => ({ ...cookie, url: base.origin, httpOnly: true })));
     const page = await context.newPage();
@@ -68,26 +82,36 @@ try {
     // rather than silently run undelayed.
     const delayedScript = { 'free-delayed': '/assets/admin/js/admin.js', 'pro-delayed': '/assets/admin/js/elemacy-pro.js' }[scenario];
     let delayed = false;
+    let rewritten = false;
     await page.route('**/*', async route => {
       const url = route.request().url();
       if (delayedScript && new URL(url).pathname.endsWith(delayedScript)) {
         delayed = true;
         await delay(1500);
       }
-      if (scenario === 'unsupported' && route.request().isNavigationRequest()) {
+      if (blocked && route.request().isNavigationRequest()) {
         const response = await route.fetch();
-        return route.fulfill({ response, body: (await response.text()).replace(/"contract_version":"1\.0\.0"/g, '"contract_version":"99.0.0"') });
+        const html = await response.text();
+        if (blocked.pattern.test(html)) rewritten = true;
+        blocked.pattern.lastIndex = 0;
+        return route.fulfill({ response, body: html.replace(blocked.pattern, blocked.replacement) });
       }
       return route.continue();
     });
     await page.goto(new URL('/wp-admin/admin.php?page=elemacy', base).href, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => Boolean(window.ElemacyShared));
     if (delayedScript) assert.ok(delayed, `The ${scenario} scenario must actually delay ${delayedScript}`);
+    if (blocked) assert.ok(rewritten, `The ${scenario} scenario must actually rewrite the page it tests`);
+    // The runtime surface is exactly the declared contract: nothing more, nothing less.
+    assert.deepEqual(await page.evaluate(() => Object.keys(window.ElemacyShared.components).sort()), declaredComponents,
+      'window.ElemacyShared.components must equal the contract-declared components');
     const freeStyle = page.locator('#elemacy-admin-app-css');
     assert.equal(await freeStyle.count(), 1, 'Free stylesheet must remain loaded');
     assert.equal(await page.locator('#elemacy-pro-admin-css').count(), 1, 'Pro stylesheet must be additive');
-    if (scenario === 'unsupported') {
+    if (blocked) {
       await page.locator('.elemacy-pro-compatibility-notice').waitFor();
+      assert.equal(await page.locator('.elemacy-pro-compatibility-notice').count(), 1, 'One compatibility notice, not one per failed check');
+      assert.equal(await page.getByText('Pro features unlocked', { exact: true }).count(), 0, 'Pro must not have run');
       assert.equal(await page.locator('#elemacy-pro-app-js').getAttribute('type'), 'elemacy/deferred');
     } else {
       await page.getByText('Pro features unlocked', { exact: true }).waitFor();

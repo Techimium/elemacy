@@ -142,9 +142,11 @@ def runners(root):
                 ('static-browser', 'tests/e2e/run-elementor-lifecycle.mjs'),
                 ('native-browser', 'tests/e2e/run-*.mjs'),
                 ('logic', 'tests/php/run.php'),
+                ('logic', 'tests/js/run-*.mjs'),
                 ('architecture', 'tests/architecture/check.php'),
                 ('release', 'tests/release/*test.py'),
                 ('release', 'src-react/scripts/verify-*.py'),
+                ('release', 'src-react/scripts/verify-*.mjs'),
                 ('performance', 'tests/performance/*.php')]
     seen = set()
     for layer, pattern in patterns:

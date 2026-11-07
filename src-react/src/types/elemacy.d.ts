@@ -1,6 +1,6 @@
 import type * as React from 'react';
 import type * as ReactDOM from 'react-dom/client';
-import type * as ElemacyComponents from '../components/ui';
+import type * as ElemacyComponents from '../../contract/src';
 import type { toast } from 'sonner';
 import type { Module } from '@/schemas/module';
 

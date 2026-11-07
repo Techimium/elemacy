@@ -49,6 +49,10 @@
  *    assets/css; src/Config holds only the composition root; and each Pro
  *    extension folder names the Free area it extends, with a listed
  *    Pro<Area> entry point.
+ * 10. One admin contract version (docs/CONTRACTS.md § Admin and browser entry
+ *    points): `AdminScripts::CONTRACT_VERSION`, the version the admin bridge
+ *    publishes at runtime, equals the version of the declaration package Pro
+ *    builds against (src-react/contract/package.json).
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -564,6 +568,18 @@ if (isset($layout_roots['Pro'])) {
     }
 }
 
+// 10. One admin contract version: the runtime constant and the declaration package must agree.
+$admin_scripts = file_get_contents($plugin_root . 'src/Core/Admin/AdminScripts.php');
+$contract_package = json_decode((string) file_get_contents($plugin_root . 'src-react/contract/package.json'), true);
+$runtime_contract = preg_match("/const\\s+CONTRACT_VERSION\\s*=\\s*'([^']+)'/", (string) $admin_scripts, $contract_match) ? $contract_match[1] : null;
+$declared_contract = is_array($contract_package) ? ($contract_package['version'] ?? null) : null;
+
+if (null === $runtime_contract) {
+    $violations[] = '[admin contract] src/Core/Admin/AdminScripts.php has no CONTRACT_VERSION constant';
+} elseif ($runtime_contract !== $declared_contract) {
+    $violations[] = sprintf('[admin contract] AdminScripts::CONTRACT_VERSION is %s but src-react/contract/package.json declares %s; they change together, and only when the declared admin surface changes', $runtime_contract, var_export($declared_contract, true));
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -571,9 +587,9 @@ if ($violations) {
         fwrite(STDERR, '  - ' . $violation . "\n");
     }
 
-    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, version every REST route, tag every Free symbol @api or @internal with Pro using only @api ones, and put each file where docs/ARCHITECTURE.md § Where files go says. There is no allowlist.\n");
+    fwrite(STDERR, "\nMove shared code into a shared layer, reach another module through a contract or hook, go through src/Elementor for Elementor APIs, keep planning references in docs/, migrate stored values you rename, use the final public popup names, version every REST route, tag every Free symbol @api or @internal with Pro using only @api ones, put each file where docs/ARCHITECTURE.md § Where files go says, and change the admin contract version in AdminScripts.php and src-react/contract/package.json together. There is no allowlist.\n");
 
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor, PHP-extension-contract and layout rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor, PHP-extension-contract, layout and admin-contract-version rules all pass.\n";

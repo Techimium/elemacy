@@ -342,6 +342,22 @@ A released `@api` interface is never edited. A changed contract ships as a new i
 
 Free owns the admin mount `#elemacy_root` and the `window.ElemacyShared` bridge (contract version `AdminScripts::CONTRACT_VERSION`, the `elemacy:admin-ready` event). Popup bootstrap globals are `window.elemacyPopupsConfig` and Pro's `window.elemacyPopupsAnalyticsConfig`. Version these surfaces deliberately; never rename them for tidiness.
 
+### Admin contract version
+
+`AdminScripts::CONTRACT_VERSION` (published to the browser as `window.elemacy.contract_version`) versions the admin bridge Pro plugs into. It is independent of the plugin release version and changes only when the declared surface changes, so Free can ship many releases without Pro needing an update. `src-react/contract/package.json` carries the same number for the declaration package Pro builds against; `tests/architecture/check.php` fails if the two differ.
+
+| Change to the declared surface | Bump |
+| --- | --- |
+| None (bug fix, new Free feature, internal refactor) | Nothing |
+| Additive: a new shared component or bridge field, a new capability | Minor (`1.0.0` to `1.1.0`) |
+| Removed or altered: a component or field removed, renamed or its props changed incompatibly | Major (`1.x` to `2.0.0`) |
+
+The declared surface is exactly `src-react/contract/src/index.ts`: the bridge's runtime `components` is built from that file, so nothing outside it is reachable by Pro. Patch is never part of compatibility; it is ignored by Pro's loader.
+
+Pro states what it needs in `elemacy-pro/assets/admin/contract-requirements.json`: a minimum contract version and the shared components it renders. Its loader runs Pro only when Free's contract has the same major, a minor at least the minimum, and every named component present; otherwise Free stays usable and the administrator sees a compatibility notice.
+
+To add a shared component: export it from `src-react/contract/src/index.ts`; raise `CONTRACT_VERSION` and `contract/package.json` by one minor, together; run `npm run build:contract` and pack the result into Pro's `src-react/contracts/` (see its README); in Pro, install the new tarball, and raise `contract-requirements.json` to the new minor and list the component. Pro's build refuses a component that is not listed, and a minimum above the installed declaration.
+
 Pro's license policy (`P/CONTRIBUTING.md`, `Core/License/LicenseManager.php`) is a contract: the license entitles a site to updates and support only, every Pro capability registers whenever Pro is active, and revalidation transport failures keep the cached state (see `P/DEVELOPER.md`).
 
 ## Public hook inventory
