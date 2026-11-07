@@ -63,7 +63,11 @@ rm -rf /tmp/elemacy-integration-<token>
 ```bash
 cd src-react && npm ci && npm run build      # F and P
 cd src-react && npm run lint                 # F
+node tests/js/run-loader.mjs                  # P (loader compatibility rules, from Pro's root)
+node src-react/scripts/verify-contract-pin.mjs --free ../elemacy   # P, after `npm run build:contract` in Free's src-react
 ```
+
+Pro's build also fails when `assets/admin/contract-requirements.json` does not list a component Pro imports, or asks for a contract above the declaration package it builds against.
 
 Pro's `assets/admin/admin-bundle-report.json` must list zero React modules. With both bundles built and the disposable site provisioned with `--with-pro`, run the admin contract suite:
 
@@ -166,12 +170,13 @@ Each profile ran on a fresh disposable site (`tests/integration/setup.py --priva
 | Plugin Check on `build/elemacy-1.0.0.zip` | 0 errors, 99 warnings, all accepted in section 7; report at `build/plugin-check.txt` |
 | Installed archive pair (both ZIPs installed, Pro + ACF Pro) | admin contract 7, popup assets 13, loop pagination 11, form submissions 35 |
 | Storage-contract follow-up (Free `uninstall.php` only) | uninstall fixtures pass on fresh sites: single site `free`, `free-retain`, `pro`, `pro-retain` (free + Pro) and `free`, `free-retain` (free-only); 105-site network `free-retain`, `pro-retain` and opted-in removal with injected failure and retry; the new `free-retain` assertions fail against the previous `uninstall.php`. Free archive rebuilt, `verify-package.py` and Plugin Check rerun (the 4 new warnings are `DirectDatabaseQuery` in `uninstall.php`). No other shipped file changed and Pro's archive is unchanged, so the other rows stand. |
+| Admin contract hardening (minimum contract version and named components checked by Pro's loader; bridge components equal the declared contract; version and pin checks) | Free `a83c829`, Pro `0a8a582`. Free: type check and build, lint, architecture check (new admin-contract-version rule fails on a planted mismatch), PHPCS (the only findings are in files this change does not touch), 494/494 fast tests, coverage checker. Pro: PHPCS clean, 90/90 fast tests, loader unit test 29/29 (each rule removal fails a case), requirements check and Vite build (fails on a planted undeclared import), `verify-contract-pin.mjs` passes on the real pair and fails on an altered declaration or version. Integration suite on the source tree: 563 tests, 4645 assertions, 44 skips (ACF Pro 6, Elementor Pro 3, real themes not provisioned 35). Admin contract runner on the source tree and on both installed archives: all 6 scenarios pass, including `older-contract` and `missing-component`, which fail against the previous loader. Installed-archive integration run: 563 tests, the only differences from the source run are 4 ACF skips and 1 incomplete because that site was provisioned without ACF. Both archives rebuilt from clean committed trees and `verify-package.py` passes: F 585 files, P 99 files (the requirements file is new; the build report is not shipped). Plugin Check and the native Playwright journeys were not rerun for this change; the admin screens the journeys drive are unchanged apart from the bridge's component list, which Free's own screens never read. |
 
 Archive checksums (`build/*.sha256`, produced by the package job):
 
 ```
-4971b2690446173a9f60e506f0464df0fc5897d54c47daf9d6a58a234bb4511f  elemacy-1.0.0.zip
-a6ea040dc4440e9d1ed19c47e9b1603389a2904958b8e7da4cff04dd123b7438  elemacy-pro-1.0.0.zip
+e473fd2ec56673d243a833c1908c2cca6a537f0a6b14b782f952cf8bce8a1f21  elemacy-1.0.0.zip
+eda3e71fc293d7e83941e5c88dee20d0cf04f172903ada26099035688ea13079  elemacy-pro-1.0.0.zip
 ```
 
 The build is reproducible (fixed timestamps, sorted entries written one at a time, no commit hash in the Composer metadata), and `build/`, `docs/`, `.github/` and tests are not shipped, so these checksums hold for the branch head. Rebuild with `npm run build:zip` from `src-react/` and compare; a different checksum means a shipped file changed after the hand-off and the gate must run again.
