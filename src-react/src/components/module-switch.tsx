@@ -18,7 +18,7 @@ export default function ModuleSwitch({ isEnabled, name }: ModuleSwitchProps) {
     <div className="flex">
       <Switch
         id={id}
-        defaultChecked={isEnabled}
+        checked={!!isEnabled}
         onCheckedChange={(value) => toggleModule({ isEnabled: value, name })}
       />
       <Label htmlFor={id} className="sr-only">

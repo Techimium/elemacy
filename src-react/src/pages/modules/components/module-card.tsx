@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import DynamicIcon from "@/components/dynamic-icon";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router";
+import { cn } from "@/lib/utils";
 
 interface ModuleCardProps {
     module: Module;
@@ -15,13 +16,20 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module }: ModuleCardProps) {
     const navigate = useNavigate();
+    // Placeholder (Pro upsell) cards have no switch, so they keep the active look.
+    const isActive = module.is_placeholder || module.is_active;
 
     return (
         <Card className="flex flex-col gap-6 transition-all hover:shadow-md border border-gray-100/60 bg-white/70 backdrop-blur-sm">
             <div className="flex flex-col items-start gap-4">
                 <CardHeader>
                     <div className="flex items-center gap-2">
-                        <div className="inline-flex p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+                        <div
+                            className={cn(
+                                "inline-flex p-3 rounded-xl shrink-0 transition-colors",
+                                isActive ? "bg-indigo-50 text-indigo-600" : "bg-gray-200 text-gray-500"
+                            )}
+                        >
                             <DynamicIcon name={module.icon} className="w-6 h-6" />
                         </div>
                         {module.badge &&
