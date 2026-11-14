@@ -6,6 +6,8 @@ use Elemacy\Loop\Contracts\LoopDataSourceInterface;
 use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Elementor\Documents\PreviewablePageBase;
+use Elemacy\Modules\LoopBuilder\PostCard\PostCardDefinition;
+use Elemacy\Tests\Integration\Fixtures\EditorControls;
 use Elemacy\Widgets\BaseWidget;
 use Elemacy\Loop\Contracts\LoopItemInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
@@ -15,14 +17,16 @@ use Elementor\Controls_Manager;
 use Elementor\Plugin;
 
 require_once __DIR__ . '/IntegrationTestCase.php';
+require_once __DIR__ . '/fixtures/EditorControls.php';
 
 /**
- * Loop Grid, Loop Carousel and the Loop Item document save their settings
+ * Loop Grid, Loop Carousel, Post Grid, Post Carousel and the Loop Item document save their settings
  * through Elementor, which stores nothing for a control left at its default
  * and silently drops a second control registered under an existing name. So a
  * renamed or removed loop control, a changed default or a name clash would
  * silently change every saved site. This pins every value-holding loop
- * control (CONTRACTS.md: "Released defaults are frozen too"), grouped by the
+ * control, and the fields of every card row, whose defaults decide what a saved
+ * row means (CONTRACTS.md: "Released defaults are frozen too"), grouped by the
  * plugin whose data source registers it: a control conditioned on a Pro
  * source's `data_source` / `preview_data_source` is `pro`, every other one is
  * `free`.
@@ -33,6 +37,9 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
 
     /** The Loop Item document's own loop controls; the rest of that stack is Elementor's or another module's. */
     private const PREVIEW_SECTION = 'elemacy_preview_section';
+
+    /** Row fields whose choices are the site's own image sizes and taxonomies, so they are not pinned. */
+    private const SITE_CHOICES = ['image_size', 'terms_taxonomy'];
 
     /**
      * Changing a pinned control needs a migration that writes the old value
@@ -54,19 +61,92 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
 
         self::assertFileExists(self::FROZEN, 'The frozen loop controls fixture is missing.');
         $frozen = json_decode((string) file_get_contents(self::FROZEN), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame([], $this->differences($current, $frozen));
+    }
+
+    /**
+     * A card row's fields are pinned with the card_parts control: Elementor
+     * stores no row value equal to its field's default, so a renamed, removed
+     * or re-defaulted row field changes what every saved row means.
+     */
+    public function testAChangedCardRowFieldIsCaught(): void
+    {
+        $current = $this->current_controls();
+        $frozen = json_decode((string) file_get_contents(self::FROZEN), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame([], $this->differences($current, $frozen), 'The comparison must start clean.');
+        self::assertSame('title', $current['free']['elemacy-post-grid'][PostCardDefinition::PARTS]['fields']['part']['default']);
+        self::assertSame(PostCardDefinition::DEFAULT_PART, $current['free']['elemacy-post-grid'][PostCardDefinition::PARTS]['fields']['part']['default']);
+
+        foreach (['elemacy-post-grid', 'elemacy-post-carousel'] as $widget) {
+            $edit = static function (callable $change) use ($current, $widget): array {
+                $changed = $current;
+                $change($changed['free'][$widget][PostCardDefinition::PARTS]['fields']);
+
+                return $changed;
+            };
+
+            $renamed = $edit(static function (array &$fields): void {
+                $fields['title_tag_renamed'] = $fields['title_tag'];
+                unset($fields['title_tag']);
+            });
+            $removed = $edit(static function (array &$fields): void {
+                unset($fields['title_link']);
+            });
+            $added = $edit(static function (array &$fields): void {
+                $fields['title_unpinned'] = ['type' => 'text', 'default' => ''];
+            });
+            $redefaulted = $edit(static function (array &$fields): void {
+                $fields['title_tag']['default'] = 'h2';
+            });
+            $reordered = $edit(static function (array &$fields): void {
+                $fields['zone']['options'] = array_reverse($fields['zone']['options']);
+            });
+            $other_part = $edit(static function (array &$fields): void {
+                $fields['part']['default'] = 'image';
+            });
+            $new_option = $edit(static function (array &$fields): void {
+                $fields['part']['options'][] = 'divider';
+            });
+
+            foreach (['renamed' => $renamed, 'removed' => $removed, 'added' => $added, 'default changed' => $redefaulted, 'options reordered' => $reordered, 'part default' => $other_part, 'option added' => $new_option] as $what => $changed) {
+                self::assertNotSame([], $this->differences($changed, $frozen), "$widget: a row field $what must be caught.");
+            }
+        }
+    }
+
+    /**
+     * @param array $current Controls as registered now.
+     * @param array $frozen  Controls as pinned in the fixture.
+     * @return string[] What differs, one sentence each.
+     */
+    private function differences(array $current, array $frozen): array
+    {
         $export = static function ($value): string {
             return (string) wp_json_encode($value);
         };
+        $problems = [];
 
         foreach ($current as $owner => $stacks) {
             foreach ($stacks as $stack => $controls) {
                 foreach ($controls as $name => $control) {
-                    self::assertArrayHasKey($name, $frozen[$owner][$stack] ?? [], "$owner/$stack: control \"$name\" (default " . $export($control['default']) . ') is not pinned. Add it to loop-control-defaults.json (see this test\'s docblock).');
-                    self::assertSame(
-                        $export($frozen[$owner][$stack][$name]),
-                        $export($control),
-                        "$owner/$stack: control \"$name\" changed from " . $export($frozen[$owner][$stack][$name]) . ' to ' . $export($control) . '. Saved widgets rely on it: ship a migration, or restore it.'
-                    );
+                    if (!array_key_exists($name, $frozen[$owner][$stack] ?? [])) {
+                        $problems[] = "$owner/$stack: control \"$name\" (default " . $export($control['default']) . ') is not pinned. Add it to loop-control-defaults.json (see this test\'s docblock).';
+                        continue;
+                    }
+                    foreach (array_keys($control['fields'] ?? []) as $field) {
+                        if (!array_key_exists($field, $frozen[$owner][$stack][$name]['fields'] ?? [])) {
+                            $problems[] = "$owner/$stack: row field \"$field\" of \"$name\" is not pinned.";
+                        }
+                    }
+                    foreach (array_keys($frozen[$owner][$stack][$name]['fields'] ?? []) as $field) {
+                        if (!array_key_exists($field, $control['fields'] ?? [])) {
+                            $problems[] = "$owner/$stack: pinned row field \"$field\" of \"$name\" is no longer registered; saved rows still hold it.";
+                        }
+                    }
+                    if ($export($frozen[$owner][$stack][$name]) !== $export($control)) {
+                        $problems[] = "$owner/$stack: control \"$name\" changed from " . $export($frozen[$owner][$stack][$name]) . ' to ' . $export($control) . '. Saved widgets rely on it: ship a migration, or restore it.';
+                    }
                 }
             }
         }
@@ -79,10 +159,14 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
             }
             foreach ($stacks as $stack => $controls) {
                 foreach (array_keys($controls) as $name) {
-                    self::assertArrayHasKey($name, $current[$owner][$stack] ?? [], "$owner/$stack: pinned control \"$name\" is no longer registered; saved widgets still hold it.");
+                    if (!array_key_exists($name, $current[$owner][$stack] ?? [])) {
+                        $problems[] = "$owner/$stack: pinned control \"$name\" is no longer registered; saved widgets still hold it.";
+                    }
                 }
             }
         }
+
+        return $problems;
     }
 
     public function testNoTwoRegistrationsClaimTheSameControlName(): void
@@ -142,6 +226,16 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
      * defaults filled in. Every source with a public policy must therefore
      * reach the same public settings from both.
      */
+    public function testEachLoopWidgetKeepsItsOwnPostsCountLabel(): void
+    {
+        $widgets = Plugin::instance()->widgets_manager;
+
+        self::assertSame('Posts Per Page', $widgets->get_widget_types('elemacy-loop-grid')->items_count_label());
+        self::assertSame('Posts Count', $widgets->get_widget_types('elemacy-loop-carousel')->items_count_label());
+        self::assertSame('Posts Per Page', $widgets->get_widget_types('elemacy-post-grid')->items_count_label());
+        self::assertSame('Posts to Show', $widgets->get_widget_types('elemacy-post-carousel')->items_count_label());
+    }
+
     public function testEverySourceResolvesTheSamePublicSettingsWithOrWithoutItsDefaults(): void
     {
         $post = wp_insert_post(['post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Default parity'], true);
@@ -162,7 +256,7 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
                 $defaults = [];
                 foreach ($grid as $name => $control) {
                     $for = $control['condition']['data_source'] ?? null;
-                    if ((null === $for || $key === $for) && array_key_exists('default', $control)
+                    if ((null === $for || in_array($key, (array) $for, true)) && array_key_exists('default', $control)
                         && Plugin::instance()->controls_manager->get_control($control['type'] ?? '') instanceof Base_Data_Control) {
                         $defaults[$name] = $control['default'];
                     }
@@ -180,6 +274,8 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
                 $checked[] = $key;
             }
             self::assertContains('posts', $checked);
+            self::assertContains('manual_posts', $checked);
+            self::assertContains('related_posts', $checked);
             self::assertContains('terms', $checked);
             self::assertContains('users', $checked);
         } finally {
@@ -245,6 +341,9 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
                 $source = $control['condition']['data_source'] ?? $control['condition']['preview_data_source'] ?? null;
                 $owner = in_array($source, $pro_sources, true) ? 'pro' : 'free';
                 $current[$owner][$stack][$name] = ['type' => (string) $control['type'], 'default' => $control['default'] ?? null];
+                if (PostCardDefinition::PARTS === $name) {
+                    $current[$owner][$stack][$name]['fields'] = $this->card_row_fields($stack);
+                }
             }
         }
         foreach ($current as &$stacks) {
@@ -255,6 +354,33 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
         }
 
         return $current;
+    }
+
+    /**
+     * Each value-holding field of a card row: its type and default, and the
+     * keys of the choices it offers, except where the site decides them or
+     * Elementor's own group controls do. Read as the editor sees them, because
+     * Elementor drops options outside it.
+     *
+     * @return array<string, array{type: string, default: mixed, options?: array}>
+     */
+    private function card_row_fields(string $widget): array
+    {
+        $fields = EditorControls::of(Plugin::instance()->widgets_manager->get_widget_types($widget))[PostCardDefinition::PARTS]['fields'] ?? [];
+        $pinned = [];
+
+        foreach ($fields as $name => $field) {
+            if (!Plugin::instance()->controls_manager->get_control($field['type'] ?? '') instanceof Base_Data_Control) {
+                continue;
+            }
+            $pinned[$name] = ['type' => (string) $field['type'], 'default' => $field['default'] ?? null];
+            if (isset($field['options']) && is_array($field['options']) && !isset($field['groupType']) && !in_array($name, self::SITE_CHOICES, true)) {
+                $pinned[$name]['options'] = array_keys($field['options']);
+            }
+        }
+        ksort($pinned);
+
+        return $pinned;
     }
 
     /** @return string[] Control names Elementor refused as already registered while the loop stacks were rebuilt. */
@@ -290,7 +416,7 @@ final class LoopControlDefaultsTest extends IntegrationTestCase
     {
         $manager = Plugin::instance()->controls_manager;
         $elements = [];
-        foreach (['elemacy-loop-grid', 'elemacy-loop-carousel'] as $name) {
+        foreach (['elemacy-loop-grid', 'elemacy-loop-carousel', 'elemacy-post-grid', 'elemacy-post-carousel'] as $name) {
             $elements[$name] = Plugin::instance()->widgets_manager->get_widget_types($name);
             self::assertNotNull($elements[$name], "$name must be registered.");
         }

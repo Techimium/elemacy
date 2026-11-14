@@ -58,8 +58,7 @@ class UsersQuery
             $args['number'] = $number;
 
             if (!empty($settings['pagination_type'])) {
-                $paged = $settings['paged']
-                    ?? (get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1));
+                $paged = $settings['paged'] ?? 1;
                 $args['offset'] = ((int) $paged - 1) * $number;
             }
         }

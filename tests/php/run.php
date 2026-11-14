@@ -5635,9 +5635,9 @@ check('Modules\DynamicTags\Services\{Taxonomy,User} source files import no concr
 check('LoopGrid.php/LoopCarousel.php (and their shared LoopWidget.php) obtain every loop collaborator from the shared Loop layer: no Widgets-module Services/Contracts/Support/DTO loop import remains', static function () {
     $dir = dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/';
     $required = [
-        'LoopGrid/LoopGrid.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
-        'LoopCarousel/LoopCarousel.php' => ['use Elemacy\\Loop\\Rendering\\LoopRenderer;'],
-        'LoopWidget.php' => ['use Elemacy\\Loop\\Contracts\\LoopDataSourceInterface;'],
+        'LoopGrid/LoopGrid.php' => ['use Elemacy\\Loop\\Rendering\\TemplateItemPresenter;'],
+        'LoopCarousel/LoopCarousel.php' => ['use Elemacy\\Loop\\Rendering\\TemplateItemPresenter;'],
+        'LoopWidget.php' => ['use Elemacy\\Loop\\Contracts\\LoopDataSourceInterface;', 'use Elemacy\\Loop\\Rendering\\ItemPlacement;'],
     ];
 
     foreach ($required as $file => $imports) {
@@ -5657,17 +5657,16 @@ check('LoopGrid.php/LoopCarousel.php (and their shared LoopWidget.php) obtain ev
     return true;
 });
 
-check('LoopGrid.php/LoopCarousel.php/AjaxPaginationController.php delegate per-item rendering to Loop\\Rendering\\LoopRenderer, not an inline render loop', static function () {
+check('LoopWidget.php/AjaxPaginationController.php delegate per-item rendering to their item presenter, not an inline render loop', static function () {
     $files = [
-        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php',
-        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopCarousel/LoopCarousel.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopWidget.php',
         dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Controllers/AjaxPaginationController.php',
     ];
 
     foreach ($files as $file) {
         $source = file_get_contents($file);
 
-        if (false === strpos($source, 'use Elemacy\\Loop\\Rendering\\LoopRenderer;')
+        if (false === strpos($source, 'use Elemacy\\Loop\\Rendering\\ItemPlacement;')
             || false === strpos($source, '->render_item(')
             || false !== strpos($source, 'get_builder_content_for_display')) {
             return false;
@@ -5677,7 +5676,42 @@ check('LoopGrid.php/LoopCarousel.php/AjaxPaginationController.php delegate per-i
     return true;
 });
 
-check('LoopGrid.php no longer defines render_pagination_html(); LoopGrid.php/AjaxPaginationController.php both delegate to Loop\\Pagination\\PaginationRenderer', static function () {
+final class RegistryFixturePresenter implements \Elemacy\Loop\Contracts\ItemPresenterInterface
+{
+    public function assert_public(array $settings): void
+    {
+    }
+
+    public function describe_unavailable(array $settings): ?string
+    {
+        return null;
+    }
+
+    public function render_item(\Elemacy\Loop\Contracts\LoopItemInterface $item, array $settings, \Elemacy\Loop\Rendering\ItemPlacement $placement): bool
+    {
+        return true;
+    }
+}
+
+check('ItemPresenterRegistry resolves a registered widget type to its presenter and returns null for any other', static function () {
+    $registry = new \ReflectionClass(\Elemacy\Loop\Rendering\ItemPresenterRegistry::class);
+    $instance = $registry->newInstanceWithoutConstructor();
+    $instance->register('fixture-widget', RegistryFixturePresenter::class);
+
+    return $instance->for_widget('fixture-widget') instanceof RegistryFixturePresenter
+        && null === $instance->for_widget('another-widget')
+        && null === $instance->for_widget('');
+});
+
+check('A registered class that is not a presenter is never handed to the loop engine', static function () {
+    $registry = new \ReflectionClass(\Elemacy\Loop\Rendering\ItemPresenterRegistry::class);
+    $instance = $registry->newInstanceWithoutConstructor();
+    $instance->register('fixture-widget', \stdClass::class);
+
+    return null === $instance->for_widget('fixture-widget');
+});
+
+check('LoopGrid.php no longer defines render_pagination_html(); LoopWidget.php/AjaxPaginationController.php both delegate to Loop\\Pagination\\PaginationRenderer', static function () {
     $loop_grid = file_get_contents(dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php');
 
     if (false !== strpos($loop_grid, 'function render_pagination_html')) {
@@ -5685,7 +5719,7 @@ check('LoopGrid.php no longer defines render_pagination_html(); LoopGrid.php/Aja
     }
 
     foreach ([
-        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php',
+        dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Widgets/LoopWidget.php',
         dirname(__DIR__, 2) . '/src/Modules/LoopBuilder/Controllers/AjaxPaginationController.php',
     ] as $file) {
         $source = file_get_contents($file);
@@ -6644,5 +6678,7 @@ require __DIR__ . '/popup-markup.php';
 require __DIR__ . '/forms.php';
 require __DIR__ . '/nested-loops.php';
 require __DIR__ . '/widget-platform.php';
+require __DIR__ . '/post-widgets.php';
+require __DIR__ . '/loop-page-argument.php';
 
 conclude();

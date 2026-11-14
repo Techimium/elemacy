@@ -243,7 +243,7 @@ check('the served location template gives the page its elementor-page body class
 if (!function_exists('get_the_title')) {
     function get_the_title($post = 0)
     {
-        return 'Template #' . (int) $post;
+        return $post instanceof WP_Post ? $post->post_title : 'Template #' . (int) $post;
     }
 }
 

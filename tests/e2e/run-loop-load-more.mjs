@@ -276,7 +276,7 @@ const scenarios = {
     const page = await context.newPage();
     await page.goto(fixture.load_more_url, { waitUntil: 'load' });
     const href = await page.locator(NEXT).first().getAttribute('href');
-    assert.match(href, /paged=2|\/page\/2\//);
+    assert.match(href, /[?&]page=2\b|\/2\/?$/, 'The link is the page\'s own paged page-2 URL.');
     await page.locator(NEXT).first().click();
     await page.waitForLoadState('load');
     assert.deepEqual(await itemIds(page), fixture.post_ids.slice(2, 4), 'Following the link shows the next page.');

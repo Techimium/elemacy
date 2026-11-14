@@ -5,6 +5,7 @@ namespace Elemacy\Loop\Access;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Contracts\ItemPresenterInterface;
 use Elemacy\Loop\Contracts\PageUrlPaginatedSourceInterface;
 use Elemacy\Loop\Contracts\PublicLoopSourcePolicyInterface;
 use Elemacy\Loop\DTO\LoopResultDTO;
@@ -70,27 +71,6 @@ final class PublicRenderPolicy
     }
 
     /**
-     * @param int $id Referenced loop template ID.
-     * @return WP_Post
-     * @throws ValidationException If the template cannot render publicly.
-     */
-    public function assert_template(int $id): WP_Post
-    {
-        $template = $this->public_post($id);
-        $loop_type = $this->types->get('loop');
-        if (
-            !$loop_type || 'block' !== $loop_type->group
-            || LibraryPostType::POST_TYPE !== $template->post_type
-            || 'loop' !== get_post_meta($id, MetaKeys::TEMPLATE_TYPE, true)
-            || 'elemacy_loop' !== get_post_meta($id, '_elementor_template_type', true)
-            || 'builder' !== get_post_meta($id, '_elementor_edit_mode', true)
-        ) {
-            throw self::unavailable();
-        }
-        return $template;
-    }
-
-    /**
      * @param string $key Saved source identifier.
      * @return LoopDataSourceInterface Available source with a public policy.
      * @throws ValidationException If missing or lacking a safe public capability.
@@ -143,21 +123,21 @@ final class PublicRenderPolicy
 
     /**
      * The public-facing equivalent of a source's own items query for a
-     * Grid/Carousel widget's own classic, non-AJAX render: applies the
-     * identical template and source eligibility policy the AJAX endpoint
-     * enforces, so a rejected private template/source cannot appear on the
-     * first page load either.
+     * widget's own classic, non-AJAX render: applies the identical presenter
+     * and source eligibility policy the AJAX endpoint enforces, so a rejected
+     * private template/source cannot appear on the first page load either.
      *
-     * @param array $settings Raw author settings (get_settings_for_display()).
-     * @param int   $owner_id The document currently rendering this widget.
-     * @param int   $page     The page of the loop to render: 1 unless the
-     *                        visitor opened a later paginated URL of a paginated loop.
+     * @param ItemPresenterInterface $presenter What this widget renders its items with.
+     * @param array                  $settings  Raw author settings (get_settings_for_display()).
+     * @param int                    $owner_id  The document currently rendering this widget.
+     * @param int                    $page      The page of the loop to render: 1 unless the
+     *                                          visitor opened a later paginated URL of a paginated loop.
      * @return LoopResultDTO
-     * @throws ValidationException If the template or referenced source context is unavailable.
+     * @throws ValidationException If the presenter or referenced source context is unavailable.
      */
-    public function eligible_items(array $settings, int $owner_id, int $page = 1): LoopResultDTO
+    public function eligible_items(ItemPresenterInterface $presenter, array $settings, int $owner_id, int $page = 1): LoopResultDTO
     {
-        $this->assert_template((int) ($settings['template_id'] ?? 0));
+        $presenter->assert_public($settings);
         $source = $this->source((string) ($settings['data_source'] ?? 'posts'));
         $placement = $this->placements->resolve_current($owner_id);
         $item_settings = $this->settings($source, $settings, $placement['facts'] ?? [], $page);
@@ -170,28 +150,16 @@ final class PublicRenderPolicy
      * $settings. Only ever shown to a user who can edit the owning document;
      * visitors get nothing.
      *
-     * @param array $settings Raw author settings.
+     * @param ItemPresenterInterface $presenter What this widget renders its items with.
+     * @param array                  $settings  Raw author settings.
      * @return string
      */
-    public function describe_ineligibility(array $settings): string
+    public function describe_ineligibility(ItemPresenterInterface $presenter, array $settings): string
     {
-        $template = get_post((int) ($settings['template_id'] ?? 0));
+        $reason = $presenter->describe_unavailable($settings);
 
-        if (!$template instanceof WP_Post) {
-            return __('The selected Loop Item template no longer exists.', 'elemacy');
-        }
-        if ('publish' !== $template->post_status) {
-            /* translators: %s: template title */
-            return sprintf(__('The Loop Item template "%s" is not published, so visitors cannot see this loop.', 'elemacy'), $template->post_title);
-        }
-        if (post_password_required($template)) {
-            return __('The Loop Item template is password protected, so visitors cannot see this loop.', 'elemacy');
-        }
-
-        try {
-            $this->assert_template($template->ID);
-        } catch (ValidationException $error) {
-            return __('The selected template is not a Loop Item template.', 'elemacy');
+        if (null !== $reason) {
+            return $reason;
         }
 
         $key = (string) ($settings['data_source'] ?? 'posts');
@@ -214,7 +182,7 @@ final class PublicRenderPolicy
      * @return WP_Post
      * @throws ValidationException If the document is not public/native-accessible.
      */
-    private function public_post(int $id): WP_Post
+    public function public_post(int $id): WP_Post
     {
         $post = $id > 0 ? get_post($id) : null;
         if (!$post instanceof WP_Post || 'publish' !== $post->post_status || post_password_required($post)) {

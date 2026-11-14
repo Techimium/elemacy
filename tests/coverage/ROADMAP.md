@@ -39,7 +39,9 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `form-field:time` | real | Elementor Free | pending |
 | `form-field:url` | real | Elementor Free | pending |
 | `loop-source:current_query` | real | Elementor Free | pending |
+| `loop-source:manual_posts` | real | Elementor Free | pending |
 | `loop-source:posts` | real | Elementor Free | pending |
+| `loop-source:related_posts` | real | Elementor Free | pending |
 | `loop-source:terms` | real | Elementor Free | pending |
 | `loop-source:users` | real | Elementor Free | pending |
 | `module:custom-css` | real | Elementor Free | pending |
@@ -135,6 +137,8 @@ Taxonomy identifiers with `{taxonomy}` represent a family; native tests must exe
 | `widget:elemacy-loop-carousel` | real | Elementor Free | pending |
 | `widget:elemacy-loop-grid` | real | Elementor Free | pending |
 | `widget:elemacy-nav-menu` | real | Elementor Free | implemented |
+| `widget:elemacy-post-carousel` | real | Elementor Free | pending |
+| `widget:elemacy-post-grid` | real | Elementor Free | pending |
 | `widget:elemacy-search` | real | Elementor Free | pending |
 | `widget:elemacy-site-logo` | real | Elementor Free | pending |
 
@@ -160,6 +164,7 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:runner:run-nav-menu` | native-browser | `tests/e2e/run-nav-menu.mjs` |
 | `elemacy:runner:run-nested-repeater-load-more` | native-browser | `tests/e2e/run-nested-repeater-load-more.mjs` |
 | `elemacy:runner:run-popup-assets` | native-browser | `tests/e2e/run-popup-assets.mjs` |
+| `elemacy:runner:run-post-widgets` | native-browser | `tests/e2e/run-post-widgets.mjs` |
 | `elemacy:runner:run-topbar-prerender` | native-browser | `tests/e2e/run-topbar-prerender.mjs` |
 | `elemacy:runner:run` | logic | `tests/php/run.php` |
 | `elemacy:runner:check` | architecture | `tests/architecture/check.php` |
@@ -235,5 +240,9 @@ Runner presence does not imply a successful run or complete feature coverage.
 | `elemacy:integration:dynamic-tags-registration` | native-integration | `tests/integration/dynamic-tags-registration.php` |
 | `elemacy:integration:post-excerpt-tag` | native-integration | `tests/integration/post-excerpt-tag.php` |
 | `elemacy:integration:php-extension-contract` | native-integration | `tests/integration/php-extension-contract.php` |
+| `elemacy:integration:posts-source-filters` | native-integration | `tests/integration/posts-source-filters.php` |
+| `elemacy:integration:posts-manual-related-sources` | native-integration | `tests/integration/posts-manual-related-sources.php` |
+| `elemacy:integration:post-card` | native-integration | `tests/integration/post-card.php` |
+| `elemacy:integration:post-widgets` | native-integration | `tests/integration/post-widgets.php` |
 | `elemacy:lifecycle:uninstall-current-site` | native-integration | `tests/integration/fixtures/uninstall-current-site.php` |
 | `elemacy:lifecycle:uninstall-network` | native-integration | `tests/integration/fixtures/uninstall-network.php` |

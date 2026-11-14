@@ -19,7 +19,7 @@ final class ModuleFeatureAvailabilityTest extends IntegrationTestCase
     {
         $result = $this->request(self::ALL);
 
-        foreach (['elemacy-site-logo', 'elemacy-nav-menu', 'elemacy-search', 'elemacy-loop-grid', 'elemacy-loop-carousel', 'elemacy-form'] as $widget) {
+        foreach (['elemacy-site-logo', 'elemacy-nav-menu', 'elemacy-search', 'elemacy-loop-grid', 'elemacy-loop-carousel', 'elemacy-post-grid', 'elemacy-post-carousel', 'elemacy-form'] as $widget) {
             self::assertContains($widget, $result['registered'], "$widget must be offered in the editor.");
             self::assertTrue($result['listed'][$widget] ?? null, "$widget must be listed and switched on.");
         }
@@ -37,7 +37,7 @@ final class ModuleFeatureAvailabilityTest extends IntegrationTestCase
         foreach (['elemacy-site-logo', 'elemacy-nav-menu', 'elemacy-search'] as $widget) {
             self::assertContains($widget, $result['registered'], "The platform widget $widget does not depend on any module.");
         }
-        foreach (['elemacy-loop-grid', 'elemacy-loop-carousel', 'elemacy-form'] as $widget) {
+        foreach (['elemacy-loop-grid', 'elemacy-loop-carousel', 'elemacy-post-grid', 'elemacy-post-carousel', 'elemacy-form'] as $widget) {
             self::assertNotContains($widget, $result['registered']);
             self::assertArrayNotHasKey($widget, $result['listed'], "$widget is not listed while its module is off.");
         }
@@ -50,6 +50,8 @@ final class ModuleFeatureAvailabilityTest extends IntegrationTestCase
 
         self::assertNotContains('elemacy-loop-grid', $result['registered']);
         self::assertNotContains('elemacy-loop-carousel', $result['registered']);
+        self::assertNotContains('elemacy-post-grid', $result['registered']);
+        self::assertNotContains('elemacy-post-carousel', $result['registered']);
         self::assertFalse($result['loop_type'], 'The Loop Item library type belongs to Loop Builder.');
         self::assertFalse($result['loop_pagination'], 'Loop pagination requests are not handled while Loop Builder is off.');
         self::assertContains('elemacy-form', $result['registered']);
@@ -73,13 +75,15 @@ final class ModuleFeatureAvailabilityTest extends IntegrationTestCase
 
     public function testAWidgetSwitchIsIndependentOfItsModuleAndOfOtherWidgets(): void
     {
-        $off = ['elemacy-search' => false, 'elemacy-loop-carousel' => false];
+        $off = ['elemacy-search' => false, 'elemacy-loop-carousel' => false, 'elemacy-post-carousel' => false];
 
         $on = $this->request(self::ALL, $off);
         self::assertNotContains('elemacy-search', $on['registered']);
         self::assertFalse($on['listed']['elemacy-search']);
         self::assertNotContains('elemacy-loop-carousel', $on['registered']);
         self::assertFalse($on['listed']['elemacy-loop-carousel']);
+        self::assertNotContains('elemacy-post-carousel', $on['registered']);
+        self::assertContains('elemacy-post-grid', $on['registered'], 'Switching one post widget off leaves its sibling on.');
         self::assertContains('elemacy-loop-grid', $on['registered'], 'Switching one loop widget off leaves its sibling on.');
 
         // Loop Builder off and back on: the stored switch is untouched, so

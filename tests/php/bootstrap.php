@@ -492,6 +492,16 @@ function wp_parse_args($args, $defaults = [])
     return array_merge($defaults, (array) $args);
 }
 
+function wp_list_pluck($input_list, $field)
+{
+    return array_map(static fn ($item) => is_object($item) ? $item->$field : $item[$field], (array) $input_list);
+}
+
+function get_object_taxonomies($object_type, $output = 'names')
+{
+    return [];
+}
+
 function sanitize_text_field($str)
 {
     $filtered = trim(preg_replace('/[\r\n\t ]+/', ' ', wp_strip_all_tags((string) $str)));
@@ -587,6 +597,11 @@ class WP_Query
     {
         $this->query_vars = is_array($query) ? $query : [];
         $GLOBALS['__wp_query_args'][] = $this->query_vars;
+
+        // A test may say how many posts match; the page count follows as WordPress counts it.
+        $this->found_posts = (int) ($GLOBALS['__wp_query_found_posts'] ?? 0);
+        $per_page = (int) ($this->query_vars['posts_per_page'] ?? 0);
+        $this->max_num_pages = $per_page > 0 ? (int) ceil($this->found_posts / $per_page) : 0;
     }
 
     public function get($query_var, $default_value = '')

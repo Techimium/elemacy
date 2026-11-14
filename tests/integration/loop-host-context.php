@@ -13,6 +13,7 @@ use Elemacy\Loop\Access\PublishedLoopDefinitionResolver;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Loop\Rendering\LoopRenderer;
 use Elemacy\Loop\Rendering\LoopTemplateRenderStack;
+use Elemacy\Modules\LoopBuilder\PostCard\PostCardPresenter;
 use Elemacy\Tests\Integration\Fixtures\ArchitectureCatalog;
 use Elemacy\Tests\Integration\Fixtures\NativeAjaxRequest;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
@@ -90,7 +91,7 @@ final class LoopHostContextTest extends IntegrationTestCase
         $this->request->visit(get_permalink($published));
         wp_set_current_user(0);
 
-        $result = $this->policy()->eligible_items($this->acf_current_post(2, ''), $single, 1);
+        $result = $this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $this->acf_current_post(2, ''), $single, 1);
 
         self::assertSame([$published . '-0', $published . '-1'], $this->identities($result));
     }
@@ -135,14 +136,14 @@ final class LoopHostContextTest extends IntegrationTestCase
         $this->request->visit(get_permalink($published));
         wp_set_current_user(0);
         foreach (['single template' => $single, 'popup' => $this->catalog['popups']['center']] as $placement => $owner) {
-            $ids = $this->identities($this->policy()->eligible_items($settings, $owner, 1));
+            $ids = $this->identities($this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $settings, $owner, 1));
             self::assertNotContains((string) $published, $ids, "The viewed post must be excluded in a $placement.");
             self::assertContains((string) $other, $ids, "Only the server-determined current post is excluded in a $placement.");
         }
 
         $this->request->visit(get_permalink($this->catalog['elementor_host']));
         $ids = $this->within_post_item($published, function () use ($settings): array {
-            return $this->identities($this->policy()->eligible_items($settings, $this->catalog['nested_loop'], 1));
+            return $this->identities($this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $settings, $this->catalog['nested_loop'], 1));
         });
         self::assertNotContains((string) $published, $ids, 'The enclosing post item must be excluded in a nested loop.');
         self::assertContains((string) $other, $ids);
@@ -162,7 +163,7 @@ final class LoopHostContextTest extends IntegrationTestCase
         $this->request->visit(get_term_link($viewed));
         wp_set_current_user(0);
 
-        $ids = $this->identities($this->policy()->eligible_items($settings, $archive, 1));
+        $ids = $this->identities($this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $settings, $archive, 1));
         self::assertNotContains((string) $viewed, $ids, 'The viewed term must be excluded on page 1.');
         self::assertContains((string) $other, $ids, 'A saved current_term_id is never authoritative.');
 
@@ -180,6 +181,89 @@ final class LoopHostContextTest extends IntegrationTestCase
         self::assertStringContainsString('data-elemacy-item="' . $other . '"', $response['data']['items']);
     }
 
+    public function testRelatedPostsAndExcludeCurrentResolveInEveryPlacementOfAPostWidget(): void
+    {
+        $published = $this->catalog['posts']['published'];
+        $term = $this->term('Host context related');
+        wp_set_object_terms($published, [$term], 'category');
+        $related = $this->published_post('Host context related');
+        wp_set_object_terms($related, [$term], 'category');
+        $single = $this->documents->create_everywhere('Host context single', 'single');
+        $settings = ['data_source' => 'related_posts', 'related_posts_taxonomies' => ['category'], 'pagination_type' => ''];
+        $presenter = Container::instance()->singleton(PostCardPresenter::class);
+
+        $this->request->visit(get_permalink($published));
+        wp_set_current_user(0);
+        foreach (['single template' => $single, 'popup' => $this->catalog['popups']['center']] as $placement => $owner) {
+            $ids = $this->identities($this->policy()->eligible_items($presenter, $settings, $owner, 1));
+            self::assertSame([(string) $related], $ids, "Related Posts must follow the viewed post in a $placement.");
+        }
+
+        $this->request->visit(get_permalink($this->catalog['elementor_host']));
+        $ids = $this->within_post_item($published, function () use ($settings, $presenter): array {
+            return $this->identities($this->policy()->eligible_items($presenter, $settings, $this->catalog['nested_loop'], 1));
+        });
+        self::assertSame([(string) $related], $ids, 'Related Posts must follow the enclosing item in a nested list.');
+    }
+
+    public function testRelatedPostsContinueFromTheSignedCurrentPostOnAPostGrid(): void
+    {
+        $published = $this->catalog['posts']['published'];
+        $term = $this->term('Host context paged');
+        wp_set_object_terms($published, [$term], 'category');
+        $first = $this->published_post('Host context paged a');
+        $second = $this->published_post('Host context paged b');
+        wp_set_object_terms($first, [$term], 'category');
+        wp_set_object_terms($second, [$term], 'category');
+        $settings = [
+            'data_source' => 'related_posts', 'related_posts_taxonomies' => ['category'], 'posts_per_page' => 1,
+            'related_posts_orderby' => 'title', 'related_posts_order' => 'ASC', 'pagination_type' => 'load_more',
+        ];
+        $elements = ArchitectureCatalog::grid($settings);
+        $elements[0]['elements'][0]['widgetType'] = 'elemacy-post-grid';
+        $single = $this->documents->create_everywhere('Host context post grid', 'single', 'publish', $elements);
+
+        $this->request->visit(get_permalink($published));
+        wp_set_current_user(0);
+        $placement = PlacementResolverRegistry::instance()->resolve_current($single);
+        self::assertNotNull($placement, 'The single template must be the resolved placement.');
+        $definition = (new PublishedLoopDefinitionResolver($this->policy()))->find($single, $this->catalog['widget_id']);
+        $context = (new PaginationContextSigner())->sign($single, $this->catalog['widget_id'], $definition->fingerprint(), $placement['type'], $placement['facts']);
+        $response = json_decode(NativeAjaxRequest::loop((string) wp_json_encode([
+            'version' => 1, 'owner_id' => $single, 'widget_id' => $this->catalog['widget_id'],
+            'page' => 2, 'fingerprint' => $definition->fingerprint(), 'context' => $context,
+        ])), true);
+
+        self::assertTrue($response['success'] ?? false, 'The signed request must succeed: ' . wp_json_encode($response));
+        self::assertStringContainsString('data-elemacy-item="' . $second . '"', $response['data']['items']);
+        self::assertStringContainsString('elemacy-post-card', $response['data']['items']);
+        self::assertStringNotContainsString('data-elemacy-item="' . $published . '"', $response['data']['items']);
+    }
+
+    public function testAPostGridRendersItsCardsInsideALoopItem(): void
+    {
+        $published = $this->catalog['posts']['published'];
+        $term = $this->term('Host context nested');
+        wp_set_object_terms($published, [$term], 'category');
+        $related = $this->published_post('Host context nested related');
+        wp_set_object_terms($related, [$term], 'category');
+        $elements = ArchitectureCatalog::grid(['data_source' => 'related_posts', 'related_posts_taxonomies' => ['category'], 'pagination_type' => '']);
+        $elements[0]['elements'][0]['widgetType'] = 'elemacy-post-grid';
+        $outer = $this->documents->create('Host context outer item', 'loop', 'publish', $elements);
+        $this->request->visit(get_permalink($this->catalog['elementor_host']));
+        wp_set_current_user(0);
+
+        ob_start();
+        try {
+            (new LoopRenderer())->render_item($outer, new PostLoopItem(get_post($published)), 'host-context', 'posts');
+        } finally {
+            $html = ob_get_clean();
+        }
+
+        self::assertStringContainsString('elemacy-post-card', $html, 'The inner widget renders cards: ' . $html);
+        self::assertStringContainsString('data-elemacy-item="' . $related . '"', $html);
+    }
+
     /** @dataProvider nonPublicPosts */
     public function testANonPublicEnclosingPostIsNeverSuppliedAsTheCurrentPost(string $status): void
     {
@@ -190,7 +274,7 @@ final class LoopHostContextTest extends IntegrationTestCase
 
         $this->expectException(ValidationException::class);
         $this->within_post_item($post, function (): void {
-            $this->policy()->eligible_items($this->acf_current_post(2, ''), $this->catalog['nested_loop'], 1);
+            $this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $this->acf_current_post(2, ''), $this->catalog['nested_loop'], 1);
         });
     }
 

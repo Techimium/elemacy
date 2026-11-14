@@ -18,6 +18,7 @@
             <file>loop-initial-page-eligibility.php</file>
             <file>current-query-archives.php</file>
             <file>loop-load-more.php</file>
+            <file>loop-page-argument.php</file>
             <file>search-template-conditions.php</file>
             <file>archive-conditions.php</file>
             <file>condition-search.php</file>
@@ -76,6 +77,10 @@
             <file>dynamic-tags-registration.php</file>
             <file>post-excerpt-tag.php</file>
             <file>php-extension-contract.php</file>
+            <file>posts-source-filters.php</file>
+            <file>posts-manual-related-sources.php</file>
+            <file>post-card.php</file>
+            <file>post-widgets.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

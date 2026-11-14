@@ -94,6 +94,12 @@ final class Hooks
     // runs a new WP_Query with them.
     public const LOOP_CURRENT_QUERY_ARGS_FILTER = 'elemacy/filter/loop/current_query_args';
 
+    // Lets a site adjust the WP_Query args of a Posts loop: passes the args,
+    // the widget's Query ID (empty when unset) and its settings, for the
+    // editor, the first page and every later page. A public query stays
+    // limited to published, non-password-protected posts and its page size.
+    public const LOOP_POSTS_QUERY_ARGS_FILTER = 'elemacy/filter/loop/posts_query_args';
+
     // Fired after the Widgets module registers its built-in public pagination
     // placement resolvers (page, nested loop), so other modules/add-ons can
     // register their own (passes a

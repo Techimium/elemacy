@@ -93,6 +93,37 @@ final class ElementorProCoexistenceTest extends IntegrationTestCase
         self::assertSame(1, preg_match_all('/<body[ >]/', $html), 'Exactly one <body> tag.');
     }
 
+    public function testBothPostsWidgetsRenderOnOnePage(): void
+    {
+        $previous_cache = get_option('elementor_element_cache_ttl');
+        update_option('elementor_element_cache_ttl', 'disable');
+        $post = wp_insert_post(['post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Coexisting post'], true);
+        self::assertIsInt($post);
+        $this->owned[] = $post;
+        $page = \Elementor\Plugin::instance()->documents->create('wp-page', ['post_type' => 'page', 'post_title' => 'Coexisting posts widgets', 'post_status' => 'draft']);
+        self::assertNotWPError($page);
+        $this->owned[] = $page->get_main_id();
+        $widget = static fn (string $id, string $type, array $settings): array => [
+            'id' => $id, 'elType' => 'widget', 'widgetType' => $type, 'settings' => $settings, 'elements' => [],
+        ];
+        self::assertTrue((bool) $page->save(['elements' => [[
+            'id' => 'coex001', 'elType' => 'container', 'settings' => [],
+            'elements' => [
+                $widget('coex002', 'posts', ['classic_posts_per_page' => 1]),
+                $widget('coex003', 'elemacy-post-grid', ['data_source' => 'posts', 'post_type' => 'post', 'posts_per_page' => 1, 'exclude_current_post' => '']),
+            ],
+        ]], 'settings' => ['post_status' => 'publish']]));
+
+        try {
+            $html = \Elementor\Plugin::instance()->frontend->get_builder_content_for_display($page->get_main_id());
+        } finally {
+            update_option('elementor_element_cache_ttl', $previous_cache);
+        }
+
+        self::assertStringContainsString('elementor-post ', $html, "Elementor Pro's Posts widget still renders.");
+        self::assertStringContainsString('elemacy-post-card', $html, 'Post Grid renders next to it.');
+    }
+
     public function testWhenBothHaveAHeaderOnlyElementorProsRendersInOneDocumentShell(): void
     {
         $this->pro_template('header', self::PRO_HEADER, ['include/general']);

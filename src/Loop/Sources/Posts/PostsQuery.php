@@ -8,8 +8,8 @@ use Elemacy\Core\Constants\PostStatus;
 use Elemacy\Http\Exceptions\ValidationException;
 use Elemacy\Loop\DTO\LoopResultDTO;
 use Elemacy\Loop\Items\PostLoopItem;
-use Elemacy\Loop\Access\PublicLoopLimits;
 use WP_Query;
+use Elemacy\Core\Hooks;
 
 /**
  * The Posts source's runtime query execution, kept free of any Elementor
@@ -22,7 +22,7 @@ class PostsQuery
 {
     public function get_items(array $settings): LoopResultDTO
     {
-        $settings = PublicLoopLimits::bound_ajax_page_size($settings, PostsSettings::PER_PAGE);
+        $settings[PostsSettings::PER_PAGE] = PostsSettings::page_size($settings[PostsSettings::PER_PAGE] ?? null);
         $query = new WP_Query($this->build_query_args($settings));
 
         $items = [];
@@ -31,16 +31,18 @@ class PostsQuery
             $items[] = new PostLoopItem($post);
         }
 
+        ShownPosts::add(wp_list_pluck($query->posts, 'ID'));
+
         $max_num_pages = (int) $query->max_num_pages;
 
-        // Fix max_num_pages when a custom offset was in play for this AJAX
-        // page: WP_Query computes it from found_posts alone, which
-        // over-counts once an offset has already consumed some of those
-        // posts. `PostsSettings::OFFSET_BASE` (the original, uncompounded offset)
-        // is only ever set by sanitize_ajax_settings() below.
-        if (isset($settings[PostsSettings::OFFSET_BASE])) {
-            $posts_per_page = max(1, (int) ($settings[PostsSettings::PER_PAGE] ?? 1));
-            $remaining = max(0, (int) $query->found_posts - (int) $settings[PostsSettings::OFFSET_BASE]);
+        // WP_Query counts max_num_pages from found_posts alone, which
+        // includes the posts an offset skips. The original offset is
+        // `PostsSettings::OFFSET_BASE` once sanitize_ajax_settings() below has
+        // compounded it for a later page, and the saved one in the editor.
+        $offset = abs((int) ($settings[PostsSettings::OFFSET_BASE] ?? $settings[PostsSettings::OFFSET] ?? 0));
+        $posts_per_page = (int) $query->get('posts_per_page');
+        if ($offset > 0 && $posts_per_page > 0) {
+            $remaining = max(0, (int) $query->found_posts - $offset);
             $max_num_pages = (int) ceil($remaining / $posts_per_page);
         }
 
@@ -53,16 +55,15 @@ class PostsQuery
     }
 
     /**
-     * `exclude_current_post` and `paged` each have two valid sources
-     * depending on the caller:
-     *  - A live widget render has no `current_post_id`/`paged` settings key
-     *    (neither is a registered control) — falls back to `is_singular()`/
-     *    `get_the_ID()` and `get_query_var('paged')`, exactly as before
-     *    this abstraction existed.
-     *  - AjaxPaginationController has neither a live "queried object" nor a
-     *    live `paged` query var to read (an admin-ajax.php request runs
-     *    outside the site's main query), so it passes both explicitly,
-     *    reconstructed from its own sanitized request input.
+     * `exclude_current_post` has two valid sources depending on the caller:
+     *  - A live widget render has no `current_post_id` settings key (it is not
+     *    a registered control), so it falls back to `is_singular()` /
+     *    `get_the_ID()`.
+     *  - AjaxPaginationController has no live "queried object" to read (an
+     *    admin-ajax.php request runs outside the site's main query), so it
+     *    passes it explicitly, reconstructed from its own sanitized request
+     *    input.
+     * `paged` is always the page the caller asked for, never the main query's.
      */
     protected function build_query_args(array $settings): array
     {
@@ -93,12 +94,38 @@ class PostsQuery
         }
 
         if (!empty($settings['pagination_type']) && empty($settings[PostsSettings::OFFSET])) {
-            $paged = $settings['paged']
-                ?? (get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1));
+            $paged = $settings['paged'] ?? 1;
             $args['paged'] = $paged;
         }
 
-        return $args;
+        $args = PostsFilters::apply($args, $settings);
+
+        if (PostsFilters::avoids_duplicates($settings) && ShownPosts::all()) {
+            $args['post__not_in'] = array_merge($args['post__not_in'] ?? [], ShownPosts::all());
+        }
+
+        return $this->filtered_args($args, $settings);
+    }
+
+    /**
+     * Lets a site adjust this query by its Query ID. A public query keeps what
+     * makes it public and its size bound, whatever the filter returned.
+     */
+    private function filtered_args(array $args, array $settings): array
+    {
+        $filtered = apply_filters(Hooks::LOOP_POSTS_QUERY_ARGS_FILTER, $args, (string) ($settings[PostsSettings::QUERY_ID] ?? ''), $settings);
+
+        if (!is_array($filtered)) {
+            return $args;
+        }
+
+        if (!empty($settings[PostsSettings::PUBLIC_QUERY])) {
+            $filtered['post_status'] = PostStatus::PUBLISH;
+            $filtered['has_password'] = false;
+            $filtered['posts_per_page'] = $args['posts_per_page'];
+        }
+
+        return $filtered;
     }
 
     /**
@@ -115,7 +142,7 @@ class PostsQuery
             throw new ValidationException(esc_html__('Invalid post type.', 'elemacy'));
         }
 
-        $allowed_orderby = ['date', 'title', 'menu_order', 'rand'];
+        $allowed_orderby = PostsSettings::ORDER_BY_CHOICES;
         $orderby = isset($raw_settings[PostsSettings::ORDER_BY]) ? sanitize_key((string) $raw_settings[PostsSettings::ORDER_BY]) : PostsSettings::DEFAULT_ORDER_BY;
         if (!in_array($orderby, $allowed_orderby, true)) {
             $orderby = PostsSettings::DEFAULT_ORDER_BY;
@@ -126,8 +153,7 @@ class PostsQuery
             $order = PostsSettings::DEFAULT_ORDER;
         }
 
-        $posts_per_page = isset($raw_settings[PostsSettings::PER_PAGE]) ? (int) $raw_settings[PostsSettings::PER_PAGE] : PostsSettings::DEFAULT_PER_PAGE;
-        $posts_per_page = max(1, min(100, $posts_per_page));
+        $posts_per_page = PostsSettings::page_size($raw_settings[PostsSettings::PER_PAGE] ?? null);
 
         $item_settings = [
             PostsSettings::POST_TYPE => $post_type,
@@ -143,12 +169,14 @@ class PostsQuery
         // The first page has the plain offset. Subsequent pages need offset +
         // previous pages' posts; PostsSettings::OFFSET_BASE carries the original,
         // uncompounded offset through to get_items() so it can correct
-        // max_num_pages (see get_items() above).
-        if (!empty($raw_settings[PostsSettings::OFFSET])) {
-            $item_settings[PostsSettings::OFFSET_BASE] = (int) $raw_settings[PostsSettings::OFFSET];
-            $item_settings[PostsSettings::OFFSET] = (int) $raw_settings[PostsSettings::OFFSET] + (($paged - 1) * $posts_per_page);
+        // max_num_pages (see get_items() above). WordPress reads a negative
+        // offset as positive (absint), so a later page does too.
+        $offset = abs((int) ($raw_settings[PostsSettings::OFFSET] ?? 0));
+        if ($offset > 0) {
+            $item_settings[PostsSettings::OFFSET_BASE] = $offset;
+            $item_settings[PostsSettings::OFFSET] = $offset + (($paged - 1) * $posts_per_page);
         }
 
-        return $item_settings;
+        return $item_settings + PostsFilters::sanitize($raw_settings);
     }
 }

@@ -316,7 +316,7 @@
     function init($scope) {
         // The loop's own container, not one of a nested loop's.
         var $container = $scope.find('.elemacy-ajax-pagination[data-elemacy-loop-style]').filter(function () {
-            return $(this).closest('[data-widget_type="elemacy-loop-grid.default"]')[0] === $scope[0];
+            return $(this).closest('[data-widget_type]')[0] === $scope[0];
         }).first();
         var style = $container.attr('data-elemacy-loop-style');
 
@@ -335,11 +335,17 @@
         }
     }
 
-    $(window).on('elementor/frontend/init', function () {
-        // The editor shows the button but never loads pages.
-        if (elementorFrontend.isEditMode()) {
-            return;
+    // The editor shows the button but never loads pages.
+    function initOutsideEditor($scope) {
+        if (!elementorFrontend.isEditMode()) {
+            init($scope);
         }
-        elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-grid.default', init);
+    }
+
+    window.elemacyLoop = window.elemacyLoop || {};
+    window.elemacyLoop.incremental = initOutsideEditor;
+
+    $(window).on('elementor/frontend/init', function () {
+        elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-grid.default', initOutsideEditor);
     });
 })(jQuery);

@@ -67,6 +67,37 @@ final class PublicLoopLimits
     }
 
     /**
+     * How many pages this list offers: all of them, up to its saved Page Limit.
+     *
+     * @param array $settings  Saved settings.
+     * @param int   $max_pages The pages the query found.
+     * @return int
+     */
+    public static function effective_max_pages(array $settings, int $max_pages): int
+    {
+        $limit = $settings['pagination_page_limit'] ?? '';
+
+        if (!is_numeric($limit) || (int) $limit < 1) {
+            return $max_pages;
+        }
+
+        return min($max_pages, (int) $limit);
+    }
+
+    /**
+     * @param array $settings Saved settings.
+     * @param int   $page     Requested one-based page.
+     * @return void
+     * @throws ValidationException When the page is past the saved Page Limit.
+     */
+    public static function assert_within_page_limit(array $settings, int $page): void
+    {
+        if ($page > self::effective_max_pages($settings, $page)) {
+            throw self::invalid_settings();
+        }
+    }
+
+    /**
      * Whether pages after the first load in place: the AJAX switch is on, or
      * the pagination type is incremental (Load More / Infinite Scroll), which
      * always loads in place.

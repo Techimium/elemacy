@@ -236,6 +236,8 @@
         var $loopGrid = $targetContainer.find('.elemacy-loop-grid');
         var requestRaw = $targetContainer.attr('data-elemacy-loop-request');
         var paginateBase = $targetContainer.attr('data-elemacy-loop-base') || '';
+        var pageArg = $targetContainer.attr('data-elemacy-loop-page-arg') || '';
+        var singular = $targetContainer.attr('data-elemacy-loop-singular') === '1';
 
         if (!requestRaw || typeof window.elemacy === 'undefined') {
             return;
@@ -246,6 +248,31 @@
             baseRequest = JSON.parse(requestRaw);
         } catch (e) {
             return;
+        }
+
+        // The page a pagination link leads to, read the way the server built
+        // it: the widget's own argument, the site's `/page/N/` or `?paged=N`,
+        // or a singular page's own `/slug/N/` or `?page=N`. A link with none
+        // of them is page one, the clean URL.
+        function pageFromLink(href) {
+            var url;
+            try {
+                url = new URL(href, window.location.href);
+            } catch (e) {
+                return 1;
+            }
+
+            var match;
+            if (pageArg) {
+                match = (url.searchParams.get(pageArg) || '').match(/^\d+$/);
+            } else {
+                match = url.pathname.match(/\/page\/(\d+)/)
+                    || (url.search.match(/[?&]paged=(\d+)/))
+                    || (singular && (url.search.match(/[?&]page=(\d+)/) || url.pathname.match(/\/(\d+)\/?$/)));
+                match = match ? [match[1]] : null;
+            }
+
+            return match ? Math.max(1, parseInt(match[match.length > 1 ? 1 : 0], 10)) : 1;
         }
 
         // The link was only intercepted to swap the items in place, so a
@@ -263,30 +290,11 @@
 
             var $btn = $(this);
             var href = $btn.attr('href');
-            var paged = 1;
-
             if (!href) return;
 
-            // Extract page number from URL if possible
-            var pageMatch = href.match(/\/page\/(\d+)/);
-            if (pageMatch && pageMatch[1]) {
-                paged = parseInt(pageMatch[1], 10);
-            } else {
-                // Try from query string ?paged=
-                var pagedMatch = href.match(/(?:[?&])paged=(\d+)/);
-                if (pagedMatch && pagedMatch[1]) {
-                    paged = parseInt(pagedMatch[1], 10);
-                } else {
-                    // Try to guess from button text if it's a number (fallback for edge cases)
-                    var textNum = parseInt($btn.text(), 10);
-                    if (!isNaN(textNum)) {
-                        paged = textNum;
-                    }
-                }
-            }
-
-            // Do nothing if we can't figure out the target page
-            if (paged <= 0) return;
+            // The page is the widget's own page argument; page one is the
+            // link with no argument at all.
+            var paged = pageFromLink(href);
 
             // Visual loading state
             $targetContainer.addClass('elemacy-is-loading');
@@ -367,6 +375,9 @@
             });
         });
     };
+
+    window.elemacyLoop = window.elemacyLoop || {};
+    window.elemacyLoop.pagination = WidgetLoopGridHandler;
 
     $(window).on('elementor/frontend/init', function () {
         elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-grid.default', WidgetLoopGridHandler);

@@ -42,6 +42,7 @@ use Elemacy\Core\Contracts\ModuleStatusInterface;
 use Elemacy\Core\Contracts\AdminMenuRegistrarInterface;
 use Elemacy\Conditions\Contracts\ConditionRegistrarInterface;
 use Elemacy\Loop\Contracts\LoopDataSourceRegistrarInterface;
+use Elemacy\Loop\Rendering\ItemPresenterRegistry;
 use Elemacy\Loop\Contracts\AddressStepResolverRegistrarInterface;
 use Elemacy\Loop\Address\AddressStepResolverRegistry;
 use Elemacy\Integrations\Acf\Contracts\AcfRowCursorInterface;
@@ -69,6 +70,7 @@ class CoreServiceProvider implements ServiceProviderInterface
             TemplateResolver::class,
             LoopDataSourceRegistry::class,
             PlacementResolverRegistry::class,
+            ItemPresenterRegistry::class,
             ConditionManager::class,
             ConditionEvaluator::class,
         ];

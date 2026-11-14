@@ -122,6 +122,8 @@ return [
     $returned('elemacy-nav-menu', 'src/Widgets/NavMenu/NavMenu.php'),
     $returned('elemacy-loop-grid', 'src/Modules/LoopBuilder/Widgets/LoopGrid/LoopGrid.php'),
     $returned('elemacy-loop-carousel', 'src/Modules/LoopBuilder/Widgets/LoopCarousel/LoopCarousel.php'),
+    $returned('elemacy-post-grid', 'src/Modules/LoopBuilder/Widgets/PostGrid/PostGrid.php'),
+    $returned('elemacy-post-carousel', 'src/Modules/LoopBuilder/Widgets/PostCarousel/PostCarousel.php'),
     $returned('elemacy-form', 'src/Modules/FormBuilder/Widgets/Form/Form.php'),
     $returned('elemacy-search', 'src/Widgets/Search/Search.php'),
     $returned('elemacy-acf-accordion', 'src/Widgets/AcfAccordion/AcfAccordion.php'),
@@ -133,6 +135,11 @@ return [
     $returned('current_query', 'src/Modules/LoopBuilder/DataSources/CurrentQueryDataSource.php'),
     $returned('terms', 'src/Modules/LoopBuilder/DataSources/TaxonomyDataSource.php'),
     $returned('users', 'src/Modules/LoopBuilder/DataSources/UsersDataSource.php'),
+    $returned('manual_posts', 'src/Modules/LoopBuilder/DataSources/ManualPostsDataSource.php'),
+    $returned('related_posts', 'src/Modules/LoopBuilder/DataSources/RelatedPostsDataSource.php'),
+
+    // Public URL contract: a loop widget's own page argument is elemacy-page-<widget id> (docs/CONTRACTS.md § Loop pagination URLs).
+    ['id' => 'elemacy-page-', 'file' => 'src/Loop/Pagination/PageArgument.php', 'declaration' => "/const\\s+PREFIX\\s*=\\s*'elemacy-page-'/"],
 
     // Dynamic tag names (name="..." in saved [elementor-tag] references).
     $returned('elemacy-acf-color', 'src/Modules/DynamicTags/Tags/Acf/AcfColor.php'),

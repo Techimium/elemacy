@@ -5,6 +5,7 @@ namespace Elemacy\Loop\Access;
 defined('ABSPATH') || exit;
 
 use Elemacy\Http\Exceptions\ValidationException;
+use Elemacy\Loop\Rendering\ItemPresenterRegistry;
 use JsonException;
 
 /**
@@ -19,13 +20,17 @@ final class PublishedLoopDefinitionResolver
 
     /** @var PublicRenderPolicy */
     private PublicRenderPolicy $policy;
+    /** @var ItemPresenterRegistry */
+    private ItemPresenterRegistry $presenters;
 
     /**
-     * @param PublicRenderPolicy $policy Native document eligibility.
+     * @param PublicRenderPolicy         $policy     Native document eligibility.
+     * @param ItemPresenterRegistry|null $presenters Defaults to the shared instance.
      */
-    public function __construct(PublicRenderPolicy $policy)
+    public function __construct(PublicRenderPolicy $policy, ?ItemPresenterRegistry $presenters = null)
     {
         $this->policy = $policy;
+        $this->presenters = $presenters ?? ItemPresenterRegistry::instance();
     }
 
     /**
@@ -48,7 +53,7 @@ final class PublishedLoopDefinitionResolver
      * Read server-owned settings for payload generation or request resolution.
      *
      * @param int    $owner_id Authoring document ID.
-     * @param string $widget_id Exact saved Loop Grid widget ID.
+     * @param string $widget_id Exact saved widget ID.
      * @return PublishedLoopDefinition
      * @throws ValidationException On invalid authoring data or access.
      */
@@ -70,9 +75,13 @@ final class PublishedLoopDefinitionResolver
         }
         $element = $this->find_element($tree, $widget_id);
         if (
-            'widget' !== ($element['elType'] ?? null) || 'elemacy-loop-grid' !== ($element['widgetType'] ?? null)
+            'widget' !== ($element['elType'] ?? null) || !is_string($element['widgetType'] ?? null)
             || !isset($element['settings']) || !is_array($element['settings'])
         ) {
+            throw self::unavailable();
+        }
+        $presenter = $this->presenters->for_widget($element['widgetType']);
+        if (null === $presenter) {
             throw self::unavailable();
         }
         $settings = $element['settings'];
@@ -80,11 +89,10 @@ final class PublishedLoopDefinitionResolver
             throw self::unavailable();
         }
 
-        $template_id = $this->template_id($settings['template_id'] ?? null);
-        $this->policy->assert_template($template_id);
+        $presenter->assert_public($settings);
 
         $fingerprint = hash('sha256', get_current_blog_id() . ':' . $owner_id . ':' . $widget_id . ':' . $raw);
-        return new PublishedLoopDefinition($owner_id, $widget_id, $template_id, $settings, $fingerprint);
+        return new PublishedLoopDefinition($owner_id, $widget_id, $presenter, $settings, $fingerprint);
     }
 
     /**
@@ -119,25 +127,6 @@ final class PublishedLoopDefinitionResolver
             throw self::unavailable();
         }
         return $found;
-    }
-
-    /**
-     * @param mixed $value Persisted Elementor SELECT2 value (integer or digits).
-     * @return int
-     * @throws ValidationException On malformed, absent or overflowing IDs.
-     */
-    private function template_id($value): int
-    {
-        if (is_int($value) && $value > 0) {
-            return $value;
-        }
-        if (
-            is_string($value) && preg_match('/\A[1-9][0-9]*\z/', $value)
-            && (string) (int) $value === $value
-        ) {
-            return (int) $value;
-        }
-        throw self::unavailable();
     }
 
     /** @return ValidationException Client-safe unavailable-definition error. */

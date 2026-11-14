@@ -12,6 +12,7 @@ use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\TemplateLibrary\TemplateResolver;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Tests\Integration\Fixtures\EditorControls;
 use Elemacy\Tests\Integration\Fixtures\NativeAjaxRequest;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 use Elementor\Plugin;
@@ -191,6 +192,7 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
         self::assertStringContainsString('data-elemacy-loop-id="' . $f['archive'] . '-' . self::WIDGET_ID . '"', $html);
         self::assertStringNotContainsString('data-elemacy-loop-request', $html, 'A page-URL loop carries no signed endpoint payload.');
         self::assertMatchesRegularExpression('#href="[^"]*(?:/page/2/|paged=2)[^"]*"#', $html, 'Pagination links are the page\'s own paginated URLs.');
+        self::assertStringNotContainsString('elemacy-page-', $html, 'A Current Query loop has no page argument of its own.');
     }
 
     public function testTheLoopEndpointRefusesACurrentQueryWidget(): void
@@ -217,7 +219,7 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
         $this->request->visit(get_term_link($f['cat_a']));
 
         try {
-            $this->policy()->eligible_items($stale, $host);
+            $this->policy()->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $stale, $host);
             self::fail('Posts must reject current_query as a post type.');
         } catch (ValidationException $error) {
             self::assertNotSame('', $error->getMessage());
@@ -263,12 +265,18 @@ final class CurrentQueryArchivesTest extends IntegrationTestCase
         self::assertArrayHasKey('post', $controls['post_type']['options']);
         self::assertSame('Post Type', $controls['post_type']['label']);
 
-        foreach (['post_type', 'posts_per_page', 'offset', 'orderby', 'order', 'exclude_current_post'] as $name) {
+        foreach (['post_type', 'offset', 'orderby', 'order', 'exclude_current_post'] as $name) {
             self::assertSame(['data_source' => 'posts'], $controls[$name]['condition'], $name . ' belongs to the Posts source alone.');
         }
 
-        self::assertSame(['current_query_notice'], array_values(array_diff(array_keys($controls), ['post_type', 'posts_per_page', 'offset', 'orderby', 'order', 'exclude_current_post'])), 'Current Query registers only its informational notice.');
+        $not_posts = array_keys(array_filter($controls, static fn (array $control): bool => 'posts' !== ($control['condition']['data_source'] ?? '')));
+        self::assertSame(['current_query_notice'], $not_posts, 'Current Query registers only its informational notice.');
         self::assertSame(['data_source' => 'current_query'], $controls['current_query_notice']['condition']);
+
+        $page_size = EditorControls::of(Plugin::instance()->widgets_manager->get_widget_types('elemacy-loop-grid'))['posts_per_page'];
+        self::assertArrayNotHasKey('posts_per_page', $controls, 'The page size belongs to the widget, not to one source.');
+        self::assertNotContains('current_query', $page_size['condition']['data_source'], 'Current Query takes its page size from Settings > Reading.');
+        self::assertContains('posts', $page_size['condition']['data_source']);
     }
 
     public function testLoopItemPreviewUsesTheMostRecentPublicPost(): void

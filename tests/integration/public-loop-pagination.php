@@ -124,7 +124,7 @@ final class PublicLoopPaginationTest extends IntegrationTestCase
             $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
             $page_one = array_map(static function ($item): int {
                 return (int) $item->get_identity();
-            }, $policy->eligible_items($widget->get_settings_for_display(), $owner_id, 1)->items);
+            }, $policy->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $widget->get_settings_for_display(), $owner_id, 1)->items);
 
             $definition = (new PublishedLoopDefinitionResolver($policy))->find($owner_id, $catalog['widget_id']);
             $placement = \Elemacy\Loop\Placement\PlacementResolverRegistry::instance()->resolve_current($owner_id);

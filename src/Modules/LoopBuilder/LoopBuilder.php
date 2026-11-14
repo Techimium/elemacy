@@ -16,20 +16,27 @@ use Elemacy\Loop\LoopDataSourceRegistry;
 use Elemacy\Loop\Placement\NestedLoopPlacementResolver;
 use Elemacy\Loop\Placement\PagePlacementResolver;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
+use Elemacy\Loop\Rendering\ItemPresenterRegistry;
+use Elemacy\Loop\Rendering\TemplateItemPresenter;
 use Elemacy\Modules\LoopBuilder\DataSources\CurrentQueryDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\ManualPostsDataSource;
 use Elemacy\Modules\LoopBuilder\DataSources\PostsDataSource;
+use Elemacy\Modules\LoopBuilder\DataSources\RelatedPostsDataSource;
 use Elemacy\Modules\LoopBuilder\DataSources\TaxonomyDataSource;
 use Elemacy\Modules\LoopBuilder\DataSources\UsersDataSource;
 use Elemacy\Modules\LoopBuilder\Documents\DocumentManager;
 use Elemacy\Modules\LoopBuilder\Documents\LoopDocument;
+use Elemacy\Modules\LoopBuilder\PostCard\PostCardPresenter;
 use Elemacy\Modules\LoopBuilder\Services\FrontendAssets;
+use Elemacy\Modules\LoopBuilder\Services\PagedPostGuard;
 use Elemacy\Support\Utils;
 use Elemacy\TemplateLibrary\TypeDefinition;
 use Elemacy\TemplateLibrary\TypeRegistry;
 
 /**
- * Loop Builder: the Loop Grid and Loop Carousel widgets, the Loop Item
- * template they render, the built-in data sources and public pagination. The
+ * Loop Builder: the Loop Grid and Loop Carousel widgets and the Loop Item
+ * template they render, the template-free Post Grid and Post Carousel, the
+ * built-in data sources and public pagination. The
  * loop engine itself (src/Loop) is shared, because Theme Builder, Popups,
  * Dynamic Tags and Pro use it too.
  *
@@ -64,18 +71,21 @@ class LoopBuilder extends Module
 
     public function get_description(): string
     {
-        return __('Design a Loop Item template once and show posts, terms or users in a grid or carousel.', 'elemacy');
+        return __('List posts with Post Grid and Post Carousel, or design a Loop Item template to show posts, terms or users in a grid or carousel.', 'elemacy');
     }
 
     public function boot(): void
     {
         new DocumentManager();
         new FrontendAssets();
+        (new PagedPostGuard())->register_hooks();
 
         $this->register_types();
         $this->register_data_sources();
         $this->register_placement_resolvers();
         $this->register_address_step_resolvers();
+        ItemPresenterRegistry::instance()->register('elemacy-loop-grid', TemplateItemPresenter::class);
+        ItemPresenterRegistry::instance()->register('elemacy-post-grid', PostCardPresenter::class);
 
         require_once Utils::get_plugin_path('src/Modules/LoopBuilder/Config/ajax.php');
     }
@@ -98,6 +108,8 @@ class LoopBuilder extends Module
             $registry->register(new CurrentQueryDataSource());
             $registry->register(new TaxonomyDataSource());
             $registry->register(new UsersDataSource());
+            $registry->register(new ManualPostsDataSource());
+            $registry->register(new RelatedPostsDataSource());
 
             do_action(Hooks::LOOP_DATA_SOURCES_REGISTER_ACTION, $registry);
         }, 99);

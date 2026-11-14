@@ -24,6 +24,7 @@ You have a page you love. Now you need a header that matches, a contact form, an
 * **Theme Builder** — create headers, footers, single post layouts, archives, search results and a custom 404 page.
 * **Popup Builder** — design popups, top or bottom bars, banners and floating elements, with page-load and click triggers.
 * **Form Builder** — build contact and inquiry forms with 14 field types and email notifications.
+* **Post Grid and Post Carousel** — list posts of any type as cards with no template to build.
 * **Loop Grid and Loop Carousel** — design one card, then fill it with posts, categories or users. Add AJAX pagination, Load More or Infinite Scroll to grids.
 * **Dynamic Tags and ACF widgets** — connect designs to WordPress content and custom fields instead of retyping the same information.
 * **Navigation, search and finishing touches** — add a responsive nav menu, site logo, search form and Custom CSS.
@@ -63,6 +64,8 @@ Your latest stories should appear without rebuilding a row of cards. Your team d
 The **Loop Grid** gives you responsive columns and spacing. Choose page numbers, Previous/Next links, or both, with optional AJAX loading. Use a **Load More** button or **Infinite Scroll** when you want the next items to appear in the same grid.
 
 The **Loop Carousel** presents your loop design as a swipeable slider. Set slides per view, slides to scroll, equal height, autoplay, pause on hover, infinite looping, transition speed, arrows and pagination dots.
+
+Don't need a custom design? **Post Grid** and **Post Carousel** list posts of any public type, including custom post types, with no template to build. Arrange a card from parts (image, title, excerpt, meta, terms, author, button and custom fields), place each one on the image, in the body or in the footer, and choose where the image sits on each device. Post Grid also offers list and masonry layouts and every pagination type.
 
 Nested loops let a layout contain another loop. With **Elemacy Pro**, an ACF repeater can also supply the rows, using your own Loop Item design.
 
@@ -251,6 +254,9 @@ Use the WordPress.org support forum for Elemacy Free. Report bugs or contribute 
 
 = 1.0.0 =
 * Initial release
+* Post Grid and Post Carousel: list posts of any public type as cards with no template to build, with composable card parts, grid, list and masonry layouts and pagination
+* Posts query: filter by term, author, date and custom field, with more sort orders, Ignore Sticky Posts, Avoid Duplicates and a Query ID for developers; new Manual Selection and Related Posts sources
+* Pagination: Page Limit and custom Previous/Next labels
 * Theme Builder: Header, Footer, Single, Archive, 404 and Search Results templates for classic and block themes, with support for public custom post types and blog archives; reusable sections and Loop Items in the Template Library
 * Header and Footer templates edit on their own Elementor document types, showing only the settings that apply to site chrome
 * Display Conditions: Entire Site, Singular Post Type, Post Type Archive, and Search Results for Search templates (advanced conditions, including Search Results by post type, available in Elemacy Pro); when several templates match a page, the most specific one is used

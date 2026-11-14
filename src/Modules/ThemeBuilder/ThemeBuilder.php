@@ -13,6 +13,7 @@ use Elemacy\Modules\ThemeBuilder\Compatibility\CompatibilityManager;
 use Elemacy\Modules\ThemeBuilder\Compatibility\ElementorProLocations;
 use Elemacy\Modules\ThemeBuilder\Documents\DocumentManager;
 use Elemacy\Modules\ThemeBuilder\Services\LocationRegistry;
+use Elemacy\Modules\ThemeBuilder\Services\PagedTemplateGuard;
 use Elemacy\Modules\ThemeBuilder\Services\Placement\ThemeBuilderPlacementResolver;
 use Elemacy\Modules\ThemeBuilder\Services\ThemeBuilderManager;
 use Elemacy\Loop\Placement\PlacementResolverRegistry;
@@ -70,6 +71,7 @@ class ThemeBuilder extends Module
     {
         new DocumentManager();
         ThemeBuilderManager::instance()->register_hooks();
+        (new PagedTemplateGuard())->register_hooks();
 
         $this->register_admin_menu();
         $this->register_admin_data();

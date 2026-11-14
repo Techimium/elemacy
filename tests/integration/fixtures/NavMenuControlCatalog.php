@@ -2,9 +2,9 @@
 
 namespace Elemacy\Tests\Integration\Fixtures;
 
-use Elementor\Core\Frontend\Performance;
-use Elementor\Plugin;
 use Elementor\Widget_Base;
+
+require_once __DIR__ . '/EditorControls.php';
 
 /**
  * Describes a nav menu widget's controls as comparable metadata: what the builder
@@ -34,7 +34,7 @@ final class NavMenuControlCatalog
     {
         $controls = [];
 
-        foreach (self::controls($widget) as $name => $control) {
+        foreach (EditorControls::of($widget) as $name => $control) {
             $section = $control['type'] === 'section' ? $name : ($control['section'] ?? '');
 
             if (!in_array($section, self::SECTIONS, true)) {
@@ -45,31 +45,6 @@ final class NavMenuControlCatalog
         }
 
         return $controls;
-    }
-
-    /**
-     * The widget's raw controls as the editor sees them. Elementor drops labels,
-     * options and UI controls from the stack outside the editor, preview and REST
-     * requests, so build this widget's stack in full once, then put Elementor's
-     * request classification back.
-     *
-     * @return array<string, array<string, mixed>>
-     */
-    public static function controls(Widget_Base $widget): array
-    {
-        $is_frontend = new \ReflectionProperty(Performance::class, 'is_frontend');
-        $is_frontend->setAccessible(true);
-        $previous = $is_frontend->getValue();
-
-        try {
-            $is_frontend->setValue(null, false);
-            Plugin::$instance->controls_manager->delete_stack($widget);
-
-            return $widget->get_controls();
-        } finally {
-            $is_frontend->setValue(null, $previous);
-            Plugin::$instance->controls_manager->delete_stack($widget);
-        }
     }
 
     private static function normalise(string $name, array $control): array

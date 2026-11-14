@@ -778,6 +778,34 @@
       }
     },
     {
+      "id": "elemacy:loop-source:manual_posts",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "manual_posts",
+      "source": "src/Modules/LoopBuilder/DataSources/ManualPostsDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:posts-manual-related-sources",
+        "elemacy:integration:loop-control-defaults"
+      ],
+      "journey": {
+        "id": "elemacy:journey:loop-source:manual_posts",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "A dedicated browser runner covers authoring, save and reopen and the visitor result, but the journey is not yet wired into the unified journey runner; coverage references are not a claim of release readiness.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:loop-source:posts",
       "owner": "elemacy",
       "kind": "loop-source",
@@ -791,7 +819,8 @@
         "elemacy:runner:run-loop-load-more-editor",
         "elemacy:integration:loop-host-context",
         "elemacy:integration:loop-control-defaults",
-        "elemacy:integration:loop-addresses"
+        "elemacy:integration:loop-addresses",
+        "elemacy:integration:posts-source-filters"
       ],
       "journey": {
         "id": "elemacy:journey:loop-source:posts",
@@ -806,6 +835,35 @@
           "Verify applicable invalid, empty and unavailable dependency behavior."
         ],
         "reason": "Native authoring journey not implemented; existing runner presence is not evidence of coverage.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:loop-source:related_posts",
+      "owner": "elemacy",
+      "kind": "loop-source",
+      "identifier": "related_posts",
+      "source": "src/Modules/LoopBuilder/DataSources/RelatedPostsDataSource.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:posts-manual-related-sources",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:loop-control-defaults"
+      ],
+      "journey": {
+        "id": "elemacy:journey:loop-source:related_posts",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "A dedicated browser runner covers authoring, save and reopen and the visitor result, but the journey is not yet wired into the unified journey runner; coverage references are not a claim of release readiness.",
         "follow_up": "automate-release-browser-testing"
       }
     },
@@ -3320,6 +3378,72 @@
       }
     },
     {
+      "id": "elemacy:widget:elemacy-post-carousel",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-post-carousel",
+      "source": "src/Modules/LoopBuilder/Widgets/PostCarousel/PostCarousel.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:post-card",
+        "elemacy:integration:post-widgets",
+        "elemacy:runner:run-post-widgets",
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:module-feature-availability"
+      ],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-post-carousel",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "A dedicated browser runner covers authoring, save and reopen and the visitor result, but the journey is not yet wired into the unified journey runner; coverage references are not a claim of release readiness.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
+      "id": "elemacy:widget:elemacy-post-grid",
+      "owner": "elemacy",
+      "kind": "widget",
+      "identifier": "elemacy-post-grid",
+      "source": "src/Modules/LoopBuilder/Widgets/PostGrid/PostGrid.php",
+      "implementation": "real",
+      "prerequisites": [],
+      "coverage": [
+        "elemacy:integration:post-card",
+        "elemacy:integration:post-widgets",
+        "elemacy:runner:run-post-widgets",
+        "elemacy:integration:loop-control-defaults",
+        "elemacy:integration:loop-host-context",
+        "elemacy:integration:module-feature-availability",
+        "elemacy:integration:posts-source-filters",
+        "elemacy:integration:posts-manual-related-sources"
+      ],
+      "journey": {
+        "id": "elemacy:journey:widget:elemacy-post-grid",
+        "status": "pending",
+        "profiles": [
+          "free-only",
+          "free-pro"
+        ],
+        "expected": [
+          "Configure through supported UI, save, reopen and verify persisted choices.",
+          "Verify the authored output or interaction as a visitor.",
+          "Verify applicable invalid, empty and unavailable dependency behavior."
+        ],
+        "reason": "A dedicated browser runner covers authoring, save and reopen and the visitor result, but the journey is not yet wired into the unified journey runner; coverage references are not a claim of release readiness.",
+        "follow_up": "automate-release-browser-testing"
+      }
+    },
+    {
       "id": "elemacy:widget:elemacy-search",
       "owner": "elemacy",
       "kind": "widget",
@@ -3450,6 +3574,11 @@
       "id": "elemacy:runner:run-popup-assets",
       "layer": "native-browser",
       "path": "tests/e2e/run-popup-assets.mjs"
+    },
+    {
+      "id": "elemacy:runner:run-post-widgets",
+      "layer": "native-browser",
+      "path": "tests/e2e/run-post-widgets.mjs"
     },
     {
       "id": "elemacy:runner:run-topbar-prerender",
@@ -3825,6 +3954,26 @@
       "id": "elemacy:integration:php-extension-contract",
       "layer": "native-integration",
       "path": "tests/integration/php-extension-contract.php"
+    },
+    {
+      "id": "elemacy:integration:posts-source-filters",
+      "layer": "native-integration",
+      "path": "tests/integration/posts-source-filters.php"
+    },
+    {
+      "id": "elemacy:integration:posts-manual-related-sources",
+      "layer": "native-integration",
+      "path": "tests/integration/posts-manual-related-sources.php"
+    },
+    {
+      "id": "elemacy:integration:post-card",
+      "layer": "native-integration",
+      "path": "tests/integration/post-card.php"
+    },
+    {
+      "id": "elemacy:integration:post-widgets",
+      "layer": "native-integration",
+      "path": "tests/integration/post-widgets.php"
     },
     {
       "id": "elemacy:lifecycle:uninstall-current-site",

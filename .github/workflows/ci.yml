@@ -220,6 +220,7 @@ jobs:
           node run-current-query-editor.mjs
           node run-loop-load-more.mjs
           node run-loop-load-more-editor.mjs
+          node run-post-widgets.mjs
           node run-form-submissions.mjs
           node run-editor-template-styles.mjs
 

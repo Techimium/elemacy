@@ -11,6 +11,7 @@ use Elemacy\Loop\Placement\PlacementResolverRegistry;
 use Elemacy\Modules\LoopBuilder\DataSources\PostsDataSource;
 use Elemacy\Modules\LoopBuilder\Widgets\LoopGrid\LoopGrid;
 use Elemacy\TemplateLibrary\TypeRegistry;
+use Elemacy\Loop\Access\PublicLoopLimits;
 use Elemacy\Tests\Integration\Fixtures\NativeAjaxRequest;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 use Elementor\Plugin;
@@ -100,7 +101,7 @@ final class LoopLoadMoreTest extends IntegrationTestCase
 
             public function pagination(): array
             {
-                $this->register_pagination_section();
+                \Elemacy\Modules\LoopBuilder\Widgets\Controls\PaginationSection::register($this);
 
                 return $this->recorded;
             }
@@ -296,9 +297,82 @@ final class LoopLoadMoreTest extends IntegrationTestCase
         self::assertFalse($response['success'] ?? true);
     }
 
+    // ---- Page limit and labels ----------------------------------------------
+
+    public function testAPageLimitEndsLoadMoreAndRefusesLaterPages(): void
+    {
+        $owner = $this->hostPage($this->postsGrid('load_more', ['pagination_page_limit' => 2]));
+        $this->request->visit(get_permalink($owner));
+
+        self::assertStringContainsString('elemacy-load-more', $this->renderWidget($owner));
+
+        $last = $this->endpointPage($owner, 2);
+        self::assertSame(0, $last['next_page'], 'The limit is the last page.');
+        self::assertSame('', trim($last['pagination']), 'No Load More link remains.');
+
+        $response = (array) json_decode(NativeAjaxRequest::loop(wp_json_encode($this->payload($owner, 3)), ''), true);
+        self::assertFalse($response['success'] ?? true, 'A page past the limit is refused.');
+    }
+
+    public function testNumberedLinksStopAtThePageLimit(): void
+    {
+        $owner = $this->hostPage($this->postsGrid('numbers', ['pagination_page_limit' => 2]));
+        $this->request->visit(get_permalink($owner));
+        $html = $this->renderWidget($owner);
+
+        self::assertMatchesRegularExpression('#(/2/|[?&](?:amp;|\#038;)?page=2)#', $html, 'A singular page\'s links are its own paged URLs.');
+        self::assertDoesNotMatchRegularExpression('#(/3/|[?&](?:amp;|\#038;)?page=3)#', $html);
+    }
+
+    public function testAClassicUrlPastTheLimitShowsTheLastAllowedPage(): void
+    {
+        $settings = $this->postsGrid('numbers', ['pagination_page_limit' => 2]);
+        $owner = $this->hostPage($settings);
+
+        $this->request->visit(add_query_arg('paged', 2, get_permalink($owner)));
+        $second = $this->itemIds($this->renderWidget($owner));
+        $this->request->visit(add_query_arg('paged', 3, get_permalink($owner)));
+
+        self::assertSame($second, $this->itemIds($this->renderWidget($owner)));
+    }
+
+    public function testNoPageLimitChangesNothing(): void
+    {
+        self::assertSame(9, PublicLoopLimits::effective_max_pages([], 9));
+        self::assertSame(9, PublicLoopLimits::effective_max_pages(['pagination_page_limit' => ''], 9));
+        self::assertSame(3, PublicLoopLimits::effective_max_pages(['pagination_page_limit' => 3], 9));
+        self::assertSame(2, PublicLoopLimits::effective_max_pages(['pagination_page_limit' => 3], 2));
+    }
+
+    public function testCustomPreviousAndNextLabels(): void
+    {
+        $this->request->visit(home_url('/'));
+        $html = $this->render(['pagination_type' => 'prev_next', 'pagination_prev_label' => 'Newer', 'pagination_next_label' => 'Older'], 3, 2);
+
+        self::assertStringContainsString('>Newer</a>', $html);
+        self::assertStringContainsString('>Older</a>', $html);
+    }
+
+    public function testEmptyLabelsKeepTheDefaults(): void
+    {
+        $this->request->visit(home_url('/'));
+        $html = $this->render(['pagination_type' => 'prev_next', 'pagination_prev_label' => '', 'pagination_next_label' => ''], 3, 2);
+
+        self::assertStringContainsString('« Previous', $html);
+        self::assertStringContainsString('Next »', $html);
+    }
+
+    public function testCustomLabelsAreEscaped(): void
+    {
+        $this->request->visit(home_url('/'));
+        $html = $this->render(['pagination_type' => 'prev_next', 'pagination_next_label' => '<b>Older</b>'], 3, 1);
+
+        self::assertStringNotContainsString('<b>Older</b>', $html);
+    }
+
     // ---- Page size ---------------------------------------------------------
 
-    public function testAnIncrementalGridsFirstPageIsBoundedLikeItsLaterPages(): void
+    public function testAGridsFirstPageIsBoundedLikeItsLaterPages(): void
     {
         $captured = null;
         $observe = static function (\WP_Query $query) use (&$captured) {
@@ -313,7 +387,7 @@ final class LoopLoadMoreTest extends IntegrationTestCase
 
             $captured = null;
             (new PostsDataSource())->get_items($settings + ['pagination_type' => 'numbers', 'pagination_ajax' => 'no']);
-            self::assertSame(5000, $captured, 'A link-type grid without AJAX keeps its authored size.');
+            self::assertSame(100, $captured, 'A link-type grid without AJAX is bounded the same way.');
         } finally {
             remove_action('pre_get_posts', $observe);
         }

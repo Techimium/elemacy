@@ -30,7 +30,7 @@ class PostsPolicy implements PublicLoopSourcePolicyInterface
         PublicLoopLimits::assert_page($page);
         PublicLoopLimits::assert_scalars($settings, array_keys(PostsSettings::defaults()));
         $saved = $settings + PostsSettings::defaults();
-        $saved[PostsSettings::PER_PAGE] = PublicLoopLimits::page_size($saved[PostsSettings::PER_PAGE]);
+        $saved[PostsSettings::PER_PAGE] = PostsSettings::page_size($saved[PostsSettings::PER_PAGE]);
         $saved[PostsSettings::CURRENT_POST_ID] = (int) ($context[HostFacts::POST_ID] ?? 0);
 
         $public = $this->query->sanitize_ajax_settings($saved, $page);

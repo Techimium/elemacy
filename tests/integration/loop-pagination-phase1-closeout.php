@@ -44,7 +44,7 @@ final class LoopPaginationPhase1CloseoutTest extends IntegrationTestCase
 
             $settings = $catalog['sources']['posts'] + ['template_id' => $catalog['library']['published']];
             $policy = new PublicRenderPolicy(TypeRegistry::instance(), LoopDataSourceRegistry::instance());
-            $classic = $policy->eligible_items($settings, $catalog['elementor_host']);
+            $classic = $policy->eligible_items(\Elemacy\Core\Container::instance()->singleton(\Elemacy\Loop\Rendering\TemplateItemPresenter::class), $settings, $catalog['elementor_host']);
 
             $ajax_ids = $this->paginate($catalog['elementor_host'], $catalog['widget_id'], 1);
 

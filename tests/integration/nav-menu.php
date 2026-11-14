@@ -7,6 +7,7 @@ use DOMElement;
 use DOMXPath;
 use Elemacy\Widgets\NavMenu\NavMenu;
 use Elemacy\Widgets\NavMenu\BreakpointStyles;
+use Elemacy\Tests\Integration\Fixtures\EditorControls;
 use Elemacy\Tests\Integration\Fixtures\NavMenuControlCatalog;
 use Elemacy\Tests\Integration\Fixtures\RequestSimulator;
 use Elementor\Plugin;
@@ -320,7 +321,7 @@ final class NavMenuTest extends IntegrationTestCase
             self::assertStringContainsString('@media (max-width:900px){.elemacy-nav-menu--breakpoint-tablet .elemacy-nav-menu__main{display:none}}', $css);
             self::assertStringContainsString('@media (min-width:901px){.elemacy-nav-menu--breakpoint-tablet .elemacy-nav-menu__toggle', $css);
 
-            $options = NavMenuControlCatalog::controls(Plugin::$instance->widgets_manager->get_widget_types('elemacy-nav-menu'))['dropdown']['options'];
+            $options = EditorControls::of(Plugin::$instance->widgets_manager->get_widget_types('elemacy-nav-menu'))['dropdown']['options'];
             self::assertStringContainsString('(> 900px)', $options['tablet']);
             self::assertSame('none', array_key_last($options));
         } finally {

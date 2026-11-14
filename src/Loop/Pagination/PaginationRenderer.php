@@ -15,27 +15,29 @@ defined('ABSPATH') || exit;
 class PaginationRenderer
 {
     /**
-     * @param array    $settings
-     * @param int      $max_num_pages
-     * @param int|null $current_page
+     * @param array      $settings
+     * @param int        $max_num_pages
+     * @param int|null   $current_page
+     * @param array|null $link_args     `base` and `format` for paginate_links() (see PageLinks); null
+     *                                  links to the site's own `/page/N/` URLs.
      * @return void
      */
-    public function render(array $settings, int $max_num_pages, ?int $current_page = null): void
+    public function render(array $settings, int $max_num_pages, ?int $current_page = null, ?array $link_args = null): void
     {
         if ($current_page === null) {
             $current_page = max(1, get_query_var('paged'), get_query_var('page'));
         }
 
         if (PaginationType::is_incremental($settings['pagination_type'] ?? '')) {
-            $this->render_next_link($settings, $max_num_pages, $current_page);
+            $this->render_next_link($settings, $max_num_pages, $current_page, $link_args);
 
             return;
         }
 
         $show_all = false;
         $prev_next = false;
-        $prev_text = esc_html__('« Previous', 'elemacy');
-        $next_text = esc_html__('Next »', 'elemacy');
+        $prev_text = !empty($settings['pagination_prev_label']) ? esc_html($settings['pagination_prev_label']) : esc_html__('« Previous', 'elemacy');
+        $next_text = !empty($settings['pagination_next_label']) ? esc_html($settings['pagination_next_label']) : esc_html__('Next »', 'elemacy');
         $show_numbers = false;
 
         switch ($settings['pagination_type']) {
@@ -61,11 +63,7 @@ class PaginationRenderer
             'type' => 'array',
         ];
 
-        if (!empty($settings['paginate_base'])) {
-            $paginate_args['base'] = $settings['paginate_base'];
-        }
-
-        $links = paginate_links($paginate_args);
+        $links = paginate_links($link_args ? $link_args + $paginate_args : $paginate_args);
 
         if (!is_array($links)) {
             return;
@@ -93,12 +91,13 @@ class PaginationRenderer
      * `page-numbers` class as the link types so every Pagination style
      * control already styles it. Nothing is rendered on the last page.
      *
-     * @param array $settings
-     * @param int   $max_num_pages
-     * @param int   $current_page
+     * @param array      $settings
+     * @param int        $max_num_pages
+     * @param int        $current_page
+     * @param array|null $link_args
      * @return void
      */
-    protected function render_next_link(array $settings, int $max_num_pages, int $current_page): void
+    protected function render_next_link(array $settings, int $max_num_pages, int $current_page, ?array $link_args = null): void
     {
         if ($current_page >= $max_num_pages) {
             return;
@@ -113,11 +112,7 @@ class PaginationRenderer
             'type' => 'array',
         ];
 
-        if (!empty($settings['paginate_base'])) {
-            $paginate_args['base'] = $settings['paginate_base'];
-        }
-
-        $links = paginate_links($paginate_args);
+        $links = paginate_links($link_args ? $link_args + $paginate_args : $paginate_args);
 
         // The URL core built for the next page, already escaped by core.
         $href = '';

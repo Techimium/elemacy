@@ -32,5 +32,9 @@ class FrontendAssets
 
         WidgetAssets::register_style('src/Modules/LoopBuilder/Widgets/LoopCarousel', 'loop-carousel');
         WidgetAssets::register_script('src/Modules/LoopBuilder/Widgets/LoopCarousel', 'loop-carousel');
+
+        WidgetAssets::register_style('src/Modules/LoopBuilder', 'post-card');
+        WidgetAssets::register_script('src/Modules/LoopBuilder/Widgets/PostGrid', 'post-grid', ['elemacy-loop-grid', 'elemacy-loop-incremental']);
+        WidgetAssets::register_script('src/Modules/LoopBuilder/Widgets/PostCarousel', 'post-carousel', ['elemacy-loop-carousel']);
     }
 }

@@ -122,6 +122,8 @@ try {
     if (message.type() === 'error') errors.push({ kind: 'console', message: message.text() });
   });
 
+  const pageTwoPattern = /(?:[?&]page=2\b|\/2\/?$)/;
+
   // --- Fresh-context pagination on a flat page ---
   let response = await page.goto(fixture.flat_url, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
@@ -130,6 +132,14 @@ try {
   assert.ok(await flatGrid.getAttribute('data-elemacy-loop-request'), 'Flat grid did not emit a request envelope.');
   const flatPage1 = await itemIds(flatGrid);
   assert.ok(flatPage1.length > 0, 'Flat grid rendered no items.');
+  // The grid's page links are its page's own paged URLs (never a widget argument,
+  // since it is the only paginated grid of its document); page one is the clean URL.
+  assert.equal(await flatGrid.getAttribute('data-elemacy-loop-singular'), '1', 'The grid is marked as a singular page\'s.');
+  assert.equal(await flatGrid.getAttribute('data-elemacy-loop-page-arg'), null, 'A lone grid has no argument of its own.');
+  const flatLinkTwo = new URL(await flatGrid.locator('.elemacy-pagination a.page-numbers', { hasText: '2' }).first().getAttribute('href'), page.url());
+  assert.match(flatLinkTwo.pathname + flatLinkTwo.search, pageTwoPattern, 'The page-2 link is the page\'s own paged URL.');
+  assert.ok(!flatLinkTwo.search.includes('elemacy-page-'), 'No widget argument on a lone grid\'s link.');
+  results.push('PASS: classic page links of a lone grid are the page\'s own paged URLs');
   assert.ok(await allThirdPartyWidgetsHydrated(flatGrid), 'Page 1\'s items must already be hydrated on normal page load.');
   results.push('PASS: page 1\'s Elementor widgets are hydrated on normal (non-AJAX) page load');
   await waitForAjaxSuccess(page, flatGrid, () => flatGrid.locator('.elemacy-pagination a.page-numbers', { hasText: '2' }).first().click());
@@ -167,7 +177,6 @@ try {
   // A cached page may be days old, so the request must carry no nonce, and a
   // rejected or unsuccessful answer must end in an ordinary page load.
   const ajaxPattern = /admin-ajax\.php/;
-  const pageTwoPattern = /(\/page\/2\/?|[?&]paged=2\b)/;
   const expectedFailures = [];
   const recordIntentionalErrors = (before) => {
     // The browser's own "Failed to load resource" line and the script's

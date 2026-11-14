@@ -216,7 +216,7 @@ final class PublicRenderPolicyTest extends IntegrationTestCase
         );
     }
 
-    public function testClassicFirstPageOfAnAjaxPaginatedPostsWidgetIsBounded(): void
+    public function testThePostsSourceRunsTheNormalisedPageSizeWhetherOrNotItPaginatesInPlace(): void
     {
         $source = new PostsDataSource();
         $captured = null;
@@ -229,16 +229,13 @@ final class PublicRenderPolicyTest extends IntegrationTestCase
 
         add_action('pre_get_posts', $observe);
         try {
-            $source->get_items($base_settings + ['pagination_ajax' => 'yes', 'posts_per_page' => 0]);
-            self::assertSame(100, $captured, 'A zero/unlimited saved size on an AJAX-paginated widget must be bounded on its classic first page.');
-
-            $captured = null;
-            $source->get_items($base_settings + ['pagination_ajax' => 'yes', 'posts_per_page' => 5000]);
-            self::assertSame(100, $captured, 'An oversized saved size on an AJAX-paginated widget must be bounded.');
-
-            $captured = null;
-            $source->get_items($base_settings + ['pagination_ajax' => 'no', 'posts_per_page' => 0]);
-            self::assertSame(0, $captured, 'A non-AJAX-paginated widget keeps its exact authored value unchanged.');
+            foreach (['yes', 'no'] as $ajax) {
+                foreach ([[0, 6], ['', 6], [-3, 6], ['abc', 6], [5000, 100], [4, 4]] as [$saved, $size]) {
+                    $captured = null;
+                    $source->get_items($base_settings + ['pagination_ajax' => $ajax, 'posts_per_page' => $saved]);
+                    self::assertSame($size, $captured, 'Saved ' . var_export($saved, true) . ' with AJAX ' . $ajax . '.');
+                }
+            }
         } finally {
             remove_action('pre_get_posts', $observe);
         }

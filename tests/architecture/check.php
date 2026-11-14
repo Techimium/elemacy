@@ -53,6 +53,8 @@
  *    points): `AdminScripts::CONTRACT_VERSION`, the version the admin bridge
  *    publishes at runtime, equals the version of the declaration package Pro
  *    builds against (src-react/contract/package.json).
+ * 11. The shared loop engine names no concrete widget type: src/Loop/ reaches
+ *    a widget only through what the widget's owner registers.
  *
  * There is no allowlist; an exception is a violation.
  *
@@ -580,6 +582,25 @@ if (null === $runtime_contract) {
     $violations[] = sprintf('[admin contract] AdminScripts::CONTRACT_VERSION is %s but src-react/contract/package.json declares %s; they change together, and only when the declared admin surface changes', $runtime_contract, var_export($declared_contract, true));
 }
 
+// 11. The shared loop engine names no concrete widget type.
+$declared_widget_types = [];
+foreach (array_merge(glob($plugin_root . 'src/*/Config/widgets.php') ?: [], glob($plugin_root . 'src/Modules/*/Config/widgets.php') ?: []) as $catalog) {
+    preg_match_all("/'name'\\s*=>\\s*'(elemacy-[a-z0-9-]+)'/", (string) file_get_contents($catalog), $declared);
+    $declared_widget_types = array_merge($declared_widget_types, $declared[1]);
+}
+$loop_files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($plugin_root . 'src/Loop', FilesystemIterator::SKIP_DOTS));
+foreach ($loop_files as $loop_file) {
+    if ('php' !== $loop_file->getExtension()) {
+        continue;
+    }
+    $loop_code = (string) file_get_contents($loop_file->getPathname());
+    foreach ($declared_widget_types as $widget_type) {
+        if (false !== strpos($loop_code, "'" . $widget_type . "'")) {
+            $violations[] = sprintf('[loop engine names a widget] %s: %s; register what the engine needs from the widget\'s owner instead', ltrim(str_replace($plugin_root, '', $loop_file->getPathname()), '/'), $widget_type);
+        }
+    }
+}
+
 if ($violations) {
     fwrite(STDERR, "Architecture check failed:\n\n");
 
@@ -592,4 +613,4 @@ if ($violations) {
     exit(1);
 }
 
-echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor, PHP-extension-contract, layout and admin-contract-version rules all pass.\n";
+echo "Architecture check: layering, Elementor boundary, planning-reference, persisted-identifier, retired-public-name, versioned-REST, dynamic-tag-name, widget-type-naming, PHP 7.4 syntax-floor, PHP-extension-contract, layout, admin-contract-version and loop-engine-widget rules all pass.\n";

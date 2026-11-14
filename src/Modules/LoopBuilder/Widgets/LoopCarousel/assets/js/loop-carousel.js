@@ -109,6 +109,9 @@
         initSwiper();
     };
 
+    window.elemacyLoop = window.elemacyLoop || {};
+    window.elemacyLoop.carousel = WidgetLoopCarouselHandler;
+
     $(window).on('elementor/frontend/init', function () {
         elementorFrontend.hooks.addAction('frontend/element_ready/elemacy-loop-carousel.default', WidgetLoopCarouselHandler);
     });
